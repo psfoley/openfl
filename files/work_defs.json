@@ -1,0 +1,68 @@
+{
+	"0xFEEDFACE":
+	{
+		"aggregator":
+		{
+			"name":"alpha_agg",
+			"address": "127.0.0.1:5555"
+		},
+		"collaborators":
+		[
+			"alice",
+			"bob",
+			"charlie",
+			"dana"
+		],
+		"model config":
+		{
+			"layer ids": ["layer0", "layer1", "layer2", "layer3", "layer4", "layer5", "layer6", "layer7"]
+		},
+		"training config:":
+		{
+			"optimizer": "Momentum",
+			"learning rate": 1e-4,
+			"epochs per round": 
+			{
+				"method": "linear decay",
+				"start": 4,
+				"stop": 1,
+				"step": 0.5
+			},
+			"initialization": 
+			{
+				"method": "he_uniform",
+				"seed": 42
+			}
+		},
+		"validation config":
+		{
+			"method": "whole patient random split",
+			"percentage": 0.2,
+			"seed": 42
+		},
+		"termination config":
+		{
+			"method": "validation plateau",
+			"patience": 10
+		},
+		"compression config":
+		{
+			"tbd": "tbd"
+		},
+		"aggregation config":
+		{
+			"aggregation method": 
+			{
+				"method": "weighted_averaging"
+			},
+			"aggregation method example": 
+			{
+				"method": "BGD",
+				"n_buckets": 8
+			},
+			"COL per round": 3,
+			"min COL per round": 2,
+			"round timeout": "2 * 60 * 60"
+		}
+	}
+}

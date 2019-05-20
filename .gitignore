@@ -1,0 +1,6 @@
+*.pyc
+*.bak
+*.pkl
+*.lock
+*.ipynb_checkpoints*
+*.swp

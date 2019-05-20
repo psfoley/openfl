@@ -4,12 +4,9 @@ url = "https://pypi.python.org/simple"
 name = "pypi"
 
 [packages]
-zmq = "*"
-tensorflow-gpu = "*"
+tensorflow-gpu = "==1.10.0"
 scipy = "*"
-psutil = "*"
-joblib = "*"
-cryptography = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.5"

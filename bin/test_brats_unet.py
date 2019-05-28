@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 import argparse
 import numpy as np
+import tensorflow as tf
 
 import tfedlrn
 from tfedlrn.bratsunettest import TF2DUnet
 
 # data-sharing test
 def main(data_path=None, epochs=12):
+    np.random.seed(0)
+    tf.set_random_seed(0)
+
     # FIXME: find the right code pattern for this
     assert data_path is not None
 
-    unet = TF2DUnet(data_path, load_mutiple=np.arange(10))
+    unet = TF2DUnet(data_path)
 
     score = unet.validate()
     print('initial validation score:', score)

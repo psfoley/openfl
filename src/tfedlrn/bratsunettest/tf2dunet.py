@@ -16,10 +16,10 @@ class TF2DUnet(object):
     # FIXME: better abstraction to address this test case
     def load_data(self, data_path, load_mutiple=None):
         if load_mutiple is None:
-            self.X_train = np.load(os.path.join(data_path, 'imgs_train.npy'))
-            self.y_train = np.load(os.path.join(data_path, 'msks_train.npy'))
-            self.X_val = np.load(os.path.join(data_path, 'imgs_val.npy'))
-            self.y_val = np.load(os.path.join(data_path, 'msks_val.npy'))
+            self.X_train = np.load(os.path.join(data_path, 'imgs_train.npy'), mmap_mode='r')
+            self.y_train = np.load(os.path.join(data_path, 'msks_train.npy'), mmap_mode='r')
+            self.X_val = np.load(os.path.join(data_path, 'imgs_val.npy'), mmap_mode='r')
+            self.y_val = np.load(os.path.join(data_path, 'msks_val.npy'), mmap_mode='r')
         else:
             self.X_train = np.concatenate([np.load(os.path.join(data_path, str(i), 'imgs_train.npy')) for i in load_mutiple])
             self.y_train = np.concatenate([np.load(os.path.join(data_path, str(i), 'msks_train.npy')) for i in load_mutiple])
@@ -31,6 +31,7 @@ class TF2DUnet(object):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         self.sess = tf.Session(config=config)
+        tf.keras.backend.set_session(self.sess)
 
         self.X = tf.placeholder(tf.float32, (None, 128, 128, 1))
         self.y = tf.placeholder(tf.float32, (None, 128, 128, 1))
@@ -54,10 +55,12 @@ class TF2DUnet(object):
         self.sess.run(tf.global_variables_initializer())
 
     def train_epoch(self, batch_size=64):
+        tf.keras.backend.set_learning_phase(True)
+
         # shuffle data
         idx = np.random.permutation(np.arange(self.X_train.shape[0]))
-        X = self.X_train[idx]
-        y = self.y_train[idx]
+        X = self.X_train
+        y = self.y_train
 
         # compute the number of batches
         num_batches = ceil(X.shape[0] / batch_size)
@@ -66,11 +69,13 @@ class TF2DUnet(object):
         for i in tqdm(range(num_batches), desc="training epoch"):
             a = i * batch_size
             b = a + batch_size
-            losses.append(self.train_batch(X[a:b], y[a:b]))
+            losses.append(self.train_batch(X[idx[a:b]], y[idx[a:b]]))
 
         return np.mean(losses)
 
     def validate(self, batch_size=64):
+        tf.keras.backend.set_learning_phase(False)
+
         score = 0
         for i in tqdm(np.arange(0, self.X_val.shape[0], batch_size), desc="validating"):
             X = self.X_val[i:i+batch_size]

@@ -77,7 +77,7 @@ class Collaborator(object):
     def do_train_job(self):
 
         # get the initial tensor dict
-        initial_tensor_dict = self.wrapped_model.get_tensor_dict()
+        # initial_tensor_dict = self.wrapped_model.get_tensor_dict()
 
         # train the model
         loss = self.wrapped_model.train_epoch()
@@ -85,10 +85,12 @@ class Collaborator(object):
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
 
-        # get the trained tensor dict and convert it to a delta
+        # get the trained tensor dict
         tensor_dict = self.wrapped_model.get_tensor_dict()
-        for k in tensor_dict.keys():
-            tensor_dict[k] -= initial_tensor_dict[k]
+
+        # convert the tensor dict to a delta
+        # for k in tensor_dict.keys():
+        #     tensor_dict[k] -= initial_tensor_dict[k]
 
         # create the tensor proto list
         tensor_protos = []

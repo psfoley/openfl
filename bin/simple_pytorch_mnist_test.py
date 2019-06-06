@@ -23,8 +23,7 @@ def execute_process(args, cuda_num=None):
     return subprocess.Popen(array, env=env)
 
 
-def main():
-    num_collaborators = 1
+def main(num_collaborators):
     agg_proc = execute_process({'exe': './simple_pytorch_mnist_agg.py', 'num_collaborators':num_collaborators})
     col_procs = [execute_process({'exe': './simple_pytorch_mnist_col.py', 
                                   'num_collaborators':num_collaborators,
@@ -43,5 +42,6 @@ if __name__ == '__main__':
     import argparse
     
     parser = argparse.ArgumentParser()
+    parser.add_argument('--num_collaborators', '-n', type=int, default=4)
     args = parser.parse_args()
     main(**vars(args))

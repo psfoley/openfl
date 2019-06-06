@@ -143,7 +143,7 @@ class Aggregator(object):
                     raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
 
                 # now just weighted average these
-                new_values = np.average([g.values, l.values], weights=[weight_g, weight_l])
+                new_values = np.average([g.values, l.values], weights=[weight_g, weight_l], axis=0)
                 del self.model.tensors[i].values[:]
                 self.model.tensors[i].values.extend(new_values)
 

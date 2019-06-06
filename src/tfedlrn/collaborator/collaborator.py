@@ -1,11 +1,4 @@
-#!/usr/bin/env python3
-import sys
-import os
-
-from math import ceil
-
 import time
-import argparse
 
 import numpy as np
 
@@ -26,9 +19,6 @@ class Collaborator(object):
 
 
     def send(self, message):
-        # set the message header
-        message.header = self.message_header
-
         self.connection.send(message)
         reply = self.connection.receive()
 
@@ -43,9 +33,12 @@ class Collaborator(object):
         # check that the counters match
         assert reply.header.counter == self.message_header.counter
 
-        # now we can increment our counter
-        self.message_header.counter += 1
-
+        # update our message_header
+        self.message_header = MessageHeader(sender=self.message_header.sender,
+                                            recipient=self.message_header.recipient,
+                                            federation_id=self.message_header.federation_id, 
+                                            counter=(self.message_header.counter + 1))
+        
         return reply
 
 
@@ -54,9 +47,11 @@ class Collaborator(object):
             # query for job
             job = self.query_for_job()
 
+            print('{} got job {}'.format(self.message_header.sender, job))
+
             # if time to quit
             if job is JOB_QUIT:
-                print(f'{self} quitting')
+                print('{} quitting'.format(self.id))
                 break
             elif job is JOB_TRAIN:
                 self.do_train_job()
@@ -68,11 +63,11 @@ class Collaborator(object):
                 self.do_download_model_job()
 
     def query_for_job(self):
-        reply = self.send(JobRequest(model_header=self.model_header))
+        reply = self.send(JobRequest(header=self.message_header, model_header=self.model_header))
 
         assert isinstance(reply, JobReply)
 
-        return reply.Job
+        return reply.job
 
     def do_train_job(self):
 
@@ -99,7 +94,7 @@ class Collaborator(object):
 
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
 
-        reply = self.send(LocalModelUpdate(model=model_proto, data_size=data_size, loss=loss))
+        reply = self.send(LocalModelUpdate(header=self.message_header, model=model_proto, data_size=data_size, loss=loss))
         assert isinstance(reply, LocalModelUpdateAck)
 
     def do_yield_job(self):
@@ -109,17 +104,17 @@ class Collaborator(object):
         results = self.wrapped_model.validate()
         data_size = self.wrapped_model.get_validation_data_size()
 
-        reply = self.send(LocalValidationResults(model_header=self.model_header, results=results, data_size=data_size))
+        reply = self.send(LocalValidationResults(header=self.message_header, model_header=self.model_header, results=results, data_size=data_size))
         assert isinstance(reply, LocalValidationResultsAck)
 
     def do_download_model_job(self):
         # sanity check on version is implicit in send
-        reply = self.send(ModelDownloadRequest(model_header=self.model_header))
+        reply = self.send(ModelDownloadRequest(header=self.message_header, model_header=self.model_header))
 
         assert isinstance(reply, GlobalModelUpdate)
 
         # ensure we actually got a new model version
-        assert reply.model.header.version != message.model_header.version
+        assert reply.model.header.version != self.model_header.version
 
         # set our model header
         self.model_header = reply.model.header
@@ -127,6 +122,6 @@ class Collaborator(object):
         # create the tensor dict
         tensor_dict = {}
         for tensor_proto in reply.model.tensors:
-            tensor_dict[tensor_proto.name] = np.array(tensor_proto.shape, buffer=tensor_proto.values, order='C')
+            tensor_dict[tensor_proto.name] = np.array(tensor_proto.values, order='C').reshape(tensor_proto.shape)
 
-        self.wrapped_model.set_tensors_from_dict(tensor_dict)
+        self.wrapped_model.set_tensor_dict(tensor_dict)

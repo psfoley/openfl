@@ -6,6 +6,10 @@ import torch.utils.data
 import torch.nn.functional as F
 import torch.optim as optim
 
+from tfedlrn.datasets import load_dataset
+from tfedlrn.collaborator.pytorchflmodel import PyTorchFLModel
+
+
 class PyTorchMNISTCNN(PyTorchFLModel):
 
     def __init__(self, device, train_loader=None, val_loader=None):

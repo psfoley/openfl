@@ -1,5 +1,9 @@
+import abc
+
 import torch
 import torch.nn as nn
+
+from tfedlrn.collaborator.flmodel import FLModel
 
 
 class PyTorchFLModel(FLModel, nn.Module):
@@ -59,6 +63,7 @@ class PyTorchFLModel(FLModel, nn.Module):
         state = self.state_dict()
         for k, v in state.items():
             state[k] = v.cpu().numpy() # get as a numpy array
+
         return {**state, **self.get_optimizer_tensors()}
 
     def set_tensor_dict(self, tensor_dict):

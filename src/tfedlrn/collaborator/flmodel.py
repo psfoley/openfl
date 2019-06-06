@@ -1,5 +1,6 @@
 import abc
 
+
 class FLModel(metaclass=abc.ABCMeta):
 
 	@abc.abstractmethod

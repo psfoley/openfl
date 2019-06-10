@@ -14,7 +14,7 @@ class FLModel(metaclass=abc.ABCMeta):
 		pass
 
 	@abc.abstractmethod
-	def train_epoch(self):
+	def train_epoch(self, epoch=None):
 		pass
 
 	@abc.abstractmethod

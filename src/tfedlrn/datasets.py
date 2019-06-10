@@ -17,6 +17,7 @@ def _get_dataset_func_map():
 #         'cifar100': load_cifar100,
 #         'bsm': load_bsm,
 #         'BraTS17': load_BraTS17,
+        'BraTS17_institution': load_BraTS17_insitution,
     }
 
 
@@ -80,6 +81,17 @@ def _read_mnist_kind(path, kind='train', one_hot=True, **kwargs):
 
     return images, labels
 
+
+def load_BraTS17_insitution(institution=0, channels_first=False, **kwargs):
+    path = os.path.join(_get_dataset_dir(), 'BraTS17', 'by_institution', str(institution))
+    files = ['imgs_train.npy', 'msks_train.npy', 'imgs_val.npy', 'msks_val.npy']
+    
+    data = [np.load(os.path.join(path, f), mmap_mode='r') for f in files]
+    
+    if channels_first:
+        data = [np.swapaxes(d, 1, 3) for d in data]
+
+    return tuple(data)
 
 def load_mnist(**kwargs):
     path = os.path.join(_get_dataset_dir(), 'mnist', 'input_data')

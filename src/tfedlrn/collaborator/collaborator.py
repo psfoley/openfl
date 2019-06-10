@@ -75,7 +75,8 @@ class Collaborator(object):
         # initial_tensor_dict = self.wrapped_model.get_tensor_dict()
 
         # train the model
-        loss = self.wrapped_model.train_epoch()
+        # FIXME: model header "version" needs to be changed to "rounds_trained"
+        loss = self.wrapped_model.train_epoch(epoch=self.model_header.version)
 
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()

@@ -1,37 +1,41 @@
 from enum import Enum, auto
 
 
+class CollaboratorJob(Enum):
+    TRAIN = auto()
+    VALIDATE = auto()
+    YIELD = auto()
+    QUIT = auto()
+    DOWNLOAD_MODEL = auto()
+
+
 class MessageType(Enum):
-    VERSION = auto()
-    LAYER = auto()
-    ROLE = auto()
-    REPLY_CODE = auto()
-    VERSION_REQUEST = auto()
-    ROLE_REQUEST = auto()
-    LAYER_REQUEST = auto()
-    LAYER_UPDATE = auto()
-    VALIDATION_RESULTS = auto()
+    JOB_REQUEST = auto()
+    TRAIN_UPDATE = auto()
+    VALIDATE_UPDATE = auto()
+    MODEL_DOWNLOAD_REQUEST = auto()
+    
+    JOB_REPLY = auto()
+    TRAIN_ACK = auto()
+    VALIDATE_ACK = auto()
+    MODEL_DOWNLOAD_REPLY = auto()
 
 
 class Message(object):
 
     def __init__(self,
                  message_type,
-                 work_id,
                  sender,
                  recipient,
-                 payload,
-                 reply_code=None):
+                 payload):
 
         self.message_type = message_type
-        self.work_id = work_id
         self.sender = sender
         self.recipient = recipient
-        self.reply_code = reply_code
         self.payload = payload
 
     def __repr__(self):
-        return f'{self.message_type} {self.sender}->{self.recipient} {self.work_id} {self.reply_code} {type(self.payload)}'
+        return '{} {}->{} {}'.format(self.message_type, self.sender, self.recipient, type(self.payload))
 
     def __str__(self):
         return self.__repr__()

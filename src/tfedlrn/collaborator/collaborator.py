@@ -2,56 +2,66 @@ import time
 
 import numpy as np
 
-from tfedlrn.proto.message_pb2 import *
+from ..proto.message_pb2 import *
 
 
 class Collaborator(object):
 
+    # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
     def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_id, model_version, polling_interval=4):
         self.connection = connection
         self.polling_interval = 4
 
         # this stuff is really about sanity/correctness checking to ensure the bookkeeping and control flow is correct
-        self.message_header = MessageHeader(sender=id, recipient=agg_id, federation_id=fed_id, counter=0)
+        self.id = id
+        self.agg_id = agg_id
+        self.fed_id = fed_id
+        self.counter = 0
         self.model_header = ModelHeader(id=model_id, version=model_version)
 
         self.wrapped_model = wrapped_model
 
+    def create_message_header(self):
+        header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)
+        return header
 
-    def send(self, message):
+    def __repr__(self):
+        return 'collaborator {} of federation {}'.format(self.id, self.fed_id)
+
+    def __str__(self):
+        return self.__repr__()
+
+    # FIXME: rename to send_req_rcv_reply
+    def send_and_receive(self, message):
         self.connection.send(message)
         reply = self.connection.receive()
 
         # validate the message pair
 
         # check message is from my agg to me
-        assert reply.header.sender == self.message_header.recipient and reply.header.recipient == self.message_header.sender
+        assert reply.header.sender == self.agg_id and reply.header.recipient == self.id
 
         # check that the federation id matches
-        assert reply.header.federation_id == self.message_header.federation_id
+        assert reply.header.federation_id == self.fed_id
 
         # check that the counters match
-        assert reply.header.counter == self.message_header.counter
+        assert reply.header.counter == self.counter
 
-        # update our message_header
-        self.message_header = MessageHeader(sender=self.message_header.sender,
-                                            recipient=self.message_header.recipient,
-                                            federation_id=self.message_header.federation_id, 
-                                            counter=(self.message_header.counter + 1))
-        
+        # increment our counter
+        self.counter += 1
+
         return reply
-
 
     def run(self):
         while True:
             # query for job
             job = self.query_for_job()
 
-            print('{} got job {}'.format(self.message_header.sender, job))
+            print(self, 'got job', Job.Name(job))
 
             # if time to quit
             if job is JOB_QUIT:
-                print('{} quitting'.format(self.id))
+                print(self, 'quitting')
                 break
             elif job is JOB_TRAIN:
                 self.do_train_job()
@@ -63,7 +73,7 @@ class Collaborator(object):
                 self.do_download_model_job()
 
     def query_for_job(self):
-        reply = self.send(JobRequest(header=self.message_header, model_header=self.model_header))
+        reply = self.send_and_receive(JobRequest(header=self.create_message_header(), model_header=self.model_header))
 
         assert isinstance(reply, JobReply)
 
@@ -84,7 +94,7 @@ class Collaborator(object):
         # get the trained tensor dict
         tensor_dict = self.wrapped_model.get_tensor_dict()
 
-        # convert the tensor dict to a delta
+        # convert to a delta
         # for k in tensor_dict.keys():
         #     tensor_dict[k] -= initial_tensor_dict[k]
 
@@ -95,7 +105,7 @@ class Collaborator(object):
 
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
 
-        reply = self.send(LocalModelUpdate(header=self.message_header, model=model_proto, data_size=data_size, loss=loss))
+        reply = self.send_and_receive(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
         assert isinstance(reply, LocalModelUpdateAck)
 
     def do_yield_job(self):
@@ -105,12 +115,12 @@ class Collaborator(object):
         results = self.wrapped_model.validate()
         data_size = self.wrapped_model.get_validation_data_size()
 
-        reply = self.send(LocalValidationResults(header=self.message_header, model_header=self.model_header, results=results, data_size=data_size))
+        reply = self.send_and_receive(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
         assert isinstance(reply, LocalValidationResultsAck)
 
     def do_download_model_job(self):
         # sanity check on version is implicit in send
-        reply = self.send(ModelDownloadRequest(header=self.message_header, model_header=self.model_header))
+        reply = self.send_and_receive(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
 
         assert isinstance(reply, GlobalModelUpdate)
 

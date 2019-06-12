@@ -69,8 +69,8 @@ class PyTorchFLModel(FLModel, nn.Module):
         i = 0
         for group in optimizer.param_groups:
             for idx, p in enumerate(group['params']):
-                old = group['params'][idx]
-                new = torch.Tensor(tensor_dict['__opt_{}'.format(i)]).to(old.device)
+                group['params'][idx] = torch.Tensor(tensor_dict['__opt_{}'.format(i)]).to(p.device)
+                i += 1
 
     def get_tensor_dict(self):
         # FIXME: should we use self.parameters()??? Unclear if load_state_dict() is better or simple assignment is better

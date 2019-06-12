@@ -1,0 +1,21 @@
+NEEDED FOR SGX DEMO:
+Change from class hierarchy to utilities for fl models
+Set imports to be relative
+Update dataset-loading/filesystem to be easier to manage
+Finish tensorflow implmentation and Test
+Determine correct packaging structure
+Fix setup script/mechanism
+Integrate graphene-sgx
+Test zmq works in graphene-sgx
+
+NOT NEEDED FOR SGX DEMO:
+Implement Job selector
+Test pytorch optimizer get/set
+Update per-col round results with key/value pairs
+Add documentation to the MNIST example models
+Integrate docker builds
+Clean-up dead code
+Implement BGD
+FL Plan protobuf implementation - AGG side
+FL Plan protobuf implementation - COL side
+FL Plan verification in agg and col

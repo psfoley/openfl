@@ -3,6 +3,9 @@ import numpy as np
 from tfedlrn.proto.message_pb2 import *
 
 
+# FIXME: simpler "stats" collection/handling
+# FIXME: remove the round tracking/job-result tracking stuff from this?
+# Feels like it conflates model aggregation with round management
 class Aggregator(object):
 
     # FIXME: no selector logic is in place
@@ -14,6 +17,10 @@ class Aggregator(object):
         self.model = model
         self.col_ids = col_ids
 
+        self.model_update_in_progress = None
+
+        # these are per collaborator, for the current round
+        # FIXME: call these "per_col_round_stats"
         self.loss_results = {}
         self.collaborator_training_sizes = {}
         self.validation_results = {}
@@ -30,6 +37,7 @@ class Aggregator(object):
         done = True
 
         # ensure we have results from all collaborators
+        # this only works this way because all collaborators have the same jobs every round
         for c in self.col_ids:
             if (c not in self.loss_results or 
                 c not in self.collaborator_training_sizes or 
@@ -53,11 +61,19 @@ class Aggregator(object):
                                weights=[self.collaborator_validation_sizes[c] for c in self.col_ids])
 
         # FIXME: proper logging
+        # FIXME: log this to debug is good, but where does this output ultimately go?
         print('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
         print('\tvalidation: {}'.format(round_val))
         print('\tloss: {}'.format(round_loss))
 
+        # copy over the model update in progress
+        self.model = self.model_update_in_progress
+
+        # increment the version
         self.model.header.version += 1
+
+        # clear the update pointer
+        self.model_update_in_progress = None
 
         self.loss_results = {}
         self.collaborator_training_sizes = {}
@@ -104,15 +120,17 @@ class Aggregator(object):
         assert message.header.sender not in self.loss_results
         assert message.header.sender not in self.collaborator_training_sizes        
 
-        # get the current update size total
-        total_update_size = np.sum(list(self.collaborator_training_sizes.values()))
-
         # if this is our very first update for the round, we take this model as-is
-        if total_update_size == 0:
-            self.model = model_proto
+        # FIXME: move to model deltas, add with original to reconstructf
+        # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
+        if self.model_update_in_progress is None:
+            self.model_update_in_progress = model_proto
 
-        # otherwise, we compute the weighted average
-        else:
+        # otherwise, we compute the streaming weighted average
+        else:            
+            # get the current update size total
+            total_update_size = np.sum(list(self.collaborator_training_sizes.values()))
+
             # compute the weights for the global vs local tensors for our streaming average
             weight_g = total_update_size / (message.data_size + total_update_size)
             weight_l = message.data_size / (message.data_size + total_update_size)
@@ -120,32 +138,34 @@ class Aggregator(object):
             # FIXME: right now we're really using names just to sanity check consistent ordering
 
             # assert that the models include the same number of tensors
-            assert len(self.model.tensors) == len(model_proto.tensors)
+            assert len(self.model_update_in_progress.tensors) == len(model_proto.tensors)
 
             # aggregate all the model tensors in the protobuf
             # this is a streaming average
-            for i in range(len(self.model.tensors)):
+            for i in range(len(self.model_update_in_progress.tensors)):
                 # global tensor
-                g = self.model.tensors[i]
+                g = self.model_update_in_progress.tensors[i]
 
                 # find the local collaborator tensor
-                for l in model_proto.tensors:
-                    if l.name == g.name:
+                l = None
+                for local_tensor in model_proto.tensors:
+                    if local_tensor.name == g.name:
+                        l = local_tensor
                         break
 
-                # validate that these are the same tensor in the model (e.g. weights for a specific layer)
-                if g.name != l.name:
-                    print([self.model.tensors[j].name for j in range(len(self.model.tensors))])
-                    print([model_proto.tensors[j].name for j in range(len(self.model.tensors))])
-                    raise ValueError('global tensor name {} not equal to local tensor name {}'.format(g.name, l.name))
+                assert l is not None
+
+                # sanity check that the tensors are indeed different for non opt tensors                
+                if (not g.name.startswith('__opt')) and (g.values == l.values):
+                    raise ValueError('global tensor {} exactly equal to local tensor {}'.format(g.name, l.name))
                     
                 if g.shape != l.shape:
                     raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
 
                 # now just weighted average these
                 new_values = np.average([g.values, l.values], weights=[weight_g, weight_l], axis=0)
-                del self.model.tensors[i].values[:]
-                self.model.tensors[i].values.extend(new_values)
+                del self.model_update_in_progress.tensors[i].values[:]
+                self.model_update_in_progress.tensors[i].values.extend(new_values)
 
         # store the loss results and training update size
         self.loss_results[message.header.sender] = message.loss
@@ -162,6 +182,7 @@ class Aggregator(object):
         assert model_header.version == self.model.header.version
 
         # ensure we haven't received an update from this collaborator already
+        # FIXME: is this an error case that should be handled?
         assert message.header.sender not in self.validation_results
         assert message.header.sender not in self.collaborator_validation_sizes        
 
@@ -173,6 +194,8 @@ class Aggregator(object):
         return LocalValidationResultsAck(header=self.create_reply_header(message))
 
     def handle_job_request(self, message):
+        # FIXME: this flow needs to depend on a job selection output for the round
+        # for now, all jobs require and in-sync model, so it is the first check
         # check if the sender model is out of date
         if self.collaborator_out_of_date(message.model_header):
             job = JOB_DOWNLOAD_MODEL

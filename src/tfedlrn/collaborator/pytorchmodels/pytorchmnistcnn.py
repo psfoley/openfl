@@ -6,11 +6,11 @@ import torch.utils.data
 import torch.nn.functional as F
 import torch.optim as optim
 
-from tfedlrn.datasets import load_dataset
-from tfedlrn.collaborator.pytorchflmodel import PyTorchFLModel
+from ...datasets import load_dataset
+from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, pt_train_epoch, pt_create_loader
 
 
-class PyTorchMNISTCNN(PyTorchFLModel):
+class PyTorchMNISTCNN(nn.Module):
 
     def __init__(self, device, train_loader=None, val_loader=None):
         super(PyTorchMNISTCNN, self).__init__()
@@ -20,10 +20,11 @@ class PyTorchMNISTCNN(PyTorchFLModel):
         self.init_network(device)
         self.init_optimizer()
 
-    def create_loader(self, X, y, **kwargs):
-        tX = torch.stack([torch.Tensor(i) for i in X])
-        ty = torch.stack([torch.Tensor(i) for i in y])
-        return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), **kwargs)
+    def get_tensor_dict(self):
+        return pt_get_tensor_dict(self, self.optimizer)
+
+    def set_tensor_dict(self, tensor_dict):
+        pt_set_tensor_dict(self, tensor_dict)
 
     def init_data_pipeline(self, train_loader, val_loader):
         if train_loader is None or val_loader is None:
@@ -32,12 +33,12 @@ class PyTorchMNISTCNN(PyTorchFLModel):
             X_val = X_val.reshape([-1, 1, 28, 28])
 
         if train_loader is None:
-            self.train_loader = self.create_loader(X_train, y_train, batch_size=64, shuffle=True)
+            self.train_loader = pt_create_loader(X_train, y_train, batch_size=64, shuffle=True)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
-            self.val_loader = self.create_loader(X_val, y_val, batch_size=64, shuffle=True)
+            self.val_loader = pt_create_loader(X_val, y_val, batch_size=64, shuffle=True)
         else:
             self.val_loader = val_loader
 
@@ -65,21 +66,26 @@ class PyTorchMNISTCNN(PyTorchFLModel):
         return self.optimizer
 
     def train_epoch(self, epoch=None):
-        # set to "training" mode
-        self.train()
-        
-        losses = []
 
-        for batch_idx, (data, target) in enumerate(self.train_loader):
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
-            self.optimizer.zero_grad()
-            output = self(data)
-            loss = F.cross_entropy(output, torch.max(target, 1)[1])
-            loss.backward()
-            self.optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
-            
-        return np.mean(losses)
+        def loss_fn(output, target):
+            return F.cross_entropy(output, torch.max(target, 1)[1])
+
+        return pt_train_epoch(self, self.train_loader, self.device, self.optimizer, loss_fn)
+        # # set to "training" mode
+        # self.train()
+        
+        # losses = []
+
+        # for data, target in self.train_loader:
+        #     data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
+        #     self.optimizer.zero_grad()
+        #     output = self(data)
+        #     loss = F.cross_entropy(output, torch.max(target, 1)[1])
+        #     loss.backward()
+        #     self.optimizer.step()
+        #     losses.append(loss.detach().cpu().numpy())
+
+        # return np.mean(losses)
 
     def get_training_data_size(self):
         return len(self.train_loader.dataset)

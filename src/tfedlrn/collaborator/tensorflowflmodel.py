@@ -3,11 +3,9 @@ from math import ceil
 
 import numpy as np
 import tensorflow as tf
-from tqdm import tqdm
-
-from .aipgunet import define_model, dice_coef, dice_coef_loss
-
 import abc
+
+from tfedlrn.collaborator.flmodel import FLModel
 
 class TensorFlowFLModel(FLModel):
     """WIP code. Goal is to simplify porting a model to this framework.
@@ -22,6 +20,10 @@ class TensorFlowFLModel(FLModel):
     def get_session(self):
         pass
 
+    @abc.abstractmethod
+    def get_vars(self):
+        pass
+
     def get_tensor_dict(self):
         """FIXME: how to protect against redundant graphs?"""        
         return {v.name: self.get_session().run(v) for v in self.get_vars()}
@@ -33,5 +35,6 @@ class TensorFlowFLModel(FLModel):
         if self.assign_ops is None:
             self.assign_ops = {v.name: tf.assign(v, self.placeholders[v.name]) for v in self.get_vars()}
 
+        session = self.get_session()
         for k, v in tensor_dict:
-            sess.run(self.assign_ops[k], feed_dict={self.placeholders[k]:v})
+            session.run(self.assign_ops[k], feed_dict={self.placeholders[k]:v})

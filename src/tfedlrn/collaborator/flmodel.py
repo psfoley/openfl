@@ -1,6 +1,7 @@
 import abc
 
 
+# FIXME: get rid of interface here and just document
 class FLModel(metaclass=abc.ABCMeta):
 
 	@abc.abstractmethod

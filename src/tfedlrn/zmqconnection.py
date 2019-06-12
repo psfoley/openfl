@@ -14,6 +14,7 @@ def deserialize(s):
     return getattr(flmessage, flmessage.WhichOneof('payload'))
 
 
+# FIXME: we can make this generic wrt protobufs by having serialize/deserialize logic passed in rather than hard-coded
 class ZMQConnection(metaclass=abc.ABCMeta):
 
     def __init__(self,

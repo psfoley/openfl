@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -6,10 +8,11 @@ import torch.utils.data
 import torch.nn.functional as F
 import torch.optim as optim
 
-from tfedlrn.datasets import load_dataset
-from tfedlrn.collaborator.pytorchflmodel import PyTorchFLModel
+from ...datasets import load_dataset
+from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, pt_train_epoch, pt_create_loader
 
 
+# FIXME: move to some custom losses.py file?
 def dice_coef(pred, target, smoothing=1.0):    
     intersection = (pred * target).sum(dim=(1, 2, 3))
     union = (pred + target).sum(dim=(1, 2, 3))
@@ -27,7 +30,7 @@ def dice_coef_loss(pred, target, smoothing=1.0):
     return term1.mean() + term2.mean()
 
 
-class PyTorch2DUNet(PyTorchFLModel):
+class PyTorch2DUNet(nn.Module):
 
     def __init__(self, device, train_loader=None, val_loader=None, optimizer='SGD', dropout_layers=[2, 3]):
         super(PyTorch2DUNet, self).__init__()
@@ -42,12 +45,12 @@ class PyTorch2DUNet(PyTorchFLModel):
         self.init_network(device)
         self.init_optimizer(optimizer)
 
-    def create_loader(self, X, y, **kwargs):
-        tX = torch.stack([torch.Tensor(i) for i in X])
-        ty = torch.stack([torch.Tensor(i) for i in y])
-        return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), **kwargs)
+    def get_tensor_dict(self):
+        return pt_get_tensor_dict(self, self.optimizer)
 
-    # FIXME: brats loading
+    def set_tensor_dict(self, tensor_dict):
+        pt_set_tensor_dict(self, tensor_dict)
+
     def init_data_pipeline(self, train_loader, val_loader):
         if train_loader is None or val_loader is None:
             # load all the institutions
@@ -59,12 +62,12 @@ class PyTorch2DUNet(PyTorchFLModel):
             X_train, y_train, X_val, y_val = data_by_type
 
         if train_loader is None:
-            self.train_loader = self.create_loader(X_train, y_train, batch_size=64, shuffle=True)
+            self.train_loader = pt_create_loader(X_train, y_train, batch_size=64, shuffle=True)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
-            self.val_loader = self.create_loader(X_val, y_val, batch_size=64, shuffle=True)
+            self.val_loader = pt_create_loader(X_val, y_val, batch_size=64, shuffle=True)
         else:
             self.val_loader = val_loader
             
@@ -174,39 +177,16 @@ class PyTorch2DUNet(PyTorchFLModel):
         # FIXME: update to proper training schedule when architected
         if epoch == 8:
             self.init_optimizer('RMSprop')
-        
-        # set to "training" mode
-        self.train()
-        
-        losses = []
 
-        for batch_idx, (data, target) in enumerate(self.train_loader):
-            data, target = data.to(self.device), target.to(self.device)
-            self.optimizer.zero_grad()
-            output = self(data)
-            loss = dice_coef_loss(output, target, smoothing=32.0)
-            loss.backward()
-            self.optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
-            
-        return np.mean(losses)
+        loss_fn = partial(dice_coef_loss, smoothing=32.0)
+
+        return pt_train_epoch(self, self.train_loader, self.device, self.optimizer, loss_fn)
 
     def get_training_data_size(self):
         return len(self.train_loader.dataset)
 
     def validate(self):
-        self.eval()
-        dice = 0
-        total_samples = 0
-
-        with torch.no_grad():
-            for data, target in self.val_loader:
-                samples = target.shape[0]
-                total_samples += samples
-                data, target = data.to(self.device), target.to(self.device)
-                output = self(data)
-                dice += dice_coef(output, target).cpu().numpy() * samples
-        return dice / total_samples
+        return pt_validate(self, self.val_loader, self.device, dice_coef)
 
     def get_validation_data_size(self):
         return len(self.val_loader.dataset)

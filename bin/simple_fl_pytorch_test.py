@@ -23,17 +23,19 @@ def execute_process(args, cuda_num=None):
     return subprocess.Popen(array, env=env)
 
 
-def main(num_collaborators, model_id, device):
-    agg_proc = execute_process({'exe': './simple_pytorch_agg.py',
+def main(num_collaborators, model_id, device, cuda_device_list):
+    if cuda_device_list == -1:
+        cuda_device_list = list(range(num_collaborators))
+    agg_proc = execute_process({'exe': './simple_fl_agg.py',
                                 'num_collaborators':num_collaborators,
                                 'initial_model':model_id,
                                })
-    col_procs = [execute_process({'exe': './simple_pytorch_col.py', 
+    col_procs = [execute_process({'exe': './simple_fl_pytorch_col.py', 
                                   'num_collaborators':num_collaborators,
                                   'col_num':i,
                                   'model_id':model_id,
                                   'device':device},
-                                 cuda_num=i)
+                                 cuda_num=cuda_device_list[i])
                 for i in range(num_collaborators)]
 
     while agg_proc.poll() is None:
@@ -51,5 +53,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_collaborators', '-n', type=int, default=4)
     parser.add_argument('--model_id', '-m', type=str, choices=['PyTorchMNISTCNN', 'PyTorch2DUNet'], required=True)
     parser.add_argument('--device', '-d', type=str, default='cuda')
+    parser.add_argument('--cuda_device_list', '-c', nargs='+', type=int, default=-1)
     args = parser.parse_args()
     main(**vars(args))

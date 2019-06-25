@@ -80,6 +80,11 @@ message ModelDownloadRequest {
     required ModelHeader model_header = 2;
 }
 
+message RoundTaskQuery {
+    required MessageHeader header = 1;
+    map<string, int32> task_results_last_sync = 2;
+}
+
 // AGGREGATOR MESSAGES
 
 message GlobalModelUpdate {

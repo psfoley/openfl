@@ -1,0 +1,31 @@
+syntax = 'proto2';
+
+package tfedlrn_proto;
+
+message FLPlan {
+    required string name = 1;
+    repeated string collaborator_names = 2;
+    required string aggregator_name = 3;
+    required string aggregator_socket_address = 4;
+    required int32 aggregator_socket_port = 5;
+    required ObjectInitialization model_object_initialization = 6;
+    repeated RoundTask round_tasks = 7;
+    repeated string server_side_state_names = 8;
+}
+
+message RoundTask {
+    required string name = 1;
+    required string col_method = 2;
+    required string task_result_name = 3;
+    required string collaborator_sync_required = 4;
+    required ObjectInitialization results_aggregator = 5;
+    oneof collaborator_selector {
+        ObjectInitialization selector_object_initialization = 6;
+        string shared_with_round_task = 7;
+    }
+}
+
+message ObjectInitialization {
+    required string class_name = 1;
+    map<string, google.protobuf.Value> kwargs = 2;
+}

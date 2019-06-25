@@ -11,16 +11,16 @@ class CollaboratorJob(Enum):
 
 class MessageType(Enum):
     JOB_REQUEST = auto()
-    JOB_REPLY = auto()
     TRAIN_UPDATE = auto()
-    TRAIN_ACK = auto()
     VALIDATE_UPDATE = auto()
-    VALIDATE_ACK = auto()
     MODEL_DOWNLOAD_REQUEST = auto()
+    
+    JOB_REPLY = auto()
+    TRAIN_ACK = auto()
+    VALIDATE_ACK = auto()
     MODEL_DOWNLOAD_REPLY = auto()
 
 
-# FIXME: payloads shouldn't just be magically known
 class Message(object):
 
     def __init__(self,

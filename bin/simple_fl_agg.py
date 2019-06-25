@@ -13,9 +13,9 @@ from tfedlrn.proto.message_pb2 import *
 
 
 def main(num_collaborators=4, initial_model='PyTorchMNISTCNN'):
-    agg_id = "simple pytorch agg"
-    fed_id = "simple pytorch fed"
-    col_ids = ["simple pytorch col {}".format(i) for i in range(num_collaborators)]
+    agg_id = "simple agg"
+    fed_id = "simple fed"
+    col_ids = ["simple col {}".format(i) for i in range(num_collaborators)]
 
     connection = ZMQServer('{} connection'.format(agg_id))
 

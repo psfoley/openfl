@@ -25,9 +25,9 @@ def create_loader(X, y, **kwargs):
 
 
 def main(col_num=0, num_collaborators=4, model_id='PyTorchMNISTCNN', device='cuda'):
-    agg_id = "simple pytorch agg"
-    fed_id = "simple pytorch fed"
-    col_id = "simple pytorch col {}".format(col_num)
+    agg_id = "simple agg"
+    fed_id = "simple fed"
+    col_id = "simple col {}".format(col_num)
 
     connection = ZMQClient('{} connection'.format(col_id))
 
@@ -56,7 +56,7 @@ def main(col_num=0, num_collaborators=4, model_id='PyTorchMNISTCNN', device='cud
 
     model = globals()[model_id](device, train_loader=train_loader, val_loader=val_loader)
 
-    col = Collaborator(col_id, agg_id, fed_id, model, connection, model_id, -1)
+    col = Collaborator(col_id, agg_id, fed_id, model, connection, -1)
 
     col.run()
 

@@ -5,10 +5,12 @@ import numpy as np
 from ..proto.message_pb2 import *
 
 
+# FIXME: this is actually a tuple of a collaborator/flplan
+# CollaboratorFLPlanExecutor?
 class Collaborator(object):
 
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_id, model_version, polling_interval=4):
+    def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval=4):
         self.connection = connection
         self.polling_interval = 4
 
@@ -17,7 +19,8 @@ class Collaborator(object):
         self.agg_id = agg_id
         self.fed_id = fed_id
         self.counter = 0
-        self.model_header = ModelHeader(id=model_id, version=model_version)
+        self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
+                                        version=model_version)
 
         self.wrapped_model = wrapped_model
 
@@ -55,6 +58,7 @@ class Collaborator(object):
     def run(self):
         while True:
             # query for job
+            # returns when a job has been received
             job = self.query_for_job()
 
             print(self, 'got job', Job.Name(job))
@@ -65,17 +69,20 @@ class Collaborator(object):
                 break
             elif job is JOB_TRAIN:
                 self.do_train_job()
-            elif job is JOB_YIELD:                
-                self.do_yield_job()
             elif job is JOB_VALIDATE:
                 self.do_validate_job()
             elif job is JOB_DOWNLOAD_MODEL:
                 self.do_download_model_job()
 
     def query_for_job(self):
-        reply = self.send_and_receive(JobRequest(header=self.create_message_header(), model_header=self.model_header))
+        # loop until we get a job other than 'yield'
+        while True:
+            reply = self.send_and_receive(JobRequest(header=self.create_message_header(), model_header=self.model_header))
 
-        assert isinstance(reply, JobReply)
+            assert isinstance(reply, JobReply)
+            if reply.job is not JOB_YIELD:
+                break
+            time.sleep(self.polling_interval)
 
         return reply.job
 
@@ -107,9 +114,6 @@ class Collaborator(object):
 
         reply = self.send_and_receive(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
         assert isinstance(reply, LocalModelUpdateAck)
-
-    def do_yield_job(self):
-        time.sleep(self.polling_interval)
 
     def do_validate_job(self):
         results = self.wrapped_model.validate()

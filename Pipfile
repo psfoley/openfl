@@ -13,6 +13,7 @@ tqdm = "*"
 zmq = "*"
 torch = "*"
 torchvision = "*"
+graphviz = "*"
 
 
 [requires]

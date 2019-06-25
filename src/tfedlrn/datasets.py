@@ -90,6 +90,7 @@ def load_BraTS17_insitution(institution=0, channels_first=False, **kwargs):
     
     if channels_first:
         data = [np.swapaxes(d, 1, 3) for d in data]
+        data = [np.swapaxes(d, 2, 3) for d in data]
 
     return tuple(data)
 

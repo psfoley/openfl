@@ -7,13 +7,6 @@ name = "pypi"
 
 [packages]
 
-tensorflow-gpu = "==1.10.0"
-scipy = "*"
-tqdm = "*"
-zmq = "*"
-torch = "*"
-torchvision = "*"
-graphviz = "*"
 
 
 [requires]

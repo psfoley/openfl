@@ -29,7 +29,17 @@ class TF2DUnet(object):
 
     def create_model(self):
         config = tf.ConfigProto()
-        config.gpu_options.allow_growth = True
+        # config.gpu_options.allow_growth = True
+
+        # config.intra_op_parallelism_threads = 112
+        # config.inter_op_parallelism_threads = 1
+
+        # config.intra_op_parallelism_threads = 56
+        # config.inter_op_parallelism_threads = 56
+
+        config.intra_op_parallelism_threads = 0
+        config.inter_op_parallelism_threads = 0
+
         self.sess = tf.Session(config=config)
         tf.keras.backend.set_session(self.sess)
 

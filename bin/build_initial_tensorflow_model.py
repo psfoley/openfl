@@ -6,11 +6,12 @@ import tensorflow as tf
 import tfedlrn
 from tfedlrn.collaborator.tensorflowmodels.tensorflow2dunet import TensorFlow2DUNet
 from tfedlrn.proto.message_pb2 import *
-
+import os
 
 def main(model='TensorFlow2DUNet'):
     net = globals()[model](None, None, None, None)
-    fname = "../initial_models/{}.pbuf".format(model)
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+    fname = "{}/../initial_models/{}.pbuf".format(script_dir, model)
 
     d = net.get_tensor_dict()
 

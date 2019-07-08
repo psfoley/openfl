@@ -1,21 +1,32 @@
-tfedlrn/dist/tfedlrn-0.0.0-py3-none-any.whl: venv/bin/python3
-	venv/bin/pip3 install setuptools
-	venv/bin/pip3 install wheel
-    venv/bin/python3 setup.py bdist_wheel
+whl = dist/tfedlrn-0.0.0-py3-none-any.whl
+tfl = venv/lib/python3.6/site-packages/tfedlrn
+
+.PHONY: wheel
+wheel: $(whl)
+
+.PHONY: install
+install: $(tfl)
 
 venv/bin/python3:
-    python3 -m venv venv        
+	python3 -m venv venv        
 
-install: tfedlrn/dist/tfedlrn-0.0.0-py3-none-any.whl
-    venv/bin/pip3 install tfedlrn/dist/tfedlrn-0.0.0-py3-none-any.whl
-        ./python3.manifest.sgx scripts/test.py
+$(whl): venv/bin/python3
+	venv/bin/pip3 install setuptools
+	venv/bin/pip3 install wheel
+	venv/bin/python3 setup.py bdist_wheel
 
-run_agg: $(manifests).sgx venv/bin/python3
-        ./python3.manifest.sgx scripts/simple_fl_agg.py -n 1 -i PyTorchMNISTCNN
+$(tfl): $(whl)
+	venv/bin/pip3 install $(whl)
 
-train_mnist: $(manifests).sgx venv/bin/python3
-        ./python3.manifest.sgx scripts/train_mnist.py
+initial_models:
+	mkdir initial_models
 
-clean-tmp:
-        rm -f python3.manifest.sgx
-        rm -rf venv
+initial_brats_unet: initial_models
+	venv/bin/python3 bin/build_initial_tensorflow_model.py -m TensorFlow2DUNet
+
+clean:
+	venv/bin/python3 setup.py clean
+	rm -rf venv
+	rm -rf dist
+	rm -rf build
+	rm -rf tfedlrn.egg-info

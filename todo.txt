@@ -4,7 +4,8 @@ Set imports to be relative
 Update dataset-loading/filesystem to be easier to manage
 DONE - Finish tensorflow implementation and Test
 Determine correct packaging structure
-Fix setup script/mechanism
+DONE - Fix setup script/mechanism
+Fix setup script/mechanism wrt GPU vs CPU
 Integrate graphene-sgx
 Test zmq works in graphene-sgx
 

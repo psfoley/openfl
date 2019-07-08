@@ -17,9 +17,11 @@ def main(num_collaborators=4, initial_model='PyTorchMNISTCNN'):
     fed_id = "simple fed"
     col_ids = ["simple col {}".format(i) for i in range(num_collaborators)]
 
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
     connection = ZMQServer('{} connection'.format(agg_id))
 
-    with open(os.path.join('..', 'initial_models', "{}.pbuf".format(initial_model)), "rb") as f:
+    with open(os.path.join(script_dir, '..', 'initial_models', "{}.pbuf".format(initial_model)), "rb") as f:
         loaded = f.read()
     model = ModelProto().FromString(loaded)
 

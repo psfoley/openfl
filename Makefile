@@ -1,5 +1,5 @@
 whl = dist/tfedlrn-0.0.0-py3-none-any.whl
-tfl = venv/lib/python3.6/site-packages/tfedlrn
+tfl = venv/lib/python3.5/site-packages/tfedlrn
 
 .PHONY: wheel
 wheel: $(whl)
@@ -7,8 +7,11 @@ wheel: $(whl)
 .PHONY: install
 install: $(tfl)
 
+.PHONY: venv
+venv: venv/bin/python3
+
 venv/bin/python3:
-	python3 -m venv venv        
+	python3.5 -m venv venv        
 
 $(whl): venv/bin/python3
 	venv/bin/pip3 install setuptools
@@ -21,11 +24,13 @@ $(tfl): $(whl)
 initial_models:
 	mkdir initial_models
 
-initial_brats_unet: initial_models
-	venv/bin/python3 bin/build_initial_tensorflow_model.py -m TensorFlow2DUNet
+initial_models/TensorFlow2DUNet.pbuf: initial_models $(tfl)
+	venv/bin/python3 bin/build_initial_tensorflow_model.py TensorFlow2DUNet
+
+run_brats_unet_fed: initial_models/TensorFlow2DUNet.pbuf
+	venv/bin/python3 bin/simple_fl_tensorflow_test.py -n 2 -m TensorFlow2DUNet
 
 clean:
-	venv/bin/python3 setup.py clean
 	rm -rf venv
 	rm -rf dist
 	rm -rf build

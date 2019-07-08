@@ -23,15 +23,17 @@ def execute_process(args, cuda_num=None):
     return subprocess.Popen(array, env=env)
 
 
-def main(num_collaborators, model_id, device, cuda_device_list):
+def main(num_collaborators, model_id, cuda_device_list):
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
     if cuda_device_list == -1:
         cuda_device_list = list(range(num_collaborators))
 
-    agg_proc = execute_process({'exe': './simple_fl_agg.py',
+    agg_proc = execute_process({'exe': '{}/simple_fl_agg.py'.format(script_dir),
                                 'num_collaborators':num_collaborators,
                                 'initial_model':model_id,
                                })
-    col_procs = [execute_process({'exe': './simple_fl_tensorflow_col.py', 
+    col_procs = [execute_process({'exe': '{}/simple_fl_tensorflow_col.py'.format(script_dir), 
                                   'num_collaborators':num_collaborators,
                                   'col_num':i,
                                   'model_id':model_id},
@@ -52,7 +54,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_collaborators', '-n', type=int, default=4)
     parser.add_argument('--model_id', '-m', type=str, choices=['TensorFlow2DUNet'], required=True)
-    parser.add_argument('--device', '-d', type=str, default='cuda')
     parser.add_argument('--cuda_device_list', '-c', nargs='+', type=int, default=-1)
     args = parser.parse_args()
     main(**vars(args))

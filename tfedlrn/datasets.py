@@ -35,6 +35,7 @@ def _get_dataset_dir(server=None):
     if server is None:
         server = socket.gethostname()
     server_to_path = {'spr-gpu01': os.path.join('/', 'raid', 'datasets'),
+                      'spr-gpu02': os.path.join('/', 'raid', 'datasets'),
                       'edwardsb-Z270X-UD5': os.path.join('/', 'data'),
                       'msheller-ubuntu': os.path.join('/', 'home', 'msheller', 'datasets')}
     return server_to_path[server]

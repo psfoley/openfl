@@ -25,7 +25,7 @@ initial_models:
 	mkdir initial_models
 
 initial_models/TensorFlow2DUNet.pbuf: initial_models $(tfl)
-	venv/bin/python3 bin/build_initial_tensorflow_model.py TensorFlow2DUNet
+	venv/bin/python3 bin/build_initial_tensorflow_model.py -m TensorFlow2DUNet
 
 run_brats_unet_fed: initial_models/TensorFlow2DUNet.pbuf
 	venv/bin/python3 bin/simple_fl_tensorflow_test.py -n 2 -m TensorFlow2DUNet

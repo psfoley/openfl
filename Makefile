@@ -14,12 +14,12 @@ venv/bin/python3:
 	python3.5 -m venv venv        
 
 $(whl): venv/bin/python3
-	venv/bin/pip3 install setuptools
-	venv/bin/pip3 install wheel
+	venv/bin/pip3 install --user setuptools
+	venv/bin/pip3 install --user wheel
 	venv/bin/python3 setup.py bdist_wheel
 
 $(tfl): $(whl)
-	venv/bin/pip3 install $(whl)
+	venv/bin/pip3 install --user $(whl)
 
 initial_models:
 	mkdir initial_models

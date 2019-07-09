@@ -46,9 +46,6 @@ def main(starting_collaborator_number, num_collaborators, model_id, server_addr,
                                  cuda_num=cuda_device_list[i])
                 for i in range(num_collaborators)]
 
-    while agg_proc.poll() is None:
-        time.sleep(1)
-
     for p in col_procs:
         while p.poll() is None:
             time.sleep(1)

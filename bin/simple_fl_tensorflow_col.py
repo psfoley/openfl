@@ -16,12 +16,12 @@ from tfedlrn.proto.message_pb2 import *
 import tensorflow as tf
 
 
-def main(col_num=0, num_collaborators=4, model_id='TensorFlow2DUNet', device='cuda'):
+def main(col_num=0, num_collaborators=4, model_id='TensorFlow2DUNet', device='cuda', server_addr='127.0.0.1', server_port=5555):
     agg_id = "simple agg"
     fed_id = "simple fed"
     col_id = "simple col {}".format(col_num)
 
-    connection = ZMQClient('{} connection'.format(col_id))
+    connection = ZMQClient('{} connection'.format(col_id), server_addr=server_addr, server_port=server_port)
 
     # load our data
     if model_id == 'TensorFlow2DUNet':
@@ -42,5 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--col_num', '-c', type=int, default=0)
     parser.add_argument('--num_collaborators', '-n', type=int, default=4)
     parser.add_argument('--model_id', '-m', type=str, choices=['TensorFlow2DUNet'], required=True)
+    parser.add_argument('--server_addr', '-sa', type=str, default='127.0.0.1')
+    parser.add_argument('--server_port', '-sp', type=int, default=5555)
     args = parser.parse_args()
     main(**vars(args))

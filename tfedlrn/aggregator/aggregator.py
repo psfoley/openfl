@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 
 from tfedlrn.proto.message_pb2 import *
@@ -84,6 +86,7 @@ class Aggregator(object):
         while True:
             # receive a message
             message = self.connection.receive()
+            t = time.time()
 
             # validate that the message is for me
             assert message.header.recipient == self.id
@@ -107,6 +110,9 @@ class Aggregator(object):
 
             # do end of round check
             self.end_of_round_check()
+
+            if not isinstance(reply, JobReply) or reply.job is not JOB_YIELD:
+                print('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
 
     def handle_local_model_update(self, message):
         model_proto = message.model

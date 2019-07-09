@@ -24,13 +24,16 @@ def execute_process(args, cuda_num=None):
 
 
 def main(num_collaborators, model_id, device, cuda_device_list):
+    
+    script_dir = os.path.dirname(os.path.realpath(__file__))
+
     if cuda_device_list == -1:
         cuda_device_list = list(range(num_collaborators))
-    agg_proc = execute_process({'exe': './simple_fl_agg.py',
+    agg_proc = execute_process({'exe': '{}/simple_fl_agg.py'.format(script_dir),
                                 'num_collaborators':num_collaborators,
                                 'initial_model':model_id,
                                })
-    col_procs = [execute_process({'exe': './simple_fl_pytorch_col.py', 
+    col_procs = [execute_process({'exe': '{}/simple_fl_pytorch_col.py'.format(script_dir), 
                                   'num_collaborators':num_collaborators,
                                   'col_num':i,
                                   'model_id':model_id,

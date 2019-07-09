@@ -43,6 +43,8 @@ def main(starting_collaborator_number, num_collaborators, model_id, server_addr,
                                  num_collaborators=num_collaborators,
                                  col_num=i+starting_collaborator_number,
                                  model_id=model_id,
+                                 server_addr=server_addr,
+                                 server_port=server_port,
                                  cuda_num=cuda_device_list[i])
                 for i in range(num_collaborators)]
 

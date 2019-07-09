@@ -4,3 +4,9 @@
 *.lock
 *.ipynb_checkpoints*
 *.swp
+dist/
+build/
+.vscode/
+venv/
+initial_models/
+tfedlrn.egg-info/

@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 import argparse
 
-import tensorflow as tf
-
 import tfedlrn
+from tfedlrn.gpuutils import pick_cuda_device
 from tfedlrn.collaborator.tensorflowmodels.tensorflow2dunet import TensorFlow2DUNet
 from tfedlrn.proto.message_pb2 import *
 import os
 
 def main(model='TensorFlow2DUNet'):
+    # pick any available gpu
+    pick_cuda_device()
+
+    import tensorflow as tf
+
     net = globals()[model](None, None, None, None)
     script_dir = os.path.dirname(os.path.realpath(__file__))
     fname = "{}/../initial_models/{}.pbuf".format(script_dir, model)

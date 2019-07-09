@@ -10,6 +10,9 @@ install: $(tfl)
 .PHONY: venv
 venv: venv/bin/python3
 
+.PHONY: init_unet
+init_unet: initial_models/TensorFlow2DUNet.pbuf
+
 venv/bin/python3:
 	python3.5 -m venv venv        
 
@@ -28,7 +31,7 @@ initial_models/TensorFlow2DUNet.pbuf: initial_models $(tfl)
 	venv/bin/python3 bin/build_initial_tensorflow_model.py -m TensorFlow2DUNet
 
 run_brats_unet_fed: initial_models/TensorFlow2DUNet.pbuf
-	venv/bin/python3 bin/simple_fl_tensorflow_test.py -n 2 -m TensorFlow2DUNet
+	venv/bin/python3 bin/simple_fl_tensorflow_test.py -n 0 -m TensorFlow2DUNet
 
 clean:
 	rm -rf venv

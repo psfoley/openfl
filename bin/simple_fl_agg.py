@@ -19,7 +19,7 @@ def main(num_collaborators=4, initial_model='PyTorchMNISTCNN', server_port=5555)
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
-    connection = ZMQServer('{} connection'.format(agg_id), server_port=server_port)
+    connection = ZMQServer('{} connection'.format(agg_id), server_addr='*', server_port=server_port)
 
     with open(os.path.join(script_dir, '..', 'initial_models', "{}.pbuf".format(initial_model)), "rb") as f:
         loaded = f.read()

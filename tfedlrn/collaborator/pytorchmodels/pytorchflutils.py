@@ -105,6 +105,7 @@ def _set_optimizer_state(optimizer, device, derived_opt_state_dict):
 
     temp_state_dict = expand_derived_opt_state_dict(derived_opt_state_dict, device)
 
+    # FIXME: Figure out whether or not this breaks learning rate scheduling and the like.
     # Setting default values.
     # All optimizer.defaults are considered as not changing over course of training.
     for group in temp_state_dict['param_groups']:
@@ -125,7 +126,9 @@ def pt_get_tensor_dict(torch_nn, torch_optimizer):
 
     for k, v in state.items():
         # When restoring, we currently assume all values are tensors.
-        assert torch.is_tensor(v)
+        if not torch.is_tensor(v):
+            raise NotImplementedError('We do not currently support non-tensors '
+                                      'coming from model.state_dict()')
         state[k] = v.cpu().numpy()  # get as a numpy array, making sure is on cpu
 
     return {**state, **_get_optimizer_state(torch_optimizer)}

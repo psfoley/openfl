@@ -35,3 +35,8 @@ pip install dist/tfedlrn-0.0.0-py3-none-any.whl  --user
 python bin/build_initial_tensorflow_model.py -m TensorFlow2DUNet
 python bin/simple_fl_agg.py -n 1 -i TensorFlow2DUNet --server_port 5678
 ```
+
+Under development, we should use the active folder as the package path.
+```
+pip install -e . --user
+```

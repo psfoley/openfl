@@ -32,5 +32,5 @@ docker stop tfl_col1
 In collabrator:
 ```
 pip install dist/tfedlrn-0.0.0-py3-none-any.whl  --user
-python bin/simple_fl_tensorflow_col.py --num_collaborators 1 --model_id TensorFlow2DUNet --server_addr 127.0.0.1 --server_port 5678
+python bin/simple_fl_tensorflow_col.py --col_num 0 --num_collaborators 1 --model_id TensorFlow2DUNet --server_addr 127.0.0.1 --server_port 5678
 ```

@@ -1,6 +1,8 @@
 import time
 
 import numpy as np
+import tensorflow as tf
+import tensorboard.summary as tb_summary
 
 from tfedlrn.proto.message_pb2 import *
 
@@ -18,6 +20,12 @@ class Aggregator(object):
         self.fed_id = fed_id
         self.model = model
         self.col_ids = col_ids
+        self.round_num = 0
+
+        #FIXME: close the handler before termination.
+        log_dir = './tb_log_%s_%s' % (self.id, self.fed_id)
+        self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, 'plot_'+c)) for c in self.col_ids}
+        self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'plot_federation'))
 
         self.model_update_in_progress = None
 
@@ -68,6 +76,16 @@ class Aggregator(object):
         print('\tvalidation: {}'.format(round_val))
         print('\tloss: {}'.format(round_loss))
 
+        for c in self.col_ids:
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.loss_results[c]), global_step=self.round_num)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.collaborator_training_sizes[c]), global_step=self.round_num)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/result', self.validation_results[c]), global_step=self.round_num)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.collaborator_validation_sizes[c]), global_step=self.round_num)
+            self.tb_writers[c].flush()
+        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num)
+        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num)
+        self.tb_writers['federation'].flush()
+
         # copy over the model update in progress
         self.model = self.model_update_in_progress
 
@@ -113,6 +131,8 @@ class Aggregator(object):
 
             if not isinstance(reply, JobReply) or reply.job is not JOB_YIELD:
                 print('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
+
+            self.round_num += 1
 
     def handle_local_model_update(self, message):
         model_proto = message.model

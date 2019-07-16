@@ -59,6 +59,7 @@ class Aggregator(object):
 
         if done:
             self.end_of_round()
+            self.round_num += 1
 
     def end_of_round(self):
         # FIXME: what all should we do to track results/metrics? It should really be an easy, extensible solution
@@ -78,12 +79,12 @@ class Aggregator(object):
         print('\tloss: {}'.format(round_loss))
 
         for c in self.col_ids:
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.loss_results[c]), global_step=self.round_num)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.collaborator_training_sizes[c]), global_step=self.round_num)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.loss_results[c]), global_step=self.round_num+1)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.collaborator_training_sizes[c]), global_step=self.round_num+1)
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/result', self.validation_results[c]), global_step=self.round_num)
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.collaborator_validation_sizes[c]), global_step=self.round_num)
             self.tb_writers[c].flush()
-        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num)
+        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num+1)
         self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num)
         self.tb_writers['federation'].flush()
 
@@ -132,8 +133,6 @@ class Aggregator(object):
 
             if not isinstance(reply, JobReply) or reply.job is not JOB_YIELD:
                 print('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
-
-            self.round_num += 1
 
     def handle_local_model_update(self, message):
         model_proto = message.model

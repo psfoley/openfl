@@ -85,10 +85,10 @@ class Aggregator(object):
         for c in self.col_ids:
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.loss_results[c]), global_step=self.round_num)
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.collaborator_training_sizes[c]), global_step=self.round_num)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/result', self.pretrain_validation_results[c]), global_step=self.round_num-1)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.pretrain_validation_results[c]), global_step=self.round_num-1)
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.collaborator_validation_sizes[c]), global_step=self.round_num-1)
             self.tb_writers[c].flush()
-            self.tb_writers_posttrain[c].add_summary(tb_summary.scalar_pb('validation/result', self.posttrain_validation_results[c]), global_step=self.round_num)
+            self.tb_writers_posttrain[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.posttrain_validation_results[c]), global_step=self.round_num)
             self.tb_writers_posttrain[c].flush()
         self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num)
         self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num-1)

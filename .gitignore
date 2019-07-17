@@ -6,6 +6,7 @@
 *.swp
 dist/
 build/
+logs/
 .vscode/
 venv/
 initial_models/

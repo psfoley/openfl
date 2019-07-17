@@ -25,9 +25,9 @@ class Aggregator(object):
 
         #FIXME: close the handler before termination.
         log_dir = './logs/%s_%s' % (self.id, self.fed_id)
-        self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, 'plot_'+c)) for c in self.col_ids}
-        self.tb_writers_posttrain = {c:tf.summary.FileWriter(os.path.join(log_dir, 'plot_posttrain_'+c)) for c in self.col_ids}
-        self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'plot_federation'))
+        self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, c)) for c in self.col_ids}
+        self.tb_writers_preagg = {c:tf.summary.FileWriter(os.path.join(log_dir, c+'preagg')) for c in self.col_ids}
+        self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'federation'))
 
         self.model_update_in_progress = None
 
@@ -35,8 +35,8 @@ class Aggregator(object):
         # FIXME: call these "per_col_round_stats"
         self.loss_results = {}
         self.collaborator_training_sizes = {}
-        self.pretrain_validation_results = {}
-        self.posttrain_validation_results = {}
+        self.agg_validation_results = {}
+        self.preagg_validation_results = {}
         self.collaborator_validation_sizes = {}
 
     def end_of_round_check(self):
@@ -45,8 +45,8 @@ class Aggregator(object):
 
         # assert our dictionary keys are in sync
         assert self.loss_results.keys() == self.collaborator_training_sizes.keys()
-        assert self.pretrain_validation_results.keys() == self.collaborator_validation_sizes.keys()
-        # assert self.pretrain_validation_results.keys() == self.posttrain_validation_results.keys()
+        assert self.agg_validation_results.keys() == self.collaborator_validation_sizes.keys()
+        # assert self.agg_validation_results.keys() == self.preagg_validation_results.keys()
 
         done = True
 
@@ -55,8 +55,8 @@ class Aggregator(object):
         for c in self.col_ids:
             if (c not in self.loss_results or 
                 c not in self.collaborator_training_sizes or 
-                c not in self.pretrain_validation_results or
-                c not in self.posttrain_validation_results or
+                c not in self.agg_validation_results or
+                c not in self.preagg_validation_results or
                 c not in self.collaborator_validation_sizes):
                 done = False
                 break
@@ -73,7 +73,7 @@ class Aggregator(object):
                                 weights=[self.collaborator_training_sizes[c] for c in self.col_ids])
 
         # compute the weighted validation average
-        round_val = np.average([self.pretrain_validation_results[c] for c in self.col_ids],
+        round_val = np.average([self.agg_validation_results[c] for c in self.col_ids],
                                weights=[self.collaborator_validation_sizes[c] for c in self.col_ids])
 
         # FIXME: proper logging
@@ -85,11 +85,11 @@ class Aggregator(object):
         for c in self.col_ids:
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.loss_results[c]), global_step=self.round_num)
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.collaborator_training_sizes[c]), global_step=self.round_num)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.pretrain_validation_results[c]), global_step=self.round_num-1)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.agg_validation_results[c]), global_step=self.round_num-1)
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.collaborator_validation_sizes[c]), global_step=self.round_num-1)
             self.tb_writers[c].flush()
-            self.tb_writers_posttrain[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.posttrain_validation_results[c]), global_step=self.round_num)
-            self.tb_writers_posttrain[c].flush()
+            self.tb_writers_preagg[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.preagg_validation_results[c]), global_step=self.round_num)
+            self.tb_writers_preagg[c].flush()
         self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num)
         self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num-1)
         self.tb_writers['federation'].flush()
@@ -106,8 +106,8 @@ class Aggregator(object):
         self.loss_results = {}
         self.collaborator_training_sizes = {}
         self.collaborator_validation_sizes = {}
-        self.pretrain_validation_results = {}
-        self.posttrain_validation_results = {}
+        self.agg_validation_results = {}
+        self.preagg_validation_results = {}
 
     def run(self):
         while True:
@@ -216,20 +216,20 @@ class Aggregator(object):
 
         sender = message.header.sender
 
-        if sender not in self.pretrain_validation_results:
+        if sender not in self.agg_validation_results:
             # Pre-train validation
             # ensure we haven't received an update from this collaborator already
             # FIXME: is this an error case that should be handled?
-            assert message.header.sender not in self.pretrain_validation_results
+            assert message.header.sender not in self.agg_validation_results
             assert message.header.sender not in self.collaborator_validation_sizes
 
             # store the validation results and validation size
-            self.pretrain_validation_results[message.header.sender] = message.results
+            self.agg_validation_results[message.header.sender] = message.results
             self.collaborator_validation_sizes[message.header.sender] = message.data_size
-        elif sender not in self.posttrain_validation_results:
+        elif sender not in self.preagg_validation_results:
             # Post-train validation
-            assert message.header.sender not in self.posttrain_validation_results
-            self.posttrain_validation_results[message.header.sender] = message.results
+            assert message.header.sender not in self.preagg_validation_results
+            self.preagg_validation_results[message.header.sender] = message.results
         # return LocalValidationResultsAck
         return LocalValidationResultsAck(header=self.create_reply_header(message))
 
@@ -240,12 +240,12 @@ class Aggregator(object):
         if self.collaborator_out_of_date(message.model_header):
             job = JOB_DOWNLOAD_MODEL
         # else, check if this collaborator has not sent validation results
-        elif message.header.sender not in self.pretrain_validation_results:
+        elif message.header.sender not in self.agg_validation_results:
             job = JOB_VALIDATE
         # else, check if this collaborator has not sent training results
         elif message.header.sender not in self.collaborator_training_sizes:
             job = JOB_TRAIN
-        elif message.header.sender not in self.posttrain_validation_results:
+        elif message.header.sender not in self.preagg_validation_results:
             job = JOB_VALIDATE
         # else this collaborator is done for the round
         else:

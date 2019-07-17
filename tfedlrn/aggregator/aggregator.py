@@ -26,7 +26,7 @@ class Aggregator(object):
         #FIXME: close the handler before termination.
         log_dir = './logs/%s_%s' % (self.id, self.fed_id)
         self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, c)) for c in self.col_ids}
-        self.tb_writers_preagg = {c:tf.summary.FileWriter(os.path.join(log_dir, c+'preagg')) for c in self.col_ids}
+        self.tb_writers_preagg = {c:tf.summary.FileWriter(os.path.join(log_dir, c+'_preagg')) for c in self.col_ids}
         self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'federation'))
 
         self.model_update_in_progress = None

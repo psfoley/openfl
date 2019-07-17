@@ -46,7 +46,7 @@ class Aggregator(object):
         # assert our dictionary keys are in sync
         assert self.loss_results.keys() == self.collaborator_training_sizes.keys()
         assert self.pretrain_validation_results.keys() == self.collaborator_validation_sizes.keys()
-        assert self.pretrain_validation_results.keys() == self.posttrain_validation_results.keys()
+        # assert self.pretrain_validation_results.keys() == self.posttrain_validation_results.keys()
 
         done = True
 

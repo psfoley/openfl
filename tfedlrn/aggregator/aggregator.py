@@ -26,7 +26,7 @@ class Aggregator(object):
         #FIXME: close the handler before termination.
         log_dir = './logs/%s_%s' % (self.id, self.fed_id)
         self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, 'plot_'+c)) for c in self.col_ids}
-        self.tb_writers_pretrain = {c:tf.summary.FileWriter(os.path.join(log_dir, 'plot_pretrain_'+c)) for c in self.col_ids}
+        self.tb_writers_posttrain = {c:tf.summary.FileWriter(os.path.join(log_dir, 'plot_posttrain_'+c)) for c in self.col_ids}
         self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'plot_federation'))
 
         self.model_update_in_progress = None
@@ -73,7 +73,7 @@ class Aggregator(object):
                                 weights=[self.collaborator_training_sizes[c] for c in self.col_ids])
 
         # compute the weighted validation average
-        round_val = np.average([self.posttrain_validation_results[c] for c in self.col_ids],
+        round_val = np.average([self.pretrain_validation_results[c] for c in self.col_ids],
                                weights=[self.collaborator_validation_sizes[c] for c in self.col_ids])
 
         # FIXME: proper logging
@@ -85,13 +85,13 @@ class Aggregator(object):
         for c in self.col_ids:
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.loss_results[c]), global_step=self.round_num)
             self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.collaborator_training_sizes[c]), global_step=self.round_num)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/result', self.posttrain_validation_results[c]), global_step=self.round_num)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.collaborator_validation_sizes[c]), global_step=self.round_num)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/result', self.pretrain_validation_results[c]), global_step=self.round_num-1)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.collaborator_validation_sizes[c]), global_step=self.round_num-1)
             self.tb_writers[c].flush()
-            self.tb_writers_pretrain[c].add_summary(tb_summary.scalar_pb('validation/result', self.pretrain_validation_results[c]), global_step=self.round_num-1)
-            self.tb_writers_pretrain[c].flush()
+            self.tb_writers_posttrain[c].add_summary(tb_summary.scalar_pb('validation/result', self.posttrain_validation_results[c]), global_step=self.round_num)
+            self.tb_writers_posttrain[c].flush()
         self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num)
-        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num)
+        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num-1)
         self.tb_writers['federation'].flush()
 
         # copy over the model update in progress

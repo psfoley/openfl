@@ -108,7 +108,7 @@ class Collaborator(object):
         # create the tensor proto list
         tensor_protos = []
         for k, v in tensor_dict.items():
-            tensor_protos.append(TensorProto(name=k, shape=v.shape, values=v.flatten(order='C')))
+            tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
 
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
 
@@ -137,6 +137,6 @@ class Collaborator(object):
         # create the tensor dict
         tensor_dict = {}
         for tensor_proto in reply.model.tensors:
-            tensor_dict[tensor_proto.name] = np.array(tensor_proto.values, order='C').reshape(tensor_proto.shape)
+            tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
 
         self.wrapped_model.set_tensor_dict(tensor_dict)

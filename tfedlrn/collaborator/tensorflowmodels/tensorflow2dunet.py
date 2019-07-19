@@ -48,6 +48,7 @@ class TensorFlow2DUNet(object):
         
         self.opt_vars = self.optimizer.variables()
 
+        # FIXME: Do we really need to share the opt_vars? Two opt_vars for one tvar: gradient and moment.
         self.fl_vars = self.tvars + self.opt_vars
 
         self.sess.run(tf.global_variables_initializer())

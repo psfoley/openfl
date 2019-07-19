@@ -168,6 +168,10 @@ class Aggregator(object):
             weight_g = total_update_size / (message.data_size + total_update_size)
             weight_l = message.data_size / (message.data_size + total_update_size)
 
+            # The model parameters are represented in float32 and will be transmitted in byte stream.
+            weight_g = weight_g.astype(np.float32)
+            weight_l = weight_l.astype(np.float32)
+
             # FIXME: right now we're really using names just to sanity check consistent ordering
 
             # assert that the models include the same number of tensors
@@ -189,16 +193,19 @@ class Aggregator(object):
                 assert l is not None
 
                 # sanity check that the tensors are indeed different for non opt tensors                
-                if (not g.name.startswith('__opt')) and (g.values == l.values):
+                if (not g.name.startswith('__opt') and 'RMSProp' not in g.name) and (g.npbytes == l.npbytes):
                     raise ValueError('global tensor {} exactly equal to local tensor {}'.format(g.name, l.name))
                     
                 if g.shape != l.shape:
                     raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
 
                 # now just weighted average these
-                new_values = np.average([g.values, l.values], weights=[weight_g, weight_l], axis=0)
-                del self.model_update_in_progress.tensors[i].values[:]
-                self.model_update_in_progress.tensors[i].values.extend(new_values)
+                g_values = np.frombuffer(g.npbytes, dtype=np.float32)
+                l_values = np.frombuffer(l.npbytes, dtype=np.float32)
+                new_values = np.average([g_values, l_values], weights=[weight_g, weight_l], axis=0)
+                del g_values, l_values
+                # FIXME: we shouldn't convert it to bytes until we are ready to send it back to the collaborators.
+                self.model_update_in_progress.tensors[i].npbytes = new_values.tobytes('C')
 
         # store the loss results and training update size
         self.loss_results[message.header.sender] = message.loss

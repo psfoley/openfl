@@ -11,6 +11,23 @@ RUN apt-get install -y python3-setuptools python-dev build-essential
 RUN easy_install3 pip
 RUN pip install --upgrade pip
 RUN pip install tensorflow-gpu==1.10.0 torch protobuf pyzmq
+
+# For development.
+RUN pip install jupyter
+RUN apt-get install -y python3-dev
+RUN pip install line_profiler
+
+# Deprecated: This gets you an old v.2.6.1, while the latest is v3.9.0.
+# RUN apt-get install -y protobuf-compiler
+
+# Install protoc.
+RUN apt-get install -y curl
+RUN apt-get install -y unzip
+RUN curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.9.0/protoc-3.9.0-linux-x86_64.zip
+RUN unzip -o protoc-3.9.0-linux-x86_64.zip -d /usr/local bin/protoc
+RUN unzip -o protoc-3.9.0-linux-x86_64.zip -d /usr/local include/*
+RUN rm -f protoc-3.9.0-linux-x86_64.zip
+
 RUN ln -sf `which python3` `which python`
 
 ARG UNAME=testuser

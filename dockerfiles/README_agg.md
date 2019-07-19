@@ -50,3 +50,16 @@ python bin/simple_fl_agg.py -n 2 -i TensorFlow2DUNet --server_port 5678
 ```
 docker stop tfl_agg
 ```
+
+Other useful tools:
+```
+jupyter notebook --ip 0.0.0.0 --port 8989
+```
+
+```
+protoc -I=./tfedlrn/proto --python_out=./tfedlrn/proto ./tfedlrn/proto/message.proto
+```
+
+```
+tensorboard --logdir=logs --port=6026
+```

@@ -1,5 +1,6 @@
 import time
 import os
+import logging
 
 import numpy as np
 import tensorflow as tf
@@ -16,6 +17,7 @@ class Aggregator(object):
     # FIXME: no selector logic is in place
 
     def __init__(self, id, fed_id, col_ids, connection, model):
+        self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.id = id
         self.fed_id = fed_id
@@ -64,6 +66,7 @@ class Aggregator(object):
         if done:
             self.end_of_round()
             self.round_num += 1
+            self.logger.debug("Start a new round %d." % self.round_num)
 
     def end_of_round(self):
         # FIXME: what all should we do to track results/metrics? It should really be an easy, extensible solution
@@ -110,6 +113,7 @@ class Aggregator(object):
         self.preagg_validation_results = {}
 
     def run(self):
+        self.logger.debug("Start the federation [%s] with aggeregator [%s]." % (self.fed_id, self.id))
         while True:
             # receive a message
             message = self.connection.receive()
@@ -142,6 +146,7 @@ class Aggregator(object):
                 print('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
 
     def handle_local_model_update(self, message):
+        self.logger.debug("Receive model update from %s " % message.header.sender)
         model_proto = message.model
         model_header = model_proto.header
 
@@ -212,9 +217,11 @@ class Aggregator(object):
         self.collaborator_training_sizes[message.header.sender] = message.data_size
 
         # return LocalModelUpdateAck
+        self.logger.debug("Complete model update from %s " % message.header.sender)
         return LocalModelUpdateAck(header=self.create_reply_header(message))
 
     def handle_local_validation_results(self, message):
+        self.logger.debug("Receive local validation results from %s " % message.header.sender)
         model_header = message.model_header
 
         # validate this model header
@@ -257,10 +264,13 @@ class Aggregator(object):
         # else this collaborator is done for the round
         else:
             job = JOB_YIELD
+        
+        self.logger.debug("Receive job request from %s and assign with %s" % (message.header.sender, job))
 
         return JobReply(header=self.create_reply_header(message), job=job)
 
     def handle_model_download_request(self, message):
+        self.logger.debug("Receive model download request from %s " % message.header.sender)
         # assert that the models don't match
         assert self.collaborator_out_of_date(message.model_header)
 

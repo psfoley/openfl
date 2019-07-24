@@ -1,5 +1,5 @@
 import time
-
+import logging
 import numpy as np
 
 from ..proto.message_pb2 import *
@@ -11,6 +11,7 @@ class Collaborator(object):
 
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
     def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval=4):
+        self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.polling_interval = 4
 
@@ -56,12 +57,13 @@ class Collaborator(object):
         return reply
 
     def run(self):
+        self.logger.debug("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
         while True:
             # query for job
             # returns when a job has been received
             job = self.query_for_job()
 
-            print(self, 'got job', Job.Name(job))
+            self.logger.debug("Got a job %s" % Job.Name(job))
 
             # if time to quit
             if job is JOB_QUIT:
@@ -87,13 +89,13 @@ class Collaborator(object):
         return reply.job
 
     def do_train_job(self):
-
         # get the initial tensor dict
         # initial_tensor_dict = self.wrapped_model.get_tensor_dict()
 
         # train the model
         # FIXME: model header "version" needs to be changed to "rounds_trained"
         loss = self.wrapped_model.train_epoch(epoch=self.model_header.version)
+        self.logger.debug("Completed the training job.")
 
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
@@ -111,12 +113,14 @@ class Collaborator(object):
             tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
 
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
-
+        self.logger.debug("Sending the model to the aggeregator.")
         reply = self.send_and_receive(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
         assert isinstance(reply, LocalModelUpdateAck)
+        self.logger.debug("Model sent.")
 
     def do_validate_job(self):
         results = self.wrapped_model.validate()
+        self.logger.debug("Completed the validation job.")
         data_size = self.wrapped_model.get_validation_data_size()
 
         reply = self.send_and_receive(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
@@ -125,6 +129,7 @@ class Collaborator(object):
     def do_download_model_job(self):
         # sanity check on version is implicit in send
         reply = self.send_and_receive(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
+        self.logger.debug("Completed the downloading job.")
 
         assert isinstance(reply, GlobalModelUpdate)
 
@@ -140,3 +145,4 @@ class Collaborator(object):
             tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
 
         self.wrapped_model.set_tensor_dict(tensor_dict)
+        self.logger.debug("Loaded the model.")

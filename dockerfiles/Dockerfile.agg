@@ -30,6 +30,8 @@ RUN rm -f protoc-3.9.0-linux-x86_64.zip
 
 RUN ln -sf `which python3` `which python`
 
+RUN pip install coloredlogs pyyaml
+
 ARG UNAME=testuser
 ARG UID=1000
 ARG GID=1000

@@ -2,6 +2,9 @@
 import argparse
 import numpy as np
 
+from setup_logging import setup_logging
+setup_logging()
+
 import tfedlrn
 import tfedlrn.collaborator
 from tfedlrn.collaborator.collaborator import Collaborator
@@ -15,6 +18,8 @@ from tfedlrn.proto.message_pb2 import *
 
 import tensorflow as tf
 
+import logging
+import logging.config
 
 def main(col_num=0, num_collaborators=4, model_id='TensorFlow2DUNet', device='cuda', server_addr='127.0.0.1', server_port=5555):
     agg_id = "simple agg"

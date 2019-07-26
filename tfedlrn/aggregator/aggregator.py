@@ -26,7 +26,7 @@ class Aggregator(object):
         self.round_num = 1
 
         #FIXME: close the handler before termination.
-        log_dir = './logs/%s_%s' % (self.id, self.fed_id)
+        log_dir = './logs/tensorboard/%s_%s' % (self.id, self.fed_id)
         self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, c)) for c in self.col_ids}
         self.tb_writers_preagg = {c:tf.summary.FileWriter(os.path.join(log_dir, c+'_preagg')) for c in self.col_ids}
         self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'federation'))

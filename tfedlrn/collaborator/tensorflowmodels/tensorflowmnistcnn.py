@@ -27,12 +27,12 @@ class TensorFlowMNISTCNN(object):
         self.sess = tf.Session(config=config)
 
         self.X = tf.placeholder(tf.float32, (None, 28, 28, 1))
-        self.y = tf.placeholder(tf.float32, (None, 1))
+        self.y = tf.placeholder(tf.float32, (None, 10))
 
         self.output = define_model(self.X)
 
-        self.loss = tf.keras.metrics.categorical_crossentropy(self.y, self.output)
-        self.validation_metric = tf.keras.metrics.categorical_accuracy(self.y, self.output)
+        self.loss = tf.losses.softmax_cross_entropy(self.y, self.output)
+        self.validation_metric = tf.reduce_mean(tf.cast(tf.equal(tf.argmax(self.y, 1), tf.argmax(self.output, 1)),tf.float32))
 
         self.global_step = tf.train.get_or_create_global_step()
 
@@ -69,11 +69,12 @@ class TensorFlowMNISTCNN(object):
         num_batches = ceil(X.shape[0] / batch_size)
 
         losses = []
-        # for i in tqdm(range(num_batches), desc="training epoch"):
         for i in range(num_batches):
             a = i * batch_size
             b = a + batch_size
             losses.append(self.train_batch(X[idx[a:b]], y[idx[a:b]]))
+
+        losses
 
         return np.mean(losses)
 

@@ -19,6 +19,7 @@ def tf_get_tensor_dict(session, vars):
 # Note that this will return the assign_ops and placeholder nodes it uses
 # if called with None, it will create them.
 # to avoid inflating the graph, caller should keep these and pass them back
+# What if we want to set a different group of vars in the middle? It is good if it is the subset of the original vars.
 def tf_set_tensor_dict(tensor_dict, session, vars, assign_ops=None, placeholders=None):
     if placeholders is None:
         placeholders = {v.name: tf.placeholder(v.dtype, shape=v.shape) for v in vars}

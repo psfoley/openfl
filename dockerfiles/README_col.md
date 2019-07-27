@@ -32,14 +32,14 @@ docker exec -it tfl_col /bin/bash
 docker exec -it tfl_col /bin/bash
 export CUDA_VISIBLE_DEVICES=5
 pip install -e . --user
-python bin/simple_fl_tensorflow_col.py --col_num 0 --num_collaborators 2 --model_id TensorFlow2DUNet --server_addr 127.0.0.1 --server_port 5678
+python bin/simple_fl_tensorflow_col.py --col_num 0 --num_collaborators 2 --model_id TensorFlow2DUNet --server_addr 127.0.0.1 --server_port 5678 --opt_treatment RESET
 ```
 
 ```
 docker exec -it tfl_col /bin/bash
 export CUDA_VISIBLE_DEVICES=6
 pip install -e . --user
-python bin/simple_fl_tensorflow_col.py --col_num 1 --num_collaborators 2 --model_id TensorFlow2DUNet --server_addr 127.0.0.1 --server_port 5678
+python bin/simple_fl_tensorflow_col.py --col_num 1 --num_collaborators 2 --model_id TensorFlow2DUNet --server_addr 127.0.0.1 --server_port 5678 --opt_treatment RESET
 ```
 
 

@@ -10,7 +10,7 @@ from ..proto.message_pb2 import *
 class Collaborator(object):
 
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval=4):
+    def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval=4, opt_treatment="AGG"):
         self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.polling_interval = 4
@@ -24,6 +24,9 @@ class Collaborator(object):
                                         version=model_version)
 
         self.wrapped_model = wrapped_model
+
+        # AGG/EDGE/RESET
+        self.opt_treatment = opt_treatment
 
     def create_message_header(self):
         header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)
@@ -58,6 +61,7 @@ class Collaborator(object):
 
     def run(self):
         self.logger.debug("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
+        self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
         while True:
             # query for job
             # returns when a job has been received
@@ -101,7 +105,13 @@ class Collaborator(object):
         data_size = self.wrapped_model.get_training_data_size()
 
         # get the trained tensor dict
-        tensor_dict = self.wrapped_model.get_tensor_dict()
+        if self.opt_treatment in ("EDGE", "RESET"):
+            with_opt_vars = False
+            self.logger.debug("Not share the optimization variables.")
+        elif self.opt_treatment == "AGG":
+            with_opt_vars = True
+            self.logger.debug("Share the optimization variables.")
+        tensor_dict = self.wrapped_model.get_tensor_dict(with_opt_vars)
 
         # convert to a delta
         # for k in tensor_dict.keys():
@@ -146,3 +156,7 @@ class Collaborator(object):
 
         self.wrapped_model.set_tensor_dict(tensor_dict)
         self.logger.debug("Loaded the model.")
+
+        if self.opt_treatment == "RESET":
+            self.wrapped_model.reset_opt_vars()
+            self.logger.debug("Reset the optimization variables.")

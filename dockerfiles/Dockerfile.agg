@@ -1,0 +1,42 @@
+FROM nvidia/cuda:9.0-cudnn7-runtime
+LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
+
+# Set up the Intel proxy server before building the Docker image.
+# Credit goes to Cory Cornelius. 
+ENV http_proxy http://proxy-chain.intel.com:911
+ENV https_proxy http://proxy-chain.intel.com:912
+
+RUN apt-get update
+RUN apt-get install -y python3-setuptools python-dev build-essential
+RUN easy_install3 pip
+RUN pip install --upgrade pip
+RUN pip install tensorflow-gpu==1.10.0 torch protobuf pyzmq
+
+# For development.
+RUN pip install jupyter
+RUN apt-get install -y python3-dev
+RUN pip install line_profiler
+
+# Deprecated: This gets you an old v.2.6.1, while the latest is v3.9.0.
+# RUN apt-get install -y protobuf-compiler
+
+# Install protoc.
+RUN apt-get install -y curl
+RUN apt-get install -y unzip
+RUN curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.9.0/protoc-3.9.0-linux-x86_64.zip
+RUN unzip -o protoc-3.9.0-linux-x86_64.zip -d /usr/local bin/protoc
+RUN unzip -o protoc-3.9.0-linux-x86_64.zip -d /usr/local include/*
+RUN rm -f protoc-3.9.0-linux-x86_64.zip
+
+RUN ln -sf `which python3` `which python`
+
+RUN pip install coloredlogs pyyaml
+
+ARG UNAME=testuser
+ARG UID=1000
+ARG GID=1000
+
+RUN groupadd -g $GID $UNAME; exit 0
+RUN useradd -m -u $UID -g $GID -s /bin/bash $UNAME
+USER $UNAME
+CMD /bin/bash

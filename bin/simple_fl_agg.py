@@ -2,6 +2,9 @@
 import argparse
 import os
 
+from setup_logging import setup_logging
+setup_logging()
+
 import numpy as np
 
 import tfedlrn

@@ -48,15 +48,28 @@ class TensorFlow2DUNet(object):
         
         self.opt_vars = self.optimizer.variables()
 
+        # FIXME: Do we really need to share the opt_vars? Two opt_vars for one tvar: gradient and square sum for RMSprop.
         self.fl_vars = self.tvars + self.opt_vars
 
         self.sess.run(tf.global_variables_initializer())
 
-    def get_tensor_dict(self):
-        return tf_get_tensor_dict(self.sess, self.fl_vars)
+    def get_tensor_dict(self, with_opt_vars=True):
+        if with_opt_vars is True:
+            return tf_get_tensor_dict(self.sess, self.fl_vars)
+        else:
+            return tf_get_tensor_dict(self.sess, self.tvars)
 
     def set_tensor_dict(self, tensor_dict):
         self.assign_ops, self.placeholders = tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
+
+    def reset_opt_vars(self):
+        # We may save the intialized values in the beginning and restore when needed here. We will waste some storage if most of them are actually 0s or 1s.
+        # Instead, we just rerun the initializer of each variable.
+        for var in self.opt_vars:
+            if hasattr(var, 'initializer'):
+                var.initializer.run(session=self.sess)
+            else:
+                self.logger.error("Failed to reset opt_var %s." % var.name)
 
     def train_epoch(self, epoch=None, batch_size=64):
         tf.keras.backend.set_learning_phase(True)

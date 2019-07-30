@@ -21,7 +21,7 @@ def main(model='TensorFlow2DUNet'):
 
     tensor_protos = []
     for k, v in d.items():
-        tensor_protos.append(TensorProto(name=k, shape=v.shape, values=v.flatten(order='C')))
+        tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
 
     model_header = ModelHeader(id=model, version=0)
 

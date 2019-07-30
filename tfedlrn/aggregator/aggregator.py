@@ -1,6 +1,10 @@
 import time
+import os
+import logging
 
 import numpy as np
+import tensorflow as tf
+import tensorboard.summary as tb_summary
 
 from tfedlrn.proto.message_pb2 import *
 
@@ -13,11 +17,19 @@ class Aggregator(object):
     # FIXME: no selector logic is in place
 
     def __init__(self, id, fed_id, col_ids, connection, model):
+        self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.id = id
         self.fed_id = fed_id
         self.model = model
         self.col_ids = col_ids
+        self.round_num = 1
+
+        #FIXME: close the handler before termination.
+        log_dir = './logs/tensorboard/%s_%s' % (self.id, self.fed_id)
+        self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, c)) for c in self.col_ids}
+        self.tb_writers_preagg = {c:tf.summary.FileWriter(os.path.join(log_dir, c+'_preagg')) for c in self.col_ids}
+        self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'federation'))
 
         self.model_update_in_progress = None
 
@@ -25,7 +37,8 @@ class Aggregator(object):
         # FIXME: call these "per_col_round_stats"
         self.loss_results = {}
         self.collaborator_training_sizes = {}
-        self.validation_results = {}
+        self.agg_validation_results = {}
+        self.preagg_validation_results = {}
         self.collaborator_validation_sizes = {}
 
     def end_of_round_check(self):
@@ -34,7 +47,8 @@ class Aggregator(object):
 
         # assert our dictionary keys are in sync
         assert self.loss_results.keys() == self.collaborator_training_sizes.keys()
-        assert self.validation_results.keys() == self.collaborator_validation_sizes.keys()
+        assert self.agg_validation_results.keys() == self.collaborator_validation_sizes.keys()
+        # assert self.agg_validation_results.keys() == self.preagg_validation_results.keys()
 
         done = True
 
@@ -43,13 +57,16 @@ class Aggregator(object):
         for c in self.col_ids:
             if (c not in self.loss_results or 
                 c not in self.collaborator_training_sizes or 
-                c not in self.validation_results or 
+                c not in self.agg_validation_results or
+                c not in self.preagg_validation_results or
                 c not in self.collaborator_validation_sizes):
                 done = False
                 break
 
         if done:
             self.end_of_round()
+            self.round_num += 1
+            self.logger.debug("Start a new round %d." % self.round_num)
 
     def end_of_round(self):
         # FIXME: what all should we do to track results/metrics? It should really be an easy, extensible solution
@@ -59,7 +76,7 @@ class Aggregator(object):
                                 weights=[self.collaborator_training_sizes[c] for c in self.col_ids])
 
         # compute the weighted validation average
-        round_val = np.average([self.validation_results[c] for c in self.col_ids],
+        round_val = np.average([self.agg_validation_results[c] for c in self.col_ids],
                                weights=[self.collaborator_validation_sizes[c] for c in self.col_ids])
 
         # FIXME: proper logging
@@ -67,6 +84,18 @@ class Aggregator(object):
         print('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
         print('\tvalidation: {}'.format(round_val))
         print('\tloss: {}'.format(round_loss))
+
+        for c in self.col_ids:
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.loss_results[c]), global_step=self.round_num)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.collaborator_training_sizes[c]), global_step=self.round_num)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.agg_validation_results[c]), global_step=self.round_num-1)
+            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.collaborator_validation_sizes[c]), global_step=self.round_num-1)
+            self.tb_writers[c].flush()
+            self.tb_writers_preagg[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.preagg_validation_results[c]), global_step=self.round_num)
+            self.tb_writers_preagg[c].flush()
+        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num)
+        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num-1)
+        self.tb_writers['federation'].flush()
 
         # copy over the model update in progress
         self.model = self.model_update_in_progress
@@ -79,10 +108,12 @@ class Aggregator(object):
 
         self.loss_results = {}
         self.collaborator_training_sizes = {}
-        self.validation_results = {}
         self.collaborator_validation_sizes = {}
+        self.agg_validation_results = {}
+        self.preagg_validation_results = {}
 
     def run(self):
+        self.logger.debug("Start the federation [%s] with aggeregator [%s]." % (self.fed_id, self.id))
         while True:
             # receive a message
             message = self.connection.receive()
@@ -115,6 +146,7 @@ class Aggregator(object):
                 print('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
 
     def handle_local_model_update(self, message):
+        self.logger.debug("Receive model update from %s " % message.header.sender)
         model_proto = message.model
         model_header = model_proto.header
 
@@ -141,6 +173,10 @@ class Aggregator(object):
             weight_g = total_update_size / (message.data_size + total_update_size)
             weight_l = message.data_size / (message.data_size + total_update_size)
 
+            # The model parameters are represented in float32 and will be transmitted in byte stream.
+            weight_g = weight_g.astype(np.float32)
+            weight_l = weight_l.astype(np.float32)
+
             # FIXME: right now we're really using names just to sanity check consistent ordering
 
             # assert that the models include the same number of tensors
@@ -162,40 +198,52 @@ class Aggregator(object):
                 assert l is not None
 
                 # sanity check that the tensors are indeed different for non opt tensors                
-                if (not g.name.startswith('__opt')) and (g.values == l.values):
+                if (not g.name.startswith('__opt') and 'RMSProp' not in g.name) and (g.npbytes == l.npbytes):
                     raise ValueError('global tensor {} exactly equal to local tensor {}'.format(g.name, l.name))
                     
                 if g.shape != l.shape:
                     raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
 
                 # now just weighted average these
-                new_values = np.average([g.values, l.values], weights=[weight_g, weight_l], axis=0)
-                del self.model_update_in_progress.tensors[i].values[:]
-                self.model_update_in_progress.tensors[i].values.extend(new_values)
+                g_values = np.frombuffer(g.npbytes, dtype=np.float32)
+                l_values = np.frombuffer(l.npbytes, dtype=np.float32)
+                new_values = np.average([g_values, l_values], weights=[weight_g, weight_l], axis=0)
+                del g_values, l_values
+                # FIXME: we shouldn't convert it to bytes until we are ready to send it back to the collaborators.
+                self.model_update_in_progress.tensors[i].npbytes = new_values.tobytes('C')
 
         # store the loss results and training update size
         self.loss_results[message.header.sender] = message.loss
         self.collaborator_training_sizes[message.header.sender] = message.data_size
 
         # return LocalModelUpdateAck
+        self.logger.debug("Complete model update from %s " % message.header.sender)
         return LocalModelUpdateAck(header=self.create_reply_header(message))
 
     def handle_local_validation_results(self, message):
+        self.logger.debug("Receive local validation results from %s " % message.header.sender)
         model_header = message.model_header
 
         # validate this model header
         assert model_header.id == self.model.header.id
         assert model_header.version == self.model.header.version
 
-        # ensure we haven't received an update from this collaborator already
-        # FIXME: is this an error case that should be handled?
-        assert message.header.sender not in self.validation_results
-        assert message.header.sender not in self.collaborator_validation_sizes        
+        sender = message.header.sender
 
-        # store the validation results and validation size
-        self.validation_results[message.header.sender] = message.results
-        self.collaborator_validation_sizes[message.header.sender] = message.data_size
+        if sender not in self.agg_validation_results:
+            # Pre-train validation
+            # ensure we haven't received an update from this collaborator already
+            # FIXME: is this an error case that should be handled?
+            assert message.header.sender not in self.agg_validation_results
+            assert message.header.sender not in self.collaborator_validation_sizes
 
+            # store the validation results and validation size
+            self.agg_validation_results[message.header.sender] = message.results
+            self.collaborator_validation_sizes[message.header.sender] = message.data_size
+        elif sender not in self.preagg_validation_results:
+            # Post-train validation
+            assert message.header.sender not in self.preagg_validation_results
+            self.preagg_validation_results[message.header.sender] = message.results
         # return LocalValidationResultsAck
         return LocalValidationResultsAck(header=self.create_reply_header(message))
 
@@ -206,18 +254,23 @@ class Aggregator(object):
         if self.collaborator_out_of_date(message.model_header):
             job = JOB_DOWNLOAD_MODEL
         # else, check if this collaborator has not sent validation results
-        elif message.header.sender not in self.collaborator_validation_sizes:
+        elif message.header.sender not in self.agg_validation_results:
             job = JOB_VALIDATE
         # else, check if this collaborator has not sent training results
         elif message.header.sender not in self.collaborator_training_sizes:
             job = JOB_TRAIN
+        elif message.header.sender not in self.preagg_validation_results:
+            job = JOB_VALIDATE
         # else this collaborator is done for the round
         else:
             job = JOB_YIELD
+        
+        self.logger.debug("Receive job request from %s and assign with %s" % (message.header.sender, job))
 
         return JobReply(header=self.create_reply_header(message), job=job)
 
     def handle_model_download_request(self, message):
+        self.logger.debug("Receive model download request from %s " % message.header.sender)
         # assert that the models don't match
         assert self.collaborator_out_of_date(message.model_header)
 

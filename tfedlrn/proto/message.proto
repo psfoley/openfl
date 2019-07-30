@@ -28,10 +28,12 @@ enum Job {
     JOB_DOWNLOAD_MODEL = 4;
 }
 
+// FIXME: Remove values or rename npbytes as values.
 message TensorProto {
     required string name = 1;
     repeated int32 shape = 2;
-    repeated float values = 3; 
+    repeated float values = 3;
+    optional bytes npbytes = 4;
 }
 
 // Everything but 'sender' is effectively just for sanity checking during testing

@@ -10,3 +10,4 @@ build/
 venv/
 initial_models/
 tfedlrn.egg-info/
+todo.txt

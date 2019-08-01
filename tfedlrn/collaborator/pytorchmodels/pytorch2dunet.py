@@ -8,8 +8,9 @@ import torch.utils.data
 import torch.nn.functional as F
 import torch.optim as optim
 
-from ...datasets import load_dataset
-from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, pt_train_epoch, pt_create_loader
+from ...datasets import get_data_paths, get_data_reader
+from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, 
+                            pt_train_epoch, pt_create_loader
 
 
 # FIXME: move to some custom losses.py file?
@@ -51,23 +52,30 @@ class PyTorch2DUNet(nn.Module):
     def set_tensor_dict(self, tensor_dict):
         pt_set_tensor_dict(self, tensor_dict)
 
-    def init_data_pipeline(self, train_loader, val_loader):
+
+    def _tensorize_data(X, y):
+        tX = torch.stack([torch.Tensor(i) for i in X])
+        ty = torch.stack([torch.Tensor(i) for i in y])
+        return torch.utils.data.TensorDataset(tX, ty)
+
+    def init_data_pipeline(self, train_loader, val_loader, label_type='whole_tumor'):
         if train_loader is None or val_loader is None:
-            # load all the institutions
-            data_by_institution = [load_dataset('BraTS17_institution',
-                                                institution=i,
-                                                channels_first=True) for i in range(10)]
-            data_by_type = zip(*data_by_institution)
-            data_by_type = [np.concatenate(d) for d in data_by_type]
-            X_train, y_train, X_val, y_val = data_by_type
+
+            # train and val paths are lists is tuples: (X_path, y_path)
+            # each path corresponds to a file for a single sample  
+            idx_to_train_paths = get_data_paths('BraTS17_train')
+            idx_to_val_paths = get_data_paths('BraTS17_val')
+            read_and_preprocess = get_data_reader('BraTS17_{}'.format(label_type))
 
         if train_loader is None:
-            self.train_loader = pt_create_loader(X_train, y_train, batch_size=64, shuffle=True)
+            self.train_loader = pt_create_loader(idx_to_train_paths, read_and_preprocess, 
+                                                 batch_size=64, shuffle=True)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
-            self.val_loader = pt_create_loader(X_val, y_val, batch_size=64, shuffle=True)
+            self.val_loader = pt_create_loader(idx_to_val_paths, read_and_preprocess, 
+                                               batch_size=64, shuffle=True)
         else:
             self.val_loader = val_loader
             

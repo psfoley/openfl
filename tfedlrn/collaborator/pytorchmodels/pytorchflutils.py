@@ -191,7 +191,24 @@ def pt_train_epoch(torch_nn, train_loader, device, optimizer, loss_fn):
     return np.mean(losses)
 
 
-def pt_create_loader(X, y, **kwargs):
-    tX = torch.stack([torch.Tensor(i) for i in X])
-    ty = torch.stack([torch.Tensor(i) for i in y])
-    return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), **kwargs)
+class DatasetFromPaths(Dataset):
+
+    def __init__(idx_to_paths, read_and_preprocess, transform):
+        self.idx_to_paths = idx_to_paths
+        self.read_and_preprocess = read_and_preprocess
+        self.transform = transform
+
+    def __len__(self)
+        return len(idx_to_paths)      
+
+    def __getitem__(self, idx):
+        # get path and read off of disc into numpy data
+        datapoint = read_and_preprocess(idx_to_paths[idx])
+        if transform is not None:
+            datapoint = transform(datapoint)
+        return datapoint
+
+
+def pt_create_loader(idx_to_paths, read_and_preprocessor, transform=None, **kwargs):
+    dataset = DatasetFromPaths(idx_to_paths, read_and_preprocess, transform)
+    return torch.utils.data.DataLoader(dataset, **kwargs)

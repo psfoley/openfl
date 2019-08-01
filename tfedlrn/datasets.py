@@ -7,6 +7,8 @@ import numpy as np
 from math import ceil
 
 
+# WORKING HERE ... neeed to implement: get_data_paths, get_data_reader ?for all datasets
+
 def _get_dataset_func_map():
     return {
         'mnist': load_mnist,
@@ -19,6 +21,8 @@ def _get_dataset_func_map():
 #         'BraTS17': load_BraTS17,
         'BraTS17_institution': load_BraTS17_insitution,
     }
+
+
 
 
 def get_dataset_list():

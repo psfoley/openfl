@@ -203,7 +203,7 @@ class DatasetFromPaths(Dataset):
 
     def __getitem__(self, idx):
         # get path and read off of disc into numpy data
-        datapoint = read_and_preprocess(idx_to_paths[idx])
+        datapoint = read_and_preprocess(idx_to_paths[idx], idx)
         if transform is not None:
             datapoint = transform(datapoint)
         return datapoint

@@ -2,12 +2,38 @@ import pickle
 import glob
 import os
 import socket
+from fuctools import partial
 
 import numpy as np
 from math import ceil
+from brats17_reader import brats17_reader
 
+
+# FIXME: put a logging command next to raised exception for data_type value error
 
 # WORKING HERE ... neeed to implement: get_data_paths, get_data_reader ?for all datasets
+
+
+
+def get_data_paths(server, data_name):
+    # used for setting up data loaders that load individual samlples from 
+    # FIXME: currently the validation set is the same as the training set
+    # FIXME: add support for other image datasets?
+    # FIXME: add for tensorflow, even though graph pipelines work there?
+    return {
+        'BraTS17_train': os.path.join(_get_dataset_dir(server), 
+                                      'BraTS17/MICCAI_BraTS17_Training/HGG')
+        'BraTS17_val': os.path.join(_get_dataset_dir(server), 
+                                    'BraTS17/MICCAI_BraTS17_Training/HGG')
+    }
+
+def get_data_reader(data_type):
+    if data_type.starts_with('BraTS17_'):
+        label_type = data_type[8:]
+        return partial(brats17_reader, label_type=label_type)
+    else:
+        raise ValueError("The data_type:{} is not supported.".format(data_type))
+
 
 def _get_dataset_func_map():
     return {

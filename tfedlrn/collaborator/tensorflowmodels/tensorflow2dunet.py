@@ -6,7 +6,7 @@ import tensorflow as tf
 # from tqdm import tqdm
 
 from ...datasets import load_dataset
-from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_dict
+from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_dict, tf_reset_vars
 
 
 class TensorFlow2DUNet(object):
@@ -63,13 +63,7 @@ class TensorFlow2DUNet(object):
         self.assign_ops, self.placeholders = tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
 
     def reset_opt_vars(self):
-        # We may save the intialized values in the beginning and restore when needed here. We will waste some storage if most of them are actually 0s or 1s.
-        # Instead, we just rerun the initializer of each variable.
-        for var in self.opt_vars:
-            if hasattr(var, 'initializer'):
-                var.initializer.run(session=self.sess)
-            else:
-                self.logger.error("Failed to reset opt_var %s." % var.name)
+        return tf_reset_vars(self.sess, self.opt_vars)
 
     def train_epoch(self, epoch=None, batch_size=64):
         tf.keras.backend.set_learning_phase(True)

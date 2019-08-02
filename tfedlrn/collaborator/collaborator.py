@@ -4,6 +4,12 @@ import numpy as np
 
 from ..proto.message_pb2 import *
 
+from enum import Enum
+
+class OptTreatment(Enum):
+    RESET = 1
+    EDGE = 2
+    AGG = 3
 
 # FIXME: this is actually a tuple of a collaborator/flplan
 # CollaboratorFLPlanExecutor?
@@ -26,7 +32,11 @@ class Collaborator(object):
         self.wrapped_model = wrapped_model
 
         # AGG/EDGE/RESET
-        self.opt_treatment = opt_treatment
+        if hasattr(OptTreatment, opt_treatment):
+            self.opt_treatment = OptTreatment[opt_treatment]
+        else:
+            self.logger.error("Unknown opt_treatment: %s." % opt_treatment)
+            raise NotImplementedError("Unknown opt_treatment: %s." % opt_treatment)
 
     def create_message_header(self):
         header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)
@@ -105,10 +115,10 @@ class Collaborator(object):
         data_size = self.wrapped_model.get_training_data_size()
 
         # get the trained tensor dict
-        if self.opt_treatment in ("EDGE", "RESET"):
+        if self.opt_treatment in (OptTreatment.EDGE, OptTreatment.RESET):
             with_opt_vars = False
             self.logger.debug("Not share the optimization variables.")
-        elif self.opt_treatment == "AGG":
+        elif self.opt_treatment == OptTreatment.AGG:
             with_opt_vars = True
             self.logger.debug("Share the optimization variables.")
         tensor_dict = self.wrapped_model.get_tensor_dict(with_opt_vars)
@@ -157,6 +167,11 @@ class Collaborator(object):
         self.wrapped_model.set_tensor_dict(tensor_dict)
         self.logger.debug("Loaded the model.")
 
-        if self.opt_treatment == "RESET":
-            self.wrapped_model.reset_opt_vars()
-            self.logger.debug("Reset the optimization variables.")
+        # FIXME: for the EDGE treatment, we need to store the status in case of a crash.
+        if self.opt_treatment == OptTreatment.RESET:
+            try:
+                self.wrapped_model.reset_opt_vars()
+            except:
+                self.logger.exception("Failed to reset the optimization variables.")
+            else:
+                self.logger.debug("Reset the optimization variables.")

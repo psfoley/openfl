@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-
 def tf_get_vars(optimizer=None):
     # FIXME: how to support multiple graphs?
     if optimizer is not None:
@@ -30,3 +29,7 @@ def tf_set_tensor_dict(tensor_dict, session, vars, assign_ops=None, placeholders
         session.run(assign_ops[k], feed_dict={placeholders[k]:v})
     
     return assign_ops, placeholders
+
+def tf_reset_vars(session, vars):
+    for var in vars:
+        var.initializer.run(session=session)

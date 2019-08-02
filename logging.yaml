@@ -33,11 +33,11 @@ loggers:
   tfedlrn.aggregator:
     level: DEBUG
     handlers: [console, agg_file_handler]
-    propagate: no
+    propagate: yes
   tfedlrn.collaborator:
     level: DEBUG
     handlers: [console, col_file_handler]
-    propagate: no
+    propagate: yes
   root:
     level: DEBUG
     handlers: [console]

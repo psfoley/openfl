@@ -17,6 +17,11 @@ message FLMessage {
         JobReply jobreply = 6;
         LocalModelUpdateAck localmodelupdateack = 7;
         LocalValidationResultsAck localvalidationresultsack = 8;
+
+        PlanRequest planrequest = 9;
+        PlanReply planreply = 10;
+        CodeRequest coderequest = 11;
+        CodeReply codereply = 12;
     }
 }
 
@@ -105,4 +110,34 @@ message LocalModelUpdateAck {
 
 message LocalValidationResultsAck {
     required MessageHeader header = 1;
+}
+
+
+// Coordinator messages between client and server.
+// No message header because the federation is not decided.
+message PlanRequest {
+    required string dataset=1;
+    required string software_version=2;
+}
+
+message PlanReply {
+    required string fed_id = 1;
+    optional string agg_id = 2;
+    optional string agg_addr = 3;
+    optional int32 agg_port = 4;
+    // optional string model_id = 5;
+    optional string col_id = 5;
+    optional string opt_treatment = 6;
+    optional string description = 7;
+    optional string code = 8;
+}
+
+message CodeRequest {
+    required string fed_id = 1;
+}
+
+message CodeReply {
+    required int32 size = 1;
+    optional string checksum = 2;
+    optional bytes code_zip = 3;
 }

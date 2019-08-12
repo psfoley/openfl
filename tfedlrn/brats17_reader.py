@@ -43,40 +43,41 @@ def parse_images(img):
 
     return np.asarray(slices)
 
-    def stack_img_slices(mode_track, stack_order):
 
-        # Put final image channels in the order listed in stack_order
+def stack_img_slices(mode_track, stack_order):
 
-        full_brain = []
-        for slice in range(len(mode_track['t1'])):
-            current_slice = []
-            for mode in stack_order:
-                current_slice.append(mode_track[mode][slice,:,:])
-            full_brain.append(np.dstack(current_slice))
+    # Put final image channels in the order listed in stack_order
 
-        # Normalize stacked images (inference will not work if this is not performed)
-        stack = np.asarray(full_brain)
-        stack = (stack - np.mean(stack))/(np.std(stack))
+    full_brain = []
+    for slice in range(len(mode_track['t1'])):
+        current_slice = []
+        for mode in stack_order:
+            current_slice.append(mode_track[mode][slice,:,:])
+        full_brain.append(np.dstack(current_slice))
 
-        return stack
+    # Normalize stacked images (inference will not work if this is not performed)
+    stack = np.asarray(full_brain)
+    stack = (stack - np.mean(stack))/(np.std(stack))
 
-
-    def resize_data(dataset, new_size):
-
-        # Test/Train images must be the same size
-
-        start_index = int((dataset.shape[1] - new_size)/2)
-        end_index = dataset.shape[1] - start_index
-
-        if rotate != 0:
-            resized = np.rot90(dataset[:, start_index:end_index, start_index:end_index :], rotate, axes=(1,2))
-        else:
-            resized = dataset[:, start_index:end_index, start_index:end_index :]
-
-        return resized
+    return stack
 
 
-    # adapted from https://github.com/NervanaSystems/topologies
+def resize_data(dataset, new_size):
+
+    # Test/Train images must be the same size
+
+    start_index = int((dataset.shape[1] - new_size)/2)
+    end_index = dataset.shape[1] - start_index
+
+    if rotate != 0:
+        resized = np.rot90(dataset[:, start_index:end_index, start_index:end_index :], rotate, axes=(1,2))
+    else:
+        resized = dataset[:, start_index:end_index, start_index:end_index :]
+
+    return resized
+
+
+# adapted from https://github.com/NervanaSystems/topologies
 def _update_channels(imgs, msks, input_no=1, output_no=1, mode=1, CHANNEL_LAST=True):
     """
     changes the order or which channels are used to allow full testing. Uses both
@@ -139,53 +140,73 @@ def _update_channels(imgs, msks, input_no=1, output_no=1, mode=1, CHANNEL_LAST=T
     return new_imgs, new_msks
 
 
-def brats17_reader(data_dir, index, label_type):
+# WORKING HERE use the label_type value
+
+def brats17_reader(idx, indexed_data_paths, label_type):
 
     # FIXME: put a logging statement next to raised exceptions
 
-    # the name of the directory in root_dir should contain the new institution name (like 'inst12')
-    # institution_name = root_dir.split('/')[-1]
+    # Assumes data_dir contains only subdirectories, each
+    # conataining no other files than and exactly one of the following 
+    # files: "<subdir>_<type>.nii.gz", where <subdir> is the
+    # name of the subdirectory and <type> is one of ["t1", "t2","flair","t1ce"],
+    # as well as a segmentation label file "<subdir>_<suffix>", where suffix is: 
+    # 'seg_binary.nii.gz', 'seg_binarized.nii.gz', or 'SegBinarized.nii.gz'.
+    # These files provide all modes and segmenation label for a single patient 
+    # brain scan consisting of 155 axial slice images.
 
-    for subdir, dir, files in os.walk(data_dir):
-        # Ensure all necessary files are present
-        file_root = subdir.split('/')[-1] + "_"
+    if label_type == 'whole_tumor':
+        mode = 1
+    elif label_type == 'enhanced_tumor':
+        mode = 2
+    elif label_type == 'active_core':
+        mode = 3
+    else:
+        raise ValueError("{} is not a valid label type".format(label_type))
+
+
+    subdir = indexed_data_paths[idx]
+    file_root = subdir.split('/')[-1] + "_"
+    for files in os.list_dir(subdir):
+        # Ensure all necessary files are present        
         extension = ".nii.gz"
         img_modes = ["t1","t2","flair","t1ce"]
         need_file = [file_root + mode + extension for mode in img_modes]
         all_there = [(reqd in files) for reqd in need_file]
         if all(all_there):
-            mode_track = {mode:[] for mode in img_modes}
+            track_mode = {mode:[] for mode in img_modes}
             for file in files:
                 if file.endswith('seg_binary.nii.gz') or \
-                  file.endswith('seg_binarized.nii.gz') or file.endswith('SegBinarized.nii.gz'):
+                file.endswith('seg_binarized.nii.gz') or file.endswith('SegBinarized.nii.gz'):
                     path = os.path.join(subdir,file)
-                    msk = np.array(nib.load(path).dataobj)
-                    parsed = resize_data(parse_segments(msk), resize)
-                    msks_all.extend(parsed)
+                    full_brain_msk = np.array(nib.load(path).dataobj)
+                    full_brain_msk = resize_data(parse_segments(msk), resize)
 
                 if file.endswith('t1.nii.gz'):
                     path = os.path.join(subdir,file)
-                    img = np.array(nib.load(path).dataobj)
-                    mode_track['t1'] = resize_data(parse_images(img), resize)
+                    full_brain_img_t1 = np.array(nib.load(path).dataobj)
+                    track_mode['t1'] = resize_data(parse_images(full_brain_img_t1), resize)
 
                 if file.endswith('t2.nii.gz'):
                     path = os.path.join(subdir,file)
-                    img = np.array(nib.load(path).dataobj)
-                    mode_track['t2'] = resize_data(parse_images(img), resize)
+                    full_brain_img_t2 = np.array(nib.load(path).dataobj)
+                    track_mode['t2'] = resize_data(parse_images(full_brain_img_t2), resize)
 
                 if file.endswith('t1ce.nii.gz'):
                     path = os.path.join(subdir,file)
-                    img = np.array(nib.load(path).dataobj)
-                    mode_track['t1ce'] = resize_data(parse_images(img), resize)
+                    full_brain_img_t1ce = np.array(nib.load(path).dataobj)
+                    track_mode['t1ce'] = resize_data(parse_images(full_brain_img_t1ce), resize)
 
                 if file.endswith('flair.nii.gz'):
                     path = os.path.join(subdir,file)
-                    img = np.array(nib.load(path).dataobj)
-                    mode_track['flair'] = resize_data(parse_images(img), resize)
+                    full_brain_img_flair = np.array(nib.load(path).dataobj)
+                    track_mode['flair'] = resize_data(parse_images(full_brain_img_flair), resize)
         
-            brain_imgs = np.asarray(stack_img_slices(mode_track,img_modes))
-            this_img = brain_images[idx % 155]
-            return this_img
+            full_brain_img = np.asarray(stack_img_slices(track_mode,img_modes))
+            # floor(idx/155) is the patient, idx % 155 provides which of the 155 slices
+            img, msk = full_brain_img[idx % 155], full_brain_msk[idx % 155]
+            #FIXME: put update channels here
+            return img, msk
 
         else:
             # FIXME: here log the presence of incomplete data

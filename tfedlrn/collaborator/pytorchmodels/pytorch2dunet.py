@@ -8,7 +8,7 @@ import torch.utils.data
 import torch.nn.functional as F
 import torch.optim as optim
 
-from ...datasets import get_data_paths, get_data_reader
+from ...datasets import brats17_data_paths, get_data_reader
 from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, 
                             pt_train_epoch, pt_create_loader
 
@@ -63,9 +63,10 @@ class PyTorch2DUNet(nn.Module):
 
             # train and val paths are lists is tuples: (X_path, y_path)
             # each path corresponds to a file for a single sample  
-            idx_to_train_paths = get_data_paths('BraTS17_train')
-            idx_to_val_paths = get_data_paths('BraTS17_val')
-            read_and_preprocess = get_data_reader('BraTS17_{}'.format(label_type))
+            idx_to_train_paths = brats17_data_paths('BraTS17_train')
+            idx_to_val_paths = brats17_data_paths('BraTS17_val')
+            read_and_preprocess = get_data_reader('BraTS17_{}'.format(label_type), 
+                                                  indexed_data_paths)
 
         if train_loader is None:
             self.train_loader = pt_create_loader(idx_to_train_paths, read_and_preprocess, 

@@ -16,9 +16,20 @@ def _derive_opt_state_dict(opt_state_dict):
 
     derived_opt_state_dict['__opt_state_needed'] = 'true'
 
-    # We assume that the state collected for all parameter groups is the same.
     # Using one example state key, we collect keys for the corresponding dictionary value.
     example_state_key = opt_state_dict['param_groups'][0]['params'][0]
+    example_state_subkeys = set(opt_state_dict['state'][example_state_key].keys())
+
+    # We assume that the state collected for all params in all param groups is the same.
+    # We also assume that whether or not the associated values to these state subkeys
+    #   is a tensor depends only on the subkey. 
+    # Using assert statements to break the routine if these assumptions are incorrect.
+    for state_key in opt_state_dict['state'].keys():
+        assert example_state_subkeys == set(opt_state_dict['state'][state_key].keys())
+        for state_subkey in example_state_subkeys:
+            assert isinstance(opt_state_dict['state'][example_state_key][state_subkey], torch.Tensor) == \
+                isinstance(opt_state_dict['state'][state_key][state_subkey], torch.Tensor)
+
     state_subkeys = list(opt_state_dict['state'][example_state_key].keys())
 
     # Tags will record whether the value associated to the subkey is a tensor or not.

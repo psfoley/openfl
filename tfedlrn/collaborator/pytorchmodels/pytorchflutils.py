@@ -1,6 +1,9 @@
 import torch
+from torch.utils.data import Dataset
 import numpy as np
 from copy import deepcopy
+
+# FIXME: Put docstrings into all functions.
 
 
 def _derive_opt_state_dict(opt_state_dict):
@@ -204,13 +207,13 @@ def pt_train_epoch(torch_nn, train_loader, device, optimizer, loss_fn):
 
 class DatasetFromPaths(Dataset):
 
-    def __init__(idx_to_paths, read_and_preprocess, transform):
+    def __init__(self, idx_to_paths, read_and_preprocess, transform):
         self.idx_to_paths = idx_to_paths
         self.read_and_preprocess = read_and_preprocess
         self.transform = transform
 
-    def __len__(self)
-        return len(idx_to_paths)      
+    def __len__(self):
+        return len(self.idx_to_paths)      
 
     def __getitem__(self, idx):
         # get path and read off of disc into numpy data

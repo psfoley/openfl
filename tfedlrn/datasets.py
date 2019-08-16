@@ -6,10 +6,11 @@ from functools import partial
 
 import numpy as np
 from math import ceil
-from .brats17_reader import brats17_reader
+from .brats17_reader import brats17_2d_reader
 
 
 # FIXME: put a logging command next to raised exception for data_type value error
+# FIXME: Put docstrings into all functions
 
 # WORKING HERE ... neeed to implement: get_data_paths, get_data_reader ?for all datasets
 
@@ -39,10 +40,19 @@ def brats17_data_paths(server, data_name):
 def get_data_reader(data_type, indexed_data_paths):
     if data_type.starts_with('BraTS17_'):
         label_type = data_type[8:]
-        return partial(brats17_reader, indexed_data_paths=indexed_data_paths, 
+        return partial(brats17_2d_reader, indexed_data_paths=indexed_data_paths, 
                        label_type=label_type)
     else:
         raise ValueError("The data_type:{} is not supported.".format(data_type))
+
+
+def get_data_paths(server, data_name):
+    # FIXME: Currently the training and validation data is the same.
+    if data_name.starts_with('BraTS17_'):
+        return brats17_data_paths(server, data_name)
+    else:
+        raise ValueError("The data_name:{} is not supported for pipelining.".format(data_name))
+    
 
 
 def _get_dataset_func_map():

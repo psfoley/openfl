@@ -9,8 +9,10 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from ...datasets import brats17_data_paths, get_data_reader
-from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, 
-                            pt_train_epoch, pt_create_loader
+from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, \
+    pt_train_epoch, pt_create_loader
+
+# FIXME: Put docstrings into all functions
 
 
 # FIXME: move to some custom losses.py file?
@@ -61,7 +63,7 @@ class PyTorch2DUNet(nn.Module):
     def init_data_pipeline(self, train_loader, val_loader, label_type='whole_tumor'):
         if train_loader is None or val_loader is None:
 
-            # train and val paths are lists is tuples: (X_path, y_path)
+            # train and val paths are lists of tuples: (X_path, y_path)
             # each path corresponds to a file for a single sample  
             idx_to_train_paths = brats17_data_paths('BraTS17_train')
             idx_to_val_paths = brats17_data_paths('BraTS17_val')

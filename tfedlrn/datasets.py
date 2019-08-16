@@ -16,7 +16,7 @@ from .brats17_reader import brats17_2d_reader
 
 
 
-def brats17_data_paths(server, data_name):
+def brats17_data_paths(data_name):
     # used for setting up data loaders that load individual samlples from 
     # FIXME: currently the validation set is the same as the training set
     # FIXME: add support for other image datasets?
@@ -24,10 +24,10 @@ def brats17_data_paths(server, data_name):
 
     # produce a dictionary of indices to file_paths
     if data_name == 'BraTS17_train':
-        paths = os.list_dir(os.path.join(_get_dataset_dir(server), 
+        paths = os.list_dir(os.path.join(_get_dataset_dir(), 
                                          'BraTS17/MICCAI_BraTS17_Training/HGG'))
     elif data_name == 'BraTS17_val':
-        paths = os.list_dir(os.path.join(_get_dataset_dir(server), 
+        paths = os.list_dir(os.path.join(_get_dataset_dir(), 
                                          'BraTS17/MICCAI_BraTS17_Training/HGG'))
     # order paths so as to deterministically determine indices
     paths.sort()
@@ -46,10 +46,10 @@ def get_data_reader(data_type, indexed_data_paths):
         raise ValueError("The data_type:{} is not supported.".format(data_type))
 
 
-def get_data_paths(server, data_name):
+def get_data_paths(data_name):
     # FIXME: Currently the training and validation data is the same.
     if data_name.starts_with('BraTS17_'):
-        return brats17_data_paths(server, data_name)
+        return brats17_data_paths(data_name)
     else:
         raise ValueError("The data_name:{} is not supported for pipelining.".format(data_name))
     

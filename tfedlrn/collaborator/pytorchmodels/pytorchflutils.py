@@ -205,24 +205,24 @@ def pt_train_epoch(torch_nn, train_loader, device, optimizer, loss_fn):
     return np.mean(losses)
 
 
-class DatasetFromPaths(Dataset):
+class IndexFetchDataset(Dataset):
 
-    def __init__(self, idx_to_paths, read_and_preprocess, transform):
-        self.idx_to_paths = idx_to_paths
+    def __init__(self, read_and_preprocess, length, transform):
         self.read_and_preprocess = read_and_preprocess
         self.transform = transform
+        self.length = length
 
     def __len__(self):
-        return len(self.idx_to_paths)      
+        return self.length      
 
     def __getitem__(self, idx):
         # get path and read off of disc into numpy data
-        datapoint = read_and_preprocess(idx_to_paths[idx], idx)
-        if transform is not None:
-            datapoint = transform(datapoint)
+        datapoint = self.read_and_preprocess(idx)
+        if self.transform is not None:
+            datapoint = self.transform(datapoint)
         return datapoint
 
 
-def pt_create_loader(idx_to_paths, read_and_preprocessor, transform=None, **kwargs):
-    dataset = DatasetFromPaths(idx_to_paths, read_and_preprocess, transform)
+def pt_create_loader(read_and_preprocess, length, transform=None, **kwargs):
+    dataset = IndexFetchDataset(read_and_preprocess, length, transform)
     return torch.utils.data.DataLoader(dataset, **kwargs)

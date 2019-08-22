@@ -12,8 +12,6 @@ from .brats17_reader import brats17_2d_reader
 # FIXME: put a logging command next to raised exception for data_type value error
 # FIXME: Put docstrings into all functions
 
-# WORKING HERE ... neeed to implement: get_data_paths, get_data_reader ?for all datasets
-
 
 
 def brats17_data_paths(data_name):
@@ -24,23 +22,23 @@ def brats17_data_paths(data_name):
 
     # produce a dictionary of indices to file_paths
     if data_name == 'BraTS17_train':
-        paths = os.list_dir(os.path.join(_get_dataset_dir(), 
-                                         'BraTS17/MICCAI_BraTS17_Training/HGG'))
+        paths = os.listdir(os.path.join(_get_dataset_dir(), 
+                                         'BraTS17/MICCAI_BraTS17_Data_Training/HGG'))
     elif data_name == 'BraTS17_val':
-        paths = os.list_dir(os.path.join(_get_dataset_dir(), 
-                                         'BraTS17/MICCAI_BraTS17_Training/HGG'))
+        paths = os.listdir(os.path.join(_get_dataset_dir(), 
+                                         'BraTS17/MICCAI_BraTS17_Data_Training/HGG'))
     # order paths so as to deterministically determine indices
     paths.sort()
     nb_imgs = 155 * len(paths) 
 
     idx_to_paths = {idx: paths[idx % 155] for idx in range(nb_imgs)}
 
-    return idx_to_paths
+    return idx_to_paths, nb_imgs
 
-def get_data_reader(data_type, indexed_data_paths):
-    if data_type.starts_with('BraTS17_'):
+def get_data_reader(data_type, idx_to_paths):
+    if data_type.startswith('BraTS17_'):
         label_type = data_type[8:]
-        return partial(brats17_2d_reader, indexed_data_paths=indexed_data_paths, 
+        return partial(brats17_2d_reader, idx_to_paths=idx_to_paths, 
                        label_type=label_type)
     else:
         raise ValueError("The data_type:{} is not supported.".format(data_type))
@@ -48,7 +46,7 @@ def get_data_reader(data_type, indexed_data_paths):
 
 def get_data_paths(data_name):
     # FIXME: Currently the training and validation data is the same.
-    if data_name.starts_with('BraTS17_'):
+    if data_name.startswith('BraTS17_'):
         return brats17_data_paths(data_name)
     else:
         raise ValueError("The data_name:{} is not supported for pipelining.".format(data_name))

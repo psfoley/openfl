@@ -54,7 +54,7 @@ class PyTorch2DUNet(nn.Module):
     def set_tensor_dict(self, tensor_dict):
         pt_set_tensor_dict(self, tensor_dict)
 
-
+    @staticmethod
     def _tensorize_data(X, y):
         tX = torch.stack([torch.Tensor(i) for i in X])
         ty = torch.stack([torch.Tensor(i) for i in y])
@@ -65,20 +65,22 @@ class PyTorch2DUNet(nn.Module):
 
             # train and val paths are lists of tuples: (X_path, y_path)
             # each path corresponds to a file for a single sample  
-            idx_to_train_paths = brats17_data_paths('BraTS17_train')
-            idx_to_val_paths = brats17_data_paths('BraTS17_val')
-            read_and_preprocess = get_data_reader('BraTS17_{}'.format(label_type), 
-                                                  indexed_data_paths)
+            idx_to_train_paths, train_data_length = brats17_data_paths('BraTS17_train')
+            idx_to_val_paths, val_data_length = brats17_data_paths('BraTS17_val')
+            read_and_preprocess_train = get_data_reader('BraTS17_{}'.format(label_type),
+                                                        idx_to_train_paths)
+            read_and_preprocess_val = get_data_reader('BraTS17_{}'.format(label_type),
+                                                      idx_to_val_paths)
 
         if train_loader is None:
-            self.train_loader = pt_create_loader(idx_to_train_paths, read_and_preprocess, 
-                                                 batch_size=64, shuffle=True)
+            self.train_loader = pt_create_loader(read_and_preprocess_train, 
+                                                 length=train_data_length, batch_size=64, shuffle=True)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
-            self.val_loader = pt_create_loader(idx_to_val_paths, read_and_preprocess, 
-                                               batch_size=64, shuffle=True)
+            self.val_loader = pt_create_loader(read_and_preprocess_val, 
+                                               length=val_data_length, batch_size=64, shuffle=True)
         else:
             self.val_loader = val_loader
             

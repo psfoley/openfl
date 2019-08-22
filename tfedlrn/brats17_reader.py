@@ -177,7 +177,7 @@ def _update_channels(imgs, msks, task=1, channel_last=True):
     return new_imgs, new_msks
 
 
-def brats17_2d_reader(idx, indexed_data_paths, label_type):
+def brats17_2d_reader(idx, idx_to_paths, label_type):
     """
     Fetch single 2D brain image from disc.
 
@@ -192,7 +192,7 @@ def brats17_2d_reader(idx, indexed_data_paths, label_type):
     
     Args:
         idx (int): index of image
-        indexed_data_paths (list of str): paths to files containing image features and full 
+        idx_to_paths (list of str): paths to files containing image features and full 
         label set label_type (string): determines way in which label information is combined
 
     Returns:
@@ -220,9 +220,9 @@ def brats17_2d_reader(idx, indexed_data_paths, label_type):
         raise ValueError("{} is not a valid label type".format(label_type))
 
 
-    subdir = indexed_data_paths[idx]
+    subdir = idx_to_paths[idx]
     file_root = subdir.split('/')[-1] + "_"
-    for files in os.list_dir(subdir):
+    for files in os.listdir(subdir):
         # Ensure all necessary files are present
         # FIXME: Allow for fewer files depending on mode requested? Change all_there to account
         # for mode, only grab needed files and modify logic in _update_channels moving 

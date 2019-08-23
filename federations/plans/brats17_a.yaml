@@ -25,6 +25,8 @@ model:
   name     : brats_2dunet_tensorflow
   # We may specify the optimizer and other hyper-parameters to the code.
   optimizer: SGD
+  code:
+    path: brats_2dunet_tensorflow
 
 aggregator:
   id           : agg_brats
@@ -32,7 +34,8 @@ aggregator:
   addr           : "*"
   port           : 8849
 
-  collaborators  : 1
+  # FIXME: a list of names who are permitted to join the federation. 
+  collaborators  : 2
   initial_weights: ./federations/weights/TensorFlow2DUNet_init.pbuf
   latest_weights : ./federations/weights/TensorFlow2DUNet_latest.pbuf
 

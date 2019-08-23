@@ -204,9 +204,10 @@ class Server(object):
 
 
 class Client(object):
-    def __init__(self, connection, dataset_name, software_version, models_folder):
+    def __init__(self, connection, col_id, dataset_name, software_version, models_folder):
         self.logger = logging.getLogger(__name__)
         self.connection = connection
+        self.col_id = col_id
         self.polling_interval = 4
         self.counter = 0
 
@@ -275,9 +276,8 @@ class Client(object):
         # Run the collaborator.
         agg_id = plan.agg_id
         fed_id = plan.fed_id
-        # col_id = plan.col_id
         # FIXME: need a mechanism to negotiate the col_id between agg and col.
-        col_id = "0"
+        col_id = self.col_id
         opt_treatment = plan.opt_treatment
         agg_addr = plan.agg_addr
         agg_port = plan.agg_port

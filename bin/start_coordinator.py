@@ -9,8 +9,11 @@ from setup_logging import setup_logging
 
 """
 Examples:
+python bin/start_coordinator.py --mode=server --addr=* --port=6666 --plans=federations/plans/mnist_a.yaml
+python bin/start_coordinator.py --mode=client --addr=127.0.0.1 --port=6666 --dataset=mnist_batch --software_version=1 --models_folder=~/.flmodels/
+
 python bin/start_coordinator.py --mode=server --addr=* --port=6666 --plans=federations/plans/
-python bin/start_coordinator.py --mode=client --addr=127.0.0.1 --port=6666 --dataset=BraTS17 --software_version=1 --models_folder=./models/
+python bin/start_coordinator.py --mode=client --addr=127.0.0.1 --port=6666 --dataset=BraTS17 --software_version=1 --models_folder=~/.flmodels/
 
 """
 if __name__ == '__main__':

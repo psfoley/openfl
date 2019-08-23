@@ -1,5 +1,6 @@
 import abc
 import zmq
+import logging
 
 from tfedlrn.proto.message_pb2 import *
 
@@ -24,6 +25,7 @@ class ZMQConnection(metaclass=abc.ABCMeta):
                  compression_func=None,
                  decompression_func=None,
                  receive_timeout=-1):
+        self.logger = logging.getLogger(__name__)
         self.name = name
         self.server_addr = 'tcp://{}:{}'.format(server_addr, server_port)
         self.context = zmq.Context()
@@ -40,7 +42,7 @@ class ZMQConnection(metaclass=abc.ABCMeta):
         if self.socket is None:
             self._connect()
 
-        print('{} sending {}'.format(self, message.__class__.__name__))
+        self.logger.debug('{} sending {}'.format(self, message.__class__.__name__))
         # if self.compression_func is not None:
         #     message = self.compression_func(message)
         message = serialize(message)
@@ -54,7 +56,7 @@ class ZMQConnection(metaclass=abc.ABCMeta):
         # if self.decompression_func is not None:
         #     message = self.decompression_func(message)
         message = deserialize(message)
-        print('{} received {}'.format(self, message.__class__.__name__))
+        self.logger.debug('{} received {}'.format(self, message.__class__.__name__))
         return message
 
     def __repr__(self):
@@ -67,7 +69,7 @@ class ZMQConnection(metaclass=abc.ABCMeta):
 class ZMQServer(ZMQConnection):
 
     def _connect(self):
-        print('{} binding to socket: {}'.format(self, self.server_addr))
+        self.logger.debug('{} binding to socket: {}'.format(self, self.server_addr))
         context = zmq.Context()
         self.socket = context.socket(zmq.REP)
         self.socket.bind(self.server_addr)
@@ -76,7 +78,7 @@ class ZMQServer(ZMQConnection):
 class ZMQClient(ZMQConnection):
 
     def _connect(self):
-        print('{} connecting to server: {}'.format(self, self.server_addr))
+        self.logger.debug('{} connecting to server: {}'.format(self, self.server_addr))
         context = zmq.Context()
         self.socket = context.socket(zmq.REQ)
         self.socket.connect(self.server_addr)

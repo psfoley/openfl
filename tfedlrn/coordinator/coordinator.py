@@ -53,7 +53,7 @@ def start_aggregator(addr, port, agg_id, fed_id, num_collaborators, initial_weig
     agg.run()
 
 class Server(object):
-    """ The server-side coordinator for releasing plans and starting aggregators.
+    """ The server-side coordinator for loading plans and starting aggregators.
 
     Parameters
     ----------
@@ -171,6 +171,13 @@ class Server(object):
         return plans
 
     def start_aggregators(self):
+        """Start an aggregator for each FL plan.
+
+        Returns
+        -------
+        list
+            A list of aggregator processes.
+        """
         aggregators = []
         for fed_id,plan in self.plans.items():
             fed_id = plan['federation']
@@ -204,6 +211,21 @@ class Server(object):
 
 
 class Client(object):
+    """The client side coordinator to request a plan and join the federated learning.
+
+    Parameters
+    ----------
+    connection : ZMQClient
+        The pyzmq client side socket.
+    col_id : str
+        The collaborator ID.
+    dataset_name : str
+        The dataset name used to match with available FL plans.
+    software_version : str
+        The software version to match with available FL plans.
+    models_folder : str
+        The path to a folder that serves as temporary code storage.
+    """
     def __init__(self, connection, col_id, dataset_name, software_version, models_folder):
         self.logger = logging.getLogger(__name__)
         self.connection = connection

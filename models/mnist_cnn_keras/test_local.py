@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""Test the model locally before we run federated learning.
+
+TODO: We need a complete testing for the FL model APIs.
+"""
 import sys
 sys.path.append('/tfl')
 

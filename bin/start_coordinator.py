@@ -1,3 +1,19 @@
+#!/usr/bin/env python
+
+"""Start a coordinator to run Federated Learning.
+
+This program has two modes: the server mode and the client mode.
+
+Example on MNIST with a single collaborator:
+$ python bin/start_coordinator.py --mode=server --addr=* --port=6666 --plans=federations/plans/mnist_a.yaml
+$ python bin/start_coordinator.py --mode=client --addr=127.0.0.1 --port=6666 --dataset=mnist_batch --software_version=1 --models_folder=/tmp/.flmodels/
+
+Example on BraTS17 with two collaborators:
+$ python bin/start_coordinator.py --mode=server --addr=* --port=6666 --plans=federations/plans/brats17_a.yaml
+$ python bin/start_coordinator.py --mode=client --col_id=0 --addr=127.0.0.1 --port=6666 --dataset=BraTS17 --software_version=1 --models_folder=/tmp/.flmodels/
+$ python bin/start_coordinator.py --mode=client --col_id=1 --addr=127.0.0.1 --port=6666 --dataset=BraTS17 --software_version=1 --models_folder=/tmp/.flmodels/
+"""
+
 import argparse
 import os
 import sys
@@ -7,20 +23,6 @@ from tfedlrn.zmqconnection import ZMQServer, ZMQClient
 
 from setup_logging import setup_logging
 
-"""
-Examples:
-python bin/start_coordinator.py --mode=server --addr=* --port=6666 --plans=federations/plans/mnist_a.yaml
-python bin/start_coordinator.py --mode=client --addr=127.0.0.1 --port=6666 --dataset=mnist_batch --software_version=1 --models_folder=/tmp/.flmodels/
-
-python bin/start_coordinator.py --mode=server --addr=* --port=6666 --plans=federations/plans/brats17_a.yaml
-python bin/start_coordinator.py --mode=client --col_id=0 --addr=127.0.0.1 --port=6666 --dataset=BraTS17 --software_version=1 --models_folder=/tmp/.flmodels/
-python bin/start_coordinator.py --mode=client --col_id=1 --addr=127.0.0.1 --port=6666 --dataset=BraTS17 --software_version=1 --models_folder=/tmp/.flmodels/
-
-
-python bin/start_coordinator.py --mode=server --addr=* --port=6666 --plans=federations/plans/
-python bin/start_coordinator.py --mode=client --addr=127.0.0.1 --port=6666 --dataset=BraTS17 --software_version=1 --models_folder=~/.flmodels/
-
-"""
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--mode', '-m', type=str)

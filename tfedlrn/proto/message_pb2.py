@@ -19,9 +19,9 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='message.proto',
   package='tfedlrn_proto',
-  syntax='proto2',
+  syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\rmessage.proto\x12\rtfedlrn_proto\"\xd4\x05\n\tFLMessage\x12;\n\x10localmodelupdate\x18\x01 \x01(\x0b\x32\x1f.tfedlrn_proto.LocalModelUpdateH\x00\x12G\n\x16localvalidationresults\x18\x02 \x01(\x0b\x32%.tfedlrn_proto.LocalValidationResultsH\x00\x12/\n\njobrequest\x18\x03 \x01(\x0b\x32\x19.tfedlrn_proto.JobRequestH\x00\x12\x43\n\x14modeldownloadrequest\x18\x04 \x01(\x0b\x32#.tfedlrn_proto.ModelDownloadRequestH\x00\x12=\n\x11globalmodelupdate\x18\x05 \x01(\x0b\x32 .tfedlrn_proto.GlobalModelUpdateH\x00\x12+\n\x08jobreply\x18\x06 \x01(\x0b\x32\x17.tfedlrn_proto.JobReplyH\x00\x12\x41\n\x13localmodelupdateack\x18\x07 \x01(\x0b\x32\".tfedlrn_proto.LocalModelUpdateAckH\x00\x12M\n\x19localvalidationresultsack\x18\x08 \x01(\x0b\x32(.tfedlrn_proto.LocalValidationResultsAckH\x00\x12\x31\n\x0bplanrequest\x18\t \x01(\x0b\x32\x1a.tfedlrn_proto.PlanRequestH\x00\x12-\n\tplanreply\x18\n \x01(\x0b\x32\x18.tfedlrn_proto.PlanReplyH\x00\x12\x31\n\x0b\x63oderequest\x18\x0b \x01(\x0b\x32\x1a.tfedlrn_proto.CodeRequestH\x00\x12-\n\tcodereply\x18\x0c \x01(\x0b\x32\x18.tfedlrn_proto.CodeReplyH\x00\x42\t\n\x07payload\"K\n\x0bTensorProto\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\r\n\x05shape\x18\x02 \x03(\x05\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12\x0f\n\x07npbytes\x18\x04 \x01(\x0c\"Z\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x11\n\trecipient\x18\x02 \x02(\t\x12\x15\n\rfederation_id\x18\x03 \x02(\t\x12\x0f\n\x07\x63ounter\x18\x04 \x02(\x05\"*\n\x0bModelHeader\x12\n\n\x02id\x18\x01 \x02(\t\x12\x0f\n\x07version\x18\x02 \x02(\x05\"e\n\nModelProto\x12*\n\x06header\x18\x01 \x02(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12+\n\x07tensors\x18\x02 \x03(\x0b\x32\x1a.tfedlrn_proto.TensorProto\"\x8b\x01\n\x10LocalModelUpdate\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x02(\x0b\x32\x19.tfedlrn_proto.ModelProto\x12\x11\n\tdata_size\x18\x03 \x02(\x05\x12\x0c\n\x04loss\x18\x04 \x02(\x02\"\x9c\x01\n\x16LocalValidationResults\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x02(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12\x0f\n\x07results\x18\x03 \x02(\x02\x12\x11\n\tdata_size\x18\x04 \x02(\x05\"l\n\nJobRequest\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x02(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"v\n\x14ModelDownloadRequest\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x02(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"\xd2\x01\n\x0eRoundTaskQuery\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12V\n\x16task_results_last_sync\x18\x02 \x03(\x0b\x32\x36.tfedlrn_proto.RoundTaskQuery.TaskResultsLastSyncEntry\x1a:\n\x18TaskResultsLastSyncEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"k\n\x11GlobalModelUpdate\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x02(\x0b\x32\x19.tfedlrn_proto.ModelProto\"Y\n\x08JobReply\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x1f\n\x03job\x18\x02 \x02(\x0e\x32\x12.tfedlrn_proto.Job\"C\n\x13LocalModelUpdateAck\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"I\n\x19LocalValidationResultsAck\x12,\n\x06header\x18\x01 \x02(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"8\n\x0bPlanRequest\x12\x0f\n\x07\x64\x61taset\x18\x01 \x02(\t\x12\x18\n\x10software_version\x18\x02 \x02(\t\"\x99\x01\n\tPlanReply\x12\x0e\n\x06\x66\x65\x64_id\x18\x01 \x02(\t\x12\x0e\n\x06\x61gg_id\x18\x02 \x01(\t\x12\x10\n\x08\x61gg_addr\x18\x03 \x01(\t\x12\x10\n\x08\x61gg_port\x18\x04 \x01(\x05\x12\x0e\n\x06\x63ol_id\x18\x05 \x01(\t\x12\x15\n\ropt_treatment\x18\x06 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x07 \x01(\t\x12\x0c\n\x04\x63ode\x18\x08 \x01(\t\"\x1d\n\x0b\x43odeRequest\x12\x0e\n\x06\x66\x65\x64_id\x18\x01 \x02(\t\"=\n\tCodeReply\x12\x0c\n\x04size\x18\x01 \x02(\x05\x12\x10\n\x08\x63hecksum\x18\x02 \x01(\t\x12\x10\n\x08\x63ode_zip\x18\x03 \x01(\x0c*[\n\x03Job\x12\r\n\tJOB_TRAIN\x10\x00\x12\x10\n\x0cJOB_VALIDATE\x10\x01\x12\r\n\tJOB_YIELD\x10\x02\x12\x0c\n\x08JOB_QUIT\x10\x03\x12\x16\n\x12JOB_DOWNLOAD_MODEL\x10\x04')
+  serialized_pb=_b('\n\rmessage.proto\x12\rtfedlrn_proto\"\xd4\x05\n\tFLMessage\x12;\n\x10localmodelupdate\x18\x01 \x01(\x0b\x32\x1f.tfedlrn_proto.LocalModelUpdateH\x00\x12G\n\x16localvalidationresults\x18\x02 \x01(\x0b\x32%.tfedlrn_proto.LocalValidationResultsH\x00\x12/\n\njobrequest\x18\x03 \x01(\x0b\x32\x19.tfedlrn_proto.JobRequestH\x00\x12\x43\n\x14modeldownloadrequest\x18\x04 \x01(\x0b\x32#.tfedlrn_proto.ModelDownloadRequestH\x00\x12=\n\x11globalmodelupdate\x18\x05 \x01(\x0b\x32 .tfedlrn_proto.GlobalModelUpdateH\x00\x12+\n\x08jobreply\x18\x06 \x01(\x0b\x32\x17.tfedlrn_proto.JobReplyH\x00\x12\x41\n\x13localmodelupdateack\x18\x07 \x01(\x0b\x32\".tfedlrn_proto.LocalModelUpdateAckH\x00\x12M\n\x19localvalidationresultsack\x18\x08 \x01(\x0b\x32(.tfedlrn_proto.LocalValidationResultsAckH\x00\x12\x31\n\x0bplanrequest\x18\t \x01(\x0b\x32\x1a.tfedlrn_proto.PlanRequestH\x00\x12-\n\tplanreply\x18\n \x01(\x0b\x32\x18.tfedlrn_proto.PlanReplyH\x00\x12\x31\n\x0b\x63oderequest\x18\x0b \x01(\x0b\x32\x1a.tfedlrn_proto.CodeRequestH\x00\x12-\n\tcodereply\x18\x0c \x01(\x0b\x32\x18.tfedlrn_proto.CodeReplyH\x00\x42\t\n\x07payload\"K\n\x0bTensorProto\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05shape\x18\x02 \x03(\x05\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12\x0f\n\x07npbytes\x18\x04 \x01(\x0c\"Z\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x11\n\trecipient\x18\x02 \x01(\t\x12\x15\n\rfederation_id\x18\x03 \x01(\t\x12\x0f\n\x07\x63ounter\x18\x04 \x01(\x05\"*\n\x0bModelHeader\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\x05\"e\n\nModelProto\x12*\n\x06header\x18\x01 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12+\n\x07tensors\x18\x02 \x03(\x0b\x32\x1a.tfedlrn_proto.TensorProto\"\x8b\x01\n\x10LocalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\x12\x11\n\tdata_size\x18\x03 \x01(\x05\x12\x0c\n\x04loss\x18\x04 \x01(\x02\"\x9c\x01\n\x16LocalValidationResults\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12\x0f\n\x07results\x18\x03 \x01(\x02\x12\x11\n\tdata_size\x18\x04 \x01(\x05\"l\n\nJobRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"v\n\x14ModelDownloadRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"\xd2\x01\n\x0eRoundTaskQuery\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12V\n\x16task_results_last_sync\x18\x02 \x03(\x0b\x32\x36.tfedlrn_proto.RoundTaskQuery.TaskResultsLastSyncEntry\x1a:\n\x18TaskResultsLastSyncEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"k\n\x11GlobalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\"Y\n\x08JobReply\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x1f\n\x03job\x18\x02 \x01(\x0e\x32\x12.tfedlrn_proto.Job\"C\n\x13LocalModelUpdateAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"I\n\x19LocalValidationResultsAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"8\n\x0bPlanRequest\x12\x0f\n\x07\x64\x61taset\x18\x01 \x01(\t\x12\x18\n\x10software_version\x18\x02 \x01(\t\"\x99\x01\n\tPlanReply\x12\x0e\n\x06\x66\x65\x64_id\x18\x01 \x01(\t\x12\x0e\n\x06\x61gg_id\x18\x02 \x01(\t\x12\x10\n\x08\x61gg_addr\x18\x03 \x01(\t\x12\x10\n\x08\x61gg_port\x18\x04 \x01(\x05\x12\x0e\n\x06\x63ol_id\x18\x05 \x01(\t\x12\x15\n\ropt_treatment\x18\x06 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x07 \x01(\t\x12\x0c\n\x04\x63ode\x18\x08 \x01(\t\"\x1d\n\x0b\x43odeRequest\x12\x0e\n\x06\x66\x65\x64_id\x18\x01 \x01(\t\"=\n\tCodeReply\x12\x0c\n\x04size\x18\x01 \x01(\x05\x12\x10\n\x08\x63hecksum\x18\x02 \x01(\t\x12\x10\n\x08\x63ode_zip\x18\x03 \x01(\x0c*[\n\x03Job\x12\r\n\tJOB_TRAIN\x10\x00\x12\x10\n\x0cJOB_VALIDATE\x10\x01\x12\r\n\tJOB_YIELD\x10\x02\x12\x0c\n\x08JOB_QUIT\x10\x03\x12\x16\n\x12JOB_DOWNLOAD_MODEL\x10\x04\x62\x06proto3')
 )
 
 _JOB = _descriptor.EnumDescriptor(
@@ -166,7 +166,7 @@ _FLMESSAGE = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
@@ -187,7 +187,7 @@ _TENSORPROTO = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='name', full_name='tfedlrn_proto.TensorProto.name', index=0,
-      number=1, type=9, cpp_type=9, label=2,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -221,7 +221,7 @@ _TENSORPROTO = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -239,28 +239,28 @@ _MESSAGEHEADER = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='sender', full_name='tfedlrn_proto.MessageHeader.sender', index=0,
-      number=1, type=9, cpp_type=9, label=2,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='recipient', full_name='tfedlrn_proto.MessageHeader.recipient', index=1,
-      number=2, type=9, cpp_type=9, label=2,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='federation_id', full_name='tfedlrn_proto.MessageHeader.federation_id', index=2,
-      number=3, type=9, cpp_type=9, label=2,
+      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='counter', full_name='tfedlrn_proto.MessageHeader.counter', index=3,
-      number=4, type=5, cpp_type=1, label=2,
+      number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -273,7 +273,7 @@ _MESSAGEHEADER = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -291,14 +291,14 @@ _MODELHEADER = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='id', full_name='tfedlrn_proto.ModelHeader.id', index=0,
-      number=1, type=9, cpp_type=9, label=2,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='version', full_name='tfedlrn_proto.ModelHeader.version', index=1,
-      number=2, type=5, cpp_type=1, label=2,
+      number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -311,7 +311,7 @@ _MODELHEADER = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -329,7 +329,7 @@ _MODELPROTO = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.ModelProto.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -349,7 +349,7 @@ _MODELPROTO = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -367,28 +367,28 @@ _LOCALMODELUPDATE = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.LocalModelUpdate.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='model', full_name='tfedlrn_proto.LocalModelUpdate.model', index=1,
-      number=2, type=11, cpp_type=10, label=2,
+      number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data_size', full_name='tfedlrn_proto.LocalModelUpdate.data_size', index=2,
-      number=3, type=5, cpp_type=1, label=2,
+      number=3, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='loss', full_name='tfedlrn_proto.LocalModelUpdate.loss', index=3,
-      number=4, type=2, cpp_type=6, label=2,
+      number=4, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -401,7 +401,7 @@ _LOCALMODELUPDATE = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -419,28 +419,28 @@ _LOCALVALIDATIONRESULTS = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.LocalValidationResults.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='model_header', full_name='tfedlrn_proto.LocalValidationResults.model_header', index=1,
-      number=2, type=11, cpp_type=10, label=2,
+      number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='results', full_name='tfedlrn_proto.LocalValidationResults.results', index=2,
-      number=3, type=2, cpp_type=6, label=2,
+      number=3, type=2, cpp_type=6, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='data_size', full_name='tfedlrn_proto.LocalValidationResults.data_size', index=3,
-      number=4, type=5, cpp_type=1, label=2,
+      number=4, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -453,7 +453,7 @@ _LOCALVALIDATIONRESULTS = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -471,14 +471,14 @@ _JOBREQUEST = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.JobRequest.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='model_header', full_name='tfedlrn_proto.JobRequest.model_header', index=1,
-      number=2, type=11, cpp_type=10, label=2,
+      number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -491,7 +491,7 @@ _JOBREQUEST = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -509,14 +509,14 @@ _MODELDOWNLOADREQUEST = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.ModelDownloadRequest.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='model_header', full_name='tfedlrn_proto.ModelDownloadRequest.model_header', index=1,
-      number=2, type=11, cpp_type=10, label=2,
+      number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -529,7 +529,7 @@ _MODELDOWNLOADREQUEST = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -567,7 +567,7 @@ _ROUNDTASKQUERY_TASKRESULTSLASTSYNCENTRY = _descriptor.Descriptor(
   ],
   serialized_options=_b('8\001'),
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -584,7 +584,7 @@ _ROUNDTASKQUERY = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.RoundTaskQuery.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -604,7 +604,7 @@ _ROUNDTASKQUERY = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -622,14 +622,14 @@ _GLOBALMODELUPDATE = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.GlobalModelUpdate.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='model', full_name='tfedlrn_proto.GlobalModelUpdate.model', index=1,
-      number=2, type=11, cpp_type=10, label=2,
+      number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -642,7 +642,7 @@ _GLOBALMODELUPDATE = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -660,14 +660,14 @@ _JOBREPLY = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.JobReply.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='job', full_name='tfedlrn_proto.JobReply.job', index=1,
-      number=2, type=14, cpp_type=8, label=2,
+      number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -680,7 +680,7 @@ _JOBREPLY = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -698,7 +698,7 @@ _LOCALMODELUPDATEACK = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.LocalModelUpdateAck.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -711,7 +711,7 @@ _LOCALMODELUPDATEACK = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -729,7 +729,7 @@ _LOCALVALIDATIONRESULTSACK = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='header', full_name='tfedlrn_proto.LocalValidationResultsAck.header', index=0,
-      number=1, type=11, cpp_type=10, label=2,
+      number=1, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -742,7 +742,7 @@ _LOCALVALIDATIONRESULTSACK = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -760,14 +760,14 @@ _PLANREQUEST = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='dataset', full_name='tfedlrn_proto.PlanRequest.dataset', index=0,
-      number=1, type=9, cpp_type=9, label=2,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='software_version', full_name='tfedlrn_proto.PlanRequest.software_version', index=1,
-      number=2, type=9, cpp_type=9, label=2,
+      number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -780,7 +780,7 @@ _PLANREQUEST = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -798,7 +798,7 @@ _PLANREPLY = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='fed_id', full_name='tfedlrn_proto.PlanReply.fed_id', index=0,
-      number=1, type=9, cpp_type=9, label=2,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -860,7 +860,7 @@ _PLANREPLY = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -878,7 +878,7 @@ _CODEREQUEST = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='fed_id', full_name='tfedlrn_proto.CodeRequest.fed_id', index=0,
-      number=1, type=9, cpp_type=9, label=2,
+      number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -891,7 +891,7 @@ _CODEREQUEST = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
@@ -909,7 +909,7 @@ _CODEREPLY = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='size', full_name='tfedlrn_proto.CodeReply.size', index=0,
-      number=1, type=5, cpp_type=1, label=2,
+      number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -936,7 +936,7 @@ _CODEREPLY = _descriptor.Descriptor(
   ],
   serialized_options=None,
   is_extendable=False,
-  syntax='proto2',
+  syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],

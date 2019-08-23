@@ -32,6 +32,7 @@ from ..aggregator.aggregator import Aggregator
 from ..collaborator.collaborator import Collaborator
 from ..zmqconnection import ZMQServer, ZMQClient
 from ..proto.message_pb2 import *
+from .packaging import zip_files, unzip_files, check_bytes_sha256
 
 
 """
@@ -52,10 +53,20 @@ def start_aggregator(addr, port, agg_id, fed_id, num_collaborators, initial_weig
     agg.run()
 
 class Server(object):
-    def __init__(self, connection, plans_folder):
+    """ The server-side coordinator for releasing plans and starting aggregators.
+
+    Parameters
+    ----------
+    connection : ZMQServer
+        An established ZMQ server socket.
+    plans_path : str
+        Location of a file or a folder.
+    """
+    def __init__(self, connection, plans_path):
         self.connection = connection
         self.logger = logging.getLogger(__name__)
-        self.plans = self.search_and_load_plans(plans_folder)        
+        self.plans = self.search_and_load_plans(plans_path)
+        self.code_dir = "models"
 
     def run(self):
         self.logger.debug("Start the coordinator.")
@@ -99,12 +110,23 @@ class Server(object):
         else:
             plan = self.plans[msg.fed_id]
             fpath = plan['model']['code']['path']
-            bytes = open(fpath, "rb").read()
+            # FIXME: compress the source code.
+
+            cur_dir = os.getcwd()
+            try:
+                os.chdir(self.code_dir)
+                bytes = zip_files(fpath)
+            except:
+                os.chdir(cur_dir)
+                self.logger.debug("Failed to zip the code files.")
+            else:
+                self.logger.debug("Got a zip tarball of the code files.")
+                os.chdir(cur_dir)
             checksum = hashlib.sha256(bytes).hexdigest()
             size = len(bytes)
             return CodeReply(size=size, 
                         checksum=checksum,
-                        bytes=bytes)
+                        code_zip=bytes)
 
     def load_plan(self, path):
         plan = None
@@ -114,13 +136,31 @@ class Server(object):
             except Exception:
                 self.logger.error("Invalid federated learning plan [%s]." % path, exc_info=True)
         return plan
-    
-    def search_and_load_plans(self, working_dir):
+
+    def search_and_load_plans(self, path):
+        """Load plans from a file or a folder.
+
+        Parameters
+        ----------
+        path : str
+            Path to a folder or a file.
+
+        Returns
+        -------
+        list
+            A list of loaded plans.
+        """
         plans = {}
-        plan_files = sorted(pathlib.Path(working_dir).glob("*.yaml"))
+        if os.path.isdir(path):
+            plan_files = sorted(pathlib.Path(path).glob("*.yaml"))
+        elif os.path.isfile(path):
+            plan_files = [path]
+        else:
+            plan_files = []
+            self.logger.debug("Invalid plan path: %s." % path)
         for fpath in plan_files:
             fpath_str = str(fpath)
-            
+
             plan = self.load_plan(fpath_str)
             # FIXME: sanity check.
             if plan is None:
@@ -147,7 +187,7 @@ class Server(object):
 
             # connection = ZMQServer('{} connection'.format(agg_id), server_addr=addr, server_port=port)
 
-            
+
             # FIXME: we will pass the initial weights and receive the latest weights for persistant storage.
 
             p = multiprocessing.Process(target=start_aggregator, args=(addr, port, agg_id, fed_id, num_collaborators, initial_weights_fpath, latest_weights_fpath))
@@ -159,7 +199,7 @@ class Server(object):
                 self.logger.debug("Started an aggregator for federation [%s]." % fed_id)
             else:
                 self.logger.debug("Failed to start an aggregator for federation [%s]." % fed_id)
-        
+
         return aggregators
 
 
@@ -172,7 +212,7 @@ class Client(object):
 
         self.dataset_name = dataset_name
         self.software_version = software_version
-        
+
         self.models_folder = models_folder
         self.init_models_folder()
 
@@ -182,18 +222,29 @@ class Client(object):
             os.makedirs(models_folder)
         sys.path.append(models_folder)
 
-    def has_code(self, model_name):
-        # FIXME: check the integrity with checksum.
-        if os.path.isdir(os.path.join(self.models_folder, model_name)):
-            return True
-        
     def download_code(self, fed_id):
-        # FIXME: 1. download code; 2. file size and checksum; 3. extend zip locally.
-        reply = self.send_and_receive(CodeRequest(fed_id=fed_id))
-        reply.size
-        reply.checksum
-        reply.code_zip
+        """ Download and extract the code from the server.
 
+        Parameters
+        ----------
+        fed_id : str
+            The federation ID
+
+        Returns
+        -------
+        bool
+            If the download succeeds.
+        """
+        reply = self.send_and_receive(CodeRequest(fed_id=fed_id))
+
+        if reply.size == len(reply.code_zip):
+            verified = check_bytes_sha256(reply.code_zip, reply.checksum)
+            if verified:
+                self.logger.debug('Verified the code.')
+                unzip_files(reply.code_zip, self.models_folder)
+                self.logger.debug("Extracted the code.")
+                return True
+        return False
 
     def run(self):
         self.logger.debug("Client coordinator connects to Server coordinator at [%s]." % (self.connection.server_addr))
@@ -204,16 +255,19 @@ class Client(object):
             plan = self.send_and_receive(PlanRequest(dataset=self.dataset_name, software_version=self.software_version))
 
             if plan.fed_id == "invalid":
+                self.logger.debug("Plan not found: %s" % plan.description)
                 time.sleep(self.polling_interval)
             else:
                 break
 
         self.logger.debug("Got a plan [%s]" % plan.fed_id )
         code_name = plan.code
-        if not self.has_code(code_name):
-            self.logger.debug("Start to download the code.")
-            self.download_code(code_name)
+
+        self.logger.debug("Start to download the code.")
+        if self.download_code(plan.fed_id):
             self.logger.debug("Downloaded the code.")
+        else:
+            self.logger.debug("Failed to download or extract the code")
 
         module = importlib.import_module(code_name)
         model = module.get_model()
@@ -232,7 +286,7 @@ class Client(object):
 
         col = Collaborator(col_id, agg_id, fed_id, model, connection, -1, opt_treatment=opt_treatment)
         col.run()
-    
+
     def send_and_receive(self, message):
         self.connection.send(message)
         reply = self.connection.receive()

@@ -15,6 +15,12 @@ model = ConvModel()
 val_results = model.validate()
 print("Initial val_results", val_results)
 
+from models.export_init_weights import export_weights
+
+tensor_dict = model.get_tensor_dict(True)
+fpath = '/tfl/federations/weights/mnist_cnn_keras_init.pbuf'
+export_weights(model.__class__.__name__, 0, tensor_dict, fpath)
+
 ret = model.train_epoch()
 print("training results", ret)
 val_results = model.validate()

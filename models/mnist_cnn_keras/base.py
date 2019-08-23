@@ -1,3 +1,7 @@
+"""Base classes for developing a Federated Learning model.
+
+You may copy this file as the starting point of your own model.
+"""
 import logging
 import tensorflow as tf
 
@@ -7,9 +11,9 @@ from tensorflow.keras import backend as K
 class FLModel(object):
     """An abstract class used to represent a model training procedure."""
     def __init__(self, *args, **argv):
-        super(FLModel, self).__init__(*args, **argv)
+        super(FLModel, self).__init__()
         self.logger = logging.getLogger(__name__)
-    
+
     def train_epoch(self):
         """
         Train one epoch.
@@ -97,7 +101,7 @@ class FLKerasModel(FLModel):
     def __init__(self, *args, **argv):
         super(FLKerasModel, self).__init__(*args, **argv)
         self.model = keras.Model()
-        self.x_train, self.y_train, self.x_test, self.y_test = None, None, None, None
+        self.x_train, self.y_train, self.x_val, self.y_val = None, None, None, None
 
         self.batch_size = None
 
@@ -111,19 +115,21 @@ class FLKerasModel(FLModel):
           epochs=1,
           verbose=0,)
         # As we alwasy train one epoch, we only need the first element in the list.
-        return {name:values[0] for name, values in history.history.items()}
+        ret_dict = {name:values[0] for name, values in history.history.items()}
+        return ret_dict['loss']
 
     def validate(self):
-        vals = self.model.evaluate(self.x_test, self.y_test, verbose=0)
+        vals = self.model.evaluate(self.x_val, self.y_val, verbose=0)
         metrics_names = ['loss'] + self.model.metrics
-        return dict(zip(metrics_names, vals))
+        ret_dict = dict(zip(metrics_names, vals))
+        return ret_dict['accuracy']
 
-    def get_training_datasize(self):
+    def get_training_data_size(self):
         return len(self.x_train)
-    
+
     def get_validation_data_size(self):
-        return len(self.x_test)
-    
+        return len(self.x_val)
+
     @staticmethod
     def _get_weights_dict(obj):
         """
@@ -165,6 +171,19 @@ class FLKerasModel(FLModel):
         obj.set_weights(weight_values)
 
     def get_tensor_dict(self, with_opt_vars):
+        """
+        Get the model weights as a tensor dictionary.
+
+        Parameters
+        ----------
+        with_opt_vars : bool
+            If we should include the optimizer's status.
+
+        Returns
+        -------
+        dict
+            The tensor dictionary.
+        """
         model_weights = self._get_weights_dict(self.model)
 
         if with_opt_vars is True:
@@ -178,7 +197,7 @@ class FLKerasModel(FLModel):
         self.is_initial = False
 
         if with_opt_vars is False:
-            self._set_weights_dict(self.model, tensor_dict)        
+            self._set_weights_dict(self.model, tensor_dict)
         else:
             model_weight_names = [weight.name for weight in self.model.weights]
             model_weights_dict = {name: tensor_dict[name] for name in model_weight_names}

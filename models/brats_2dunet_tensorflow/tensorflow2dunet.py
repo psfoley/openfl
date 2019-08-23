@@ -5,6 +5,7 @@ import numpy as np
 import tensorflow as tf
 # from tqdm import tqdm
 
+from ...datasets import load_dataset
 from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_dict, tf_reset_vars
 
 

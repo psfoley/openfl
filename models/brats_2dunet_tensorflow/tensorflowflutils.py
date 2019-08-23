@@ -33,6 +33,3 @@ def tf_set_tensor_dict(tensor_dict, session, vars, assign_ops=None, placeholders
 def tf_reset_vars(session, vars):
     for var in vars:
         var.initializer.run(session=session)
-
-
-

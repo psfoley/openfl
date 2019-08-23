@@ -58,7 +58,16 @@ class TensorFlow2DUNet(object):
         else:
             return tf_get_tensor_dict(self.sess, self.tvars)
 
-    def set_tensor_dict(self, tensor_dict):
+    def set_tensor_dict(self, tensor_dict, with_opt_vars):
+        """Set the tensor dictionary (weights) with new values.
+
+        Parameters
+        ----------
+        tensor_dict : dict
+            Weights.
+        with_opt_vars : bool
+            If we should set the variablies of the optimizer. (TODO: not supported yet.)
+        """
         self.assign_ops, self.placeholders = tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
 
     def reset_opt_vars(self):

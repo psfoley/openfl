@@ -14,7 +14,7 @@ def load_BraTS17_insitution(path="/opt/datasets/BraTS17", channels_first=False, 
 
     return tuple(data)
 
-def get_model():
+def get_model(**kwargs):
     X_train, y_train, X_val, y_val = load_BraTS17_insitution(path="/opt/datasets/BraTS17", channels_first=False)
     model = TensorFlow2DUNet(X_train, y_train, X_val, y_val)
     return model

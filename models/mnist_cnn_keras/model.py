@@ -20,7 +20,7 @@ class ConvModel(FLKerasModel):
     split_idx : int
         The index of the selected shard.
     """
-    def __init__(self, batch_size=32, splits=None, split_idx=None):
+    def __init__(self, batch_size=32, splits=[1,2], split_idx=None):
         super(ConvModel, self).__init__(batch_size=batch_size, splits=splits, split_idx=split_idx)
         self.batch_size = batch_size
         input_shape, num_classes, self.x_train, self.y_train, self.x_val, self.y_val = self.load_dataset()
@@ -33,6 +33,7 @@ class ConvModel(FLKerasModel):
             self.y_val = self.y_val[val_idx]
         self.model = self.build_model(input_shape, num_classes)
         print(self.model.summary())
+        print("Training set size: %d; Validation set size: %d" % (len(self.y_train), len(self.y_val)))
 
         self.is_initial = True
 
@@ -112,7 +113,7 @@ class ConvModel(FLKerasModel):
             total = sum(splits)
             start = sum(splits[:split_idx]) / total
             end = sum(splits[:split_idx+1]) / total
-            train_size, val_size = len(self.x_train), len(self.x_test)
+            train_size, val_size = len(self.x_train), len(self.x_val)
 
             train_idx = range(int(train_size * start), int(train_size * end))
             val_idx = range(int(val_size * start), int(val_size * end))

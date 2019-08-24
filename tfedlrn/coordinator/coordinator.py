@@ -225,8 +225,13 @@ class Client(object):
         The software version to match with available FL plans.
     models_folder : str
         The path to a folder that serves as temporary code storage.
+
+    splits : list
+        [Debug only] A list of integers to represent the size of data shards.
+    split_idx : int
+        [Debug only] Specify to load which data shard.
     """
-    def __init__(self, connection, col_id, dataset_name, software_version, models_folder):
+    def __init__(self, connection, col_id, dataset_name, software_version, models_folder, splits=None, split_idx=None):
         self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.col_id = col_id
@@ -238,6 +243,9 @@ class Client(object):
 
         self.models_folder = models_folder
         self.init_models_folder()
+
+        self.splits = splits
+        self.split_idx = split_idx
 
     def init_models_folder(self):
         models_folder = self.models_folder
@@ -293,7 +301,7 @@ class Client(object):
             self.logger.debug("Failed to download or extract the code")
 
         module = importlib.import_module(code_name)
-        model = module.get_model()
+        model = module.get_model(splits=self.splits, split_idx=self.split_idx)
 
         # Run the collaborator.
         agg_id = plan.agg_id

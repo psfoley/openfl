@@ -7,21 +7,23 @@ import tensorflow as tf
 import tensorboard.summary as tb_summary
 
 from tfedlrn.proto.message_pb2 import *
-
+from tfedlrn.proto.protoutils import load_proto, dump_proto
 
 # FIXME: simpler "stats" collection/handling
 # FIXME: remove the round tracking/job-result tracking stuff from this?
 # Feels like it conflates model aggregation with round management
+# FIXME: persistence of the trained weights.
 class Aggregator(object):
 
     # FIXME: no selector logic is in place
 
-    def __init__(self, id, fed_id, col_ids, connection, model):
+    def __init__(self, id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath):
         self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.id = id
         self.fed_id = fed_id
-        self.model = model
+        self.model = load_proto(init_model_fpath)
+        self.latest_model_fpath = latest_model_fpath
         self.col_ids = col_ids
         self.round_num = 1
 
@@ -103,6 +105,9 @@ class Aggregator(object):
         # increment the version
         self.model.header.version += 1
 
+        # Save to file.
+        dump_proto(self.model, self.latest_model_fpath)
+
         # clear the update pointer
         self.model_update_in_progress = None
 
@@ -113,6 +118,7 @@ class Aggregator(object):
         self.preagg_validation_results = {}
 
     def run(self):
+        # FIXME: stopping condition. 
         self.logger.debug("Start the federation [%s] with aggeregator [%s]." % (self.fed_id, self.id))
         while True:
             # receive a message

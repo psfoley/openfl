@@ -1,4 +1,4 @@
-syntax = 'proto2';
+syntax = 'proto3';
 
 package tfedlrn_proto;
 
@@ -17,6 +17,11 @@ message FLMessage {
         JobReply jobreply = 6;
         LocalModelUpdateAck localmodelupdateack = 7;
         LocalValidationResultsAck localvalidationresultsack = 8;
+
+        PlanRequest planrequest = 9;
+        PlanReply planreply = 10;
+        CodeRequest coderequest = 11;
+        CodeReply codereply = 12;
     }
 }
 
@@ -30,79 +35,112 @@ enum Job {
 
 // FIXME: Remove values or rename npbytes as values.
 message TensorProto {
-    required string name = 1;
+    string name = 1;
     repeated int32 shape = 2;
     repeated float values = 3;
-    optional bytes npbytes = 4;
+    bytes npbytes = 4;
 }
 
 // Everything but 'sender' is effectively just for sanity checking during testing
 message MessageHeader {
-    required string sender = 1;
-    required string recipient = 2;
-    required string federation_id = 3;
+    string sender = 1;
+    string recipient = 2;
+    string federation_id = 3;
     // FIXME: really a nonce
-    required int32 counter = 4; // FIXME: better sanity check device?
+    int32 counter = 4; // FIXME: better sanity check device?
 }
 
 message ModelHeader {
-    required string id = 1;
+    string id = 1;
     // FIXME: is this version or rounds trained? We need to know rounds trained somewhere, and this currently does track that
-    required int32 version = 2;
+    int32 version = 2;
 }
 
 message ModelProto {
-    required ModelHeader header = 1;
+    ModelHeader header = 1;
     repeated TensorProto tensors = 2;
 }
 
 // COLLABORATOR MESSAGES
 
 message LocalModelUpdate {
-    required MessageHeader header = 1;
-    required ModelProto model = 2;
-    required int32 data_size = 3;
-    required float loss = 4;
+    MessageHeader header = 1;
+    ModelProto model = 2;
+    int32 data_size = 3;
+    // map<string, float> loss = 4;
+    float loss = 4;
 }
 
 message LocalValidationResults {
-    required MessageHeader header = 1;
-    required ModelHeader model_header = 2;
-    required float results = 3;
-    required int32 data_size = 4;
+    MessageHeader header = 1;
+    ModelHeader model_header = 2;
+    // Python Dictionary
+    // map<string, float> results = 3;
+    float results =3;
+    int32 data_size = 4;
 }
 
 message JobRequest {
-    required MessageHeader header = 1;
-    required ModelHeader model_header = 2;
+    MessageHeader header = 1;
+    ModelHeader model_header = 2;
 }
 
 message ModelDownloadRequest {
-    required MessageHeader header = 1;
-    required ModelHeader model_header = 2;
+    MessageHeader header = 1;
+    ModelHeader model_header = 2;
 }
 
 message RoundTaskQuery {
-    required MessageHeader header = 1;
+    MessageHeader header = 1;
     map<string, int32> task_results_last_sync = 2;
 }
 
 // AGGREGATOR MESSAGES
 
 message GlobalModelUpdate {
-    required MessageHeader header = 1;
-    required ModelProto model = 2;
+    MessageHeader header = 1;
+    ModelProto model = 2;
 }
 
 message JobReply {
-    required MessageHeader header = 1;
-    required Job job = 2;
+    MessageHeader header = 1;
+    Job job = 2;
 }
 
 message LocalModelUpdateAck {
-    required MessageHeader header = 1;
+    MessageHeader header = 1;
 }
 
 message LocalValidationResultsAck {
-    required MessageHeader header = 1;
+    MessageHeader header = 1;
+}
+
+
+// Coordinator messages between client and server.
+// No message header because the federation is not decided.
+message PlanRequest {
+    string dataset=1;
+    string software_version=2;
+}
+
+message PlanReply {
+    string fed_id = 1;
+    string agg_id = 2;
+    string agg_addr = 3;
+    int32 agg_port = 4;
+    // string model_id = 5;
+    string col_id = 5;
+    string opt_treatment = 6;
+    string description = 7;
+    string code = 8;
+}
+
+message CodeRequest {
+    string fed_id = 1;
+}
+
+message CodeReply {
+    int32 size = 1;
+    string checksum = 2;
+    bytes code_zip = 3;
 }

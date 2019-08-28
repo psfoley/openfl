@@ -5,10 +5,11 @@ import numpy as np
 import argparse
 
 # FIXME: Put docstrings in functions.
+# FIXME: fix import problem for nibabel
 
 import sys
 sys.path.append('/home/edwardsb/.local/share/virtualenvs/tfedlearn-cvKTHQG4/lib/python3.5/site-packages')
-import nibabel
+import nibabel as nib
 
 def parse_segments(seg):
 
@@ -41,7 +42,7 @@ def parse_images(img):
         curr = img[:,:,slice]
         slices.append(curr)
 
-    assert np.asarray(slices) == np.transpose(img, [-1, 0, 1])
+    assert np.all(np.asarray(slices) == np.transpose(img, [-1, 0, 1]))
 
     return np.asarray(slices)
 
@@ -62,8 +63,8 @@ def stack_img_slices(mode_track, stack_order):
     for mode in stack_order:
         full_brain_too.append(np.expand_dims(mode_track[mode], axis=-1))
     image_stack_too = np.concatenate(full_brain_too, axis=-1)
-
-    assert image_stack == image_stack_too
+    
+    assert np.all(image_stack == image_stack_too)
 
     return image_stack
 
@@ -99,6 +100,9 @@ def resize_data(dataset, new_size=128, rotate=3):
 
     """
 
+    # DEBUG
+    print("Dataset has shape: {}".format(dataset.shape))
+
     # Determine whether dataset and new_size are compatible with existing logic
     if (dataset.shape[1] - new_size) % 2 != 0 and (dataset.shape[2] - new_size) % 2 != 0:
         raise ValueError('dataset shape: {} and new_size: {} are not compatible with ' \
@@ -108,16 +112,17 @@ def resize_data(dataset, new_size=128, rotate=3):
     end_index = dataset.shape[1] - start_index
 
     if rotate != 0:
-        resized = np.rot90(dataset[:, start_index:end_index, start_index:end_index, :], 
+        resized = np.rot90(dataset[:, start_index:end_index, start_index:end_index], 
                            rotate, axes=(1,2))
     else:
-        resized = dataset[:, start_index:end_index, start_index:end_index, :]
+        resized = dataset[:, start_index:end_index, start_index:end_index]
 
     return resized
 
 
 # adapted from https://github.com/NervanaSystems/topologies
-def _update_channels(imgs, msks, task=1, channel_last=True):  
+def _update_channels(imgs, msks, task, input_channels_last, 
+  output_channels_last):  
     """
     Combine and reorder channels with independependent logic for imgs and msks.
     
@@ -125,15 +130,15 @@ def _update_channels(imgs, msks, task=1, channel_last=True):
         channels along fourth axis.
     msks (np.array): 2D four channel label images (masks) indexed along first axis, with 
         channels along fourth axis.
-    task (int): Determines method of channel combination (can be 1-4) (default 1)
-    channel_last (bool): Determines whether to keep channels last or move to just 
-        after first. (default True)
+    task (int): Determines method of channel combination (can be 1-4)
+    input_channels_last (bool): Input channels last? otherwise just after first
+    output_channels_last (bool): Output channels last? otherwise just after first
     """
     
     imgs = imgs.astype('float32')
     msks = msks.astype('float32')
 
-    if channel_last:
+    if input_channels_last:
         shp = imgs.shape
         new_imgs = np.zeros((shp[0],shp[1],shp[2], 1))
         new_msks = np.zeros((shp[0],shp[1],shp[2], 1))
@@ -173,11 +178,19 @@ def _update_channels(imgs, msks, task=1, channel_last=True):
 
         else:
             raise ValueError("{} is not a valid mode value".format(task))
+    if input_channels_last is output_channels_last:
+        return new_imgs, new_msks
+    else:
+        if output_channels_last:
+            return np.transpose(new_imgs, [0, 2, 3, 1]), \
+              np.transpose(new_msks, [0, 2, 3, 1])
+        else:
+            return np.transpose(new_imgs, [0, 3, 1, 2]), \
+              np.transpose(new_msks, [0, 3, 1, 2])
 
-    return new_imgs, new_msks
 
-
-def brats17_2d_reader(idx, idx_to_paths, label_type):
+def brats17_2d_reader(idx, idx_to_paths, label_type, 
+  channels_last_on_disk=True, channels_last_after_reading=True):
     """
     Fetch single 2D brain image from disc.
 
@@ -193,7 +206,12 @@ def brats17_2d_reader(idx, idx_to_paths, label_type):
     Args:
         idx (int): index of image
         idx_to_paths (list of str): paths to files containing image features and full 
-        label set label_type (string): determines way in which label information is combined
+        label set 
+        label_type (string): determines way in which label information is combined
+        channel_last_on_disk (bool): Data on disk has channel last? 
+        otherwise just after first
+        channels_last_after_reading (bool): Reader output should have channels last? 
+        otherwise just after first
 
     Returns:
         np.array: single 2D image associated to the index
@@ -221,63 +239,83 @@ def brats17_2d_reader(idx, idx_to_paths, label_type):
 
 
     subdir = idx_to_paths[idx]
+    files = os.listdir(subdir)
+    img_modes = ["t1","t2","flair","t1ce"]
+    
+
+    # check that all appropriate files are present
+    # FIXME: complete files check for task other than 1
+    #        and only grab needed files and modify logic in _update_channels moving 
+    #         appropriate logic down here.         
     file_root = subdir.split('/')[-1] + "_"
-    for files in os.listdir(subdir):
-        # Ensure all necessary files are present
-        # FIXME: Allow for fewer files depending on mode requested? Change all_there to account
-        # for mode, only grab needed files and modify logic in _update_channels moving 
-        # appropriate logic down here.        
-        extension = ".nii.gz"
-        img_modes = ["t1","t2","flair","t1ce"]
-        need_file = [file_root + mode + extension for mode in img_modes]
+    extension = ".nii.gz"
+    need_file = [file_root + mode + extension for mode in img_modes]
+    if task == 1:
         all_there = [(reqd in files) for reqd in need_file]
-        if all(all_there):
-            track_mode = {mode:[] for mode in img_modes}
-            for file in files:
-                if file.endswith('seg_binary.nii.gz') or \
-                file.endswith('seg_binarized.nii.gz') or file.endswith('SegBinarized.nii.gz'):
-                    path = os.path.join(subdir,file)
-                    full_brain_msk = np.array(nib.load(path).dataobj)
-                    full_brain_msk = resize_data(parse_segments(msk))
+    else:
+        raise ValueError("Task: {} is currently not fully supported".format(task))
+    if not all_there:
+        # FIXME: here log the presence of incomplete data 
+        # Collect rest of batch anyway, and put logic to handle this in the data_loader?
+        raise ValueError("Data in the folder: {} is not complete.".format(subdir))
 
-                if file.endswith('t1.nii.gz'):
-                    path = os.path.join(subdir,file)
-                    full_brain_img_t1 = np.array(nib.load(path).dataobj)
-                    track_mode['t1'] = resize_data(parse_images(full_brain_img_t1))
 
-                if file.endswith('t2.nii.gz'):
-                    path = os.path.join(subdir,file)
-                    full_brain_img_t2 = np.array(nib.load(path).dataobj)
-                    track_mode['t2'] = resize_data(parse_images(full_brain_img_t2))
+    
+    # FIXME: Allow for fewer files depending on task requested? Change all_there to account
+    # for task,         
 
-                if file.endswith('t1ce.nii.gz'):
-                    path = os.path.join(subdir,file)
-                    full_brain_img_t1ce = np.array(nib.load(path).dataobj)
-                    track_mode['t1ce'] = resize_data(parse_images(full_brain_img_t1ce))
+    track_mode = {mode:[] for mode in img_modes}
+    for file in files:
+        # FIXME: change this and above check logic to check for the absence of labels
+        #        as well as process labels other than binary
+        if file.endswith('seg_binary.nii.gz') or \
+          file.endswith('seg_binarized.nii.gz') or \
+          file.endswith('SegBinarized.nii.gz') or \
+          file.endswith('seg.nii.gz'):
+            path = os.path.join(subdir,file)
+            full_brain_msk = np.array(nib.load(path).dataobj)
+            full_brain_msk = resize_data(parse_segments(full_brain_msk))
 
-                if file.endswith('flair.nii.gz'):
-                    path = os.path.join(subdir,file)
-                    full_brain_img_flair = np.array(nib.load(path).dataobj)
-                    track_mode['flair'] = resize_data(parse_images(full_brain_img_flair))
+        if file.endswith('t1.nii.gz'):
+            path = os.path.join(subdir,file)
+            full_brain_img_t1 = np.array(nib.load(path).dataobj)
+            track_mode['t1'] = resize_data(parse_images(full_brain_img_t1))
 
-            # FIXME: We had a np.asarray() surrounding below, do we need this really? asserting to see
-            full_brain_img = normalize_stack(stack_img_slices(track_mode,img_modes))
-            assert np.asarray(full_brain_img) == full_brain_img
+        if file.endswith('t2.nii.gz'):
+            path = os.path.join(subdir,file)
+            full_brain_img_t2 = np.array(nib.load(path).dataobj)
+            track_mode['t2'] = resize_data(parse_images(full_brain_img_t2))
+
+        if file.endswith('t1ce.nii.gz'):
+            path = os.path.join(subdir,file)
+            full_brain_img_t1ce = np.array(nib.load(path).dataobj)
+            track_mode['t1ce'] = resize_data(parse_images(full_brain_img_t1ce))
+
+        if file.endswith('flair.nii.gz'):
+            path = os.path.join(subdir,file)
+            full_brain_img_flair = np.array(nib.load(path).dataobj)
+            track_mode['flair'] = resize_data(parse_images(full_brain_img_flair))
+
+    # FIXME: We had a np.asarray() surrounding below, do we need this really? asserting to see
+    full_brain_img = normalize_stack(stack_img_slices(track_mode,img_modes))
+    assert np.all(np.asarray(full_brain_img) == full_brain_img)
+    
+    # floor(idx/155) is the patient, idx % 155 provides which of the 155 slices to grab
+    # Objecgts img and msk are each a 2D image, but have an additional axis to allow for 
+    # _update_channels to process 3D images (the expected use case for some models).
+    img, msk = _update_channels(np.expand_dims(full_brain_img[idx % 155], axis=0), 
+                                np.expand_dims(full_brain_msk[idx % 155], axis=0), 
+                                task=task, 
+                                input_channels_last=channels_last_on_disk,
+                                output_channels_last=channels_last_after_reading)
+
+    # collapsing the length one first axis
+
+    # DEBUG
+    print("Images have shape: {}, and masks have shape: {}".format(img.shape, msk.shape))
+    return img[0], msk[0]
+
             
-            # floor(idx/155) is the patient, idx % 155 provides which of the 155 slices to grab
-            # Objecgts img and msk are each a 2D image, but have an additional axis to allow for 
-            # _update_channels to process 3D images (the expected use case for some models).
-            img, msk = _update_channels(np.expand_dims(full_brain_img[idx % 155], axis=0), 
-                                        np.expand_dims(full_brain_msk[idx % 155], axis=0), 
-                                        task=task)
-
-            # collapsing the length one first axis
-            return img[0], msk[0]
-
-        else:
-            # FIXME: here log the presence of incomplete data
-            # Collect rest of batch anyway, and put logic to handle this in the data_loader?
-            raise ValueError("Data in the foler: {} is not complete.".format(subdir))
 
 
 

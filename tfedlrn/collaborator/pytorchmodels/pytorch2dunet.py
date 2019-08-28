@@ -68,19 +68,23 @@ class PyTorch2DUNet(nn.Module):
             idx_to_train_paths, train_data_length = brats17_data_paths('BraTS17_train')
             idx_to_val_paths, val_data_length = brats17_data_paths('BraTS17_val')
             read_and_preprocess_train = get_data_reader('BraTS17_{}'.format(label_type),
-                                                        idx_to_train_paths)
+                                                        idx_to_train_paths,
+                                                        channels_last_after_reading=False)
             read_and_preprocess_val = get_data_reader('BraTS17_{}'.format(label_type),
-                                                      idx_to_val_paths)
+                                                      idx_to_val_paths, 
+                                                      channels_last_after_reading=False)
 
         if train_loader is None:
             self.train_loader = pt_create_loader(read_and_preprocess_train, 
-                                                 length=train_data_length, batch_size=64, shuffle=True)
+                                                 length=train_data_length, 
+                                                 batch_size=64, shuffle=True)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
             self.val_loader = pt_create_loader(read_and_preprocess_val, 
-                                               length=val_data_length, batch_size=64, shuffle=True)
+                                               length=val_data_length, 
+                                               batch_size=64, shuffle=True)
         else:
             self.val_loader = val_loader
             
@@ -136,6 +140,9 @@ class PyTorch2DUNet(nn.Module):
         self.to(device)
         
     def forward(self, x):
+
+        # DEBUG
+        print("input x has shape: {}".format(x.size()))
         
         # gather up our up and down layer members for easier processing
         conv_down_a = [getattr(self, 'conv_down_{}a'.format(i+1)) for i in range(self.depth_per_side)]

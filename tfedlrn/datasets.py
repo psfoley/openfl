@@ -22,11 +22,13 @@ def brats17_data_paths(data_name):
 
     # produce a dictionary of indices to file_paths
     if data_name == 'BraTS17_train':
-        paths = os.listdir(os.path.join(_get_dataset_dir(), 
-                                         'BraTS17/MICCAI_BraTS17_Data_Training/HGG'))
+        directory = os.path.join(_get_dataset_dir(), 
+                                 'BraTS17/MICCAI_BraTS17_Data_Training/HGG')
+        paths = [os.path.join(directory, subdir) for subdir in os.listdir(directory)]
     elif data_name == 'BraTS17_val':
-        paths = os.listdir(os.path.join(_get_dataset_dir(), 
-                                         'BraTS17/MICCAI_BraTS17_Data_Training/HGG'))
+        directory = os.path.join(_get_dataset_dir(), 
+                                 'BraTS17/MICCAI_BraTS17_Data_Training/HGG')
+        paths = [os.path.join(directory, subdir) for subdir in os.listdir(directory)]
     # order paths so as to deterministically determine indices
     paths.sort()
     nb_imgs = 155 * len(paths) 
@@ -35,11 +37,12 @@ def brats17_data_paths(data_name):
 
     return idx_to_paths, nb_imgs
 
-def get_data_reader(data_type, idx_to_paths):
+def get_data_reader(data_type, idx_to_paths, **kwargs):
     if data_type.startswith('BraTS17_'):
         label_type = data_type[8:]
         return partial(brats17_2d_reader, idx_to_paths=idx_to_paths, 
-                       label_type=label_type)
+                       label_type=label_type, 
+                       channels_last_after_reading=kwargs['channels_last_after_reading'])
     else:
         raise ValueError("The data_type:{} is not supported.".format(data_type))
 

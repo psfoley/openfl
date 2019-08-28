@@ -222,7 +222,12 @@ class IndexFetchDataset(Dataset):
             datapoint = self.transform(datapoint)
         return datapoint
 
+def pt_create_loader(X, y, **kwargs):
+    tX = torch.stack([torch.Tensor(i) for i in X])
+    ty = torch.stack([torch.Tensor(i) for i in y])
+    return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), **kwargs)
 
-def pt_create_loader(read_and_preprocess, length, transform=None, **kwargs):
+
+def pt_create_pipeline_loader(read_and_preprocess, length, transform=None, **kwargs):
     dataset = IndexFetchDataset(read_and_preprocess, length, transform)
     return torch.utils.data.DataLoader(dataset, **kwargs)

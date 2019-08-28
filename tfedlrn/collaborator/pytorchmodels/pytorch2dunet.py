@@ -10,7 +10,7 @@ import torch.optim as optim
 
 from ...datasets import brats17_data_paths, get_data_reader
 from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, \
-    pt_train_epoch, pt_create_loader
+    pt_train_epoch, pt_create_pipeline_loader
 
 # FIXME: Put docstrings into all functions
 
@@ -75,14 +75,14 @@ class PyTorch2DUNet(nn.Module):
                                                       channels_last_after_reading=False)
 
         if train_loader is None:
-            self.train_loader = pt_create_loader(read_and_preprocess_train, 
+            self.train_loader = pt_create_pipeline_loader(read_and_preprocess_train, 
                                                  length=train_data_length, 
                                                  batch_size=64, shuffle=True)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
-            self.val_loader = pt_create_loader(read_and_preprocess_val, 
+            self.val_loader = pt_create_pipeline_loader(read_and_preprocess_val, 
                                                length=val_data_length, 
                                                batch_size=64, shuffle=True)
         else:

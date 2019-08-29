@@ -101,7 +101,7 @@ def resize_data(dataset, new_size=128, rotate=3):
     """
 
     # DEBUG
-    print("Dataset has shape: {}".format(dataset.shape))
+    # print("Dataset has shape: {}".format(dataset.shape))
 
     # Determine whether dataset and new_size are compatible with existing logic
     if (dataset.shape[1] - new_size) % 2 != 0 and (dataset.shape[2] - new_size) % 2 != 0:
@@ -190,7 +190,8 @@ def _update_channels(imgs, msks, task, input_channels_last,
 
 
 def brats17_2d_reader(idx, idx_to_paths, label_type, 
-  channels_last_on_disk=True, channels_last_after_reading=True):
+  channels_last_on_disk=True, channels_last_after_reading=True, 
+  numpy_type='float32'):
     """
     Fetch single 2D brain image from disc.
 
@@ -212,6 +213,7 @@ def brats17_2d_reader(idx, idx_to_paths, label_type,
         otherwise just after first
         channels_last_after_reading (bool): Reader output should have channels last? 
         otherwise just after first
+        numpy_type (string): The numpy datatype for final casting before return
 
     Returns:
         np.array: single 2D image associated to the index
@@ -312,8 +314,8 @@ def brats17_2d_reader(idx, idx_to_paths, label_type,
     # collapsing the length one first axis
 
     # DEBUG
-    print("Images have shape: {}, and masks have shape: {}".format(img.shape, msk.shape))
-    return img[0], msk[0]
+    # print("Images have shape: {}, and masks have shape: {}".format(img.shape, msk.shape))
+    return img[0].astype(numpy_type), msk[0].astype(numpy_type)
 
             
 

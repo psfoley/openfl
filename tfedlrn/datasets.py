@@ -29,8 +29,9 @@ def brats17_data_paths(data_name):
         directory = os.path.join(_get_dataset_dir(), 
                                  'BraTS17/MICCAI_BraTS17_Data_Training/HGG')
         paths = [os.path.join(directory, subdir) for subdir in os.listdir(directory)]
+    # FIXME: temporarily disabling below
     # order paths so as to deterministically determine indices
-    paths.sort()
+    # paths.sort()
     nb_imgs = 155 * len(paths) 
 
     idx_to_paths = {idx: paths[idx % 155] for idx in range(nb_imgs)}

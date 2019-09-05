@@ -14,7 +14,6 @@ import nibabel as nib
 def parse_segments(seg):
 
     # Each channel corresponds to a different region of the tumor, decouple and stack these
-
     msks_parsed = []
     for slice in range(seg.shape[-1]):
         curr = seg[:,:,slice]
@@ -22,7 +21,6 @@ def parse_segments(seg):
         edema = ma.masked_not_equal(curr,2).filled(fill_value=0)
         necrotic = ma.masked_not_equal(curr,1).filled(fill_value=0)
         none = ma.masked_not_equal(curr,0).filled(fill_value=0)
-
         msks_parsed.append(np.dstack((none,necrotic,edema,GD)))
 
     # Replace all tumorous areas with 1 (previously marked as 1, 2 or 4)
@@ -35,37 +33,17 @@ def parse_segments(seg):
 
 
 def parse_images(img):
-    # FIXME: Why not just use np.transpose here? Testing below (with assert) for equivalence.
-
-    slices = []
-    for slice in range(img.shape[-1]):
-        curr = img[:,:,slice]
-        slices.append(curr)
-
-    assert np.all(np.asarray(slices) == np.transpose(img, [-1, 0, 1]))
-
-    return np.asarray(slices)
+    
+    return np.transpose(img, [-1, 0, 1])
 
 
 def stack_img_slices(mode_track, stack_order):
-    # FIXME: Why not just use concatenate? Testing below (with assert) for equivalence
     # Put final image channels in the order listed in stack_order
-
-    full_brain = []
-    for slice in range(len(mode_track['t1'])):
-        current_slice = []
-        for mode in stack_order:
-            current_slice.append(mode_track[mode][slice,:,:])
-        full_brain.append(np.dstack(current_slice))
-    image_stack = np.asarray(full_brain)
-
     full_brain_too = []
     for mode in stack_order:
         full_brain_too.append(np.expand_dims(mode_track[mode], axis=-1))
-    image_stack_too = np.concatenate(full_brain_too, axis=-1)
+    image_stack = np.concatenate(full_brain_too, axis=-1)
     
-    assert np.all(image_stack == image_stack_too)
-
     return image_stack
 
 def normalize_stack(image_stack):
@@ -99,9 +77,6 @@ def resize_data(dataset, new_size=128, rotate=3):
             are not both even integers.
 
     """
-
-    # DEBUG
-    # print("Dataset has shape: {}".format(dataset.shape))
 
     # Determine whether dataset and new_size are compatible with existing logic
     if (dataset.shape[1] - new_size) % 2 != 0 and (dataset.shape[2] - new_size) % 2 != 0:
@@ -298,23 +273,19 @@ def brats17_2d_reader(idx, idx_to_paths, label_type,
             full_brain_img_flair = np.array(nib.load(path).dataobj)
             track_mode['flair'] = resize_data(parse_images(full_brain_img_flair))
 
-    # FIXME: We had a np.asarray() surrounding below, do we need this really? asserting to see
     full_brain_img = normalize_stack(stack_img_slices(track_mode,img_modes))
-    assert np.all(np.asarray(full_brain_img) == full_brain_img)
     
     # floor(idx/155) is the patient, idx % 155 provides which of the 155 slices to grab
-    # Objecgts img and msk are each a 2D image, but have an additional axis to allow for 
+    # Objects img and msk are each a 2D image, but have an additional axis to allow for 
     # _update_channels to process 3D images (the expected use case for some models).
     img, msk = _update_channels(np.expand_dims(full_brain_img[idx % 155], axis=0), 
-                                np.expand_dims(full_brain_msk[idx % 155], axis=0), 
-                                task=task, 
-                                input_channels_last=channels_last_on_disk,
-                                output_channels_last=channels_last_after_reading)
+      np.expand_dims(full_brain_msk[idx % 155], axis=0), 
+      task=task, 
+      input_channels_last=channels_last_on_disk,
+      output_channels_last=channels_last_after_reading)
 
     # collapsing the length one first axis
 
-    # DEBUG
-    # print("Images have shape: {}, and masks have shape: {}".format(img.shape, msk.shape))
     return img[0].astype(numpy_type), msk[0].astype(numpy_type)
 
             

@@ -44,10 +44,16 @@ class PyTorch2DUNetDPipe(nn.Module):
         else:
             self.dropout_layers = dropout_layers
 
+        # including these attributes for testing
+        self.read_train = None
+        self.idx_to_train_paths = None
+
         self.device = device
         self.init_data_pipeline(train_loader, val_loader, shuffle)
         self.init_network(device)
         self.init_optimizer(optimizer)
+
+
 
     def get_tensor_dict(self):
         return pt_get_tensor_dict(self, self.optimizer)
@@ -65,7 +71,7 @@ class PyTorch2DUNetDPipe(nn.Module):
       label_type='whole_tumor'):
 
         if not shuffle:
-            print("TESTING WITH NO SHUFFLE !!!!!")
+            print("WARNING: SHUFFLE IS DISABLED !!!!!")
 
         if train_loader is None or val_loader is None:
 
@@ -73,17 +79,24 @@ class PyTorch2DUNetDPipe(nn.Module):
             # each path corresponds to a file for a single sample  
             idx_to_train_paths, train_data_length = brats17_data_paths('BraTS17_train')
             idx_to_val_paths, val_data_length = brats17_data_paths('BraTS17_val')
+
+            # exposing these objects for testing purposes
+            self.idx_to_train_paths = idx_to_train_paths
+            self.read_train = get_data_reader('BraTS17_{}'.format(label_type),
+              idx_to_train_paths,
+              channels_last_after_reading=False)
+
             read_and_preprocess_train = get_data_reader('BraTS17_{}'.format(label_type),
-                                                        idx_to_train_paths,
-                                                        channels_last_after_reading=False)
+              idx_to_train_paths,
+              channels_last_after_reading=False)
             read_and_preprocess_val = get_data_reader('BraTS17_{}'.format(label_type),
-                                                      idx_to_val_paths, 
-                                                      channels_last_after_reading=False)
+              idx_to_val_paths, 
+              channels_last_after_reading=False)
 
         if train_loader is None:
             self.train_loader = pt_create_pipeline_loader(read_and_preprocess_train, 
-                                                 length=train_data_length, 
-                                                 batch_size=64, shuffle=shuffle)
+              length=train_data_length, 
+              batch_size=64, shuffle=shuffle)
         else:
             self.train_loader = train_loader
 

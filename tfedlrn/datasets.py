@@ -34,7 +34,7 @@ def brats17_data_paths(data_name):
     # paths.sort()
     nb_imgs = 155 * len(paths) 
 
-    idx_to_paths = {idx: paths[idx % 155] for idx in range(nb_imgs)}
+    idx_to_paths = {idx: paths[idx // 155] for idx in range(nb_imgs)}
 
     return idx_to_paths, nb_imgs
 

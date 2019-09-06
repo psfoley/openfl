@@ -173,6 +173,9 @@ if __name__ == "__main__":
     print("We have got a zip stream in size of %d bytes with sha256 digest %s." % (len(zip_stream), hash))
     if check_bytes_sha256(zip_stream, hash):
         print("The integrity is verified.")
-        unzip_files(zip_stream, '/tmp')
+        target_dir = os.path.join(os.path.expanduser('~'), "extracted_code")
+        if not os.path.isdir(target_dir):
+            os.makedirs(target_dir)
+        unzip_files(zip_stream, target_dir)
     else:
         print("We don't trust the modified copy.")

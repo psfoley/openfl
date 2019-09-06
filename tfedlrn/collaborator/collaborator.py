@@ -2,7 +2,14 @@ import time
 import logging
 import numpy as np
 
-from ..proto.message_pb2 import *
+from ..proto.message_pb2 import MessageHeader
+from ..proto.message_pb2 import Job, JobRequest, JobReply
+from ..proto.message_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
+from ..proto.message_pb2 import ModelProto, ModelHeader, TensorProto
+from ..proto.message_pb2 import ModelDownloadRequest, GlobalModelUpdate
+from ..proto.message_pb2 import LocalModelUpdate, LocalModelUpdateAck
+from ..proto.message_pb2 import LocalValidationResults, LocalValidationResultsAck
+
 
 from enum import Enum
 
@@ -56,13 +63,16 @@ class Collaborator(object):
         # validate the message pair
 
         # check message is from my agg to me
-        assert reply.header.sender == self.agg_id and reply.header.recipient == self.id
+        if not (reply.header.sender == self.agg_id and reply.header.recipient == self.id):
+            self.logger.exception("Assertion failed: reply.header.sender == self.agg_id and reply.header.recipient == self.id")
 
         # check that the federation id matches
-        assert reply.header.federation_id == self.fed_id
+        if not (reply.header.federation_id == self.fed_id):
+            self.logger.exception("Assertion failed: reply.header.federation_id == self.fed_id")
 
         # check that the counters match
-        assert reply.header.counter == self.counter
+        if not(reply.header.counter == self.counter):
+            self.logger.exception("Assertion failed: reply.header.counter == self.counter")
 
         # increment our counter
         self.counter += 1
@@ -95,7 +105,9 @@ class Collaborator(object):
         while True:
             reply = self.send_and_receive(JobRequest(header=self.create_message_header(), model_header=self.model_header))
 
-            assert isinstance(reply, JobReply)
+            if not(isinstance(reply, JobReply)):
+                self.logger.exception("Assertion failed: isinstance(reply, JobReply)")
+
             if reply.job is not JOB_YIELD:
                 break
             time.sleep(self.polling_interval)
@@ -135,7 +147,8 @@ class Collaborator(object):
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
         self.logger.debug("Sending the model to the aggeregator.")
         reply = self.send_and_receive(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
-        assert isinstance(reply, LocalModelUpdateAck)
+        if not(isinstance(reply, LocalModelUpdateAck)):
+            self.logger.exception("Assertion failed: isinstance(reply, LocalModelUpdateAck)")
         self.logger.debug("Model sent.")
 
     def do_validate_job(self):
@@ -144,17 +157,20 @@ class Collaborator(object):
         data_size = self.wrapped_model.get_validation_data_size()
 
         reply = self.send_and_receive(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
-        assert isinstance(reply, LocalValidationResultsAck)
+        if not(isinstance(reply, LocalValidationResultsAck)):
+            self.logger.exception("Assertion failed: isinstance(reply, LocalValidationResultsAck)")
 
     def do_download_model_job(self):
         # sanity check on version is implicit in send
         reply = self.send_and_receive(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
         self.logger.debug("Completed the downloading job.")
 
-        assert isinstance(reply, GlobalModelUpdate)
+        if not(isinstance(reply, GlobalModelUpdate)):
+            self.logger.exception("Assertion failed: isinstance(reply, GlobalModelUpdate)")
 
         # ensure we actually got a new model version
-        assert reply.model.header.version != self.model_header.version
+        if not(reply.model.header.version != self.model_header.version):
+            self.logger.exception("Assertion failed: reply.model.header.version != self.model_header.version")
 
         # set our model header
         self.model_header = reply.model.header

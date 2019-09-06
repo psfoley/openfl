@@ -12,7 +12,8 @@ sys.path.append('/home/edwardsb/.local/share/virtualenvs/tfedlearn-cvKTHQG4/lib/
 import nibabel as nib
 
 def parse_segments(seg):
-
+    # FIXME: Remove the none label below as it is always all zeros and provides no info
+    #        correspondingly modify the mask processing after parsing to not use the none channel
     # Each channel corresponds to a different region of the tumor, decouple and stack these
     msks_parsed = []
     for slice in range(seg.shape[-1]):
@@ -30,32 +31,9 @@ def parse_segments(seg):
     return mask
 
 
-
-
-def parse_images(img):
-    
-    return np.transpose(img, [-1, 0, 1])
-
-
-def stack_img_slices(mode_track, stack_order):
-    # Put final image channels in the order listed in stack_order
-    full_brain_too = []
-    for mode in stack_order:
-        full_brain_too.append(np.expand_dims(mode_track[mode], axis=-1))
-    image_stack = np.concatenate(full_brain_too, axis=-1)
-    
-    return image_stack
-
-def normalize_stack(image_stack):
-    """
-
-    """
-
-    # Normalize stacked images (inference will not work if this is not performed)
-    image_stack = (image_stack - np.mean(image_stack))/(np.std(image_stack))
-
-    return image_stack
-
+def normalize_stack(imgs):
+    imgs = (imgs - np.mean(imgs))/(np.std(imgs))
+    return imgs
 
 
 def resize_data(dataset, new_size=128, rotate=3):
@@ -96,77 +74,40 @@ def resize_data(dataset, new_size=128, rotate=3):
 
 
 # adapted from https://github.com/NervanaSystems/topologies
-def _update_channels(imgs, msks, task, input_channels_last, 
-  output_channels_last):  
+def _update_channels(imgs, msks, img_channels_to_keep, msk_channels_to_keep, channels_last):  
     """
-    Combine and reorder channels with independependent logic for imgs and msks.
+    Filter the channels of images and move placement of channels in shape if desired.
     
-    imgs (np.array): 2D four channel feature images indexed along first axis, with 
-        channels along fourth axis.
-    msks (np.array): 2D four channel label images (masks) indexed along first axis, with 
-        channels along fourth axis.
-    task (int): Determines method of channel combination (can be 1-4)
-    input_channels_last (bool): Input channels last? otherwise just after first
-    output_channels_last (bool): Output channels last? otherwise just after first
+    imgs (np.array): A stack of images with channels (channels could be anywhere in number from
+    one to four. Images are indexed along first axis, with channels along fourth (last) axis.
+    msks (np.array): A stack of binary masks with channels (channels could be anywhere in number from
+    one to four. Images are indexed along first axis, with channels along fourth (last) axis.
+    img_channels_to_keep (flat np.ndarray): the channels to keep in the image (remove others)
+    msk_channels_to_keep (flat np.ndarray): the channels to sum in the mask (resulting in 
+    a single channel array) 
+    channels_last (bool): Return channels in last axis? otherwise just after first
     """
+     
+    new_imgs = imgs[:,:,:,img_channels_to_keep]
+    # the mask channels that are kept are summed over to leave one channel
+    # note the indices producing non-zero entries on these masks are mutually exclusive
+    # so that the result continues to be an array with only ones and zeros
+    msk_summands = [msks[:,:,:,channel] for channel in msk_channels_to_keep]
+    new_msks = np.sum(msk_summands, axis=0)
     
-    imgs = imgs.astype('float32')
-    msks = msks.astype('float32')
-
-    if input_channels_last:
-        shp = imgs.shape
-        new_imgs = np.zeros((shp[0],shp[1],shp[2], 1))
-        new_msks = np.zeros((shp[0],shp[1],shp[2], 1))
-
-
-        if task == 1:
-            new_imgs[:,:,:,0] = imgs[:,:,:,2] # flair
-            new_msks[:,:,:,0] = msks[:,:,:,0]+msks[:,:,:,1]+msks[:,:,:,2]+msks[:,:,:,3]
-        elif task == 2:
-            new_imgs[:,:,:,0] = imgs[:,:,:,0] # t1 post
-            new_msks[:,:,:,0] = msks[:,:,:,3]
-        elif task == 3:
-            new_imgs[:,:,:,0] = imgs[:,:,:,1]# t2 post
-            new_msks[:,:,:,0] = msks[:,:,:,0]+msks[:,:,:,2]+msks[:,:,:,3]# active core
-        elif task == 4:
-            new_msks[:,:,:,0] = msks[:,:,:,0]+msks[:,:,:,1]+msks[:,:,:,2]+msks[:,:,:,3]
-
-        else:
-            raise ValueError("{} is not a valid task value".format(task))
-    else:
-        shp = imgs.shape
-        new_imgs = np.zeros((shp[0], 1, shp[2],shp[3]))
-        new_msks = np.zeros((shp[0], 1, shp[2],shp[3]))
-
-        if task == 1:
-            new_imgs[:,0,:,:] = imgs[:,2,:,:] # flair
-            new_msks[:,0,:,:] = msks[:,0,:,:]+msks[:,1,:,:]+msks[:,2,:,:]+msks[:,3,:,:]
-        elif task == 2:
-            new_imgs[:,0,:,:] = imgs[:,0,:,:] # t1 post
-            new_msks[:,0,:,:] = msks[:,3,:,:]
-        elif task == 3:
-            new_imgs[:,0,:,:] = imgs[:,1,:,:]# t2 post
-            new_msks[:,0,:,:] = msks[:,0,:,:]+msks[:,2,:,:]+msks[:,3,:,:]# active core
-            
-        elif task == 4:
-            new_msks[:,0,:,:] = msks[:,0,:,:]+msks[:,1,:,:]+msks[:,2,:,:]+msks[:,3,:,:]
-
-        else:
-            raise ValueError("{} is not a valid mode value".format(task))
-    if input_channels_last is output_channels_last:
+    if not channels_last:
+        return np.transpose(new_imgs, [0, 3, 1, 2]), np.transpose(new_msks, [0, 3, 1, 2])       
+    else:       
         return new_imgs, new_msks
-    else:
-        if output_channels_last:
-            return np.transpose(new_imgs, [0, 2, 3, 1]), \
-              np.transpose(new_msks, [0, 2, 3, 1])
-        else:
-            return np.transpose(new_imgs, [0, 3, 1, 2]), \
-              np.transpose(new_msks, [0, 3, 1, 2])
 
 
-def brats17_2d_reader(idx, idx_to_paths, label_type, 
-  channels_last_on_disk=True, channels_last_after_reading=True, 
-  numpy_type='float32'):
+def list_files(root, extension, parts):
+    files = [root + part + extension for part in parts]
+    return files
+
+
+def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True, 
+  numpy_type='float32', normalize_by_task=True):
     """
     Fetch single 2D brain image from disc.
 
@@ -184,10 +125,7 @@ def brats17_2d_reader(idx, idx_to_paths, label_type,
         idx_to_paths (list of str): paths to files containing image features and full 
         label set 
         label_type (string): determines way in which label information is combined
-        channel_last_on_disk (bool): Data on disk has channel last? 
-        otherwise just after first
-        channels_last_after_reading (bool): Reader output should have channels last? 
-        otherwise just after first
+        channels_last (bool): Reader should output channels last?, otherwise just after first
         numpy_type (string): The numpy datatype for final casting before return
 
     Returns:
@@ -203,22 +141,22 @@ def brats17_2d_reader(idx, idx_to_paths, label_type,
 
     # FIXME: put a logging statement next to raised exceptions
 
-    if label_type == 'whole_tumor':
-        task = 1
-    elif label_type == 'enhanced_tumor':
-        task = 2
-    elif label_type == 'active_core':
-        task = 3
-    elif label_type == 'other':
-        task = 4
-    else:
+    label_type_to_task = {"whole_tumor": 1, "enhanced_tumor": 2, "active_core": 3, "other": 4}
+    try:
+        task = label_type_to_task[label_type]
+    except KeyError:
         raise ValueError("{} is not a valid label type".format(label_type))
+    tasks = label_type_to_task.values()
 
 
     subdir = idx_to_paths[idx]
     files = os.listdir(subdir)
+    # link task number to appropriate image and mask channels of interest
     img_modes = ["t1","t2","flair","t1ce"]
-    
+    msk_modes = ["none", "necrotic", "edema", "GD"]
+    task_to_img_modes = {1: ["flair"], 2: ["t1"], 3: ["t2"], 4: ["t1","t2","flair","t1ce"]}
+    task_to_msk_modes = {1: ["flair"], 2: ["t1"], 3: ["t2"], 4: ["t1","t2","flair","t1ce"]}
+    msk_names = ["seg_binary", "seg_binarized", "SegBinarized", "seg"]
 
     # check that all appropriate files are present
     # FIXME: complete files check for task other than 1
@@ -226,67 +164,72 @@ def brats17_2d_reader(idx, idx_to_paths, label_type,
     #         appropriate logic down here.         
     file_root = subdir.split('/')[-1] + "_"
     extension = ".nii.gz"
-    need_file = [file_root + mode + extension for mode in img_modes]
-    if task == 1:
-        all_there = [(reqd in files) for reqd in need_file]
+
+    # record files needed for each task
+    # needed mask files are currntly independent of task, but allowing for dependency here
+    need_files_oneof = {task: list_files(file_root, extension, msk_names) for task in tasks}
+    if normalize_by_task:
+        need_files_all = \
+            {task: list_files(file_root, extension, task_to_img_modes[task]) for task in tasks}     
     else:
-        raise ValueError("Task: {} is currently not fully supported".format(task))
-    if not all_there:
+        need_files_all = \
+            {task: list_files(file_root, extension, img_modes) for task in tasks}  
+
+    correct_files = np.all([(reqd in files) for reqd in need_files_all[task]]) and \
+      np.sum([(reqd in files) for reqd in need_files_oneof[task]])==1
+    if not correct_files:
         # FIXME: here log the presence of incomplete data 
-        # Collect rest of batch anyway, and put logic to handle this in the data_loader?
-        raise ValueError("Data in the folder: {} is not complete.".format(subdir))
+        raise ValueError("Data in folder: {} incomplete or too many label files.".format(subdir))  
 
+    # get image (features)
+    imgs_per_mode = []
+    for file in need_files_all[task]:
+        path = os.path.join(subdir,file)
+        full_brain = np.array(nib.load(path).dataobj)
+        imgs_per_mode.append(resize_data(np.transpose(full_brain, [-1, 0, 1])))
+    imgs = np.concatenate(imgs_per_mode, axis=-1)
+    imgs = normalize_stack(imgs)  
 
-    
-    # FIXME: Allow for fewer files depending on task requested? Change all_there to account
-    # for task,         
-
-    track_mode = {mode:[] for mode in img_modes}
-    for file in files:
-        # FIXME: change this and above check logic to check for the absence of labels
-        #        as well as process labels other than binary
-        if file.endswith('seg_binary.nii.gz') or \
-          file.endswith('seg_binarized.nii.gz') or \
-          file.endswith('SegBinarized.nii.gz') or \
-          file.endswith('seg.nii.gz'):
+    # get mask (labels)  
+    for file in need_files_oneof[task]:
+        if file in files:
             path = os.path.join(subdir,file)
             full_brain_msk = np.array(nib.load(path).dataobj)
-            full_brain_msk = resize_data(parse_segments(full_brain_msk))
+            msks = resize_data(parse_segments(full_brain_msk))
+            
+            # FIXME: Remove this test and make changes referred to in parse_segments
+            # testing here whether indeed the 0 channel of msks is always all zeros
+            if not np.all(np.zeros_like(msks[:,:,:,0]) == msks[:,:,:,0]):
+                raise ValueError("YOU WERE WRONG, 0 channel of msks is not always zero!!!!!")
+            
+            break
 
-        if file.endswith('t1.nii.gz'):
-            path = os.path.join(subdir,file)
-            full_brain_img_t1 = np.array(nib.load(path).dataobj)
-            track_mode['t1'] = resize_data(parse_images(full_brain_img_t1))
-
-        if file.endswith('t2.nii.gz'):
-            path = os.path.join(subdir,file)
-            full_brain_img_t2 = np.array(nib.load(path).dataobj)
-            track_mode['t2'] = resize_data(parse_images(full_brain_img_t2))
-
-        if file.endswith('t1ce.nii.gz'):
-            path = os.path.join(subdir,file)
-            full_brain_img_t1ce = np.array(nib.load(path).dataobj)
-            track_mode['t1ce'] = resize_data(parse_images(full_brain_img_t1ce))
-
-        if file.endswith('flair.nii.gz'):
-            path = os.path.join(subdir,file)
-            full_brain_img_flair = np.array(nib.load(path).dataobj)
-            track_mode['flair'] = resize_data(parse_images(full_brain_img_flair))
-
-    full_brain_img = normalize_stack(stack_img_slices(track_mode,img_modes))
+    # determine which channels are wanted in our images
+    msk_mode_to_channel = {mode: channel_num for (channel_num, mode) in enumerate(msk_modes)}
+    task_to_msk_channels = {task: [msk_mode_to_channel[mode] for mode in modes] \
+      for (task, modes) in task_to_msk_modes.items()}
+    msk_channels_to_keep = np.array(task_to_msk_channels[task])
+    # if we normalized by task, we have already restricted the image channels 
+    if normalize_by_task:
+        img_channels_to_keep = np.arange(imgs.shape[-1])
+    else:
+        img_mode_to_channel = {mode: channel_num for (channel_num, mode) in enumerate(img_modes)}
+        task_to_img_channels = {task: [img_mode_to_channel[mode] for mode in modes] \
+          for (task, modes) in task_to_img_modes.items()}
+        img_channels_to_keep = np.array(task_to_img_channels[task])
     
-    # floor(idx/155) is the patient, idx % 155 provides which of the 155 slices to grab
-    # Objects img and msk are each a 2D image, but have an additional axis to allow for 
-    # _update_channels to process 3D images (the expected use case for some models).
-    img, msk = _update_channels(np.expand_dims(full_brain_img[idx % 155], axis=0), 
-      np.expand_dims(full_brain_msk[idx % 155], axis=0), 
-      task=task, 
-      input_channels_last=channels_last_on_disk,
-      output_channels_last=channels_last_after_reading)
+    
+    
+    # idx % 155 provides which of the 155 slices to grab from the whole brain
+    # here we restrict to a single slice (2D), but preserve dimensions
+    slice_idx = idx % 155 
+    img = imgs[slice_idx:slice_idx+1, :, :, :]
+    msk = msks[slice_idx:slice_idx+1, :, :, :]
 
-    # collapsing the length one first axis
+    img, msk = _update_channels(img, msk, img_channels_to_keep, msk_channels_to_keep, channels_last)
 
-    return img[0].astype(numpy_type), msk[0].astype(numpy_type)
+    # collapsing the one dimensional first axis to produce a 2D image, casting type
+    return np.sqeeze(img.astype(numpy_type), axis=0), np.sqeeze(msk.astype(numpy_type), axis=0)
 
             
 

@@ -3,8 +3,6 @@ from torch.utils.data import Dataset
 import numpy as np
 from copy import deepcopy
 
-# FIXME: Put docstrings into all functions.
-
 
 def _derive_opt_state_dict(opt_state_dict):
     # Flattens the optimizer state dict so as to have key, value pairs with values as numpy arrays.
@@ -63,7 +61,8 @@ def _derive_opt_state_dict(opt_state_dict):
 
 
 def expand_derived_opt_state_dict(derived_opt_state_dict, device):
-    # Performs the inverse operations of _encode_and_flatten.
+    # Takes a derived opt_state_dict and creates an opt_state_dict suitable as
+    # input for load_state_dict for restoring optimizer state.
 
     # Reconstructing state_subkeys_and_tags using the example key 
     # prefix, "__opt_state_0_0_", certain to be present.
@@ -131,6 +130,7 @@ def _set_optimizer_state(optimizer, device, derived_opt_state_dict):
 
 
 def pt_get_tensor_dict(torch_nn, torch_optimizer):
+    # Gets information regarding tensor model layers and optimizer state.
     # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
     # for now, state dict gives us names which is good
     # FIXME: do both and sanity check each time?
@@ -149,6 +149,7 @@ def pt_get_tensor_dict(torch_nn, torch_optimizer):
 
 
 def pt_set_tensor_dict(torch_nn, tensor_dict):
+    # Sets tensors for model layers and optimizer state.
     # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
     # for now, state dict gives us names, which is good
     # FIXME: do both and sanity check each time?
@@ -206,6 +207,9 @@ def pt_train_epoch(torch_nn, train_loader, device, optimizer, loss_fn):
 
 
 class IndexFetchDataset(Dataset):
+    # Dataset class with __getitem__ method that pulls data points from
+    # disk rather than memory. Currently __getitem__ only supports
+    # single index input.
 
     def __init__(self, read_and_preprocess, length, transform):
         self.read_and_preprocess = read_and_preprocess

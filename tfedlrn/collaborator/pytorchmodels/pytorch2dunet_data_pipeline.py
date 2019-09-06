@@ -34,6 +34,9 @@ def dice_coef_loss(pred, target, smoothing=1.0):
 
 
 class PyTorch2DUNetDPipe(nn.Module):
+    # Similar to PyTorch2DUNet, but with data pipeline that loads single 2D images
+    # from disk using directories in NIfTI format. Since this is a 2D UNet model
+    # and our NIfTI directories contain
 
     def __init__(self, device, train_loader=None, val_loader=None, 
       optimizer='SGD', dropout_layers=[2, 3], shuffle=True):
@@ -83,15 +86,12 @@ class PyTorch2DUNetDPipe(nn.Module):
             # exposing these objects for testing purposes
             self.idx_to_train_paths = idx_to_train_paths
             self.read_train = get_data_reader('BraTS17_{}'.format(label_type),
-              idx_to_train_paths,
-              channels_last_after_reading=False)
+              idx_to_train_paths, channels_last=False)
 
             read_and_preprocess_train = get_data_reader('BraTS17_{}'.format(label_type),
-              idx_to_train_paths,
-              channels_last_after_reading=False)
+              idx_to_train_paths, channels_last=False)
             read_and_preprocess_val = get_data_reader('BraTS17_{}'.format(label_type),
-              idx_to_val_paths, 
-              channels_last_after_reading=False)
+              idx_to_val_paths, channels_last=False)
 
         if train_loader is None:
             self.train_loader = pt_create_pipeline_loader(read_and_preprocess_train, 

@@ -43,7 +43,7 @@ def get_data_reader(data_type, idx_to_paths, **kwargs):
         label_type = data_type[8:]
         return partial(brats17_2d_reader, idx_to_paths=idx_to_paths, 
                        label_type=label_type, 
-                       channels_last_after_reading=kwargs['channels_last_after_reading'])
+                       channels_last=kwargs['channels_last'])
     else:
         raise ValueError("The data_type:{} is not supported.".format(data_type))
 

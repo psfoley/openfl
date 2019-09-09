@@ -11,6 +11,9 @@ import sys
 sys.path.append('/home/edwardsb/.local/share/virtualenvs/tfedlearn-cvKTHQG4/lib/python3.5/site-packages')
 import nibabel as nib
 
+# for testing performance
+import time
+
 def parse_segments(seg):
     # FIXME: Remove the none label below as it is always all zeros and provides no info
     #        correspondingly modify the mask processing after parsing to not use the none channel
@@ -92,7 +95,7 @@ def _update_channels(imgs, msks, img_channels_to_keep, msk_channels_to_keep, cha
     # the mask channels that are kept are summed over to leave one channel
     # note the indices producing non-zero entries on these masks are mutually exclusive
     # so that the result continues to be an array with only ones and zeros
-    msk_summands = [msks[:,:,:,channel] for channel in msk_channels_to_keep]
+    msk_summands = [msks[:,:,:,channel:channel+1] for channel in msk_channels_to_keep]
     new_msks = np.sum(msk_summands, axis=0)
     
     if not channels_last:
@@ -107,7 +110,7 @@ def list_files(root, extension, parts):
 
 
 def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True, 
-  numpy_type='float32', normalize_by_task=True):
+  numpy_type='float32', normalize_by_task=False):
     """
     Fetch single 2D brain image from disc.
 
@@ -148,14 +151,18 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
         raise ValueError("{} is not a valid label type".format(label_type))
     tasks = label_type_to_task.values()
 
-
     subdir = idx_to_paths[idx]
     files = os.listdir(subdir)
     # link task number to appropriate image and mask channels of interest
     img_modes = ["t1","t2","flair","t1ce"]
     msk_modes = ["none", "necrotic", "edema", "GD"]
     task_to_img_modes = {1: ["flair"], 2: ["t1"], 3: ["t2"], 4: ["t1","t2","flair","t1ce"]}
-    task_to_msk_modes = {1: ["flair"], 2: ["t1"], 3: ["t2"], 4: ["t1","t2","flair","t1ce"]}
+    task_to_msk_modes = {
+        1: ["none", "necrotic", "edema", "GD"], 
+        2: ["GD"], 
+        3: ["none", "edema", "GD"], 
+        4: ["none", "necrotic", "edema", "GD"]
+        }
     msk_names = ["seg_binary", "seg_binarized", "SegBinarized", "seg"]
 
     # check that all appropriate files are present
@@ -187,7 +194,7 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
         path = os.path.join(subdir,file)
         full_brain = np.array(nib.load(path).dataobj)
         imgs_per_mode.append(resize_data(np.transpose(full_brain, [-1, 0, 1])))
-    imgs = np.concatenate(imgs_per_mode, axis=-1)
+    imgs = np.stack(imgs_per_mode, axis=-1)
     imgs = normalize_stack(imgs)  
 
     # get mask (labels)  
@@ -229,7 +236,7 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
     img, msk = _update_channels(img, msk, img_channels_to_keep, msk_channels_to_keep, channels_last)
 
     # collapsing the one dimensional first axis to produce a 2D image, casting type
-    return np.sqeeze(img.astype(numpy_type), axis=0), np.sqeeze(msk.astype(numpy_type), axis=0)
+    return np.squeeze(img.astype(numpy_type), axis=0), np.squeeze(msk.astype(numpy_type), axis=0)
 
             
 

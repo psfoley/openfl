@@ -10,7 +10,7 @@ import torch.optim as optim
 
 from ...datasets import load_dataset
 from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, pt_train_epoch, pt_create_loader
-
+from .pytorchflutils_test import pt_train_epoch_test_performance
 
 # FIXME: move to some custom losses.py file?
 def dice_coef(pred, target, smoothing=1.0):    
@@ -188,6 +188,23 @@ class PyTorch2DUNet(nn.Module):
         loss_fn = partial(dice_coef_loss, smoothing=32.0)
 
         return pt_train_epoch(self, self.train_loader, self.device, self.optimizer, loss_fn)
+
+    def train_epoch_test_performance(self, num_batches, epoch=None):
+        # FIXME: update to proper training schedule when architected
+        if epoch == 8:
+            self.init_optimizer('RMSprop')
+
+        loss_fn = partial(dice_coef_loss, smoothing=32.0)
+
+        loss,  data_load_times, train_times = \
+          pt_train_epoch_test_performance(self, self.train_loader, \
+              self.device, self.optimizer, loss_fn,  num_batches)
+        mean_train_times = np.mean(train_times)
+        std_train_times = np.std(train_times)
+        mean_data_load_times = np.mean(data_load_times)
+        std_data_load_times = np.std(data_load_times)
+        return loss, mean_train_times, std_train_times, \
+            mean_data_load_times, std_data_load_times
 
     def get_training_data_size(self):
         return len(self.train_loader.dataset)

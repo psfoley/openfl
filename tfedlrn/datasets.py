@@ -38,12 +38,12 @@ def brats17_data_paths(data_name):
 
     return idx_to_paths, nb_imgs
 
-def get_data_reader(data_type, idx_to_paths, **kwargs):
+def get_data_reader(data_type, idx_to_paths, channels_last):
     if data_type.startswith('BraTS17_'):
         label_type = data_type[8:]
         return partial(brats17_2d_reader, idx_to_paths=idx_to_paths, 
                        label_type=label_type, 
-                       channels_last=kwargs['channels_last'])
+                       channels_last=channels_last)
     else:
         raise ValueError("The data_type:{} is not supported.".format(data_type))
 

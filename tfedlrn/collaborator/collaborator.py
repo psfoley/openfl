@@ -2,7 +2,7 @@ import time
 import logging
 import numpy as np
 
-from .. import check_type, check_equal
+from .. import check_type, check_equal, check_not_equal
 from ..proto.message_pb2 import MessageHeader
 from ..proto.message_pb2 import Job, JobRequest, JobReply
 from ..proto.message_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
@@ -65,17 +65,15 @@ class Collaborator(object):
         # validate the message pair
 
         # check message is from my agg to me
-        if not (reply.header.sender == self.agg_id and reply.header.recipient == self.id):
-            self.logger.exception("Assertion failed: reply.header.sender == self.agg_id and reply.header.recipient == self.id")
-
+        check_equal(reply.header.sender, self.agg_id, self.logger)
+        check_equal(reply.header.recipient, self.id, self.logger)
+        
         # check that the federation id matches
-        if not (reply.header.federation_id == self.fed_id):
-            self.logger.exception("Assertion failed: reply.header.federation_id == self.fed_id")
-
+        check_equal(reply.header.federation_id, self.fed_id, self.logger)
+        
         # check that the counters match
-        if not(reply.header.counter == self.counter):
-            self.logger.exception("Assertion failed: reply.header.counter == self.counter")
-
+        check_equal(reply.header.counter, self.counter, self.logger)
+        
         # increment our counter
         self.counter += 1
 
@@ -107,8 +105,7 @@ class Collaborator(object):
         while True:
             reply = self.send_and_receive(JobRequest(header=self.create_message_header(), model_header=self.model_header))
 
-            if not(isinstance(reply, JobReply)):
-                self.logger.exception("Assertion failed: isinstance(reply, JobReply)")
+            check_type(reply, JobReply, self.logger)
 
             if reply.job is not JOB_YIELD:
                 break
@@ -149,8 +146,7 @@ class Collaborator(object):
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
         self.logger.debug("Sending the model to the aggeregator.")
         reply = self.send_and_receive(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
-        if not(isinstance(reply, LocalModelUpdateAck)):
-            self.logger.exception("Assertion failed: isinstance(reply, LocalModelUpdateAck)")
+        check_type(reply, LocalModelUpdateAck, self.logger)
         self.logger.debug("Model sent.")
 
     def do_validate_job(self):
@@ -159,21 +155,18 @@ class Collaborator(object):
         data_size = self.wrapped_model.get_validation_data_size()
 
         reply = self.send_and_receive(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
-        if not(isinstance(reply, LocalValidationResultsAck)):
-            self.logger.exception("Assertion failed: isinstance(reply, LocalValidationResultsAck)")
-
+        check_type(reply, LocalValidationResultsAck, self.logger)
+        
     def do_download_model_job(self):
         # sanity check on version is implicit in send
         reply = self.send_and_receive(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
         self.logger.debug("Completed the downloading job.")
 
-        if not(isinstance(reply, GlobalModelUpdate)):
-            self.logger.exception("Assertion failed: isinstance(reply, GlobalModelUpdate)")
-
+        check_type(reply, GlobalModelUpdate, self.logger)
+        
         # ensure we actually got a new model version
-        if not(reply.model.header.version != self.model_header.version):
-            self.logger.exception("Assertion failed: reply.model.header.version != self.model_header.version")
-
+        check_not_equal(reply.model.header.version, self.model_header.version, self.logger)
+        
         # set our model header
         self.model_header = reply.model.header
 
@@ -195,5 +188,6 @@ class Collaborator(object):
                 self.wrapped_model.reset_opt_vars()
             except:
                 self.logger.exception("Failed to reset the optimization variables.")
+                raise
             else:
                 self.logger.debug("Reset the optimization variables.")

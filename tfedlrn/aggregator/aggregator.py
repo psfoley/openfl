@@ -6,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 import tensorboard.summary as tb_summary
 
+from .. import check_equal, check_not_equal, check_is_in, check_not_in
 from ..proto.message_pb2 import MessageHeader
 from ..proto.message_pb2 import Job, JobRequest, JobReply
 from ..proto.message_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
@@ -55,11 +56,8 @@ class Aggregator(object):
         # the keys are in sync
 
         # assert our dictionary keys are in sync
-        if not(self.loss_results.keys() == self.collaborator_training_sizes.keys()):
-            self.logger.exception("Assertion failed: self.loss_results.keys() == self.collaborator_training_sizes.keys()")
-        if not(self.agg_validation_results.keys() == self.collaborator_validation_sizes.keys()):
-            self.logger.exception("Assertion failed: self.agg_validation_results.keys() == self.collaborator_validation_sizes.keys()")
-        # assert self.agg_validation_results.keys() == self.preagg_validation_results.keys()
+        check_equal(self.loss_results.keys(), self.collaborator_training_sizes.keys(), self.logger)
+        check_equal(self.agg_validation_results.keys(), self.collaborator_validation_sizes.keys(), self.logger)
 
         done = True
 
@@ -135,17 +133,14 @@ class Aggregator(object):
             t = time.time()
 
             # validate that the message is for me
-            if not(message.header.recipient == self.id):
-                self.logger.exception("Assertion failed: message.header.recipient == self.id")
-
+            check_equal(message.header.recipient, self.id, self.logger)
+            
             # validate that the message is for my federation
-            if not(message.header.federation_id == self.fed_id):
-                self.logger.exception("Assertion failed: message.header.federation_id == self.fed_id")
-
+            check_equal(message.header.federation_id, self.fed_id, self.logger)
+            
             # validate that the sender is one of my collaborators
-            if not(message.header.sender in self.col_ids):
-                self.logger.exception("Assertion failed: message.header.sender in self.col_ids")
-
+            check_is_in(message.header.sender, self.col_ids, self.logger)
+            
             if isinstance(message, LocalModelUpdate):
                 reply = self.handle_local_model_update(message)
             elif isinstance(message, LocalValidationResults):
@@ -169,17 +164,13 @@ class Aggregator(object):
         model_header = model_proto.header
 
         # validate this model header
-        if not(model_header.id == self.model.header.id):
-            self.logger.exception("Assertion failed: model_header.id == self.model.header.id")
-        if not(model_header.version == self.model.header.version):
-            self.logger.exception("Assertion failed: model_header.version == self.model.header.version")
-
+        check_equal(model_header.id, self.model.header.id, self.logger)
+        check_equal(model_header.version, self.model.header.version, self.logger)
+               
         # ensure we haven't received an update from this collaborator already
-        if not(message.header.sender not in self.loss_results):
-            self.logger.exception("Assertion failed: message.header.sender not in self.loss_results")
-        if not(message.header.sender not in self.collaborator_training_sizes):
-            self.logger.exception("Assertion failed: message.header.sender not in self.collaborator_training_sizes") 
-
+        check_not_in(message.header.sender, self.loss_results, self.logger)
+        check_not_in(message.header.sender, self.collaborator_training_sizes, self.logger)
+                
         # if this is our very first update for the round, we take this model as-is
         # FIXME: move to model deltas, add with original to reconstructf
         # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
@@ -202,9 +193,8 @@ class Aggregator(object):
             # FIXME: right now we're really using names just to sanity check consistent ordering
 
             # assert that the models include the same number of tensors
-            if not(len(self.model_update_in_progress.tensors) == len(model_proto.tensors)):
-                self.logger.exception("Assertion failed: len(self.model_update_in_progress.tensors) == len(model_proto.tensors)")
-
+            check_equal(len(self.model_update_in_progress.tensors), len(model_proto.tensors), self.logger)
+            
             # aggregate all the model tensors in the protobuf
             # this is a streaming average
             for i in range(len(self.model_update_in_progress.tensors)):
@@ -218,12 +208,11 @@ class Aggregator(object):
                         l = local_tensor
                         break
 
-                if not(l is not None):
-                    self.logger.exception("Assertion failed: l is not None")
-
+                check_not_equal(l, None, self.logger)
+                
                 # sanity check that the tensors are indeed different for non opt tensors                
-                if (not g.name.startswith('__opt') and 'RMSProp' not in g.name) and (g.npbytes == l.npbytes):
-                    raise ValueError('global tensor {} exactly equal to local tensor {}'.format(g.name, l.name))
+                if (not g.name.startswith('__opt') and 'RMSProp' not in g.name):
+                    check_not_equal(g.npbytes, l.npbytes, self.logger)
                     
                 if g.shape != l.shape:
                     raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
@@ -249,29 +238,24 @@ class Aggregator(object):
         model_header = message.model_header
 
         # validate this model header
-        if not(model_header.id == self.model.header.id):
-            self.logger.exception("Assertion failed: model_header.id == self.model.header.id")
-        if not(model_header.version == self.model.header.version):
-            self.logger.exception("Assertion failed: model_header.version == self.model.header.version")
-
+        check_equal(model_header.id, self.model.header.id, self.logger)
+        check_equal(model_header.version, self.model.header.version, self.logger)
+        
         sender = message.header.sender
 
         if sender not in self.agg_validation_results:
             # Pre-train validation
             # ensure we haven't received an update from this collaborator already
             # FIXME: is this an error case that should be handled?
-            if not(message.header.sender not in self.agg_validation_results):
-                self.logger.exception("Assertion failed: message.header.sender not in self.agg_validation_results")
-            if not(message.header.sender not in self.collaborator_validation_sizes):
-                self.logger.exception("Assertion failed: message.header.sender not in self.collaborator_validation_sizes")
-
+            check_not_in(message.header.sender, self.agg_validation_results, self.logger)
+            check_not_in(message.header.sender, self.collaborator_validation_sizes, self.logger)
+            
             # store the validation results and validation size
             self.agg_validation_results[message.header.sender] = message.results
             self.collaborator_validation_sizes[message.header.sender] = message.data_size
         elif sender not in self.preagg_validation_results:
             # Post-train validation
-            if not(message.header.sender not in self.preagg_validation_results):
-                self.logger.exception("Assertion failed: message.header.sender not in self.preagg_validation_results")
+            check_not_in(message.header.sender, self.preagg_validation_results, self.logger)
             self.preagg_validation_results[message.header.sender] = message.results
         # return LocalValidationResultsAck
         return LocalValidationResultsAck(header=self.create_reply_header(message))
@@ -300,9 +284,11 @@ class Aggregator(object):
 
     def handle_model_download_request(self, message):
         self.logger.debug("Receive model download request from %s " % message.header.sender)
-        # assert that the models don't match
+        # check that the models don't match
         if not(self.collaborator_out_of_date(message.model_header)):
-            self.logger.exception("Assertion failed: self.collaborator_out_of_date(message.model_header)")
+            statement = "Assertion failed: self.collaborator_out_of_date(message.model_header)"
+            self.logger.exception(statement)
+            raise RuntimeError(statement)
 
         return GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
 
@@ -311,7 +297,6 @@ class Aggregator(object):
 
     def collaborator_out_of_date(self, model_header):
         # validate that this is the right model to be checking
-        if not(model_header.id == self.model.header.id):
-            self.logger.exception("Assertion failed: model_header.id == self.model.header.id")
-
+        check_equal(model_header.id, self.model.header.id, self.logger)
+        
         return model_header.version != self.model.header.version

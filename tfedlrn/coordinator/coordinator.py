@@ -31,7 +31,7 @@ import importlib
 from ..aggregator.aggregator import Aggregator
 from ..collaborator.collaborator import Collaborator
 from ..zmqconnection import ZMQServer, ZMQClient
-from ..proto.message_pb2 import *
+from ..proto.message_pb2 import PlanRequest, PlanReply, CodeRequest, CodeReply
 from .packaging import zip_files, unzip_files, check_bytes_sha256
 
 

@@ -14,18 +14,19 @@ import nibabel as nib
 # for testing performance
 import time
 
-def parse_segments(seg):
+def parse_segments(seg, msk_modes):
     # FIXME: Remove the none label below as it is always all zeros and provides no info
     #        correspondingly modify the mask processing after parsing to not use the none channel
     # Each channel corresponds to a different region of the tumor, decouple and stack these
     msks_parsed = []
     for slice in range(seg.shape[-1]):
+        # which mask values indicicate which label mode
+        mode_to_key_value = {"necrotic": 1, "edema": 2, "GD": 4}
         curr = seg[:,:,slice]
-        GD = ma.masked_not_equal(curr,4).filled(fill_value=0)
-        edema = ma.masked_not_equal(curr,2).filled(fill_value=0)
-        necrotic = ma.masked_not_equal(curr,1).filled(fill_value=0)
-        none = ma.masked_not_equal(curr,0).filled(fill_value=0)
-        msks_parsed.append(np.dstack((none,necrotic,edema,GD)))
+        this_msk_parts = []
+        for mode in msk_modes:
+            this_msk_parts.append(ma.masked_not_equal(curr,mode_to_key_value[mode]).filled(fill_value=0))
+        msks_parsed.append(np.dstack(this_msk_parts))
 
     # Replace all tumorous areas with 1 (previously marked as 1, 2 or 4)
     mask = np.asarray(msks_parsed)
@@ -124,7 +125,9 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
     return only one of those images.
     
     Args:
-        idx (int): index of image
+        idx (int or tuple of ints): if int, is the index of a single 2D-image to return
+        if tuple of ints, this tuple components need to be 155 appart and so designate
+        a full brain to return
         idx_to_paths (list of str): paths to files containing image features and full 
         label set 
         label_type (string): determines way in which label information is combined
@@ -139,10 +142,31 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
                     ['whole_tumor', 'enhanced_tumor', 'active_core', 'other']
         ValueError: If the path determined by idx and indexed_data_paths points 
                     to a file with incomplete data
+        ValueError: If idx is neither an int or a tuple of ints, or if it is a tuple
+        and the second component is not exactly 155 greater than the first, with the first
+        divisible by 155.
     
     """
+    # validate that idx is an allowed value, and distill information from idx into
+    # the variables idx_start and idx_end. If idx_end is None, this signals the 
+    # desire for a single 2D image as return value, otherwise return full brain
+    idx_value_error = False
+    if not isinstance(idx, int):
+        if isinstance(idx, tuple):
+            if isinstance(idx[0], int) and isinstance(idx[1], int):
+                if (idx[1] - idx[0] == 155) and (idx[0] % 155 == 0):
+                    idx_start = idx[0]
+                    idx_end = idx[1]
+                else:
+                    idx_value_error = True
+            else: idx_value_error = True
+        else: idx_value_error = True
+    else:
+        idx_start = idx
+        idx_end = None
 
-    # FIXME: put a logging statement next to raised exceptions
+    if idx_value_error:
+        raise ValueError("The value of idx is not supported.")
 
     label_type_to_task = {"whole_tumor": 1, "enhanced_tumor": 2, "active_core": 3, "other": 4}
     try:
@@ -151,17 +175,17 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
         raise ValueError("{} is not a valid label type".format(label_type))
     tasks = label_type_to_task.values()
 
-    subdir = idx_to_paths[idx]
+    subdir = idx_to_paths[idx_start]
     files = os.listdir(subdir)
     # link task number to appropriate image and mask channels of interest
     img_modes = ["t1","t2","flair","t1ce"]
-    msk_modes = ["none", "necrotic", "edema", "GD"]
+    msk_modes = ["necrotic", "edema", "GD"]
     task_to_img_modes = {1: ["flair"], 2: ["t1"], 3: ["t2"], 4: ["t1","t2","flair","t1ce"]}
     task_to_msk_modes = {
-        1: ["none", "necrotic", "edema", "GD"], 
+        1: ["necrotic", "edema", "GD"], 
         2: ["GD"], 
-        3: ["none", "edema", "GD"], 
-        4: ["none", "necrotic", "edema", "GD"]
+        3: ["edema", "GD"], 
+        4: ["necrotic", "edema", "GD"]
         }
     msk_names = ["seg_binary", "seg_binarized", "SegBinarized", "seg"]
 
@@ -202,13 +226,7 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
         if file in files:
             path = os.path.join(subdir,file)
             full_brain_msk = np.array(nib.load(path).dataobj)
-            msks = resize_data(parse_segments(full_brain_msk))
-            
-            # FIXME: Remove this test and make changes referred to in parse_segments
-            # testing here whether indeed the 0 channel of msks is always all zeros
-            if not np.all(np.zeros_like(msks[:,:,:,0]) == msks[:,:,:,0]):
-                raise ValueError("YOU WERE WRONG, 0 channel of msks is not always zero!!!!!")
-            
+            msks = resize_data(parse_segments(full_brain_msk, msk_modes))
             break
 
     # determine which channels are wanted in our images
@@ -226,17 +244,20 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
         img_channels_to_keep = np.array(task_to_img_channels[task])
     
     
-    
-    # idx % 155 provides which of the 155 slices to grab from the whole brain
-    # here we restrict to a single slice (2D), but preserve dimensions
-    slice_idx = idx % 155 
-    img = imgs[slice_idx:slice_idx+1, :, :, :]
-    msk = msks[slice_idx:slice_idx+1, :, :, :]
+    if idx_end is None:
+        # idx % 155 provides which of the 155 slices to grab from the whole brain
+        # here we restrict to a single slice (2D), but preserve dimensions
+        slice_idx = idx % 155 
+        img = imgs[slice_idx:slice_idx+1, :, :, :]
+        msk = msks[slice_idx:slice_idx+1, :, :, :]
 
     img, msk = _update_channels(img, msk, img_channels_to_keep, msk_channels_to_keep, channels_last)
-
-    # collapsing the one dimensional first axis to produce a 2D image, casting type
-    return np.squeeze(img.astype(numpy_type), axis=0), np.squeeze(msk.astype(numpy_type), axis=0)
+    
+    if idx_end is None:
+        # collapsing the one dimensional first axis to produce a 2D image, casting type
+        return np.squeeze(img.astype(numpy_type), axis=0), np.squeeze(msk.astype(numpy_type), axis=0)
+    else:
+        return img.astype(numpy_type), msk.astype(numpy_type)
 
             
 

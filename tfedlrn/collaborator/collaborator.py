@@ -3,6 +3,7 @@ import logging
 import numpy as np
 
 from ..proto.message_pb2 import *
+from .. import check_type, check_equal
 
 from enum import Enum
 
@@ -10,6 +11,7 @@ class OptTreatment(Enum):
     RESET = 1
     EDGE = 2
     AGG = 3
+
 
 # FIXME: this is actually a tuple of a collaborator/flplan
 # CollaboratorFLPlanExecutor?
@@ -56,7 +58,8 @@ class Collaborator(object):
         # validate the message pair
 
         # check message is from my agg to me
-        assert reply.header.sender == self.agg_id and reply.header.recipient == self.id
+        check_equal(reply.header.sender, self.agg_id)
+        check_equal(reply.header.recipient, self.id)
 
         # check that the federation id matches
         assert reply.header.federation_id == self.fed_id
@@ -135,7 +138,7 @@ class Collaborator(object):
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
         self.logger.debug("Sending the model to the aggeregator.")
         reply = self.send_and_receive(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
-        assert isinstance(reply, LocalModelUpdateAck)
+        check_type(reply, LocalModelUpdateAck)
         self.logger.debug("Model sent.")
 
     def do_validate_job(self):
@@ -144,17 +147,17 @@ class Collaborator(object):
         data_size = self.wrapped_model.get_validation_data_size()
 
         reply = self.send_and_receive(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
-        assert isinstance(reply, LocalValidationResultsAck)
+        check_type(reply, LocalValidationResultsAck)
 
     def do_download_model_job(self):
         # sanity check on version is implicit in send
         reply = self.send_and_receive(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
         self.logger.debug("Completed the downloading job.")
 
-        assert isinstance(reply, GlobalModelUpdate)
+        check_type(reply, GlobalModelUpdate)
 
         # ensure we actually got a new model version
-        assert reply.model.header.version != self.model_header.version
+        check_equal(reply.model.header.version, self.model_header.version)
 
         # set our model header
         self.model_header = reply.model.header

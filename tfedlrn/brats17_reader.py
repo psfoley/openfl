@@ -3,11 +3,6 @@ import os
 import numpy.ma as ma
 import numpy as np
 import argparse
-
-# FIXME: fix import problem for nibabel
-
-# import sys
-# sys.path.append('/home/edwardsb/.local/share/virtualenvs/tfedlearn-cvKTHQG4/lib/python3.5/site-packages')
 import nibabel as nib
 
 # for testing performance

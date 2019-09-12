@@ -4,19 +4,16 @@ import numpy.ma as ma
 import numpy as np
 import argparse
 
-# FIXME: Put docstrings in functions.
 # FIXME: fix import problem for nibabel
 
-import sys
-sys.path.append('/home/edwardsb/.local/share/virtualenvs/tfedlearn-cvKTHQG4/lib/python3.5/site-packages')
+# import sys
+# sys.path.append('/home/edwardsb/.local/share/virtualenvs/tfedlearn-cvKTHQG4/lib/python3.5/site-packages')
 import nibabel as nib
 
 # for testing performance
 import time
 
 def parse_segments(seg, msk_modes):
-    # FIXME: Remove the none label below as it is always all zeros and provides no info
-    #        correspondingly modify the mask processing after parsing to not use the none channel
     # Each channel corresponds to a different region of the tumor, decouple and stack these
     msks_parsed = []
     for slice in range(seg.shape[-1]):
@@ -190,9 +187,6 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
     msk_names = ["seg_binary", "seg_binarized", "SegBinarized", "seg"]
 
     # check that all appropriate files are present
-    # FIXME: complete files check for task other than 1
-    #        and only grab needed files and modify logic in _update_channels moving 
-    #         appropriate logic down here.         
     file_root = subdir.split('/')[-1] + "_"
     extension = ".nii.gz"
 
@@ -209,7 +203,6 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
     correct_files = np.all([(reqd in files) for reqd in need_files_all[task]]) and \
       np.sum([(reqd in files) for reqd in need_files_oneof[task]])==1
     if not correct_files:
-        # FIXME: here log the presence of incomplete data 
         raise ValueError("Data in folder: {} incomplete or too many label files.".format(subdir))  
 
     # get image (features)

@@ -13,8 +13,6 @@ from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate,
     pt_train_epoch, pt_create_pipeline_loader
 from .pytorchflutils_test import pt_train_epoch_test_performance
 
-# FIXME: Put docstrings into all functions
-
 
 # FIXME: move to some custom losses.py file?
 def dice_coef(pred, target, smoothing=1.0):    

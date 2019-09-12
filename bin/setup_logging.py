@@ -11,6 +11,7 @@ def setup_logging(path="logging.yaml", default_level=logging.INFO):
                 config = yaml.safe_load(f.read())
                 logging.config.dictConfig(config)
                 coloredlogs.install()
+                print("Loaded logging configuration: %s" % path)
             except Exception as e:
                 print("Invalid logging configuration file [%s]." % path)
                 print(e)

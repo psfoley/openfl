@@ -14,7 +14,7 @@ class OptTreatment(Enum):
 # FIXME: this is actually a tuple of a collaborator/flplan
 # CollaboratorFLPlanExecutor?
 class Collaborator(object):
-
+    """The current class is not good for local test without connection. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
     def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval=4, opt_treatment="AGG"):
         self.logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ class Collaborator(object):
 
         # train the model
         # FIXME: model header "version" needs to be changed to "rounds_trained"
-        loss = self.wrapped_model.train_epoch(epoch=self.model_header.version)
+        loss = self.wrapped_model.train_epoch()
         self.logger.debug("Completed the training job.")
 
         # get the training data size
@@ -164,7 +164,11 @@ class Collaborator(object):
         for tensor_proto in reply.model.tensors:
             tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
 
-        self.wrapped_model.set_tensor_dict(tensor_dict)
+        if self.opt_treatment == OptTreatment.AGG:
+            with_opt_vars = True
+        else:
+            with_opt_vars = False
+        self.wrapped_model.set_tensor_dict(tensor_dict, with_opt_vars=with_opt_vars)
         self.logger.debug("Loaded the model.")
 
         # FIXME: for the EDGE treatment, we need to store the status in case of a crash.

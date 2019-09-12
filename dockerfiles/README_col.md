@@ -12,10 +12,11 @@ nvidia-docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-ar
 nvidia-docker run -it --net=host \
 -w /tfl/ \
 -v /home/weilinxu/coder/spr_secure_intelligence-trusted_federated_learning:/tfl \
+-v /raid/datasets/BraTS17/by_institution/0:/opt/datasets/BraTS17 \
 -v /raid/datasets/BraTS17:/raid/datasets/BraTS17 \
 -e CUDA_VISIBLE_DEVICES=1 \
 -d --rm \
---name=tfl_col \
+--name=tfl_col0 \
 tfl:col \
 bash
 ```
@@ -23,7 +24,7 @@ bash
 
 3. Get an interactive shell to the container with the command anytime.
 ```
-docker exec -it tfl_col /bin/bash
+docker exec -it tfl_col0 /bin/bash
 ```
 
 
@@ -45,5 +46,5 @@ python bin/simple_fl_tensorflow_col.py --col_num 1 --num_collaborators 2 --model
 
 4. Stop the cotainer running in the background after we finish everything. Goto step 2 if you need to start it later.
 ```
-docker stop tfl_col
+docker stop tfl_col0
 ```

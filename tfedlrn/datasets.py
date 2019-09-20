@@ -6,7 +6,7 @@ from functools import partial
 
 import numpy as np
 from math import ceil
-from .brats17_reader import brats17_2d_reader
+from .brats17_reader import brats17_reader
 
 
 # FIXME: put a logging command next to raised exception for data_type value error
@@ -41,7 +41,7 @@ def brats17_data_paths(data_name):
 def get_data_reader(data_type, idx_to_paths, channels_last):
     if data_type.startswith('BraTS17_'):
         label_type = data_type[8:]
-        return partial(brats17_2d_reader, idx_to_paths=idx_to_paths, 
+        return partial(brats17_reader, idx_to_paths=idx_to_paths, 
                        label_type=label_type, 
                        channels_last=channels_last)
     else:
@@ -133,6 +133,30 @@ def _read_mnist_kind(path, kind='train', one_hot=True, **kwargs):
         labels = _one_hot(labels.astype(np.int), 10)
 
     return images, labels
+
+
+def load_from_NIfTY(parent_dir, channels_last=True, label_type='whole_tumor', **kwargs):
+    path = os.path.join(_get_dataset_dir(), parent_dir)
+    subdirs = os.listdir()
+    nb_brains = len(subdirs)
+    # using a tuple for the idx value indicates to brats17_reader that
+    # we want to pull out full brains rather than a single slice.
+    # In this case the first component of the tuple is all that is
+    # needed to be present in the keys to idx_to_paths
+    idxs = zip(155*np.arange(nb_brains), 155*(np.arange(nb_brains)+1))
+    idx_to_paths = {idx[0]: subdirs[int(idx[0]/155)] for idx in idxs}
+    imgs_all = []
+    msks_all = []
+    for idx in idxs:
+        these_imgs, these_msks = brats17_reader(idx, idx_to_paths, 
+          channels_last=channels_last, label_type=label_type, **kwargs)
+        imgs_all.append(these_imgs)
+        msks_all.append(these_msks)
+    imgs_all = np.concatenate(imgs_all)
+    msks_all = np.concatenate(msks_all)
+    imgs_train, imgs_val = train_val_split(imgs_all)
+    msks_train, msks_val = train_val_split(msks_all)
+    return imgs_train, msks_train, imgs_val, msks_val
 
 
 def load_BraTS17_insitution(institution=0, channels_first=False, **kwargs):

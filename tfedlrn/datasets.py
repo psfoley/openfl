@@ -148,14 +148,14 @@ def load_from_NIfTY(parent_dir, channels_last=True, label_type='whole_tumor', **
     imgs_all = []
     msks_all = []
     for idx in idxs:
-        these_imgs, these_msks = brats17_reader(idx, idx_to_paths, 
+        these_imgs, these_msks = brats17_reader(idx, idx_to_paths, \
           channels_last=channels_last, label_type=label_type, **kwargs)
         imgs_all.append(these_imgs)
         msks_all.append(these_msks)
     imgs_all = np.concatenate(imgs_all)
     msks_all = np.concatenate(msks_all)
-    imgs_train, imgs_val = train_val_split(imgs_all)
-    msks_train, msks_val = train_val_split(msks_all)
+    imgs_train, msks_train, imgs_val, msks_val = \
+        = train_val_split(imgs_all, msks_all)
     return imgs_train, msks_train, imgs_val, msks_val
 
 
@@ -183,3 +183,10 @@ def load_fashion_mnist(**kwargs):
 
 def _one_hot(y, n):
     return np.eye(n)[y]
+
+
+def train_val_split(data, split_percent, shuffle):
+    if not shuffle:
+        print("NOT SHUFFLING AT TRAIN/VAL SPLIT TIME !!!!!")
+    else:
+        data = data[]

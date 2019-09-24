@@ -135,27 +135,40 @@ def _read_mnist_kind(path, kind='train', one_hot=True, **kwargs):
     return images, labels
 
 
-def load_from_NIfTY(parent_dir, channels_last=True, label_type='whole_tumor', **kwargs):
+def load_from_NIfTY(parent_dir, 
+                    percent_train, 
+                    shuffle, 
+                    channels_last=True, 
+                    label_type='whole_tumor', 
+                    **kwargs):
+
     path = os.path.join(_get_dataset_dir(), parent_dir)
-    subdirs = os.listdir()
-    nb_brains = len(subdirs)
+    subdir_paths = [os.path.join(path, subdir) for subdir in os.listdir(path)]
+    nb_brains = len(subdir_paths)
+
     # using a tuple for the idx value indicates to brats17_reader that
     # we want to pull out full brains rather than a single slice.
-    # In this case the first component of the tuple is all that is
-    # needed to be present in the keys to idx_to_paths
-    idxs = zip(155*np.arange(nb_brains), 155*(np.arange(nb_brains)+1))
-    idx_to_paths = {idx[0]: subdirs[int(idx[0]/155)] for idx in idxs}
+    # Here the keys in idx_to_paths need only include the first component of idx.
+    start_idxs = [155*i for i in range(nb_brains)]
+    end_idxs = [155*(i+1) for i in range(nb_brains)]
+    idx_to_paths = {idx[0]: subdir_paths[int(idx[0]/155)] for idx in zip(start_idxs, end_idxs)}
+    
     imgs_all = []
     msks_all = []
-    for idx in idxs:
-        these_imgs, these_msks = brats17_reader(idx, idx_to_paths, \
-          channels_last=channels_last, label_type=label_type, **kwargs)
+    for idx in zip(start_idxs, end_idxs):
+        these_imgs, these_msks = \
+            brats17_reader(idx=idx, 
+                           idx_to_paths=idx_to_paths, 
+                           channels_last=channels_last, 
+                           label_type=label_type, 
+                           **kwargs)
         imgs_all.append(these_imgs)
         msks_all.append(these_msks)
-    imgs_all = np.concatenate(imgs_all)
-    msks_all = np.concatenate(msks_all)
+    
+    imgs_all = np.concatenate(imgs_all, axis=0)
+    msks_all = np.concatenate(msks_all, axis=0)
     imgs_train, msks_train, imgs_val, msks_val = \
-        = train_val_split(imgs_all, msks_all)
+        train_val_split(imgs_all, msks_all, percent_train, shuffle)
     return imgs_train, msks_train, imgs_val, msks_val
 
 
@@ -185,8 +198,23 @@ def _one_hot(y, n):
     return np.eye(n)[y]
 
 
-def train_val_split(data, split_percent, shuffle):
-    if not shuffle:
-        print("NOT SHUFFLING AT TRAIN/VAL SPLIT TIME !!!!!")
-    else:
-        data = data[]
+def train_val_split(features, labels, percent_train, shuffle):
+
+    def split(data, split_idx):
+        if split_idx <= 0 or split_idx >= len(data):
+            raise ValueError("split was out of expected range.")
+        return data[:split_idx], data[split_idx:]
+
+    nb_features = len(features)
+    nb_labels = len(labels)
+    if not nb_features==nb_labels:
+        raise RuntimeError("Number of features and labels do not match.")
+    length = nb_features
+    if shuffle:
+        new_order = np.random.permutation(np.arange(length))
+        features = features[new_order]
+        labels = labels[new_order]
+    split_idx = int(percent_train * length) - 1
+    train_features, val_features = split(features, split_idx)
+    train_labels, val_labels = split(labels, split_idx)
+    return train_features, train_labels, val_features, val_labels

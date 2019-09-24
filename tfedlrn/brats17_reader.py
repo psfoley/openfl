@@ -102,10 +102,10 @@ def list_files(root, extension, parts):
     return files
 
 
-def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True, 
+def brats17_reader(idx, idx_to_paths, label_type, channels_last=True, 
   numpy_type='float32', normalize_by_task=False):
     """
-    Fetch single 2D brain image from disc.
+    Fetch single 2D brain slice or whole brain 3D image from disc.
 
     Assumes data_dir contains only subdirectories, each conataining exactly one 
     of each of the following files: "<subdir>_<type>.nii.gz", where <subdir> is 
@@ -119,7 +119,7 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
     Args:
         idx (int or tuple of ints): if int, is the index of a single 2D-image to return
         if tuple of ints, this tuple components need to be 155 appart and so designate
-        a full brain to return
+        a full brain (3D) to return
         idx_to_paths (list of str): paths to files containing image features and full 
         label set 
         label_type (string): determines way in which label information is combined
@@ -127,7 +127,8 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
         numpy_type (string): The numpy datatype for final casting before return
 
     Returns:
-        np.array: single 2D image associated to the index
+        np.array: single 2D image associated to a single index, or 
+        whole 3D brain associated to the range provided by index
 
     Raises:
         ValueError: If label_type is not in 
@@ -151,14 +152,16 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
                     idx_end = idx[1]
                 else:
                     idx_value_error = True
-            else: idx_value_error = True
-        else: idx_value_error = True
+            else:
+                idx_value_error = True
+        else:
+            idx_value_error = True
     else:
         idx_start = idx
         idx_end = None
 
     if idx_value_error:
-        raise ValueError("The value of idx is not supported.")
+        raise ValueError("The value of idx: {} is not supported.".format(idx))
 
     label_type_to_task = {"whole_tumor": 1, "enhanced_tumor": 2, "active_core": 3, "other": 4}
     try:
@@ -238,6 +241,9 @@ def brats17_2d_reader(idx, idx_to_paths, label_type, channels_last=True,
         slice_idx = idx % 155 
         img = imgs[slice_idx:slice_idx+1, :, :, :]
         msk = msks[slice_idx:slice_idx+1, :, :, :]
+    else:
+        img = imgs
+        msk = msks
 
     img, msk = _update_channels(img, msk, img_channels_to_keep, msk_channels_to_keep, channels_last)
     

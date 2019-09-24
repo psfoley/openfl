@@ -5,6 +5,7 @@ import os
 import yaml
 import importlib
 
+import logging
 from setup_logging import setup_logging
 
 from tfedlrn.proto import message_pb2, message_pb2_grpc
@@ -68,66 +69,81 @@ class CollaboratorGRPC(Collaborator):
         return reply
 
 
-def run(plan_path, col_id, enable_tls, certificate_folder, require_client_auth):
+def run(plan_path, col_id, disable_tls, ca, disable_client_auth, certificate, private_key):
     """
-    Parse the FL plan, extract: aggregator addr:port, collaborator parameters
-        ignore connection
-    col_id from program argument.
+    Parse the FL plan, extract: aggregator addr:port, collaborator parameters.
+
+    Parameters
+    ----------
+    plan_path : str
+    col_id : str
+    disable_tls         : bool
+        To disable the TLS. (Default: False)
+    ca                  : str
+        File path to the CA certificate.
+    disable_client_auth : bool
+        To disable the client side authentication. (Default: False)
+    certificate         : str
+        File path to the server certificate.
+    private_key         : str
+        File path to the private key.
     """
-
-    if enable_tls:
-        print("Enabled TLS.")
-        with open(os.path.join(certificate_folder, 'localhost.crt'), 'rb') as f:
-            root_certificates = f.read()
-
-        if require_client_auth:
-            print("Required client auth.")
-            with open(os.path.join(certificate_folder, 'private/10.24.14.200.key'), 'rb') as f:
-                private_key = f.read()
-            with open(os.path.join(certificate_folder, '10.24.14.200.crt'), 'rb') as f:
-                client_cert = f.read()
-            credentials = grpc.ssl_channel_credentials(
-                root_certificates=root_certificates,
-                private_key=private_key,
-                certificate_chain=client_cert
-            )
-        else:
-            credentials = grpc.ssl_channel_credentials(
-                root_certificates=root_certificates,
-            )
-
+    logger = logging.getLogger(__name__)
     addr, port, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval, opt_treatment = parse_plan(plan_path)
     uri = "{addr:s}:{port:d}".format(addr=addr, port=port)
 
-    if enable_tls:
-        with grpc.secure_channel(uri, credentials) as channel:
-            col = CollaboratorGRPC(channel, col_id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval, opt_treatment)
-            col.run()
+    if disable_tls:
+        logger.warn("gRPC is running on insecure channel with TLS disabled.")
+        channel = grpc.insecure_channel(uri)
     else:
-        with grpc.insecure_channel(uri) as channel:
-            col = CollaboratorGRPC(channel, col_id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval, opt_treatment)
-            col.run()
+        with open(ca, 'rb') as f:
+            root_certificates = f.read()
+
+        if disable_client_auth:
+            logger.warn("Client-side authentication is disabled.")
+            private_key = None
+            client_cert = None
+        else:
+            with open(private_key, 'rb') as f:
+                private_key = f.read()
+            with open(certificate, 'rb') as f:
+                client_cert = f.read()
+
+        credentials = grpc.ssl_channel_credentials(
+            root_certificates=root_certificates,
+            private_key=private_key,
+            certificate_chain=client_cert
+        )
+        channel = grpc.secure_channel(uri, credentials)
+
+    logger.debug("Connecting to gRPC at %s" % uri)
+    col = CollaboratorGRPC(channel, col_id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval, opt_treatment)
+    col.run()
 
 
 if __name__ == '__main__':
     """
-    python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0
-    python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0 --enable_tls --certificate_folder files/grpc/
-    python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0 --enable_tls --certificate_folder files/grpc/ --require_client_auth
+    python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0 --disable_tls
+    python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0 --disable_client_auth --ca=files/grpc/localhost.crt
+    python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0 --ca=files/grpc/localhost.crt --certificate=files/grpc/10.24.14.200.crt --private_key=files/grpc/private/10.24.14.200.key
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan_path', '-pp', type=str)
     parser.add_argument('--col_id', type=str)
-    parser.add_argument('--enable_tls', action='store_true')
-    parser.add_argument('--certificate_folder', type=str)
-    parser.add_argument('--require_client_auth', action='store_true')
+    parser.add_argument('--disable_tls', action='store_true')
+    parser.add_argument('--ca', type=str)
+    parser.add_argument('--disable_client_auth', action='store_true')
+    parser.add_argument('--certificate', type=str)
+    parser.add_argument('--private_key', type=str)
     args = parser.parse_args()
 
     setup_logging()
 
-    if os.environ.get('https_proxy'):
-        del os.environ['https_proxy']
-    if os.environ.get('http_proxy'):
-        del os.environ['http_proxy']
-
-    run(args.plan_path, args.col_id, args.enable_tls, args.certificate_folder, args.require_client_auth)
+    run(args.plan_path,
+        args.col_id,
+        args.disable_tls,
+        args.ca,
+        args.disable_client_auth,
+        args.certificate,
+        args.private_key
+    )

@@ -7,7 +7,6 @@ package tfedlrn_proto;
 
 
 service Aggregator {
-    // Sends a greeting
     rpc Query (FLMessage) returns (FLMessage) {}
 }
 

@@ -5,6 +5,7 @@ from concurrent import futures
 import time
 import yaml
 import os
+import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.proto import message_pb2, message_pb2_grpc
@@ -86,32 +87,50 @@ class FLtask(message_pb2_grpc.AggregatorServicer, Aggregator):
         return message_pb2.FLMessage(**{reply.__class__.__name__.lower():reply})
 
 
-def serve(task, enable_tls=False, certificate_folder="", require_client_auth=True):
-    """gRPC server. """
+def serve(task, disable_tls=False, disable_client_auth=False, ca=None, certificate=None, private_key=None):
+    """Start a gRPC service.
+
+    Parameters
+    ----------
+    task                : FLtask
+        The gRPC service task.
+    disable_tls         : bool
+        To disable the TLS. (Default: False)
+    disable_client_auth : bool
+        To disable the client side authentication. (Default: False)
+    ca                  : str
+        File path to the CA certificate.
+    certificate         : str
+        File path to the server certificate.
+    private_key         : str
+        File path to the private key.
+    """
+    logger = logging.getLogger(__name__)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     message_pb2_grpc.add_AggregatorServicer_to_server(task, server)
     uri = "{addr:s}:{port:d}".format(addr=task.addr, port=task.port)
-    if enable_tls:
-        print("Enabled TLS.")
-        with open(os.path.join(certificate_folder, 'private/spr-gpu02.key'), 'rb') as f:
-            private_key = f.read()
-        with open(os.path.join(certificate_folder, 'spr-gpu02.crt'), 'rb') as f:
-            certificate_chain = f.read()
-        with open(os.path.join(certificate_folder, 'localhost.crt'), 'rb') as f:
-            client_cert = f.read()
-            # We can load multiple client certificates by `client_cert += client_cert`
-            # Or we can trust the root CA.
 
-        if require_client_auth:
-            print("Require client auth.")
+    if disable_tls:
+        logger.warn('gRPC is running on insecure channel with TLS disabled.')
+        server.add_insecure_port(uri)
+    else:
+        with open(private_key, 'rb') as f:
+            private_key = f.read()
+        with open(certificate, 'rb') as f:
+            certificate_chain = f.read()
+        with open(ca, 'rb') as f:
+            root_certificates = f.read()
+
+        require_client_auth = not disable_client_auth
+        if not require_client_auth:
+            logger.warn('Client-side authentication is disabled.')
+
         server_credentials = grpc.ssl_server_credentials(
             ( (private_key, certificate_chain), ),
-            root_certificates=client_cert,
-            require_client_auth=require_client_auth
+            root_certificates=root_certificates,
+            require_client_auth=require_client_auth,
         )
         server.add_secure_port(uri, server_credentials)
-    else:
-        server.add_insecure_port(uri)
 
     server.start()
     try:
@@ -125,18 +144,25 @@ def serve(task, enable_tls=False, certificate_folder="", require_client_auth=Tru
 if __name__ == '__main__':
     """
     Examples:
-    python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml
-    python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --enable_tls --certificate_folder files/grpc/
-    python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --enable_tls --certificate_folder files/grpc/ --require_client_auth
+    python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls
+    python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_client_auth --ca=files/grpc/localhost.crt --certificate=files/grpc/spr-gpu02.jf.intel.com.crt --private_key=files/grpc/private/spr-gpu02.jf.intel.com.key
+    python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --ca=files/grpc/localhost.crt --certificate=files/grpc/spr-gpu02.jf.intel.com.crt --private_key=files/grpc/private/spr-gpu02.jf.intel.com.key
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan_path', '-pp', type=str)
-    parser.add_argument('--enable_tls', action='store_true')
-    parser.add_argument('--certificate_folder', type=str)
-    parser.add_argument('--require_client_auth', action='store_true')
+    parser.add_argument('--disable_tls', action='store_true')
+    parser.add_argument('--ca', type=str)
+    parser.add_argument('--certificate', type=str)
+    parser.add_argument('--private_key', type=str)
+    parser.add_argument('--disable_client_auth', action='store_true')
     args = parser.parse_args()
 
     setup_logging()
 
     task = FLtask(args.plan_path)
-    serve(task, enable_tls=args.enable_tls, certificate_folder=args.certificate_folder, require_client_auth=args.require_client_auth)
+    serve(task,
+        disable_tls=args.disable_tls,
+        disable_client_auth=args.disable_client_auth,
+        ca=args.ca, certificate=args.certificate,
+        private_key=args.private_key
+    )

@@ -9,11 +9,6 @@ from math import ceil
 from .brats17_reader import brats17_reader
 
 
-# FIXME: put a logging command next to raised exception for data_type value error
-# FIXME: Put docstrings into all functions
-
-
-
 def brats17_data_paths(data_name):
     # used for setting up data loaders that load individual samlples from 
     # FIXME: currently the validation set is the same as the training set
@@ -141,9 +136,15 @@ def load_from_NIfTY(parent_dir,
                     channels_last=True, 
                     label_type='whole_tumor', 
                     **kwargs):
+    # Loads data from the parent directory (NIfTY files for whole brains are 
+    # assumed to be contained in subdirectories of the parent directory). 
+    # Performs a split of the data into training and validation, and the value 
+    # of shuffle determined whether shuffling is performed before this split 
+    # occurs. Also, kwargs are passed to brats17_reader.
 
     path = os.path.join(_get_dataset_dir(), parent_dir)
     subdir_paths = [os.path.join(path, subdir) for subdir in os.listdir(path)]
+    
     nb_brains = len(subdir_paths)
 
     # using a tuple for the idx value indicates to brats17_reader that
@@ -168,7 +169,10 @@ def load_from_NIfTY(parent_dir,
     imgs_all = np.concatenate(imgs_all, axis=0)
     msks_all = np.concatenate(msks_all, axis=0)
     imgs_train, msks_train, imgs_val, msks_val = \
-        train_val_split(imgs_all, msks_all, percent_train, shuffle)
+        train_val_split(features=imgs_all, 
+                        labels=msks_all, 
+                        percent_train=percent_train, 
+                        shuffle=shuffle)
     return imgs_train, msks_train, imgs_val, msks_val
 
 
@@ -199,6 +203,9 @@ def _one_hot(y, n):
 
 
 def train_val_split(features, labels, percent_train, shuffle):
+    # Splits incoming features and labels into a training and validation
+    # data set. The value of shuffle determines whether shuffling occurs
+    # before the split is performed. 
 
     def split(data, split_idx):
         if split_idx <= 0 or split_idx >= len(data):
@@ -214,7 +221,7 @@ def train_val_split(features, labels, percent_train, shuffle):
         new_order = np.random.permutation(np.arange(length))
         features = features[new_order]
         labels = labels[new_order]
-    split_idx = int(percent_train * length) - 1
-    train_features, val_features = split(features, split_idx)
-    train_labels, val_labels = split(labels, split_idx)
+    split_idx = int(percent_train * length)
+    train_features, val_features = split(data=features, split_idx=split_idx)
+    train_labels, val_labels = split(data=labels, split_idx=split_idx)
     return train_features, train_labels, val_features, val_labels

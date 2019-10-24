@@ -104,9 +104,9 @@ class Aggregator(object):
 
         # FIXME: proper logging
         # FIXME: log this to debug is good, but where does this output ultimately go?
-        print('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
-        print('\tvalidation: {}'.format(round_val))
-        print('\tloss: {}'.format(round_loss))
+        self.logger.debug('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
+        self.logger.debug('\tvalidation: {}'.format(round_val))
+        self.logger.debug('\tloss: {}'.format(round_loss))
 
         self.tb_writer.add_scalars('training/loss', {**self.per_col_round_stats["loss_results"], "federation": round_loss}, global_step=self.round_num)
         self.tb_writer.add_scalars('training/size', self.per_col_round_stats["collaborator_training_sizes"], global_step=self.round_num)
@@ -160,7 +160,7 @@ class Aggregator(object):
             self.end_of_round_check()
 
             if not isinstance(reply, JobReply) or reply.job is not JOB_YIELD:
-                print('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
+                self.logger.debug('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
 
     def handle_local_model_update(self, message):
         self.logger.debug("Receive model update from %s " % message.header.sender)

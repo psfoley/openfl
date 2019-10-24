@@ -82,7 +82,7 @@ class FLtask(message_pb2_grpc.AggregatorServicer, Aggregator):
         self.end_of_round_check()
 
         if not isinstance(reply, JobReply) or reply.job is not JOB_YIELD:
-            print('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
+            self.logger.debug('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
 
         return message_pb2.FLMessage(**{reply.__class__.__name__.lower():reply})
 

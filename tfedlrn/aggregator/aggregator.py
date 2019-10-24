@@ -4,7 +4,7 @@ import logging
 
 import numpy as np
 import tensorflow as tf
-import tensorboard.summary as tb_summary
+import tensorboardX
 
 from .. import check_equal, check_not_equal, check_is_in, check_not_in
 from ..proto.message_pb2 import MessageHeader
@@ -52,10 +52,8 @@ class Aggregator(object):
         self.round_num = 1
 
         #FIXME: close the handler before termination.
-        log_dir = './logs/tensorboard/%s_%s' % (self.id, self.fed_id)
-        self.tb_writers = {c:tf.summary.FileWriter(os.path.join(log_dir, c)) for c in self.col_ids}
-        self.tb_writers_preagg = {c:tf.summary.FileWriter(os.path.join(log_dir, c+'_preagg')) for c in self.col_ids}
-        self.tb_writers['federation'] = tf.summary.FileWriter(os.path.join(log_dir, 'federation'))
+        log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
+        self.tb_writer = tensorboardX.SummaryWriter(log_dir, flush_secs=10)
 
         self.model_update_in_progress = None
 
@@ -110,17 +108,11 @@ class Aggregator(object):
         print('\tvalidation: {}'.format(round_val))
         print('\tloss: {}'.format(round_loss))
 
-        for c in self.col_ids:
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/loss', self.per_col_round_stats["loss_results"][c]), global_step=self.round_num)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('training/size', self.per_col_round_stats["collaborator_training_sizes"][c]), global_step=self.round_num)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.per_col_round_stats["agg_validation_results"][c]), global_step=self.round_num-1)
-            self.tb_writers[c].add_summary(tb_summary.scalar_pb('validation/size', self.per_col_round_stats["collaborator_validation_sizes"][c]), global_step=self.round_num-1)
-            self.tb_writers[c].flush()
-            self.tb_writers_preagg[c].add_summary(tb_summary.scalar_pb('validation/%s/result'%c, self.per_col_round_stats["preagg_validation_results"][c]), global_step=self.round_num)
-            self.tb_writers_preagg[c].flush()
-        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('training/loss', round_loss), global_step=self.round_num)
-        self.tb_writers['federation'].add_summary(tb_summary.scalar_pb('validation/result', round_val), global_step=self.round_num-1)
-        self.tb_writers['federation'].flush()
+        self.tb_writer.add_scalars('training/loss', {**self.per_col_round_stats["loss_results"], "federation": round_loss}, global_step=self.round_num)
+        self.tb_writer.add_scalars('training/size', self.per_col_round_stats["collaborator_training_sizes"], global_step=self.round_num)
+        self.tb_writer.add_scalars('validation/preagg_result', self.per_col_round_stats["preagg_validation_results"], global_step=self.round_num)
+        self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num-1)
+        self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
         # copy over the model update in progress
         self.model = self.model_update_in_progress

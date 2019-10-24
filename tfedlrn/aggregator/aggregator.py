@@ -38,16 +38,19 @@ class Aggregator(object):
         The location of the initial weight file.
     latest_model_fpath : str
         The file location to store the latest weight.
+    best_model_fpath : str
+        The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
 
-    def __init__(self, id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath):
+    def __init__(self, id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath, best_model_fpath):
         self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.id = id
         self.fed_id = fed_id
         self.model = load_proto(init_model_fpath)
         self.latest_model_fpath = latest_model_fpath
+        self.best_model_fpath = best_model_fpath
         self.col_ids = col_ids
         self.round_num = 1
 
@@ -58,6 +61,7 @@ class Aggregator(object):
         self.model_update_in_progress = None
 
         self.init_per_col_round_stats()
+        self.best_model_score = None
     
     def init_per_col_round_stats(self):
         """Initalize the metrics from collaborators for each round of aggregation. """
@@ -122,6 +126,12 @@ class Aggregator(object):
 
         # Save to file.
         dump_proto(self.model, self.latest_model_fpath)
+
+        model_score = round_val
+        if self.best_model_score is None or self.best_model_score < model_score:
+            self.logger.debug("Saved the best model with score {:f}.".format(model_score))
+            self.best_model_score = model_score
+            dump_proto(self.model, self.best_model_fpath)
 
         # clear the update pointer
         self.model_update_in_progress = None

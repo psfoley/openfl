@@ -39,6 +39,7 @@ aggregator:
   collaborators  : 1
   initial_weights: federations/weights/mnist_cnn_keras_init.pbuf
   latest_weights : federations/weights/mnist_cnn_keras_latest.pbuf
+  best_weights   : federations/weights/mnist_cnn_keras_best.pbuf
 
 
 collaborator:

@@ -20,8 +20,8 @@ from setup_logging import setup_logging
 
 class FLtask(message_pb2_grpc.AggregatorServicer, Aggregator):
     def __init__(self, plan_path):
-        id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath = self.load_plan(plan_path)
-        Aggregator.__init__(self, id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath)
+        id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath, best_model_fpath = self.load_plan(plan_path)
+        Aggregator.__init__(self, id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath, best_model_fpath)
 
     def load_plan(self, path):
         """Read key information from the plan to start an aggregator. """
@@ -33,6 +33,7 @@ class FLtask(message_pb2_grpc.AggregatorServicer, Aggregator):
         
         initial_weights_fpath = aggregator['initial_weights']
         latest_weights_fpath = aggregator['latest_weights']
+        best_weights_fpath = aggregator['best_weights']
         # tfedlrn_version = aggregator['tfedlrn_version']
 
         # Replaced ZMQ with gRPC
@@ -43,7 +44,7 @@ class FLtask(message_pb2_grpc.AggregatorServicer, Aggregator):
         num_collaborators = int(aggregator['collaborators'])
         col_ids = ["{}".format(i) for i in range(num_collaborators)]
 
-        return agg_id, fed_id, col_ids, connection, initial_weights_fpath, latest_weights_fpath
+        return agg_id, fed_id, col_ids, connection, initial_weights_fpath, latest_weights_fpath, best_weights_fpath
 
     def Query(self, request, context):
         """Reimplement Aggregator.run(). 

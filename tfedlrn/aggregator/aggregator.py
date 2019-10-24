@@ -22,7 +22,23 @@ from tfedlrn.proto.protoutils import load_proto, dump_proto
 # Feels like it conflates model aggregation with round management
 # FIXME: persistence of the trained weights.
 class Aggregator(object):
-
+    """An Aggregator is the centra node in federated learning.
+    
+    Parameters
+    ----------
+    id : str
+        Aggregation ID.
+    fed_id : str
+        Federation ID.
+    col_ids : list of str
+        The list of IDs of enrolled collaborators.
+    connection : ?
+        Used to be ZMQ connection, but deprecated in gRPC.
+    init_model_fpath : str
+        The location of the initial weight file.
+    latest_model_fpath : str
+        The file location to store the latest weight.
+    """
     # FIXME: no selector logic is in place
 
     def __init__(self, id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath):

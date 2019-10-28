@@ -10,9 +10,9 @@ Welcome to tfedlrn's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   intro
    tutorial
    tfedlrn
+   models
 
 
 Indices and tables

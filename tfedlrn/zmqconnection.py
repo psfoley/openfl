@@ -2,7 +2,8 @@ import abc
 import zmq
 import logging
 
-from tfedlrn.proto.message_pb2 import *
+from ..proto.message_pb2 import FLMessage
+
 
 
 def serialize(message):

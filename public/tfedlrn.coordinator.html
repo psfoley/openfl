@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tfedlrn.coordinator package &mdash; tfedlrn  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tfedlrn.proto package" href="tfedlrn.proto.html" />
+    <link rel="prev" title="tfedlrn.collaborator.tensorflowmodels package" href="tfedlrn.collaborator.tensorflowmodels.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> tfedlrn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tfedlrn.html">tfedlrn package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="tfedlrn.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="tfedlrn.aggregator.html">tfedlrn.aggregator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tfedlrn.collaborator.html">tfedlrn.collaborator package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">tfedlrn.coordinator package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tfedlrn-coordinator-coordinator-module">tfedlrn.coordinator.coordinator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-tfedlrn.coordinator.packaging">tfedlrn.coordinator.packaging module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-tfedlrn.coordinator">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tfedlrn.proto.html">tfedlrn.proto package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#tfedlrn-datasets-module">tfedlrn.datasets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#module-tfedlrn.gpuutils">tfedlrn.gpuutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#tfedlrn-zmqconnection-module">tfedlrn.zmqconnection module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#module-tfedlrn">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tfedlrn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="tfedlrn.html">tfedlrn package</a> &raquo;</li>
+        
+      <li>tfedlrn.coordinator package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tfedlrn.coordinator.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tfedlrn-coordinator-package">
+<h1>tfedlrn.coordinator package<a class="headerlink" href="#tfedlrn-coordinator-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="tfedlrn-coordinator-coordinator-module">
+<h2>tfedlrn.coordinator.coordinator module<a class="headerlink" href="#tfedlrn-coordinator-coordinator-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-tfedlrn.coordinator.packaging">
+<span id="tfedlrn-coordinator-packaging-module"></span><h2>tfedlrn.coordinator.packaging module<a class="headerlink" href="#module-tfedlrn.coordinator.packaging" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="tfedlrn.coordinator.packaging.check_bytes_sha256">
+<code class="sig-prename descclassname">tfedlrn.coordinator.packaging.</code><code class="sig-name descname">check_bytes_sha256</code><span class="sig-paren">(</span><em class="sig-param">bytes</em>, <em class="sig-param">ref_digest</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.coordinator.packaging.check_bytes_sha256" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check the integrity of a binary byte string with sha256 digest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bytes</strong> (<em>bytes</em>) – Binary byte string.</p></li>
+<li><p><strong>ref_digest</strong> (<em>str</em>) – A reference sha256 digest.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the integrity is verified.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="tfedlrn.coordinator.packaging.get_code_hash">
+<code class="sig-prename descclassname">tfedlrn.coordinator.packaging.</code><code class="sig-name descname">get_code_hash</code><span class="sig-paren">(</span><em class="sig-param">dir</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.coordinator.packaging.get_code_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the hash string of a folder of Python source code.
+We traverse all files except <a href="#id1"><span class="problematic" id="id2">*</span></a>.pyc, sort the files and calcualte sha256.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dir</strong> (<em>str</em>) – The folder path of the code.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A hash string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="tfedlrn.coordinator.packaging.get_sha256_digest">
+<code class="sig-prename descclassname">tfedlrn.coordinator.packaging.</code><code class="sig-name descname">get_sha256_digest</code><span class="sig-paren">(</span><em class="sig-param">bytes</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.coordinator.packaging.get_sha256_digest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get sha256 digest from binary bytes.
+:param bytes: Binary byte string.
+:type bytes: bytes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Sha256 digest in string.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="tfedlrn.coordinator.packaging.get_sha256_hash_from_files">
+<code class="sig-prename descclassname">tfedlrn.coordinator.packaging.</code><code class="sig-name descname">get_sha256_hash_from_files</code><span class="sig-paren">(</span><em class="sig-param">fpaths</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.coordinator.packaging.get_sha256_hash_from_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the sha256 checksum of a list of files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fpath</strong> (<em>list</em>) – A list of string of file path.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A hash string.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="tfedlrn.coordinator.packaging.get_src_fpaths">
+<code class="sig-prename descclassname">tfedlrn.coordinator.packaging.</code><code class="sig-name descname">get_src_fpaths</code><span class="sig-paren">(</span><em class="sig-param">dir</em>, <em class="sig-param">sort=True</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.coordinator.packaging.get_src_fpaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of file paths from a folder of Python source code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> (<em>src</em>) – The path of the folder.</p></li>
+<li><p><strong>sort</strong> (<em>bool</em>) – If we should sort the file paths.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of string of file path.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="tfedlrn.coordinator.packaging.unzip_files">
+<code class="sig-prename descclassname">tfedlrn.coordinator.packaging.</code><code class="sig-name descname">unzip_files</code><span class="sig-paren">(</span><em class="sig-param">zip_stream</em>, <em class="sig-param">target_dir</em>, <em class="sig-param">compression=8</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.coordinator.packaging.unzip_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unzip files for a byte stream.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>zip_stream</strong> (<em>bytes</em>) – The byte stream of a zip file.</p></li>
+<li><p><strong>target_dir</strong> (<em>str</em>) – The target directory to store the unzipped files.</p></li>
+<li><p><strong>compression</strong> (<em>int</em>) – The compression lever from 0(fast) to 9(small). ZIP_DEFLATED==6 by default.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="tfedlrn.coordinator.packaging.zip_files">
+<code class="sig-prename descclassname">tfedlrn.coordinator.packaging.</code><code class="sig-name descname">zip_files</code><span class="sig-paren">(</span><em class="sig-param">dir</em>, <em class="sig-param">compression=8</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.coordinator.packaging.zip_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Zip a folder of files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dir</strong> (<em>str</em>) – The folder containing subfolders and files.</p></li>
+<li><p><strong>compression</strong> (<em>int</em>) – The compression lever from 0(fast) to 9(small). ZIP_DEFLATED==6 by default.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The byte stream of the zip file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tfedlrn.coordinator">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tfedlrn.coordinator" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tfedlrn.proto.html" class="btn btn-neutral float-right" title="tfedlrn.proto package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="tfedlrn.collaborator.tensorflowmodels.html" class="btn btn-neutral float-left" title="tfedlrn.collaborator.tensorflowmodels package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Secure Intelligence Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

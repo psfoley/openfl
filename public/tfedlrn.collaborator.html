@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tfedlrn.collaborator package &mdash; tfedlrn  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="tfedlrn.collaborator.pytorchmodels package" href="tfedlrn.collaborator.pytorchmodels.html" />
+    <link rel="prev" title="tfedlrn.aggregator package" href="tfedlrn.aggregator.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> tfedlrn
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="tfedlrn.html">tfedlrn package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="tfedlrn.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="tfedlrn.aggregator.html">tfedlrn.aggregator package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">tfedlrn.collaborator package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-tfedlrn.collaborator.collaborator">tfedlrn.collaborator.collaborator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-tfedlrn.collaborator">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="tfedlrn.coordinator.html">tfedlrn.coordinator package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="tfedlrn.proto.html">tfedlrn.proto package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#tfedlrn-datasets-module">tfedlrn.datasets module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#module-tfedlrn.gpuutils">tfedlrn.gpuutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#tfedlrn-zmqconnection-module">tfedlrn.zmqconnection module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.html#module-tfedlrn">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">tfedlrn</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="tfedlrn.html">tfedlrn package</a> &raquo;</li>
+        
+      <li>tfedlrn.collaborator package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/tfedlrn.collaborator.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tfedlrn-collaborator-package">
+<h1>tfedlrn.collaborator package<a class="headerlink" href="#tfedlrn-collaborator-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tfedlrn.collaborator.pytorchmodels.html">tfedlrn.collaborator.pytorchmodels package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.pytorchmodels.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.pytorchmodels.html#tfedlrn-collaborator-pytorchmodels-pytorch2dunet-module">tfedlrn.collaborator.pytorchmodels.pytorch2dunet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.pytorchmodels.html#module-tfedlrn.collaborator.pytorchmodels.pytorchflutils">tfedlrn.collaborator.pytorchmodels.pytorchflutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.pytorchmodels.html#tfedlrn-collaborator-pytorchmodels-pytorchmnistcnn-module">tfedlrn.collaborator.pytorchmodels.pytorchmnistcnn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.pytorchmodels.html#module-tfedlrn.collaborator.pytorchmodels">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tfedlrn.collaborator.tensorflowmodels.html">tfedlrn.collaborator.tensorflowmodels package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.tensorflowmodels.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.tensorflowmodels.html#tfedlrn-collaborator-tensorflowmodels-tensorflow2dunet-module">tfedlrn.collaborator.tensorflowmodels.tensorflow2dunet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.tensorflowmodels.html#tfedlrn-collaborator-tensorflowmodels-tensorflowflmodel-module">tfedlrn.collaborator.tensorflowmodels.tensorflowflmodel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.tensorflowmodels.html#module-tfedlrn.collaborator.tensorflowmodels.tensorflowflutils">tfedlrn.collaborator.tensorflowmodels.tensorflowflutils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.tensorflowmodels.html#tfedlrn-collaborator-tensorflowmodels-tensorflowmnistcnn-module">tfedlrn.collaborator.tensorflowmodels.tensorflowmnistcnn module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tfedlrn.collaborator.tensorflowmodels.html#module-tfedlrn.collaborator.tensorflowmodels">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-tfedlrn.collaborator.collaborator">
+<span id="tfedlrn-collaborator-collaborator-module"></span><h2>tfedlrn.collaborator.collaborator module<a class="headerlink" href="#module-tfedlrn.collaborator.collaborator" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator">
+<em class="property">class </em><code class="sig-prename descclassname">tfedlrn.collaborator.collaborator.</code><code class="sig-name descname">Collaborator</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">agg_id</em>, <em class="sig-param">fed_id</em>, <em class="sig-param">wrapped_model</em>, <em class="sig-param">connection</em>, <em class="sig-param">model_version</em>, <em class="sig-param">polling_interval=4</em>, <em class="sig-param">opt_treatment='AGG'</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The current class is not good for local test without connection.</p>
+<dl class="method">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator.create_message_header">
+<code class="sig-name descname">create_message_header</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator.create_message_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator.do_download_model_job">
+<code class="sig-name descname">do_download_model_job</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator.do_download_model_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator.do_train_job">
+<code class="sig-name descname">do_train_job</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator.do_train_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator.do_validate_job">
+<code class="sig-name descname">do_validate_job</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator.do_validate_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator.query_for_job">
+<code class="sig-name descname">query_for_job</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator.query_for_job" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tfedlrn.collaborator.collaborator.Collaborator.send_and_receive">
+<code class="sig-name descname">send_and_receive</code><span class="sig-paren">(</span><em class="sig-param">message</em><span class="sig-paren">)</span><a class="headerlink" href="#tfedlrn.collaborator.collaborator.Collaborator.send_and_receive" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tfedlrn.collaborator.collaborator.OptTreatment">
+<em class="property">class </em><code class="sig-prename descclassname">tfedlrn.collaborator.collaborator.</code><code class="sig-name descname">OptTreatment</code><a class="headerlink" href="#tfedlrn.collaborator.collaborator.OptTreatment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="attribute">
+<dt id="tfedlrn.collaborator.collaborator.OptTreatment.AGG">
+<code class="sig-name descname">AGG</code><em class="property"> = 3</em><a class="headerlink" href="#tfedlrn.collaborator.collaborator.OptTreatment.AGG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="tfedlrn.collaborator.collaborator.OptTreatment.EDGE">
+<code class="sig-name descname">EDGE</code><em class="property"> = 2</em><a class="headerlink" href="#tfedlrn.collaborator.collaborator.OptTreatment.EDGE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="tfedlrn.collaborator.collaborator.OptTreatment.RESET">
+<code class="sig-name descname">RESET</code><em class="property"> = 1</em><a class="headerlink" href="#tfedlrn.collaborator.collaborator.OptTreatment.RESET" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tfedlrn.collaborator">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-tfedlrn.collaborator" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tfedlrn.collaborator.pytorchmodels.html" class="btn btn-neutral float-right" title="tfedlrn.collaborator.pytorchmodels package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="tfedlrn.aggregator.html" class="btn btn-neutral float-left" title="tfedlrn.aggregator package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Secure Intelligence Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

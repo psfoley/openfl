@@ -1,3 +1,5 @@
+import logging
+
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
@@ -22,6 +24,7 @@ class ConvModel(FLKerasModel):
     """
     def __init__(self, batch_size=32, splits=[1,2], split_idx=None):
         super(ConvModel, self).__init__(batch_size=batch_size, splits=splits, split_idx=split_idx)
+        self.logger = logging.getLogger(__name__)
         self.batch_size = batch_size
         input_shape, num_classes, self.x_train, self.y_train, self.x_val, self.y_val = self.load_dataset()
 
@@ -107,7 +110,8 @@ class ConvModel(FLKerasModel):
             The validation data index range.
         """
 
-        assert len(splits) > split_idx
+        if not(len(splits) > split_idx):
+            self.logger.exception("Assertion failed: len(splits) > split_idx")
         if is_iid:
             # The orginal dataset is I.I.D. Easy.
             total = sum(splits)

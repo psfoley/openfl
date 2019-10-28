@@ -6,6 +6,10 @@ package tfedlrn_proto;
 // FIXME: move to "optional" once development is complete
 
 
+service Aggregator {
+    rpc Query (FLMessage) returns (FLMessage) {}
+}
+
 // FIXME: current convention requriers field name is same as class name in lowercase. Not good.
 message FLMessage {
     oneof payload {

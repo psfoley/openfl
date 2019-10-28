@@ -32,12 +32,14 @@ model:
 aggregator:
   id           : agg_mnist
   # FIXME: should be assigned automatically
-  addr           : "*"
+  addr           : "spr-gpu02.jf.intel.com"
+  # addr           : "127.0.0.1"
   port           : 8848
 
   collaborators  : 1
   initial_weights: federations/weights/mnist_cnn_keras_init.pbuf
   latest_weights : federations/weights/mnist_cnn_keras_latest.pbuf
+  best_weights   : federations/weights/mnist_cnn_keras_best.pbuf
 
 
 collaborator:

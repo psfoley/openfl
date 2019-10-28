@@ -8,9 +8,11 @@ import torch.utils.data
 import torch.nn.functional as F
 import torch.optim as optim
 
-from ...datasets import load_dataset
-from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, pt_train_epoch, pt_create_loader
+from ...datasets import brats17_data_paths, get_data_reader
+from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, \
+    pt_train_epoch, pt_create_pipeline_loader
 from .pytorchflutils_test import pt_train_epoch_test_performance
+
 
 # FIXME: move to some custom losses.py file?
 def dice_coef(pred, target, smoothing=1.0):    
@@ -30,21 +32,30 @@ def dice_coef_loss(pred, target, smoothing=1.0):
     return term1.mean() + term2.mean()
 
 
-class PyTorch2DUNet(nn.Module):
+class PyTorch2DUNetDPipe(nn.Module):
+    # Similar to PyTorch2DUNet, but with data pipeline that loads single 2D images
+    # from disk using directories in NIfTI format. Since this is a 2D UNet model
+    # and our NIfTI directories contain
 
-    def __init__(self, device, train_loader=None, val_loader=None, optimizer='SGD', 
-      dropout_layers=[2, 3], shuffle=True):
-        super(PyTorch2DUNet, self).__init__()
+    def __init__(self, device, train_loader=None, val_loader=None, 
+      optimizer='SGD', dropout_layers=[2, 3], shuffle=True):
+        super(PyTorch2DUNetDPipe, self).__init__()
 
         if dropout_layers is None:
             self.dropout_layers = []
         else:
             self.dropout_layers = dropout_layers
 
+        # including these attributes for testing
+        self.read_train = None
+        self.idx_to_train_paths = None
+
         self.device = device
         self.init_data_pipeline(train_loader, val_loader, shuffle)
         self.init_network(device)
         self.init_optimizer(optimizer)
+
+
 
     def get_tensor_dict(self):
         return pt_get_tensor_dict(self, self.optimizer)
@@ -52,29 +63,46 @@ class PyTorch2DUNet(nn.Module):
     def set_tensor_dict(self, tensor_dict):
         pt_set_tensor_dict(self, tensor_dict)
 
-    def init_data_pipeline(self, train_loader, val_loader, shuffle):
+    @staticmethod
+    def _tensorize_data(X, y):
+        tX = torch.stack([torch.Tensor(i) for i in X])
+        ty = torch.stack([torch.Tensor(i) for i in y])
+        return torch.utils.data.TensorDataset(tX, ty)
+
+    def init_data_pipeline(self, train_loader, val_loader, shuffle, 
+      label_type='whole_tumor', **kwargs):
 
         if not shuffle:
-            print("TESTING WITH NO SHUFFLE!!!")
+            print("WARNING: SHUFFLE IS DISABLED !!!!!")
 
         if train_loader is None or val_loader is None:
-            # load all the institutions
-            data_by_institution = [load_dataset('BraTS17_institution',
-                                                institution=i,
-                                                channels_first=True) for i in range(10)]
-            data_by_type = zip(*data_by_institution)
-            data_by_type = [np.concatenate(d) for d in data_by_type]
-            X_train, y_train, X_val, y_val = data_by_type
+
+            # train and val paths are lists of tuples: (X_path, y_path)
+            # each path corresponds to a file for a single sample  
+            idx_to_train_paths, train_data_length = brats17_data_paths('BraTS17_train')
+            idx_to_val_paths, val_data_length = brats17_data_paths('BraTS17_val')
+
+            # exposing these objects for testing purposes
+            self.idx_to_train_paths = idx_to_train_paths
+            self.read_train = get_data_reader('BraTS17_{}'.format(label_type),
+              idx_to_train_paths, channels_last=False)
+
+            read_and_preprocess_train = get_data_reader('BraTS17_{}'.format(label_type),
+              idx_to_train_paths, channels_last=False)
+            read_and_preprocess_val = get_data_reader('BraTS17_{}'.format(label_type),
+              idx_to_val_paths, channels_last=False)
 
         if train_loader is None:
-            self.train_loader = pt_create_loader(X_train, y_train, batch_size=64, 
-              shuffle=shuffle)
+            self.train_loader = pt_create_pipeline_loader(read_and_preprocess_train, 
+              length=train_data_length, 
+              batch_size=64, shuffle=shuffle)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
-            self.val_loader = pt_create_loader(X_val, y_val, batch_size=64, 
-              shuffle=shuffle)
+            self.val_loader = pt_create_pipeline_loader(read_and_preprocess_val, 
+                                               length=val_data_length, 
+                                               batch_size=64, shuffle=shuffle)
         else:
             self.val_loader = val_loader
             
@@ -130,6 +158,9 @@ class PyTorch2DUNet(nn.Module):
         self.to(device)
         
     def forward(self, x):
+
+        # DEBUG
+        print("input x has shape: {}".format(x.size()))
         
         # gather up our up and down layer members for easier processing
         conv_down_a = [getattr(self, 'conv_down_{}a'.format(i+1)) for i in range(self.depth_per_side)]
@@ -189,6 +220,8 @@ class PyTorch2DUNet(nn.Module):
 
         return pt_train_epoch(self, self.train_loader, self.device, self.optimizer, loss_fn)
 
+
+    
     def train_epoch_test_performance(self, num_batches, epoch=None):
         # FIXME: update to proper training schedule when architected
         if epoch == 8:
@@ -205,6 +238,7 @@ class PyTorch2DUNet(nn.Module):
         std_data_load_times = np.std(data_load_times)
         return loss, mean_train_times, std_train_times, \
             mean_data_load_times, std_data_load_times
+
 
     def get_training_data_size(self):
         return len(self.train_loader.dataset)

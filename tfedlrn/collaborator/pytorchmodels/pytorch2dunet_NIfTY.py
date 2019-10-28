@@ -8,9 +8,11 @@ import torch.utils.data
 import torch.nn.functional as F
 import torch.optim as optim
 
-from ...datasets import load_dataset
-from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, pt_train_epoch, pt_create_loader
+from ...datasets import load_from_NIfTY
+from .pytorchflutils import pt_get_tensor_dict, pt_set_tensor_dict, pt_validate, \
+    pt_train_epoch, pt_create_loader
 from .pytorchflutils_test import pt_train_epoch_test_performance
+
 
 # FIXME: move to some custom losses.py file?
 def dice_coef(pred, target, smoothing=1.0):    
@@ -30,11 +32,20 @@ def dice_coef_loss(pred, target, smoothing=1.0):
     return term1.mean() + term2.mean()
 
 
-class PyTorch2DUNet(nn.Module):
+class PyTorch2DUNetNIfTY(nn.Module):
+    # Similar to PyTorch2DUNet, but with a one time load of data
+    # from NIfTI formated files on disk. The directory 'data_dir' must
+    # consist of a list of subdirectories, each subdir containing the NIfTY files
+    # for the multiple appropriate scanning modes for a single brain. The
+    # required modes are tied to the classification task being performed 
+    # (see: brats17_reader.brats17_reader). 
 
-    def __init__(self, device, train_loader=None, val_loader=None, optimizer='SGD', 
-      dropout_layers=[2, 3], shuffle=True):
-        super(PyTorch2DUNet, self).__init__()
+    def __init__(self, device, data_dir, 
+                 train_loader=None, val_loader=None, optimizer='SGD', 
+                 dropout_layers=[2, 3], shuffle_before_split=True, 
+                 shuffle_before_epoch=True, percent_train=0.8, 
+                 **kwargs):
+        super(PyTorch2DUNetNIfTY, self).__init__()
 
         if dropout_layers is None:
             self.dropout_layers = []
@@ -42,7 +53,13 @@ class PyTorch2DUNet(nn.Module):
             self.dropout_layers = dropout_layers
 
         self.device = device
-        self.init_data_pipeline(train_loader, val_loader, shuffle)
+        self.init_data_pipeline(train_loader=train_loader, 
+                                val_loader=val_loader, 
+                                data_dir=data_dir, 
+                                shuffle_before_split=shuffle_before_split, 
+                                shuffle_before_epoch=shuffle_before_epoch, 
+                                percent_train=percent_train, 
+                                **kwargs)
         self.init_network(device)
         self.init_optimizer(optimizer)
 
@@ -52,31 +69,39 @@ class PyTorch2DUNet(nn.Module):
     def set_tensor_dict(self, tensor_dict):
         pt_set_tensor_dict(self, tensor_dict)
 
-    def init_data_pipeline(self, train_loader, val_loader, shuffle):
+    def init_data_pipeline(self, train_loader, val_loader, data_dir, 
+                           shuffle_before_split, shuffle_before_epoch, 
+                           percent_train, **kwargs):
 
-        if not shuffle:
-            print("TESTING WITH NO SHUFFLE!!!")
-
+        if not shuffle_before_split:
+            print("NO SHUFFLE BEFORE SPLITTING INTO TRAIN/VAL!!!"*10)
+        if not shuffle_before_epoch:
+            print("NO SHUFFLE BEFORE EPOCH!!!"*10)
+    
         if train_loader is None or val_loader is None:
-            # load all the institutions
-            data_by_institution = [load_dataset('BraTS17_institution',
-                                                institution=i,
-                                                channels_first=True) for i in range(10)]
-            data_by_type = zip(*data_by_institution)
-            data_by_type = [np.concatenate(d) for d in data_by_type]
-            X_train, y_train, X_val, y_val = data_by_type
+            X_train, y_train, X_val, y_val = \
+                load_from_NIfTY(parent_dir=data_dir, 
+                                channels_last=False, 
+                                percent_train=percent_train, 
+                                shuffle=shuffle_before_split, 
+                                **kwargs)
 
         if train_loader is None:
-            self.train_loader = pt_create_loader(X_train, y_train, batch_size=64, 
-              shuffle=shuffle)
+            self.train_loader = pt_create_loader(X_train, 
+                                                 y_train, 
+                                                 batch_size=64, 
+                                                 shuffle=shuffle_before_epoch)
         else:
             self.train_loader = train_loader
 
         if val_loader is None:
-            self.val_loader = pt_create_loader(X_val, y_val, batch_size=64, 
-              shuffle=shuffle)
+            self.val_loader = pt_create_loader(X_val, 
+                                               y_val, 
+                                               batch_size=64, 
+                                               shuffle=shuffle_before_epoch)
         else:
             self.val_loader = val_loader
+            
             
     def init_network(self,
                      device,
@@ -187,7 +212,11 @@ class PyTorch2DUNet(nn.Module):
 
         loss_fn = partial(dice_coef_loss, smoothing=32.0)
 
-        return pt_train_epoch(self, self.train_loader, self.device, self.optimizer, loss_fn)
+        return pt_train_epoch(self, 
+                              self.train_loader, 
+                              self.device, 
+                              self.optimizer, 
+                              loss_fn)
 
     def train_epoch_test_performance(self, num_batches, epoch=None):
         # FIXME: update to proper training schedule when architected
@@ -197,8 +226,12 @@ class PyTorch2DUNet(nn.Module):
         loss_fn = partial(dice_coef_loss, smoothing=32.0)
 
         loss,  data_load_times, train_times = \
-          pt_train_epoch_test_performance(self, self.train_loader, \
-              self.device, self.optimizer, loss_fn,  num_batches)
+            pt_train_epoch_test_performance(self, 
+                                            self.train_loader, 
+                                            self.device, 
+                                            self.optimizer, 
+                                            loss_fn,  
+                                            num_batches)
         mean_train_times = np.mean(train_times)
         std_train_times = np.std(train_times)
         mean_data_load_times = np.mean(data_load_times)

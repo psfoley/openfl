@@ -2,9 +2,54 @@ import pickle
 import glob
 import os
 import socket
+from functools import partial
 
 import numpy as np
 from math import ceil
+from .brats17_reader import brats17_reader
+
+
+def brats17_data_paths(data_name):
+    # used for setting up data loaders that load individual samlples from 
+    # FIXME: currently the validation set is the same as the training set
+    # FIXME: add support for other image datasets?
+    # FIXME: add for tensorflow, even though graph pipelines work there?
+
+    # produce a dictionary of indices to file_paths
+    if data_name == 'BraTS17_train':
+        directory = os.path.join(_get_dataset_dir(), 
+                                 'BraTS17/MICCAI_BraTS17_Data_Training/HGG')
+        paths = [os.path.join(directory, subdir) for subdir in os.listdir(directory)]
+    elif data_name == 'BraTS17_val':
+        directory = os.path.join(_get_dataset_dir(), 
+                                 'BraTS17/MICCAI_BraTS17_Data_Training/HGG')
+        paths = [os.path.join(directory, subdir) for subdir in os.listdir(directory)]
+    # FIXME: temporarily disabling below
+    # order paths so as to deterministically determine indices
+    # paths.sort()
+    nb_imgs = 155 * len(paths) 
+
+    idx_to_paths = {idx: paths[idx // 155] for idx in range(nb_imgs)}
+
+    return idx_to_paths, nb_imgs
+
+def get_data_reader(data_type, idx_to_paths, channels_last):
+    if data_type.startswith('BraTS17_'):
+        label_type = data_type[8:]
+        return partial(brats17_reader, idx_to_paths=idx_to_paths, 
+                       label_type=label_type, 
+                       channels_last=channels_last)
+    else:
+        raise ValueError("The data_type:{} is not supported.".format(data_type))
+
+
+def get_data_paths(data_name):
+    # FIXME: Currently the training and validation data is the same.
+    if data_name.startswith('BraTS17_'):
+        return brats17_data_paths(data_name)
+    else:
+        raise ValueError("The data_name:{} is not supported for pipelining.".format(data_name))
+    
 
 
 def _get_dataset_func_map():
@@ -19,6 +64,8 @@ def _get_dataset_func_map():
 #         'BraTS17': load_BraTS17,
         'BraTS17_institution': load_BraTS17_insitution,
     }
+
+
 
 
 def get_dataset_list():
@@ -83,6 +130,52 @@ def _read_mnist_kind(path, kind='train', one_hot=True, **kwargs):
     return images, labels
 
 
+def load_from_NIfTY(parent_dir, 
+                    percent_train, 
+                    shuffle, 
+                    channels_last=True, 
+                    label_type='whole_tumor', 
+                    **kwargs):
+    # Loads data from the parent directory (NIfTY files for whole brains are 
+    # assumed to be contained in subdirectories of the parent directory). 
+    # Performs a split of the data into training and validation, and the value 
+    # of shuffle determined whether shuffling is performed before this split 
+    # occurs. Also, kwargs are passed to brats17_reader.
+
+    path = os.path.join(_get_dataset_dir(), parent_dir)
+    subdir_paths = [os.path.join(path, subdir) for subdir in os.listdir(path)]
+    
+    nb_brains = len(subdir_paths)
+
+    # using a tuple for the idx value indicates to brats17_reader that
+    # we want to pull out full brains rather than a single slice.
+    # Here the keys in idx_to_paths need only include the first component of idx.
+    start_idxs = [155*i for i in range(nb_brains)]
+    end_idxs = [155*(i+1) for i in range(nb_brains)]
+    idx_to_paths = {idx[0]: subdir_paths[int(idx[0]/155)] for idx in zip(start_idxs, end_idxs)}
+    
+    imgs_all = []
+    msks_all = []
+    for idx in zip(start_idxs, end_idxs):
+        these_imgs, these_msks = \
+            brats17_reader(idx=idx, 
+                           idx_to_paths=idx_to_paths, 
+                           channels_last=channels_last, 
+                           label_type=label_type, 
+                           **kwargs)
+        imgs_all.append(these_imgs)
+        msks_all.append(these_msks)
+    
+    imgs_all = np.concatenate(imgs_all, axis=0)
+    msks_all = np.concatenate(msks_all, axis=0)
+    imgs_train, msks_train, imgs_val, msks_val = \
+        train_val_split(features=imgs_all, 
+                        labels=msks_all, 
+                        percent_train=percent_train, 
+                        shuffle=shuffle)
+    return imgs_train, msks_train, imgs_val, msks_val
+
+
 def load_BraTS17_insitution(institution=0, channels_first=False, **kwargs):
     path = os.path.join(_get_dataset_dir(), 'BraTS17', 'by_institution', str(institution))
     files = ['imgs_train.npy', 'msks_train.npy', 'imgs_val.npy', 'msks_val.npy']
@@ -107,3 +200,28 @@ def load_fashion_mnist(**kwargs):
 
 def _one_hot(y, n):
     return np.eye(n)[y]
+
+
+def train_val_split(features, labels, percent_train, shuffle):
+    # Splits incoming features and labels into a training and validation
+    # data set. The value of shuffle determines whether shuffling occurs
+    # before the split is performed. 
+
+    def split(data, split_idx):
+        if split_idx <= 0 or split_idx >= len(data):
+            raise ValueError("split was out of expected range.")
+        return data[:split_idx], data[split_idx:]
+
+    nb_features = len(features)
+    nb_labels = len(labels)
+    if not nb_features==nb_labels:
+        raise RuntimeError("Number of features and labels do not match.")
+    length = nb_features
+    if shuffle:
+        new_order = np.random.permutation(np.arange(length))
+        features = features[new_order]
+        labels = labels[new_order]
+    split_idx = int(percent_train * length)
+    train_features, val_features = split(data=features, split_idx=split_idx)
+    train_labels, val_labels = split(data=labels, split_idx=split_idx)
+    return train_features, train_labels, val_features, val_labels

@@ -27,6 +27,9 @@ model:
   optimizer: SGD
   code:
     path: brats_2dunet_tensorflow
+    kwargs:
+      batch_size: 64
+      shuffle: True
 
 aggregator:
   id           : agg_brats

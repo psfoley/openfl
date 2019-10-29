@@ -1,3 +1,5 @@
+from .flplan import load_flplan
+
 def check_type(obj, expected_type, logger):
     if not isinstance(obj, expected_type):
         exception = TypeError("Expected type {}, got type {}".format(type(obj), str(expected_type)))

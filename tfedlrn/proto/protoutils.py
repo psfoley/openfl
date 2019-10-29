@@ -1,5 +1,5 @@
 import numpy as np
-from tfedlrn.proto.message_pb2 import ModelProto
+from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto
 
 def repeated_values_to_nparray(repeated_values):
     return np.array(list(repeated_values))

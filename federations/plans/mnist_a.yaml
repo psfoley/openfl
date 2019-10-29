@@ -20,7 +20,6 @@ dataset         : mnist_batch
 software_version: '1'
 
 model:
-  
   name     : mnist_cnn_keras
   optimizer: SGD
   # The code includes pre-processing.
@@ -36,11 +35,10 @@ aggregator:
   # addr           : "127.0.0.1"
   port           : 8848
 
-  collaborators  : 2
-  initial_weights: federations/weights/mnist_cnn_keras_init.pbuf
-  latest_weights : federations/weights/mnist_cnn_keras_latest.pbuf
-  best_weights   : federations/weights/mnist_cnn_keras_best.pbuf
-
+  collaborators  : 1
+  initial_weights: mnist_cnn_keras_init.pbuf
+  latest_weights : mnist_cnn_keras_latest.pbuf
+  best_weights   : mnist_cnn_keras_best.pbuf
 
 collaborator:
   # dataset:
@@ -49,3 +47,8 @@ collaborator:
   #   path             : /opt/datasets/mnist/
   opt_vars_treatment : RESET
   sync_per_iterations: 100 
+
+tls:
+  disable             : False
+  disable_client_auth : False
+  cert_folder         : test

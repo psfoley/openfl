@@ -3,13 +3,13 @@ import logging
 import numpy as np
 
 from .. import check_type, check_equal, check_not_equal
-from ..proto.message_pb2 import MessageHeader
-from ..proto.message_pb2 import Job, JobRequest, JobReply
-from ..proto.message_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
-from ..proto.message_pb2 import ModelProto, ModelHeader, TensorProto
-from ..proto.message_pb2 import ModelDownloadRequest, GlobalModelUpdate
-from ..proto.message_pb2 import LocalModelUpdate, LocalModelUpdateAck
-from ..proto.message_pb2 import LocalValidationResults, LocalValidationResultsAck
+from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
+from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
+from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
+from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, ModelHeader, TensorProto
+from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, GlobalModelUpdate
+from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalModelUpdateAck
+from ..proto.collaborator_aggregator_interface_pb2 import LocalValidationResults, LocalValidationResultsAck
 
 
 from enum import Enum
@@ -23,11 +23,11 @@ class OptTreatment(Enum):
 # FIXME: this is actually a tuple of a collaborator/flplan
 # CollaboratorFLPlanExecutor?
 class Collaborator(object):
-    """The current class is not good for local test without connection. """
+    """The current class is not good for local test without channel. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, id, agg_id, fed_id, wrapped_model, connection, model_version, polling_interval=4, opt_treatment="AGG"):
+    def __init__(self, id, agg_id, fed_id, wrapped_model, channel, model_version, polling_interval=4, opt_treatment="AGG"):
         self.logger = logging.getLogger(__name__)
-        self.connection = connection
+        self.channel = channel
         self.polling_interval = 4
 
         # this stuff is really about sanity/correctness checking to ensure the bookkeeping and control flow is correct
@@ -57,27 +57,13 @@ class Collaborator(object):
     def __str__(self):
         return self.__repr__()
 
-    # FIXME: rename to send_req_rcv_reply
-    def send_and_receive(self, message):
-        self.connection.send(message)
-        reply = self.connection.receive()
-
-        # validate the message pair
-
+    def validate_header(self, reply):
         # check message is from my agg to me
         check_equal(reply.header.sender, self.agg_id, self.logger)
         check_equal(reply.header.recipient, self.id, self.logger)
         
         # check that the federation id matches
         check_equal(reply.header.federation_id, self.fed_id, self.logger)
-        
-        # check that the counters match
-        check_equal(reply.header.counter, self.counter, self.logger)
-        
-        # increment our counter
-        self.counter += 1
-
-        return reply
 
     def run(self):
         self.logger.debug("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
@@ -103,7 +89,8 @@ class Collaborator(object):
     def query_for_job(self):
         # loop until we get a job other than 'yield'
         while True:
-            reply = self.send_and_receive(JobRequest(header=self.create_message_header(), model_header=self.model_header))
+            reply = self.channel.RequestJob(JobRequest(header=self.create_message_header(), model_header=self.model_header))
+            self.validate_header(reply)
 
             check_type(reply, JobReply, self.logger)
 
@@ -145,7 +132,9 @@ class Collaborator(object):
 
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
         self.logger.debug("Sending the model to the aggeregator.")
-        reply = self.send_and_receive(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
+
+        reply = self.channel.UploadLocalModelUpdate(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
+        self.validate_header(reply)
         check_type(reply, LocalModelUpdateAck, self.logger)
         self.logger.debug("Model sent.")
 
@@ -154,12 +143,14 @@ class Collaborator(object):
         self.logger.debug("Completed the validation job.")
         data_size = self.wrapped_model.get_validation_data_size()
 
-        reply = self.send_and_receive(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
+        reply = self.channel.UploadLocalMetricsUpdate(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
+        self.validate_header(reply)
         check_type(reply, LocalValidationResultsAck, self.logger)
         
     def do_download_model_job(self):
         # sanity check on version is implicit in send
-        reply = self.send_and_receive(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
+        reply = self.channel.DownloadModel(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
+        self.validate_header(reply)
         self.logger.debug("Completed the downloading job.")
 
         check_type(reply, GlobalModelUpdate, self.logger)

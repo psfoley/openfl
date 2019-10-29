@@ -5,29 +5,13 @@ package tfedlrn_proto;
 // we start with everything as "required" while developing / debugging. This forces correctness better.
 // FIXME: move to "optional" once development is complete
 
-
 service Aggregator {
-    rpc Query (FLMessage) returns (FLMessage) {}
+    rpc RequestJob(JobRequest) returns (JobReply) {}
+    rpc DownloadModel(ModelDownloadRequest) returns (GlobalModelUpdate) {}
+    rpc UploadLocalModelUpdate(LocalModelUpdate) returns (LocalModelUpdateAck) {}
+    rpc UploadLocalMetricsUpdate(LocalValidationResults) returns (LocalValidationResultsAck) {}
 }
 
-// FIXME: current convention requriers field name is same as class name in lowercase. Not good.
-message FLMessage {
-    oneof payload {
-        LocalModelUpdate localmodelupdate = 1; 
-        LocalValidationResults localvalidationresults = 2;
-        JobRequest jobrequest = 3;
-        ModelDownloadRequest modeldownloadrequest = 4;
-        GlobalModelUpdate globalmodelupdate = 5;
-        JobReply jobreply = 6;
-        LocalModelUpdateAck localmodelupdateack = 7;
-        LocalValidationResultsAck localvalidationresultsack = 8;
-
-        PlanRequest planrequest = 9;
-        PlanReply planreply = 10;
-        CodeRequest coderequest = 11;
-        CodeReply codereply = 12;
-    }
-}
 
 enum Job {
     JOB_TRAIN = 0;
@@ -117,34 +101,4 @@ message LocalModelUpdateAck {
 
 message LocalValidationResultsAck {
     MessageHeader header = 1;
-}
-
-
-// Coordinator messages between client and server.
-// No message header because the federation is not decided.
-message PlanRequest {
-    string dataset=1;
-    string software_version=2;
-}
-
-message PlanReply {
-    string fed_id = 1;
-    string agg_id = 2;
-    string agg_addr = 3;
-    int32 agg_port = 4;
-    // string model_id = 5;
-    string col_id = 5;
-    string opt_treatment = 6;
-    string description = 7;
-    string code = 8;
-}
-
-message CodeRequest {
-    string fed_id = 1;
-}
-
-message CodeReply {
-    int32 size = 1;
-    string checksum = 2;
-    bytes code_zip = 3;
 }

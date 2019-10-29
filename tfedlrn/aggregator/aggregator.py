@@ -7,13 +7,13 @@ import tensorflow as tf
 import tensorboardX
 
 from .. import check_equal, check_not_equal, check_is_in, check_not_in
-from ..proto.message_pb2 import MessageHeader
-from ..proto.message_pb2 import Job, JobRequest, JobReply
-from ..proto.message_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
-from ..proto.message_pb2 import ModelProto, ModelHeader, TensorProto
-from ..proto.message_pb2 import ModelDownloadRequest, GlobalModelUpdate
-from ..proto.message_pb2 import LocalModelUpdate, LocalModelUpdateAck
-from ..proto.message_pb2 import LocalValidationResults, LocalValidationResultsAck
+from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
+from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
+from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
+from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, ModelHeader, TensorProto
+from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, GlobalModelUpdate
+from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalValidationResults, LocalModelUpdateAck, LocalValidationResultsAck
+
 
 from tfedlrn.proto.protoutils import load_proto, dump_proto
 
@@ -42,10 +42,8 @@ class Aggregator(object):
         The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
-
-    def __init__(self, id, fed_id, col_ids, connection, init_model_fpath, latest_model_fpath, best_model_fpath):
+    def __init__(self, id, fed_id, col_ids, init_model_fpath, latest_model_fpath, best_model_fpath):
         self.logger = logging.getLogger(__name__)
-        self.connection = connection
         self.id = id
         self.fed_id = fed_id
         self.model = load_proto(init_model_fpath)
@@ -62,7 +60,18 @@ class Aggregator(object):
 
         self.init_per_col_round_stats()
         self.best_model_score = None
-    
+
+    def validate_header(self, message):
+        # validate that the message is for me
+        check_equal(message.header.recipient, self.id, self.logger)
+        
+        # validate that the message is for my federation
+        check_equal(message.header.federation_id, self.fed_id, self.logger)
+        
+        # validate that the sender is one of my collaborators
+        check_is_in(message.header.sender, self.col_ids, self.logger)
+
+
     def init_per_col_round_stats(self):
         """Initalize the metrics from collaborators for each round of aggregation. """
         keys = ["loss_results", "collaborator_training_sizes", "agg_validation_results", "preagg_validation_results", "collaborator_validation_sizes"]
@@ -138,41 +147,10 @@ class Aggregator(object):
 
         self.init_per_col_round_stats()
 
-    def run(self):
-        # FIXME: stopping condition. 
-        self.logger.debug("Start the federation [%s] with aggeregator [%s]." % (self.fed_id, self.id))
-        while True:
-            # receive a message
-            message = self.connection.receive()
-            t = time.time()
+    def UploadLocalModelUpdate(self, message):
+        t = time.time()
+        self.validate_header(message)
 
-            # validate that the message is for me
-            check_equal(message.header.recipient, self.id, self.logger)
-            
-            # validate that the message is for my federation
-            check_equal(message.header.federation_id, self.fed_id, self.logger)
-            
-            # validate that the sender is one of my collaborators
-            check_is_in(message.header.sender, self.col_ids, self.logger)
-            
-            if isinstance(message, LocalModelUpdate):
-                reply = self.handle_local_model_update(message)
-            elif isinstance(message, LocalValidationResults):
-                reply = self.handle_local_validation_results(message)
-            elif isinstance(message, JobRequest):
-                reply = self.handle_job_request(message)
-            elif isinstance(message, ModelDownloadRequest):
-                reply = self.handle_model_download_request(message)
-
-            self.connection.send(reply)
-
-            # do end of round check
-            self.end_of_round_check()
-
-            if not isinstance(reply, JobReply) or reply.job is not JOB_YIELD:
-                self.logger.debug('aggregator handled {} in time {}'.format(message.__class__.__name__, time.time() - t))
-
-    def handle_local_model_update(self, message):
         self.logger.debug("Receive model update from %s " % message.header.sender)
         model_proto = message.model
         model_header = model_proto.header
@@ -245,9 +223,18 @@ class Aggregator(object):
 
         # return LocalModelUpdateAck
         self.logger.debug("Complete model update from %s " % message.header.sender)
-        return LocalModelUpdateAck(header=self.create_reply_header(message))
+        reply = LocalModelUpdateAck(header=self.create_reply_header(message))
 
-    def handle_local_validation_results(self, message):
+        self.end_of_round_check()
+
+        self.logger.debug('aggregator handled UploadLocalModelUpdate in time {}'.format(time.time() - t))
+
+        return reply
+
+    def UploadLocalMetricsUpdate(self, message):
+        t = time.time()
+        self.validate_header(message)
+
         self.logger.debug("Receive local validation results from %s " % message.header.sender)
         model_header = message.model_header
 
@@ -271,10 +258,19 @@ class Aggregator(object):
             # Post-train validation
             check_not_in(message.header.sender, self.per_col_round_stats["preagg_validation_results"], self.logger)
             self.per_col_round_stats["preagg_validation_results"][message.header.sender] = message.results
-        # return LocalValidationResultsAck
-        return LocalValidationResultsAck(header=self.create_reply_header(message))
 
-    def handle_job_request(self, message):
+        reply = LocalValidationResultsAck(header=self.create_reply_header(message))
+        
+        self.end_of_round_check()
+
+        self.logger.debug('aggregator handled UploadLocalMetricsUpdate in time {}'.format(time.time() - t))
+
+        return reply
+
+    def RequestJob(self, message):
+        t = time.time()
+        self.validate_header(message)
+        
         # FIXME: this flow needs to depend on a job selection output for the round
         # for now, all jobs require and in-sync model, so it is the first check
         # check if the sender model is out of date
@@ -294,17 +290,30 @@ class Aggregator(object):
         
         self.logger.debug("Receive job request from %s and assign with %s" % (message.header.sender, job))
 
-        return JobReply(header=self.create_reply_header(message), job=job)
+        reply = JobReply(header=self.create_reply_header(message), job=job)
 
-    def handle_model_download_request(self, message):
-        self.logger.debug("Receive model download request from %s " % message.header.sender)
-        # check that the models don't match
+        if reply.job is not JOB_YIELD:
+            self.logger.debug('aggregator handled RequestJob in time {}'.format(time.time() - t))
+        
+        return reply       
+
+    def DownloadModel(self, message):
+        t = time.time()
+        self.validate_header(message)
+
+        self.logger.debug("Received model download request from %s " % message.header.sender)
+
+        # check if the models don't match
         if not(self.collaborator_out_of_date(message.model_header)):
             statement = "Assertion failed: self.collaborator_out_of_date(message.model_header)"
             self.logger.exception(statement)
             raise RuntimeError(statement)
 
-        return GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
+        reply = GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
+
+        self.logger.debug('aggregator handled RequestJob in time {}'.format(time.time() - t))
+        
+        return reply       
 
     def create_reply_header(self, message):
         return MessageHeader(sender=self.id, recipient=message.header.sender, federation_id=self.fed_id, counter=message.header.counter)

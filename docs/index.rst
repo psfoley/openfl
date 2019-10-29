@@ -6,13 +6,15 @@
 Welcome to tfedlrn's documentation!
 ===================================
 
+TODO: Give some brief introduction here.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-   intro
    tutorial
    tfedlrn
+   models
 
 
 Indices and tables

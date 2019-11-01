@@ -9,9 +9,9 @@ pages:
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912
-  - export no_proxy=intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+  - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
   - apk --no-cache add py2-pip python-dev
-  - pip install sphinx
+  - pip install sphinx sphinx_rtd_theme
   - apk --no-cache add make
   - cd docs
   - make html

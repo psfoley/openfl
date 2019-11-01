@@ -1,9 +1,10 @@
 image: alpine
 
-pages:
-  before_script:
+before_script:
   - mkdir -p $HOME/.docker/
   - 'echo "{ \"proxies\": { \"default\": { \"httpProxy\": \"http://proxy-us.intel.com:911\", \"httpsProxy\": \"http://proxy-us.intel.com:912\", \"noProxy\": \"intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16\" } } }" > $HOME/.docker/config.json'
+
+pages:
 
   script:
   - apk --no-cache add py2-pip python-dev

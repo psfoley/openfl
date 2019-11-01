@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../'))
 project = 'tfedlrn'
 copyright = '2019, Secure Intelligence Team'
 author = 'Secure Intelligence Team'
-
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 

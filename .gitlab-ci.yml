@@ -15,6 +15,7 @@ pages:
 
   - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon
   - pip install numpy pyyaml
+  - pip install protobuf
   
   - apk --no-cache add make
   - cd docs

@@ -12,7 +12,8 @@ pages:
   - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
   - apk --no-cache add py2-pip python-dev
   - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon
-  - pip install tensorflow numpy pyyaml
+  - pip install numpy pyyaml
+  
   - apk --no-cache add make
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn

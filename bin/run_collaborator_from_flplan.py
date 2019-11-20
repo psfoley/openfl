@@ -20,7 +20,7 @@ def main(plan, collaborator_id):
 
     # FIXME: consistent filesystem (#15)
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    base_dir = os.path.join(script_dir, '..', 'federations')
+    base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
 
     flplan = load_flplan(os.path.join(plan_dir, plan))

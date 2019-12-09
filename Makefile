@@ -9,7 +9,7 @@ full_hostname = $(shell hostname).$(shell hostname -d)
 ca: bin/federations/certs/test/ca.crt bin/federations/certs/test/ca.key
 
 .PHONY: local_certs
-local_certs: bin/federations/certs/test/local.csr bin/federations/certs/test/local.crt
+local_certs: bin/federations bin/federations/certs/test bin/federations/certs/test/local.csr bin/federations/certs/test/local.crt
 
 .PHONY: wheel
 wheel: $(whl)
@@ -21,7 +21,7 @@ install: $(tfl)
 venv: venv/bin/python3
 
 venv/bin/python3:
-	python3.5 -m venv venv
+	python3 -m venv venv
 	venv/bin/pip3 install setuptools
 	venv/bin/pip3 install wheel
 	
@@ -30,6 +30,9 @@ $(whl): venv/bin/python3
 
 $(tfl): $(whl)
 	venv/bin/pip3 install $(whl)
+
+bin/federations/certs/test:
+	mkdir -p bin/federations/certs/test
 
 bin/federations/weights/mnist_cnn_keras_init.pbuf:
 	echo "recipe needed!"
@@ -66,3 +69,4 @@ clean:
 	rm dist -rf
 	rm build -rf
 	rm tfedlrn.egg-info -rf
+	rm bin/federations/certs/test/*

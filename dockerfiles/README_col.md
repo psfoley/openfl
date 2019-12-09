@@ -1,46 +1,64 @@
-How to run TFL collaborators on a docker container.
+# Tutorial: How to run TFL collaborators on a docker container.
 
+We build the Docker image for collaborators upon the aggregator image, adding necessary dependencies such as the mainstream deep learning frameworks. You may modify `./dockerfiles/Dockerfile.col` to install the needed packages.
 
-1. Build a docker image from `Dockerfile.col`. We only build it once unless we change `Dockerfile.col`.
-```
-nvidia-docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg UNAME=$(whoami) -t tfl:col -f Dockerfile.col .
-```
-
-
-2. Start a container in the background. Map the source code volume and the dataset volume in the development phase. We only need one running container even if we want to simulate multiple collaborators on one host.
-```
-nvidia-docker run -it --net=host \
--w /tfl/ \
--v /home/weilinxu/coder/spr_secure_intelligence-trusted_federated_learning:/tfl \
--e CUDA_VISIBLE_DEVICES=1 \
--d --rm \
---name=tfl_col0 \
-tfl:col \
-bash
-```
-
-
-3. Get an interactive shell to the container with the command anytime.
-```
-docker exec -it tfl_col0 /bin/bash
-```
-
-
-4. Run one collabrator for example. We install the package from the source code folder for active debugging.
+1. Enter the project folder and clean the build folder.
 ```shell
-docker exec -it tfl_col /bin/bash
-export CUDA_VISIBLE_DEVICES=1
-pip install -e . --user
-python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0
+cd spr_secure_intelligence-trusted_federated_learning
+make clean
 ```
 
-You may enable TLS and/or mutual if you have generated the key pairs by replacing the last command with
+2. Build the aggregator image, which is the parent of the collaborator image (`Dockerfile.agg`).
 ```shell
-python bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0 --enable_tls --certificate_folder files/grpc/ --require_client_auth
+docker build \
+  --build-arg UID=$(id -u) \
+  --build-arg GID=$(id -g) \
+  --build-arg UNAME=$(whoami) \
+  -t tfl_agg:0.1 \
+  -f ./dockerfiles/Dockerfile.agg \
+  .
+```
+
+3. Build a docker image from `Dockerfile.col`. We only build it once unless we change `Dockerfile.col`.
+```
+docker build \
+  --build-arg UID=$(id -u) \
+  --build-arg GID=$(id -g) \
+  --build-arg UNAME=$(whoami) \
+  -t tfl_col:0.1 \
+  -f ./dockerfiles/Dockerfile.col \
+  .
 ```
 
 
-4. Stop the cotainer running in the background after we finish everything. Goto step 2 if you need to start it later.
+4. Create several aliases to simplify the docker usage.
+First, we create an alias to run the docker container.
+We map the local volumes `./models/` and `./bin/` to the docker container.
+```shell
+alias tfl-col-docker='docker run \
+  --net=host \
+  -it --name=tfl_col \
+  --rm \
+  -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
+  -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
+  -w /home/$(whoami)/tfl/bin \
+  tfl_col:0.1'
 ```
-docker stop tfl_col0
+Second, we create an alias to run collaborators.
+```shell
+alias tfl-collaborator='tfl-col-docker \
+  ../venv/bin/python3 run_collaborator_from_flplan.py'
 ```
+
+
+5. Start a collaborator. 
+```shell
+tfl-collaborator -p mnist_a.yaml -col col_0
+```
+
+
+In case anytime you need to examine the docker container with a shell, just type
+```shell
+tfl-col-docker bash
+```
+

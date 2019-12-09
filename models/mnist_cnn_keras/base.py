@@ -120,9 +120,9 @@ class FLKerasModel(FLModel):
 
     def validate(self):
         vals = self.model.evaluate(self.x_val, self.y_val, verbose=0)
-        metrics_names = ['loss'] + self.model.metrics
+        metrics_names = self.model.metrics_names
         ret_dict = dict(zip(metrics_names, vals))
-        return ret_dict['accuracy']
+        return ret_dict['acc']
 
     def get_training_data_size(self):
         return len(self.x_train)

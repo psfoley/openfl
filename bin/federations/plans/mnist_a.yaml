@@ -31,7 +31,7 @@ model:
 aggregator:
   id           : agg_mnist
   # FIXME: should be assigned automatically
-  addr           : "spr-gpu01.jf.intel.com"
+  addr           : "spr-gpu02.jf.intel.com"
   # addr           : "127.0.0.1"
   port           : 8848
 

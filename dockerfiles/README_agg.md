@@ -1,54 +1,57 @@
-How to run a TFL aggregator in a docker container.
+# Tutorial: How to run a TFL aggregator in a docker container.
 
-
-1. Build a docker image from `Dockerfile.agg`. We only build it once unless we change `Dockerfile.agg`.
+1. Enter the project folder and clean the build folder.
 ```shell
-nvidia-docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) --build-arg UNAME=$(whoami) -t tfl:agg -f Dockerfile.agg .
+cd spr_secure_intelligence-trusted_federated_learning
+make clean
 ```
 
-
-2. Start a container in the background. Map the source code folder into the docker container in the development phase. We don't need a GPU for the aggregator since all operations are implemented with NumPy.
+2. Build a docker image from `Dockerfile.agg`.
+We only build it once unless we change `Dockerfile.agg`.
+We create a user with the same UID so that it is easier to access local volume from the docker container.
 ```shell
-nvidia-docker run -it \
---net=host \
--w /tfl/ \
--v /home/weilinxu/coder/spr_secure_intelligence-trusted_federated_learning:/tfl \
--e CUDA_VISIBLE_DEVICES=0 \
--d --rm \
---name=tfl_agg \
-tfl:agg \
-bash
+docker build \
+  --build-arg UID=$(id -u) \
+  --build-arg GID=$(id -g) \
+  --build-arg UNAME=$(whoami) \
+  -t tfl_agg:0.1 \
+  -f ./dockerfiles/Dockerfile.agg \
+  .
 ```
 
-
-3. Get an interactive shell to the container with the command anytime.
-```
-docker exec -it tfl_agg /bin/bash
-```
-
-
-4. Install the tfedlrn package.
-
-Currently, we install the package from the source code folder for active debugging.
-```
-pip install -e . --user
-```
-
-
-5. Run an MNIST example with only one collaborator.
+3. Create several aliases to simplify the docker usage.
+First, we create an alias to run the docker container.
+We map the local volume `./bin/` to the docker container.
 ```shell
-python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml
+alias tfl-agg-docker='docker run \
+  --net=host \
+  -it --name=tfl_agg \
+  --rm \
+  -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
+  -w /home/$(whoami)/tfl/bin \
+  tfl_agg:0.1'
 ```
-
-You can enable TLS and/or mutual authentication if you have generated the key pairs.
+Second, we create an alias to make the certificates that are required by TLS.
 ```shell
-python bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --enable_tls --certificate_folder files/grpc/ --require_client_auth
+alias tfl-make-local-certs='tfl-agg-docker bash -c "cd ..; make local_certs"'
+```
+Third, we create an alias to run aggregators.
+```shell
+alias tfl-aggregator='tfl-agg-docker \
+  ../venv/bin/python3 run_aggregator_from_flplan.py'
 ```
 
-Now switch to `README_col.md` to start a collaborator.
-
-
-6. You may stop the cotainer running in the background after we finish everything. Goto step 2 if you need to start it later.
+4. Generate the certificates for TLS communication.
+```shell
+tfl-make-local-certs
 ```
-docker stop tfl_agg
+
+5. Start an aggregator. 
+```shell
+tfl-aggregator -p mnist_a.yaml
+```
+
+In case anytime you need to examine the docker container with a shell, just type
+```shell
+tfl-agg-docker bash
 ```

@@ -3,7 +3,6 @@ import os
 import logging
 
 import numpy as np
-import tensorflow as tf
 import tensorboardX
 
 from .. import check_equal, check_not_equal, check_is_in, check_not_in

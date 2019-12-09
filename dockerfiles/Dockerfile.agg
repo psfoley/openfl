@@ -1,47 +1,36 @@
-FROM nvidia/cuda:9.0-cudnn7-runtime
+FROM ubuntu:18.04
 LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
 
 # Set up the Intel proxy server before building the Docker image.
 # Credit goes to Cory Cornelius. 
 ENV http_proxy http://proxy-chain.intel.com:911
 ENV https_proxy http://proxy-chain.intel.com:912
+ENV socks_proxy http://proxy-us.intel.com:1080
+ENV ftp_proxy http://proxy-us.intel.com:911
+ENV no_proxy intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
 
-RUN apt-get update
-RUN apt-get install -y python3-setuptools python-dev build-essential
-RUN easy_install3 pip
-RUN pip install --upgrade pip
-RUN pip install tensorflow-gpu==1.10.0 torch protobuf pyzmq
+RUN apt-get update && apt-get install -y \
+  python3-pip \
+  python3-venv
+RUN pip3 install --upgrade pip
 
-# For development.
-RUN pip install jupyter
-RUN apt-get install -y python3-dev
-RUN pip install line_profiler
-
-# Deprecated: This gets you an old v.2.6.1, while the latest is v3.9.0.
-# RUN apt-get install -y protobuf-compiler
-
-# Install protoc.
-RUN apt-get install -y curl
-RUN apt-get install -y unzip
-RUN curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.9.0/protoc-3.9.0-linux-x86_64.zip
-RUN unzip -o protoc-3.9.0-linux-x86_64.zip -d /usr/local bin/protoc
-RUN unzip -o protoc-3.9.0-linux-x86_64.zip -d /usr/local include/*
-RUN rm -f protoc-3.9.0-linux-x86_64.zip
-
-RUN ln -sf `which python3` `which python`
-
-RUN pip install coloredlogs pyyaml
-
+# Create a user with the same UID so that it is easier to access the mapped volume.
 ARG UNAME=testuser
 ARG UID=1000
 ARG GID=1000
 
 RUN groupadd -g $GID $UNAME; exit 0
-RUN useradd -m -u $UID -g $GID -s /bin/bash $UNAME
-
-CMD /bin/bash
-
-# Software version number
-ENV TFEDLRN_VER 1
-
+RUN useradd --no-log-init -m -u $UID -g $GID -s /bin/bash $UNAME
 USER $UNAME
+
+# Copy the artifacts.
+RUN mkdir /home/${UNAME}/tfl
+WORKDIR /home/${UNAME}/tfl
+# FIXME: The COPY --chown does not recognize ENV or ARG yet.
+USER root
+COPY . .
+RUN chown -R ${UNAME}:${UNAME} *
+USER $UNAME
+
+# Install the tfedlrn package and its dependency.
+RUN make install

@@ -4,14 +4,14 @@
 *.lock
 *.ipynb_checkpoints*
 *.swp
+__pycache__
+.pytest_cache
 dist/
 build/
 logs/
 .vscode/
 venv/
-initial_models/
 tfedlrn.egg-info/
-todo.txt
 docs/_build
 bin/out
 bin/federations/certs

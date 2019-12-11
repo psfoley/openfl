@@ -13,8 +13,8 @@ Aggregator
     $ cd spr_secure_intelligence-trusted_federated_learning
     $ make clean
 
-2. Build a docker image "tfl_agg:0.1" from "Dockerfile.agg".
-We only build it once unless we change `Dockerfile.agg`.
+2. Build a docker image "tfl_agg:0.1" from "Dockerfile".
+We only build it once unless we change `Dockerfile`.
 We create a user with the same UID so that it is easier
 to access local volume from the docker container.
 
@@ -123,8 +123,8 @@ collaborator image (`Dockerfile.agg`).
   .
 
 
-3. Build a docker image from `Dockerfile.col`.
-We only build it once unless we change `Dockerfile.col`.
+3. Build a docker image from `Dockerfile`.
+We only build it once unless we change `Dockerfile` or the base image.
 
 .. code-block:: console
 
@@ -134,8 +134,7 @@ We only build it once unless we change `Dockerfile.col`.
   .
 
 
-4. Create several aliases to simplify the docker usage.
-First, we create an alias to run the docker container.
+4. Create an alias to run the docker container.
 We map the local volumes `./models/` and `./bin/` to the docker container.
 
 .. code-block:: console
@@ -149,20 +148,24 @@ We map the local volumes `./models/` and `./bin/` to the docker container.
   -w /home/$(whoami)/tfl/bin \
   tfl_col:0.1'
 
-Second, we create an alias to run collaborators.
-
-.. code-block:: console
-
-  $ alias tfl-collaborator='tfl-col-docker \
-  ../venv/bin/python3 run_collaborator_from_flplan.py'
-
-
-
 5. Start a collaborator.
+A collaborator needs to prepare a dataset that meets the requirement
+of a federated learning plan.
+As an example, we perform dataset preparation and start the collaborator
+in one line of command:
 
 .. code-block:: console
 
-  $ tfl-collaborator -p mnist_a.yaml -col col_0
+
+  $ tfl-col-docker bash -c "mkdir -p ../datasets/mnist_batch; \
+  ../venv/bin/python3 \
+  ../models/mnist_cnn_keras/prepare_dataset.py \
+  -ts=0 \
+  -te=6000 \
+  -vs=0 \
+  -ve=1000 \
+  --output_path=../datasets/mnist_batch/mnist_batch.npz; \
+  ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_0;"
 
 
 In case anytime you need to examine the docker container
@@ -171,5 +174,3 @@ with a shell, just type
 .. code-block:: console
 
   $ tfl-col-docker bash
-
-

@@ -16,23 +16,21 @@ description     : Train a model to recognize hand-written digits from 0 to 9.
 status          : active
 # The federation/plan ID is linked to certain software version, code (including model architecture), initialization, dataset, aggregation configuration, etc.
 federation      : fl_mnist_conv2fc2
-dataset         : mnist_batch
-software_version: '1'
 
 model:
   name     : mnist_cnn_keras
   optimizer: SGD
   # The code includes pre-processing.
-  code:
-    # Basically the name under models/
-    path     : mnist_cnn_keras
-    version  : 1  
+  code_path: models.mnist_cnn_keras
+  version : 1
+  params:
+    # The dataset path will be copy from the dataset section.
+    batch_size: 256
+    dataset_path: ../datasets/mnist_batch/mnist_batch.npz
 
 aggregator:
   id           : agg_mnist
-  # FIXME: should be assigned automatically
   addr           : "spr-gpu02.jf.intel.com"
-  # addr           : "127.0.0.1"
   port           : 8848
 
   collaborators  : 1

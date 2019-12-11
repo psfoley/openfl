@@ -1,6 +1,6 @@
 import numpy as np
 
-from tfedlrn.proto.message_pb2 import TensorProto, ModelProto, ModelHeader
+from tfedlrn.proto.collaborator_aggregator_interface_pb2 import TensorProto, ModelProto, ModelHeader
 
 def export_weights(model_name, version, tensor_dict, fpath):
     """

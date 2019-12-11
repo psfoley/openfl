@@ -65,8 +65,8 @@ bin/federations/certs/test/local.crt: bin/federations/certs/test/local.csr bin/f
 	openssl x509 -req -in bin/federations/certs/test/local.csr -CA bin/federations/certs/test/ca.crt -CAkey bin/federations/certs/test/ca.key -CAcreateserial -out bin/federations/certs/test/local.crt
 
 clean:
-	rm -rf venv
-	rm -rf dist
-	rm -rf build
-	rm -rf tfedlrn.egg-info
-	rm -rf bin/federations/certs/test/*
+	rm -r -f venv
+	rm -r -f dist
+	rm -r -f build
+	rm -r -f tfedlrn.egg-info
+	rm -r -f bin/federations/certs/test/*

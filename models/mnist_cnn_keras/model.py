@@ -1,14 +1,11 @@
 import logging
-
+import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Flatten, Dense
 from .base import FLKerasModel
-
-from tensorflow.keras.datasets import mnist
-
 
 class ConvModel(FLKerasModel):
     """A convolutional neural network model for MNIST.
@@ -22,30 +19,28 @@ class ConvModel(FLKerasModel):
     split_idx : int
         The index of the selected shard.
     """
-    def __init__(self, batch_size=32, splits=[1,2], split_idx=None):
-        super(ConvModel, self).__init__(batch_size=batch_size, splits=splits, split_idx=split_idx)
+    def __init__(self, dataset_path, batch_size=256):
+        super(ConvModel, self).__init__(batch_size=batch_size)
         self.logger = logging.getLogger(__name__)
         self.batch_size = batch_size
-        input_shape, num_classes, self.x_train, self.y_train, self.x_val, self.y_val = self.load_dataset()
-
-        if splits is not None and split_idx is not None:
-            train_idx, val_idx = self.get_data_shard_idx(True, splits, split_idx)
-            self.x_train = self.x_train[train_idx]
-            self.y_train = self.y_train[train_idx]
-            self.x_val = self.x_val[val_idx]
-            self.y_val = self.y_val[val_idx]
+        input_shape, num_classes, self.x_train, self.y_train, self.x_val, self.y_val = self.load_dataset(dataset_path)
         self.model = self.build_model(input_shape, num_classes)
         print(self.model.summary())
         print("Training set size: %d; Validation set size: %d" % (len(self.y_train), len(self.y_val)))
 
         self.is_initial = True
-
         self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)
 
+            
     @staticmethod
-    def load_dataset():
+    def load_dataset(raw_path):
         """
         Load the MNIST dataset.
+
+        Params
+        ------
+        raw_path: str
+            The path to the raw npz file.
 
         Returns
         -------
@@ -62,9 +57,15 @@ class ConvModel(FLKerasModel):
         numpy.ndarray
             The validation labels.
         """
+        def _load_raw_dataset(path):
+            with np.load(path) as f:
+                x_train, y_train = f['x_train'], f['y_train']
+                x_test, y_test = f['x_test'], f['y_test']
+                return (x_train, y_train), (x_test, y_test)
+
         img_rows, img_cols = 28, 28
         num_classes = 10
-        (x_train, y_train), (x_test, y_test) = mnist.load_data()
+        (x_train, y_train), (x_test, y_test) = _load_raw_dataset(raw_path)
         if K.image_data_format() == 'channels_first':
             x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
             x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
@@ -88,42 +89,6 @@ class ConvModel(FLKerasModel):
         y_test = keras.utils.to_categorical(y_test, num_classes)
 
         return input_shape, num_classes, x_train, y_train, x_test, y_test
-
-    def get_data_shard_idx(self, is_iid, splits, split_idx):
-        """
-        Split the dataset.
-
-        Parameters
-        ----------
-        is_iid : bool
-            If it is independent and identically distributed.
-        splits : list
-            A list of size of the shards.
-        split_idx: int
-            The index of the selected shard.
-
-        Returns
-        -------
-        range
-            The training data index range.
-        range
-            The validation data index range.
-        """
-
-        if not(len(splits) > split_idx):
-            self.logger.exception("Assertion failed: len(splits) > split_idx")
-        if is_iid:
-            # The orginal dataset is I.I.D. Easy.
-            total = sum(splits)
-            start = sum(splits[:split_idx]) / total
-            end = sum(splits[:split_idx+1]) / total
-            train_size, val_size = len(self.x_train), len(self.x_val)
-
-            train_idx = range(int(train_size * start), int(train_size * end))
-            val_idx = range(int(val_size * start), int(val_size * end))
-            return train_idx, val_idx
-        else:
-            raise NotImplementedError
 
 
     @staticmethod

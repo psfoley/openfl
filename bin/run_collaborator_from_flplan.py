@@ -10,9 +10,9 @@ from tfedlrn import load_flplan
 
 from setup_logging import setup_logging
 
-def load_model(code_name):
-    module = importlib.import_module(code_name)
-    model = module.get_model()
+def load_model(code_path, **kwargs):
+    module = importlib.import_module(code_path)
+    model = module.get_model(**kwargs)
     return model
 
 def main(plan, collaborator_id):
@@ -31,7 +31,7 @@ def main(plan, collaborator_id):
     cert_dir = os.path.join(base_dir, 'certs', tls_config['cert_folder'])
 
     #FIXME: model loading needs to received model paramters from flplan (#17)
-    wrapped_model = load_model("models." + model_config['name'])
+    wrapped_model = load_model(model_config['code_path'], **model_config['params'])
     opt_treatment = flplan['collaborator']['opt_vars_treatment']
     
     channel = CollaboratorGRPCClient(addr=agg_config['addr'],
@@ -47,7 +47,7 @@ def main(plan, collaborator_id):
                                 flplan['federation'],
                                 wrapped_model,
                                 channel,
-                                model_config['code']['version'],
+                                model_config['version'],
                                 opt_treatment=opt_treatment)
 
     collaborator.run()

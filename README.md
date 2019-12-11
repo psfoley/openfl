@@ -2,6 +2,7 @@
 [![coverage report](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/coverage.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 
 
+See the [online documentation](https://weilinxu.gitlab-pages.devtools.intel.com/spr_secure_intelligence-trusted_federated_learning/)
 
 gRPC refactor:
 

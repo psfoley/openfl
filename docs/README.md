@@ -6,6 +6,7 @@ The documentation project has been initialized properly and we basically just ne
 If we ever change the code structure since last compilation, we may need to regenerate the docstring index:
 ```shell
 sphinx-apidoc -f -o . ../tfedlrn
+sphinx-apidoc -f -o . ../models
 ```
 
 The command detects the code structure under `../tfedlrn` and generats a series of `*.rst` files, such as `tfedlrn.aggregator.rst`.

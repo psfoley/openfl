@@ -1,13 +1,19 @@
 FROM ubuntu:18.04
 LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
 
-# Set up the Intel proxy server before building the Docker image.
+# Set up the proxy servers before building the Docker image.
 # Credit goes to Cory Cornelius. 
-ENV http_proxy http://proxy-chain.intel.com:911
-ENV https_proxy http://proxy-chain.intel.com:912
-ENV socks_proxy http://proxy-us.intel.com:1080
-ENV ftp_proxy http://proxy-us.intel.com:911
-ENV no_proxy intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+ARG http_proxy
+ARG https_proxy
+ARG socks_proxy
+ARG ftp_proxy
+ARG no_proxy
+
+ENV http_proxy=$http_proxy
+ENV https_proxy=$https_proxy
+ENV socks_proxy=$socks_proxy
+ENV ftp_proxy=$ftp_proxy
+ENV no_proxy=$no_proxy
 
 RUN apt-get update && apt-get install -y \
   python3-pip \

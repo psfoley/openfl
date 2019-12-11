@@ -1,6 +1,10 @@
 Tutorials
 *********
 
+.. toctree::
+
+   tutorial.docker
+
 MNIST Examples
 ---------------
 First, let's enter the example code folder:

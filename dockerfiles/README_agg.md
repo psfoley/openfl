@@ -11,6 +11,11 @@ We only build it once unless we change `Dockerfile.agg`.
 We create a user with the same UID so that it is easier to access local volume from the docker container.
 ```shell
 docker build \
+  --build-arg http_proxy \
+  --build-arg https_proxy \
+  --build-arg socks_proxy \
+  --build-arg ftp_proxy \
+  --build-arg no_proxy \
   --build-arg UID=$(id -u) \
   --build-arg GID=$(id -g) \
   --build-arg UNAME=$(whoami) \

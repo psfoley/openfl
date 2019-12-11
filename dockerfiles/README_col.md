@@ -11,6 +11,11 @@ make clean
 2. Build the aggregator image, which is the parent of the collaborator image (`Dockerfile.agg`).
 ```shell
 docker build \
+  --build-arg http_proxy \
+  --build-arg https_proxy \
+  --build-arg socks_proxy \
+  --build-arg ftp_proxy \
+  --build-arg no_proxy \
   --build-arg UID=$(id -u) \
   --build-arg GID=$(id -g) \
   --build-arg UNAME=$(whoami) \
@@ -22,9 +27,6 @@ docker build \
 3. Build a docker image from `Dockerfile.col`. We only build it once unless we change `Dockerfile.col`.
 ```
 docker build \
-  --build-arg UID=$(id -u) \
-  --build-arg GID=$(id -g) \
-  --build-arg UNAME=$(whoami) \
   -t tfl_col:0.1 \
   -f ./dockerfiles/Dockerfile.col \
   .

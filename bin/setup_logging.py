@@ -4,7 +4,21 @@ import logging.config
 import coloredlogs
 import yaml
 
-def setup_logging(path="logging.yaml", default_level=logging.INFO):
+def setup_logging(path="logging.yaml", default_level='info'):
+    logging_level_dict = {
+     'notset': logging.NOTSET,
+     'debug': logging.DEBUG,
+     'info': logging.INFO,
+     'warning': logging.WARNING,
+     'error': logging.ERROR,
+     'critical': logging.CRITICAL
+    }
+
+    default_level = default_level.lower()
+    if default_level not in logging_level_dict:
+        raise Exception("Not supported logging level: %s", default_level)
+    default_level = logging_level_dict[default_level]
+
     if os.path.isfile(path):
         with open(path, 'r') as f:
             try:

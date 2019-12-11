@@ -10,8 +10,8 @@ from tfedlrn import load_flplan
 from setup_logging import setup_logging
 
 
-def main(plan):
-    setup_logging()
+def main(plan, logging_config_path, logging_default_level):
+    setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -46,5 +46,7 @@ def main(plan):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
+    parser.add_argument('--logging_config_path', '-c', type=str, default="logging.yaml")
+    parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

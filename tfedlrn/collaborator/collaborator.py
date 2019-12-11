@@ -66,7 +66,7 @@ class Collaborator(object):
         check_equal(reply.header.federation_id, self.fed_id, self.logger)
 
     def run(self):
-        self.logger.debug("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
+        self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
         self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
         while True:
             # query for job
@@ -136,7 +136,7 @@ class Collaborator(object):
         reply = self.channel.UploadLocalModelUpdate(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
         self.validate_header(reply)
         check_type(reply, LocalModelUpdateAck, self.logger)
-        self.logger.debug("Model sent.")
+        self.logger.info("Model update succesfully sent to aggregtor")
 
     def do_validate_job(self):
         results = self.wrapped_model.validate()
@@ -151,7 +151,7 @@ class Collaborator(object):
         # sanity check on version is implicit in send
         reply = self.channel.DownloadModel(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
         self.validate_header(reply)
-        self.logger.debug("Completed the downloading job.")
+        self.logger.info("Completed the model downloading job.")
 
         check_type(reply, GlobalModelUpdate, self.logger)
         

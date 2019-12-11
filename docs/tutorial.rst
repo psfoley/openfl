@@ -88,6 +88,8 @@ The PKI consists of the following files on the following machines:
      
 Therefore, we will need to create the ca and copy its public .crt file to each other node. On those other nodes, we will create a private key and a cert signing request (.csr file). The .csr files must be copied to the governor, signed and the output .crt files copied back to the corresponding aggregator/collaborator. NOTE: at the moment, aggregator/collaborator .csr files all have the same name, which will be error prone. We need to fix this.
 
+NOTE: our openssl commands are consistent with openssl 1.0.2 command line interface, including all implied defaults. Older/newer versions with different interfaces/defaults could alter the behavior of these commands!
+
 To create the CA, we run:
 
 .. code-block:: console

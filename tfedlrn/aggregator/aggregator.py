@@ -115,10 +115,9 @@ class Aggregator(object):
                                weights=[self.per_col_round_stats["collaborator_validation_sizes"][c] for c in self.col_ids])
 
         # FIXME: proper logging
-        # FIXME: log this to debug is good, but where does this output ultimately go?
-        self.logger.debug('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
-        self.logger.debug('\tvalidation: {}'.format(round_val))
-        self.logger.debug('\tloss: {}'.format(round_loss))
+        self.logger.info('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
+        self.logger.info('\tvalidation: {}'.format(round_val))
+        self.logger.info('\tloss: {}'.format(round_loss))
 
         self.tb_writer.add_scalars('training/loss', {**self.per_col_round_stats["loss_results"], "federation": round_loss}, global_step=self.round_num)
         self.tb_writer.add_scalars('training/size', self.per_col_round_stats["collaborator_training_sizes"], global_step=self.round_num)
@@ -137,7 +136,7 @@ class Aggregator(object):
 
         model_score = round_val
         if self.best_model_score is None or self.best_model_score < model_score:
-            self.logger.debug("Saved the best model with score {:f}.".format(model_score))
+            self.logger.info("Saved the best model with score {:f}.".format(model_score))
             self.best_model_score = model_score
             dump_proto(self.model, self.best_model_fpath)
 
@@ -150,7 +149,7 @@ class Aggregator(object):
         t = time.time()
         self.validate_header(message)
 
-        self.logger.debug("Receive model update from %s " % message.header.sender)
+        self.logger.info("Receive model update from %s " % message.header.sender)
         model_proto = message.model
         model_header = model_proto.header
 
@@ -300,7 +299,7 @@ class Aggregator(object):
         t = time.time()
         self.validate_header(message)
 
-        self.logger.debug("Received model download request from %s " % message.header.sender)
+        self.logger.info("Received model download request from %s " % message.header.sender)
 
         # check if the models don't match
         if not(self.collaborator_out_of_date(message.model_header)):

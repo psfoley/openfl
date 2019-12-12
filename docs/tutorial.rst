@@ -37,9 +37,12 @@ Federated MNIST with full TLS:
     python grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --ca=files/grpc/localhost.crt --certificate=files/grpc/spr-gpu02.jf.intel.com.crt --private_key=files/grpc/private/spr-gpu02.jf.intel.com.key
     python grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id 0 --ca=files/grpc/localhost.crt --certificate=files/grpc/10.24.14.200.crt --private_key=files/grpc/private/10.24.14.200.key
 
+.. _tutorial-tls-pki:
+
 Setting up PKI for TLS
----------------
-The PKI consists of the following files on the following machines:
+----------------------
+
+  The PKI consists of the following files on the following machines:
 
 .. list-table:: PKI Files
    :widths: 25 25 25 25

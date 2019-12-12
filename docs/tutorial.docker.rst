@@ -84,7 +84,7 @@ with a shell, just type
   $ tfl-agg-docker bash
 
 
-Collaborator
+Collaborators
 ^^^^^^^^^^^^^
 
 We build the Docker image for collaborators upon the
@@ -134,21 +134,39 @@ We only build it once unless we change `Dockerfile` or the base image.
   .
 
 
-4. Create an alias to run the docker container.
+4. Create alias to run the docker container.
+We set a different name for different collaborators,
+while they share the same docker image.
 We map the local volumes `./models/` and `./bin/` to the docker container.
 
 .. code-block:: console
 
-  $ alias tfl-col-docker='docker run \
+  $ alias tfl-docker-col0='docker run \
   --net=host \
-  -it --name=tfl_col \
+  -it --name=tfl_col_0 \
   --rm \
   -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
   -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
   -w /home/$(whoami)/tfl/bin \
   tfl_col:0.1'
 
-5. Start a collaborator.
+  $ alias tfl-docker-col1='docker run \
+  --net=host \
+  -it --name=tfl_col_1 \
+  --rm \
+  -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
+  -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
+  -w /home/$(whoami)/tfl/bin \
+  tfl_col:0.1'
+
+5. Set up TLS certificates.
+Copy the CA certificate and the local certificates signed by the CA.
+
+.. code-block:: console
+
+  $ copy ca.crt local.crt local.key bin/certs/test/
+
+6. Start collaborators.
 A collaborator needs to prepare a dataset that meets the requirement
 of a federated learning plan.
 As an example, we perform dataset preparation and start the collaborator
@@ -156,8 +174,7 @@ in one line of command:
 
 .. code-block:: console
 
-
-  $ tfl-col-docker bash -c "mkdir -p ../datasets/mnist_batch; \
+  $ tfl-docker-col0 bash -c "mkdir -p ../datasets/mnist_batch; \
   ../venv/bin/python3 \
   ../models/mnist_cnn_keras/prepare_dataset.py \
   -ts=0 \
@@ -167,10 +184,21 @@ in one line of command:
   --output_path=../datasets/mnist_batch/mnist_batch.npz; \
   ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_0;"
 
+  $ tfl-docker-col1 bash -c "mkdir -p ../datasets/mnist_batch; \
+  ../venv/bin/python3 \
+  ../models/mnist_cnn_keras/prepare_dataset.py \
+  -ts=6000 \
+  -te=12000 \
+  -vs=1000 \
+  -ve=2000 \
+  --output_path=../datasets/mnist_batch/mnist_batch.npz; \
+  ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_1;"
+
 
 In case anytime you need to examine the docker container
 with a shell, just type
 
 .. code-block:: console
 
-  $ tfl-col-docker bash
+  $ tfl-docker-col0 bash
+  $ tfl-docker-col1 bash

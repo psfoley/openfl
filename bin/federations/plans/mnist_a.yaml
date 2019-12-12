@@ -30,10 +30,10 @@ model:
 
 aggregator:
   id           : agg_mnist
-  addr           : "spr-gpu02.jf.intel.com"
+  addr           : "spr-gpu01.jf.intel.com"
   port           : 8848
 
-  collaborators  : 1
+  collaborators  : 2
   initial_weights: mnist_cnn_keras_init.pbuf
   latest_weights : mnist_cnn_keras_latest.pbuf
   best_weights   : mnist_cnn_keras_best.pbuf

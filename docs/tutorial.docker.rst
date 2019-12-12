@@ -99,7 +99,7 @@ Third, we create an alias to run aggregators.
 .. code-block:: console
 
   $ alias tfl-aggregator='tfl-agg-docker \
-  ../venv/bin/python3 run_aggregator_from_flplan.py'
+  python3 run_aggregator_from_flplan.py'
 
 
 4. Generate the certificates for TLS communication.
@@ -245,24 +245,24 @@ in one line of command:
 .. code-block:: console
 
   $ tfl-docker-col0 bash -c "mkdir -p ../datasets/mnist_batch; \
-  ../venv/bin/python3 \
+  python3 \
   ../models/mnist_cnn_keras/prepare_dataset.py \
   -ts=0 \
   -te=6000 \
   -vs=0 \
   -ve=1000 \
   --output_path=../datasets/mnist_batch/mnist_batch.npz; \
-  ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_0;"
+  python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_0;"
 
   $ tfl-docker-col1 bash -c "mkdir -p ../datasets/mnist_batch; \
-  ../venv/bin/python3 \
+  python3 \
   ../models/mnist_cnn_keras/prepare_dataset.py \
   -ts=6000 \
   -te=12000 \
   -vs=1000 \
   -ve=2000 \
   --output_path=../datasets/mnist_batch/mnist_batch.npz; \
-  ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_1;"
+  python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_1;"
 
 
 In case anytime you need to examine the docker container

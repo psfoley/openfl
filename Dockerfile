@@ -40,3 +40,4 @@ USER $UNAME
 
 # Install the tfedlrn package and its dependency.
 RUN make install
+ENV PATH=/home/${UNAME}/tfl/venv/bin:$PATH

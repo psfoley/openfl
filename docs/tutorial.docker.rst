@@ -1,13 +1,25 @@
 
-Tutorial: How to set up Federated Learning on Docker
---------------------------------------------------------
+How to set up Federated Learning on Docker
+-------------------------------------------
 
 We will show you how to set up federated learning on Docker
 using the simplest MNIST dataset as an example.
 
+Before we start the tutorial, please make sure you have Docker
+installed and confugured properly. Here is a easy test to run:
 
-Aggregator
-^^^^^^^^^^^^
+.. code-block:: console
+
+  $ docker run hello-world
+  Hello from Docker!
+  This message shows that your installation appears to be working correctly.
+  ...
+  ...
+  ...
+
+
+Start an Aggregator
+^^^^^^^^^^^^^^^^^^^^
 1. Enter the project folder and clean the build folder.
 Note that "spr_secure_intelligence-trusted_federated_learning"
 is the folder name we chose for the local repository.
@@ -27,7 +39,7 @@ It can be anything of your choice on your machine.
 We only build it once unless we change `Dockerfile`.
 We pass along the proxy configuration from the host machine
 to the docker container, so that your container would be
-able to access Internet from typical corporate networks.
+able to access the Internet from typical corporate networks.
 We also create a user with the same UID so that it is easier
 to access the mapped local volume from the docker container.
 
@@ -140,8 +152,8 @@ with a shell, just type
   $ tfl-agg-docker bash
 
 
-Collaborators
-^^^^^^^^^^^^^
+Start Collaborators
+^^^^^^^^^^^^^^^^^^^^
 
 We build the Docker image for collaborators upon the
 aggregator image, adding necessary dependencies such as
@@ -260,3 +272,17 @@ with a shell, just type
 
   $ tfl-docker-col0 bash
   $ tfl-docker-col1 bash
+
+
+Understand federated learning using Tensorboard
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The aggregator collects performace readings from the
+collaborators and the federation, and outputs to
+Tensorboard checkpoints. You can start a separate Tensorboard
+program to visualize the learning process.
+
+.. code-block:: console
+
+  $ tensorboard --logdir ./federation/logs
+

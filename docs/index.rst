@@ -6,7 +6,21 @@
 Welcome to tfedlrn's documentation!
 ===================================
 
-TODO: Give some brief introduction here.
+**tfedlrn** is a Python3 library for federated learning.
+It enables organizations to collaborately train a
+model without sharing sensitive information with each other.
+
+There are basically two components in the library:
+the *collaborator* which uses local sensitive dataset to fine-tune
+the aggreagated model and the *aggreagator* which receives
+model updates from collaborators and distribute the aggregated
+models.
+
+The *aggregator* is framework-anostic, while the *collaborator*
+can use any deep learning frameworks, such as Tensorflow or
+Pytorch.
+
+**tfedlrn** is developed by Secure Intelligence Team, Intel Labs.
 
 .. toctree::
    :maxdepth: 2

@@ -45,7 +45,9 @@ class AggregatorGRPCServer(AggregatorServicer):
             File path to the private key.
         """
         logger = logging.getLogger(__name__)
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), 
+                             options=[('grpc.max_send_message_length', 128 * 1024 * 1024),
+                                      ('grpc.max_receive_message_length', 128 * 1024 * 1024)])
         add_AggregatorServicer_to_server(self, server)
         uri = "{addr:s}:{port:d}".format(addr=addr, port=port)
 

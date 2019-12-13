@@ -22,7 +22,7 @@ model:
   code_path: models.brats_2dunet_tensorflow
   version : 1
   params:
-    batch_size: 64
+    batch_size: 1024
     percent_train: 0.8
     shuffle: True
     dataset_path: ../datasets/brats/

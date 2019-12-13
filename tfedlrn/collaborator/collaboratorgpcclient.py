@@ -9,6 +9,9 @@ class CollaboratorGRPCClient():
         self.logger = logging.getLogger(__name__)
         uri = "{addr:s}:{port:d}".format(addr=addr, port=port)
 
+        self.channel_options=[('grpc.max_send_message_length', 128 * 1024 * 1024),
+                              ('grpc.max_receive_message_length', 128 * 1024 * 1024)]
+
         if disable_tls:
             self.channel = self.create_insecure_channel(uri)
         else:
@@ -19,7 +22,7 @@ class CollaboratorGRPCClient():
         
     def create_insecure_channel(self, uri):
         self.logger.warn("gRPC is running on insecure channel with TLS disabled.")
-        return grpc.insecure_channel(uri)
+        return grpc.insecure_channel(uri, options=self.channel_options)
 
     def create_tls_channel(self, uri, ca, disable_client_auth, certificate, private_key):
         with open(ca, 'rb') as f:
@@ -40,7 +43,7 @@ class CollaboratorGRPCClient():
             private_key=private_key,
             certificate_chain=client_cert
         )
-        return grpc.secure_channel(uri, credentials)
+        return grpc.secure_channel(uri, credentials, options=self.channel_options)
 
     def RequestJob(self, message):
         return self.stub.RequestJob(message)

@@ -16,32 +16,33 @@ description     : Train a model to perform semantic segmentation on brain fMRI i
 status          : active
 # The federation/plan ID is linked to certain software version, code (including model architecture), initialization, dataset, aggregation configuration, etc.
 federation      : fl_brats_2dunet
-dataset         : BraTS17
-software_version: '1'
 
 model:
-  # TODO: hyper-parameters
-  # The code includes pre-processing.
   name     : brats_2dunet_tensorflow
-  # We may specify the optimizer and other hyper-parameters to the code.
-  optimizer: SGD
-  code:
-    path: brats_2dunet_tensorflow
-    kwargs:
-      batch_size: 64
-      shuffle: True
+  code_path: models.brats_2dunet_tensorflow
+  version : 1
+  params:
+    batch_size: 64
+    percent_train: 0.8
+    shuffle: True
+    dataset_path: ../datasets/brats/
 
 aggregator:
-  id           : agg_brats
-  # FIXME: should be assigned automatically
-  addr           : "*"
-  port           : 8849
+  id             : agg_brats
+  addr           : "spr-gpu01.jf.intel.com"
+  port           : 8878
 
   # FIXME: a list of names who are permitted to join the federation. 
-  collaborators  : 2
-  initial_weights: ./federations/weights/TensorFlow2DUNet_init.pbuf
-  latest_weights : ./federations/weights/TensorFlow2DUNet_latest.pbuf
+  collaborators  : 1
+  initial_weights: TensorFlow2DUNet_init.pbuf
+  latest_weights : TensorFlow2DUNet_latest.pbuf
+  best_weights   : TensorFlow2DUNet_best.pbuf
 
 collaborator:
   opt_vars_treatment : RESET
   sync_per_iterations: 100 
+
+tls:
+  disable             : True
+  disable_client_auth : True
+  cert_folder         : test

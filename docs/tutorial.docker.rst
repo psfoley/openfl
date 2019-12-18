@@ -234,7 +234,8 @@ in this example. But it will be very WRONG in practice.
 
 .. code-block:: console
 
-  $ copy ca.crt local.crt local.key bin/certs/test/
+  $ mkdir -p bin/federations/certs/test/
+  $ cp ca.crt local.crt local.key bin/federations/certs/test/
 
 6. Start collaborators.
 A collaborator needs to prepare a dataset that meets the requirement

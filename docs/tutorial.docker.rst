@@ -175,10 +175,10 @@ collaborator image (`Dockerfile.agg`).
   -f Dockerfile \
   .
 
-3. Set up the TLS certificates. Create a directory to store the certificates, then 
+3. Copy over authentication files. Create a directory, then 
 copy the files: ca.cert local.cert and local.key (from the machine running 
 the aggregator and created during step 4 of 'Start an Aggregator' above) into this 
-new directory. Of course this is not standard practice, but is for testing 
+directory. Of course this is not standard practice, but is for testing 
 purposes only.
 
 .. code-block:: console  
@@ -226,7 +226,7 @@ though they share the same docker image.
   -w /home/$(whoami)/tfl/bin \
   tfl_col:0.1'
 
-6. Start first collaborator.
+6. In the first shell, start the first collaborator.
 A collaborator needs to prepare a dataset that meets the requirements
 of the federated learning plan. We utilize a test script in order to
 partition the MNIST dataset across the two collaborators.
@@ -243,7 +243,7 @@ partition the MNIST dataset across the two collaborators.
   --output_path=../datasets/mnist_batch/mnist_batch.npz; \
   python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_0;"
 
-7. Start second collaborator.
+7. Start the second collaborator in the second shell.
 
 
 .. code-block:: console

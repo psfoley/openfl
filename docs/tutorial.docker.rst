@@ -74,8 +74,7 @@ to access the mapped local volume from the docker container.
   Successfully tagged tfl_agg:0.1
   $
 
-3. Create several aliases to simplify the docker usage.
-First, we create an alias to run the docker container.
+3. Create a shell alias to run the docker container for the aggregator.
 We map the local volume `./bin/` to the docker container.
 
 .. code-block:: console
@@ -88,20 +87,6 @@ We map the local volume `./bin/` to the docker container.
   -w /home/$(whoami)/tfl/bin \
   tfl_agg:0.1'
 
-Second, we create an alias to make the certificates that are required by TLS.
-
-.. code-block:: console
-
-  $ alias tfl-make-local-certs='tfl-agg-docker bash -c "cd ..; make local_certs"'
-
-Third, we create an alias to run aggregators.
-
-.. code-block:: console
-
-  $ alias tfl-aggregator='tfl-agg-docker \
-  python3 run_aggregator_from_flplan.py'
-
-
 4. Generate the certificates for TLS communication.
 The folder of certificates is initially empty.
 We will generate the certificates using a script.
@@ -111,7 +96,7 @@ The details of TLS, see :ref:`tutorial-tls-pki`.
 
   $ ls bin/federations/certs/test/
   $
-  $ tfl-make-local-certs
+  $ tfl-agg-docker bash -c "cd ..; make local_certs"
   openssl genrsa -out bin/federations/certs/test/local.key 3072
   Generating RSA private key, 3072 bit long modulus (2 primes)
   ............++++
@@ -141,7 +126,7 @@ The details of TLS, see :ref:`tutorial-tls-pki`.
 
 .. code-block:: console
 
-  $ tfl-aggregator -p mnist_a.yaml
+  $ tfl-agg-docker python3 run_aggregator_from_flplan.py -p mnist_a.yaml
   Loaded logging configuration: logging.yaml
 
 In case anytime you need to examine the docker container
@@ -161,8 +146,8 @@ the mainstream deep learning frameworks.
 You may modify `./models/<model_name>/Dockerfile` to install
 the needed packages.
 
-You should **skip the first two steps** if you are building
-the collaborator image on the same machine as the aggregator.
+You should **skip the first three steps** if you are running
+the collaborators on the same machine as the aggregator for this test.
 
 1. (Optional) Enter the project folder and clean the build folder.
 
@@ -190,8 +175,18 @@ collaborator image (`Dockerfile.agg`).
   -f Dockerfile \
   .
 
+3. Set up the TLS certificates. Create a directory to store the certificates, then 
+copy the files: ca.cert local.cert and local.key (from the machine running 
+the aggregator and created during step 4 of 'Start an Aggregator' above) into this 
+new directory. Of course this is not standard practice, but is for testing 
+purposes only.
 
-3. Build a docker image from `Dockerfile` provided by the model.
+.. code-block:: console  
+
+  $ mkdir -p bin/federations/certs/test/
+  $ scp <agg machine hostname>:<appropriate dirctory>/\{ca.crt,local.crt,local.key\} bin/federations/certs/test/
+
+4. Build a docker image from `Dockerfile` provided by the model.
 We only build it once unless we change `Dockerfile` or the base image.
 
 .. code-block:: console
@@ -202,9 +197,7 @@ We only build it once unless we change `Dockerfile` or the base image.
   .
 
 
-4. Create alias to run the docker container.
-We set a different name for different collaborators,
-while they share the same docker image.
+5. Create an alias to run the first collaborator container.
 We map the local volumes `./models/` and `./bin/` to the docker container.
 
 .. code-block:: console
@@ -218,6 +211,12 @@ We map the local volumes `./models/` and `./bin/` to the docker container.
   -w /home/$(whoami)/tfl/bin \
   tfl_col:0.1'
 
+6. In a second shell, create an alias to run the second collaborator container.
+Note that we set different names for the two collaborator containers,
+though they share the same docker image.
+
+.. code-block:: console
+
   $ alias tfl-docker-col1='docker run \
   --net=host \
   -it --name=tfl_col_1 \
@@ -227,21 +226,10 @@ We map the local volumes `./models/` and `./bin/` to the docker container.
   -w /home/$(whoami)/tfl/bin \
   tfl_col:0.1'
 
-5. Set up TLS certificates.
-Copy the CA certificate and the local certificates signed by the CA.
-We just let the two collaborators share the same private key for simplicity
-in this example. But it will be very WRONG in practice.
-
-.. code-block:: console
-
-  $ mkdir -p bin/federations/certs/test/
-  $ cp ca.crt local.crt local.key bin/federations/certs/test/
-
-6. Start collaborators.
-A collaborator needs to prepare a dataset that meets the requirement
-of a federated learning plan.
-As an example, we perform dataset preparation and start the collaborator
-in one line of command:
+6. Start first collaborator.
+A collaborator needs to prepare a dataset that meets the requirements
+of the federated learning plan. We utilize a test script in order to
+partition the MNIST dataset across the two collaborators.
 
 .. code-block:: console
 
@@ -255,6 +243,11 @@ in one line of command:
   --output_path=../datasets/mnist_batch/mnist_batch.npz; \
   python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_0;"
 
+7. Start second collaborator.
+
+
+.. code-block:: console
+
   $ tfl-docker-col1 bash -c "mkdir -p ../datasets/mnist_batch; \
   python3 \
   ../models/mnist_cnn_keras/prepare_dataset.py \
@@ -266,7 +259,7 @@ in one line of command:
   python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_1;"
 
 
-In case anytime you need to examine the docker container
+Anytime you need to examine the docker containers
 with a shell, just type
 
 .. code-block:: console

@@ -129,7 +129,7 @@ The details of TLS, see :ref:`tutorial-tls-pki`.
   $ tfl-agg-docker python3 run_aggregator_from_flplan.py -p mnist_a.yaml
   Loaded logging configuration: logging.yaml
 
-In case anytime you need to examine the docker container
+If instead of starting the aggregator you wish to examine the docker container
 with a shell, just type
 
 .. code-block:: console
@@ -149,7 +149,7 @@ the needed packages.
 You should **skip the first three steps** if you are running
 the collaborators on the same machine as the aggregator for this test.
 
-1. (Optional) Enter the project folder and clean the build folder.
+1. (Only if not on the aggregator machine) Enter the project folder and clean the build folder.
 
 .. code-block:: console
 
@@ -157,7 +157,7 @@ the collaborators on the same machine as the aggregator for this test.
   $ make clean
 
 
-2. (Optional) Build the aggregator image, which is the parent of the
+2. (Only if not on the aggregator machine) Build the aggregator image, which is the parent of the
 collaborator image (`Dockerfile.agg`).
 
 .. code-block:: console
@@ -175,7 +175,7 @@ collaborator image (`Dockerfile.agg`).
   -f Dockerfile \
   .
 
-3. Copy over authentication files. Create a directory, then 
+3. (Only if not on the aggregator machine) Copy over authentication files. Create a directory, then 
 copy the files: ca.cert local.cert and local.key (from the machine running 
 the aggregator and created during step 4 of 'Start an Aggregator' above) into this 
 directory. Of course this is not standard practice, but is for testing 
@@ -259,8 +259,8 @@ partition the MNIST dataset across the two collaborators.
   python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_1;"
 
 
-Anytime you need to examine the docker containers
-with a shell, just type
+Instead of starting the collaborators, you can examine the docker containers
+with a shell by typing one of the following.
 
 .. code-block:: console
 

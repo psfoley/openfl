@@ -277,5 +277,5 @@ program to visualize the learning process.
 
 .. code-block:: console
 
-  $ tensorboard --logdir ./federation/logs
+  $ tensorboard --logdir ./bin/logs
 

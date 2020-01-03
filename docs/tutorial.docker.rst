@@ -122,7 +122,6 @@ The details of TLS, see :ref:`tutorial-tls-pki`.
 
 
 5. Start an aggregator.
-(TODO: We need to print some information about starting an aggregator.)
 
 .. code-block:: console
 

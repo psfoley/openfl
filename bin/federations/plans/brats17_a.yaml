@@ -32,15 +32,15 @@ model:
       shuffle: True
 
 aggregator:
-  id           : agg_brats
-  # FIXME: should be assigned automatically
-  addr           : "*"
-  port           : 8849
+  id             : agg_mnist
+  addr           : "spr-gpu01.jf.intel.com"
+  port           : 8848
 
   # FIXME: a list of names who are permitted to join the federation. 
   collaborators  : 2
   initial_weights: ./federations/weights/TensorFlow2DUNet_init.pbuf
   latest_weights : ./federations/weights/TensorFlow2DUNet_latest.pbuf
+  best_weights   : ./federations/weights/TensorFlow2DUNet_best.pbuf
 
 collaborator:
   opt_vars_treatment : RESET

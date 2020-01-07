@@ -282,3 +282,66 @@ program to visualize the learning process.
 
   $ tensorboard --logdir ./bin/logs
 
+Running the BraTS 2D UNet
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+(**This tutorial assumes that you've run the MNIST example above.**)
+
+1. Start an aggregator. 
+
+.. code-block:: console
+
+  $ tfl-agg-docker python3 run_aggregator_from_flplan.py -p brats17_a.yaml
+  Loaded logging configuration: logging.yaml
+
+
+1. Create the symlinks for the per-institution datasets. 
+
+We host the entire brats 17 dataset on a single volume that the collaborators can all reach and 
+provide directories with symlinks for each insitution, such that each institution then only sees its own data.
+To create these symlinks, we provide a simple script in bin/create_brats_symlinks.py. It takes two parameters, one
+for the path to the brats17 HGG data, and another for the symlinks path to create the institutional subdirs
+in. The command is then:
+
+.. code-block:: console
+
+  $ bin/create_brats_symlinks.py -s=<symlink_path> -b=<brats_hgg_path>
+
+So in our case, the command is:
+
+.. code-block:: console
+
+  $ bin/create_brats_symlinks.py -s= '/raid/datasets/BraTS17/symlinks/' -b='/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG/'
+
+Note: to remove the links, we recommend using find <symlink_path> -type l -exec unlink {} \; to avoid deleting the actual files.
+
+2. Create the collaborator image that includes the 2d unet:
+
+.. code-block:: console
+
+  $ docker build --build-arg whoami=$(whoami) \
+  -t tfl_unet_col_$(whoami):0.1 \
+  -f ./models/brats_2dunet_tensorflow/Dockerfile \
+  .
+
+3. Create aliases for each of the collaborators:
+
+.. code-block:: console
+
+  $ alias tfl-docker-col0='docker run \
+  --net=host \
+  -it --name=tfl_col_0 \
+  --rm \
+  -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
+  -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
+  -w /home/$(whoami)/tfl/bin \
+  tfl_col_$(whoami):0.1'
+
+
+alias tfl-docker-col0='docker run --net=host -it --name=tfl_$(whoami)_col_0 --rm \
+-v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
+-v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
+-v "/raid/datasets/BraTS17/symlinks/0":/home/$(whoami)/tfl/datasets/brats:ro \
+-v "/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG":/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro \
+-w /home/$(whoami)/tfl/bin \
+tfl_unet_col:0.1'

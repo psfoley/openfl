@@ -38,10 +38,15 @@ aggregator:
 
   # FIXME: a list of names who are permitted to join the federation. 
   collaborators  : 2
-  initial_weights: ./federations/weights/TensorFlow2DUNet_init.pbuf
-  latest_weights : ./federations/weights/TensorFlow2DUNet_latest.pbuf
-  best_weights   : ./federations/weights/TensorFlow2DUNet_best.pbuf
+  initial_weights: TensorFlow2DUNet_init.pbuf
+  latest_weights : TensorFlow2DUNet_latest.pbuf
+  best_weights   : TensorFlow2DUNet_best.pbuf
 
 collaborator:
   opt_vars_treatment : RESET
   sync_per_iterations: 100 
+
+tls:
+  disable             : False
+  disable_client_auth : False
+  cert_folder         : test

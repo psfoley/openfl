@@ -14,10 +14,18 @@ task            : brats
 version         : '1'
 description     : Train a model to perform semantic segmentation on brain fMRI images.
 status          : active
-# The federation/plan ID is linked to certain software version, code (including model architecture), initialization, dataset, aggregation configuration, etc.
 federation      : fl_brats_2dunet
-dataset         : BraTS17
-software_version: '1'
+
+model:
+  name     : mnist_cnn_keras
+  optimizer: SGD
+  # The code includes pre-processing.
+  code_path: models.mnist_cnn_keras
+  version : 1
+  params:
+    # The dataset path will be copy from the dataset section.
+    batch_size: 256
+    dataset_path: ../datasets/mnist_batch/mnist_batch.npz
 
 model:
   # TODO: hyper-parameters
@@ -32,7 +40,7 @@ model:
       shuffle: True
 
 aggregator:
-  id             : agg_mnist
+  id             : agg_brats
   addr           : "spr-gpu01.jf.intel.com"
   port           : 8848
 

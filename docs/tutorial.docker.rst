@@ -315,7 +315,7 @@ So in our case, the command is:
 
 Note: to remove the links, we recommend using find <symlink_path> -type l -exec unlink {} \; to avoid deleting the actual files.
 
-2. Create the collaborator image that includes the 2d unet:
+2. (**On each collaborator machine**) Create the collaborator image that includes the 2d unet:
 
 .. code-block:: console
 
@@ -324,24 +324,24 @@ Note: to remove the links, we recommend using find <symlink_path> -type l -exec 
   -f ./models/brats_2dunet_tensorflow/Dockerfile \
   .
 
-3. Create aliases for each of the collaborators:
+3. (**On each collaborator machine**) Create the alias for the specific collaborator. Replace 'col0' with 'col1', 'col2', etc... as appropriate.
+Also, replace 'symlinks/0' with 'symlinks/1', 'symlinks/2', etc... as appropriate.
 
 .. code-block:: console
 
   $ alias tfl-docker-col0='docker run \
   --net=host \
-  -it --name=tfl_col_0 \
+  -it --name=tfl_$(whoami)_col_0 \
   --rm \
   -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
   -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
+  -v "/raid/datasets/BraTS17/symlinks/0":/home/$(whoami)/tfl/datasets/brats:ro \
+  -v "/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG":/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro \
   -w /home/$(whoami)/tfl/bin \
-  tfl_col_$(whoami):0.1'
+  tfl_unet_col_$(whoami):0.1'
 
+4. (**On each collaborator machine**) Run the collaborator, once again replacing 'col0' with 'col1', 'col2', 'col3' as appropriate.
 
-alias tfl-docker-col0='docker run --net=host -it --name=tfl_$(whoami)_col_0 --rm \
--v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
--v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
--v "/raid/datasets/BraTS17/symlinks/0":/home/$(whoami)/tfl/datasets/brats:ro \
--v "/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG":/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro \
--w /home/$(whoami)/tfl/bin \
-tfl_unet_col:0.1'
+.. code-block:: console
+
+  $ tfl-docker-col0 bash -c "../venv/bin/python3 run_collaborator_from_flplan.py -p brats17_a.yaml -col col_0;"

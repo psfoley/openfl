@@ -35,13 +35,15 @@ It can be anything of your choice on your machine.
   rm -r -f tfedlrn.egg-info
   rm -r -f bin/federations/certs/test/*
 
-2. Build a docker image "tfl_agg:0.1" from "Dockerfile".
+2. Build a docker image "tfl_agg_<username>:0.1" from "Dockerfile".
 We only build it once unless we change `Dockerfile`.
 We pass along the proxy configuration from the host machine
 to the docker container, so that your container would be
 able to access the Internet from typical corporate networks.
 We also create a user with the same UID so that it is easier
 to access the mapped local volume from the docker container.
+Note that we include the username to avoid development-time collisions
+on shared develpment servers.
 
 
 .. code-block:: console
@@ -55,7 +57,7 @@ to access the mapped local volume from the docker container.
   --build-arg UID=$(id -u) \
   --build-arg GID=$(id -g) \
   --build-arg UNAME=$(whoami) \
-  -t tfl_agg:0.1 \
+  -t tfl_agg_$(whoami):0.1 \
   -f Dockerfile \
   .
 
@@ -85,7 +87,7 @@ We map the local volume `./bin/` to the docker container.
   --rm \
   -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
   -w /home/$(whoami)/tfl/bin \
-  tfl_agg:0.1'
+  tfl_agg_$(whoami):0.1'
 
 4. Generate the certificates for TLS communication.
 The folder of certificates is initially empty.
@@ -170,7 +172,7 @@ collaborator image (`Dockerfile.agg`).
   --build-arg UID=$(id -u) \
   --build-arg GID=$(id -g) \
   --build-arg UNAME=$(whoami) \
-  -t tfl_agg:0.1 \
+  -t tfl_agg_$(whoami):0.1 \
   -f Dockerfile \
   .
 
@@ -187,11 +189,12 @@ purposes only.
 
 4. Build a docker image from `Dockerfile` provided by the model.
 We only build it once unless we change `Dockerfile` or the base image.
+We pass our username so the correct aggregator image is used.
 
 .. code-block:: console
 
-  $ docker build \
-  -t tfl_col:0.1 \
+  $ docker build --build-arg whoami=$(whoami) \
+  -t tfl_col_$(whoami):0.1 \
   -f ./models/mnist_cnn_keras/Dockerfile \
   .
 
@@ -208,7 +211,7 @@ We map the local volumes `./models/` and `./bin/` to the docker container.
   -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
   -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
   -w /home/$(whoami)/tfl/bin \
-  tfl_col:0.1'
+  tfl_col_$(whoami):0.1'
 
 6. In a second shell, create an alias to run the second collaborator container.
 Note that we set different names for the two collaborator containers,
@@ -223,7 +226,7 @@ though they share the same docker image.
   -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
   -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
   -w /home/$(whoami)/tfl/bin \
-  tfl_col:0.1'
+  tfl_col_$(whoami):0.1'
 
 6. In the first shell, start the first collaborator.
 A collaborator needs to prepare a dataset that meets the requirements

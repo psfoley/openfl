@@ -1,4 +1,5 @@
-FROM tfl_agg:0.1
+ARG whoami
+FROM tfl_agg_$whoami:0.1
 
 # Only use one CPU thread to train the model
 #   to avoid the significant communication overhead.

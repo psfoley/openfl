@@ -14,7 +14,6 @@ task            : brats
 version         : '1'
 description     : Train a model to perform semantic segmentation on brain fMRI images.
 status          : active
-# The federation/plan ID is linked to certain software version, code (including model architecture), initialization, dataset, aggregation configuration, etc.
 federation      : fl_brats_2dunet
 
 model:
@@ -43,6 +42,6 @@ collaborator:
   sync_per_iterations: 100 
 
 tls:
-  disable             : True
-  disable_client_auth : True
+  disable             : False
+  disable_client_auth : False
   cert_folder         : test

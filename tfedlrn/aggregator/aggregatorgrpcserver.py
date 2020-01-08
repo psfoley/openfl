@@ -72,7 +72,8 @@ class AggregatorGRPCServer(AggregatorServicer):
                 require_client_auth=require_client_auth,
             )
             server.add_secure_port(uri, server_credentials)
-
+        
+        logger.debug('Starting aggregator.')
         server.start()
         try:
             while True:

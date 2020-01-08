@@ -1,4 +1,5 @@
-FROM tfl_agg:0.1
+ARG whoami
+FROM tfl_agg_$whoami:0.1
 
 ENV OMP_NUM_THREADS=112
 ENV KMP_BLOCKTIME=30

@@ -12,21 +12,33 @@ class ConvModel(FLKerasModel):
 
     Parameters
     ----------
+    input_shape : (tuple of ints)
+        Shape of image (including channels in last dim)
+    num_classes : int
+        number of classification classes
+    x_train : np.array
+        training images
+    y_train : np.array
+        training labels
+    x_val : np.array
+        validation images
+    y_val : np.array
+        validation labels
     batch_size : int
-        The batch size.
-    splits : list
-        A list of size of the shards.
-    split_idx : int
-        The index of the selected shard.
+        Batch size for training/validating
     """
-    def __init__(self, dataset_path, batch_size=256):
+    def __init__(self, input_shape, num_classes, x_train, y_train, x_val, y_val, batch_size=256):
         super(ConvModel, self).__init__(batch_size=batch_size)
         self.logger = logging.getLogger(__name__)
         self.batch_size = batch_size
-        input_shape, num_classes, self.x_train, self.y_train, self.x_val, self.y_val = self.load_dataset(dataset_path)
+        self.x_train = x_train
+        self.y_train = y_train
+        self.x_val = x_val
+        self.y_val = y_val
         self.model = self.build_model(input_shape, num_classes)
         print(self.model.summary())
-        print("Training set size: %d; Validation set size: %d" % (len(self.y_train), len(self.y_val)))
+        if self.y_train is not None and self.y_val is not None:
+            print("Training set size: %d; Validation set size: %d" % (len(self.y_train), len(self.y_val)))
 
         self.is_initial = True
         self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)

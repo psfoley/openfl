@@ -4,9 +4,9 @@ import numpy as np
 import argparse
 import nibabel as nib
 
-
 # for testing performance
 import time
+
 
 def parse_segments(seg, msk_modes):
     # Each channel corresponds to a different region of the tumor, decouple and stack these
@@ -103,8 +103,7 @@ def list_files(root, extension, parts):
     return files
 
 
-def nii_reader(brain_path, task, channels_last=True, 
-  numpy_type='float64', normalization='by_mode'):
+def nii_reader(brain_path, task, channels_last=True, numpy_type='float64', normalization='by_mode', **kwargs):
     """
     Fetch a whole brain 3D image from disc.
 
@@ -135,6 +134,7 @@ def nii_reader(brain_path, task, channels_last=True,
         normalization (string): Determines whether the feature scanning modes
         are not normalized (None), normalized by scanning mode ('by_mode'), 
         or normalized across all modes ('modes_together').
+        **kwargs: unused
 
     Returns:
         np.array: whole 3D brain associated to a subdirectory given by the index

@@ -17,35 +17,22 @@ status          : active
 federation      : fl_brats_2dunet
 
 model:
-  name     : mnist_cnn_keras
-  optimizer: SGD
-  # The code includes pre-processing.
-  code_path: models.mnist_cnn_keras
+  name     : brats_2dunet_tensorflow
+  code_path: models.brats_2dunet_tensorflow
   version : 1
   params:
-    # The dataset path will be copy from the dataset section.
-    batch_size: 256
-    dataset_path: ../datasets/mnist_batch/mnist_batch.npz
-
-model:
-  # TODO: hyper-parameters
-  # The code includes pre-processing.
-  name     : brats_2dunet_tensorflow
-  # We may specify the optimizer and other hyper-parameters to the code.
-  optimizer: SGD
-  code:
-    path: brats_2dunet_tensorflow
-    kwargs:
-      batch_size: 64
-      shuffle: True
+    batch_size: 1024
+    percent_train: 0.8
+    shuffle: True
+    dataset_path: ../datasets/brats/
 
 aggregator:
   id             : agg_brats
   addr           : "spr-gpu01.jf.intel.com"
-  port           : 8848
+  port           : 8878
 
   # FIXME: a list of names who are permitted to join the federation. 
-  collaborators  : 2
+  collaborators  : 1
   initial_weights: TensorFlow2DUNet_init.pbuf
   latest_weights : TensorFlow2DUNet_latest.pbuf
   best_weights   : TensorFlow2DUNet_best.pbuf

@@ -24,6 +24,8 @@ class TensorFlow2DUNet(object):
     def create_model(self):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
+        config.intra_op_parallelism_threads = 112
+        config.inter_op_parallelism_threads = 1
         self.sess = tf.Session(config=config)
 
         # FIXME: shape should be derived from input data
@@ -38,8 +40,8 @@ class TensorFlow2DUNet(object):
 
         self.tvars = tf.trainable_variables()
 
-        # self.optimizer = tf.train.AdamOptimizer(1e-4, beta1=0.9, beta2=0.999)
-        self.optimizer = tf.train.RMSPropOptimizer(1e-5)
+        self.optimizer = tf.train.AdamOptimizer(1e-4, beta1=0.9, beta2=0.999)
+        # self.optimizer = tf.train.RMSPropOptimizer(1e-5)
 
         self.gvs = self.optimizer.compute_gradients(self.loss, self.tvars)
         self.train_step = self.optimizer.apply_gradients(self.gvs,

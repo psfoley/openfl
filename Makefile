@@ -1,3 +1,5 @@
+# WIP for transfering tutorial steps to makefile
+
 whl = dist/tfedlrn-0.0.0-py3-none-any.whl
 tfl = venv/lib/python3.5/site-packages/tfedlrn
 
@@ -70,3 +72,63 @@ clean:
 	rm -r -f build
 	rm -r -f tfedlrn.egg-info
 	rm -r -f bin/federations/certs/test/*
+
+
+# ADDING TUTORIAL TARGETS
+
+build_containers:
+	docker build \
+	--build-arg http_proxy \
+	--build-arg https_proxy \
+	--build-arg socks_proxy \
+	--build-arg ftp_proxy \
+	--build-arg no_proxy \
+	--build-arg UID=$(shell id -u) \
+	--build-arg GID=$(shell id -g) \
+	--build-arg UNAME=$(shell whoami) \
+	-t tfl_agg_$(shell whoami):0.1 \
+	-f Dockerfile \
+	.
+
+	docker build --build-arg whoami=$(shell whoami) \
+	-t tfl_col_$(shell whoami):0.1 \
+	-f ./models/mnist_cnn_keras/Dockerfile \
+	.
+
+run_agg_container:
+
+	docker run \
+	--net=host \
+	-it --name=tfl_agg \
+	--rm \
+	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
+	-w /home/$(shell whoami)/tfl/bin \
+	tfl_agg_$(shell whoami):0.1 \
+	bash 
+#"chmod +x start_mnist_aggregator.sh"
+
+run_col_container:
+
+	docker run \
+	--net=host \
+	-it --name=tfl_col_$(col_num) \
+	--rm \
+	-v $(shell pwd)/models:/home/$(shell whoami)/tfl/models:ro \
+	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
+	-w /home/$(shell whoami)/tfl/bin \
+	tfl_col_$(shell whoami):0.1 \
+	bash 
+# "chmod +x start_mnist_collaborator.sh"
+
+
+
+
+	
+
+
+
+
+
+
+
+

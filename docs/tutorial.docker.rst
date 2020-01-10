@@ -33,7 +33,7 @@ It can be anything of your choice on your machine.
   rm -r -f dist
   rm -r -f build
   rm -r -f tfedlrn.egg-info
-  rm -r -f bin/federations/certs/test/*
+  rm -r -f bin/federations/certs/test/*$
 
 2. Build the docker images "tfl_agg_<username>:0.1" and 
 "tfl_col_<username>:0.1" using project folder Makefile targets.
@@ -73,7 +73,7 @@ Step 1/28 : FROM ubuntu:18.04
 ...
 ...
 Successfully built ea074e089a16
-Successfully tagged tfl_col_edwardsb:0.1
+Successfully tagged tfl_col_edwardsb:0.1$
 
 3. Run the aggregator container (entering a bash shell inside the container), 
 again using the Makefile.
@@ -88,12 +88,12 @@ docker run \
 -v /home/edwardsb/repositories/gitlab_tfedlearn/bin:/home/edwardsb/tfl/bin:rw \
 -w /home/edwardsb/tfl/bin \
 tfl_agg_edwardsb:0.1 \
-bash 
+bash$ 
 
 
-4. In this container shell, generate the certificates for TLS communication.
-The folder of certificates is initially empty.
-We will generate the certificates using a script (via another makefile).
+4. In this container shell, generate the files for TLS communication.
+The folder is initially empty.
+We will generate the files using a script (via another makefile).
 The details of TLS, see :ref:`tutorial-tls-pki`.
 
 .. code-block:: console
@@ -106,15 +106,16 @@ Generating RSA private key, 3072 bit long modulus (2 primes)
 ...
 ...
 ...
-Getting CA Private Key
-  $cd bin/
+Getting CA Private Key$
+
+  $cd bin/$
 
 The files should now be present.
 
 .. code-block:: console
 
   $ ls federations/certs/test/
-  ca.crt  ca.key  ca.srl  local.crt  local.csr  local.key
+  ca.crt  ca.key  ca.srl  local.crt  local.csr  local.key$
 
 
 
@@ -126,7 +127,7 @@ a shell script provided in the project.
   $ chmod +x start_mnist_aggregator.sh
   $ ./start_mnist_aggregator.sh 
 Loaded logging configuration: logging.yaml
-2020-01-10 01:09:34,304 - tfedlrn.aggregator.aggregatorgrpcserver - DEBUG - Starting aggregator.  
+2020-01-10 01:09:34,304 - tfedlrn.aggregator.aggregatorgrpcserver - DEBUG - Starting aggregator.$  
 
 
 Start Collaborators
@@ -142,7 +143,7 @@ and build the containers as above.
   $ cd spr_secure_intelligence-trusted_federated_learning
   $ make clean
   $ make build_containers
-
+...$
 
 2. (**Only if not on the aggregator machine**) Copy over authentication files. 
 Create the directory 'bin/federations/certs/test/' if it does not already exist, 
@@ -166,6 +167,7 @@ docker image.
 .. code-block:: console
 
   $ make run_col_container col_num=0
+...$
 
 4. In this first collaborator shell, start the collabotor using the provided shell script.
 
@@ -173,6 +175,7 @@ docker image.
 
   $ chmod +x start_mnist_collaborator.sh
   $ ./start_mnist_collaborator.sh 0 
+...$
 
 5. In a second shell on the same machine that you ran the first collaborator, run 
 the second collaborator (entering a bash shell inside the container). Note that the
@@ -183,13 +186,14 @@ was done above.
 .. code-block:: console
 
   $ make run_col_container col_num=1
+...$
 
 6. In the second collaborator container shell, start the second collaborator.
 
 .. code-block:: console
 
   $ ./start_mnist_collaborator.sh 1 
-
+...$
 
 Understand federated learning using Tensorboard
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

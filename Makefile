@@ -99,7 +99,7 @@ run_agg_container:
 
 	docker run \
 	--net=host \
-	-it --name=tfl_agg \
+	-it --name=tfl_agg_$(shell whoami) \
 	--rm \
 	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
 	-w /home/$(shell whoami)/tfl/bin \
@@ -111,7 +111,7 @@ run_col_container:
 
 	docker run \
 	--net=host \
-	-it --name=tfl_col_$(col_num) \
+	-it --name=tfl_col_$(shell whoami)_$(col_num) \
 	--rm \
 	-v $(shell pwd)/models:/home/$(shell whoami)/tfl/models:ro \
 	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \

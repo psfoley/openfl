@@ -162,7 +162,7 @@ Understand federated learning using Tensorboard
 The aggregator collects performace readings from the
 collaborators and the federation, and outputs to
 Tensorboard checkpoints. You can start a separate Tensorboard
-program to visualize the learning process.
+program from the project folder to visualize the learning process.
 
 .. code-block:: console
 

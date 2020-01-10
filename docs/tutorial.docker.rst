@@ -71,14 +71,12 @@ The details of TLS, see :ref:`tutorial-tls-pki`.
   $ cd ../
   $ make local_certs
 
-.. code-block:: console
-
-  $cd bin/
 
 The files should now be present.
 
 .. code-block:: console
 
+  $ cd bin/
   $ ls federations/certs/test/
   ca.crt  ca.key  ca.srl  local.crt  local.csr  local.key
 

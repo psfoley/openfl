@@ -173,15 +173,16 @@ Running the BraTS 2D UNet
 
 (**This tutorial assumes that you've run the MNIST example above.**)
 
-1. Start an aggregator. 
+We'll start the tutorial by training with a single collaborator. Then, we'll edit the FLPlan to include more collaborators and run multiple.
+
+1. (**On the aggregator machine**) Start the aggregator. 
 
 .. code-block:: console
 
   $ tfl-agg-docker python3 run_aggregator_from_flplan.py -p brats17_a.yaml
   Loaded logging configuration: logging.yaml
 
-
-1. Create the symlinks for the per-institution datasets. 
+2. Create the symlinks for the per-institution datasets. 
 
 We host the entire brats 17 dataset on a single volume that the collaborators can all reach and 
 provide directories with symlinks for each insitution, such that each institution then only sees its own data.
@@ -201,7 +202,7 @@ So in our case, the command is:
 
 Note: to remove the links, we recommend using find <symlink_path> -type l -exec unlink {} \; to avoid deleting the actual files.
 
-2. (**On each collaborator machine**) Create the collaborator image that includes the 2d unet:
+3. (**On a collaborator machine**) Create the collaborator image that includes the 2d unet:
 
 .. code-block:: console
 
@@ -210,8 +211,7 @@ Note: to remove the links, we recommend using find <symlink_path> -type l -exec 
   -f ./models/brats_2dunet_tensorflow/Dockerfile \
   .
 
-3. (**On each collaborator machine**) Create the alias for the specific collaborator. Replace 'col0' with 'col1', 'col2', etc... as appropriate.
-Also, replace 'symlinks/0' with 'symlinks/1', 'symlinks/2', etc... as appropriate.
+4. (**On a collaborator machine**) Create the alias for the collaborator.
 
 .. code-block:: console
 
@@ -226,8 +226,63 @@ Also, replace 'symlinks/0' with 'symlinks/1', 'symlinks/2', etc... as appropriat
   -w /home/$(whoami)/tfl/bin \
   tfl_unet_col_$(whoami):0.1'
 
-4. (**On each collaborator machine**) Run the collaborator, once again replacing 'col0' with 'col1', 'col2', 'col3' as appropriate.
+5. (**On a collaborator machine**) Run the collaborator
 
 .. code-block:: console
 
   $ tfl-docker-col0 bash -c "../venv/bin/python3 run_collaborator_from_flplan.py -p brats17_a.yaml -col col_0;"
+
+The model will now train with a single insitution. To stop the training, CTRL-C on each process will suffice.
+
+6. (**On the aggregator machine**) Edit the FLPlan to run with up to 10 collaborators. In bin/federations/plans/brats17_a.yaml, you'll change the "collaborators" value in the "aggregator" block:
+
+.. code-block:: console
+  aggregator:
+    ...
+    collaborators  : 1
+
+becomes
+
+.. code-block:: console
+  aggregator:
+    ...
+    collaborators  : 10
+
+(or less than 10).
+
+Typically, you would want to change the FLPlan file on each machine, but it isn't strictly necessary, since the collaborators will ignore that value anyway. Eventually, the collaborators and aggregators will all kepe their files in sync via the Governor.
+
+7. (**On the aggregator machine**) Start the aggregator. 
+
+.. code-block:: console
+
+  $ tfl-agg-docker python3 run_aggregator_from_flplan.py -p brats17_a.yaml
+  Loaded logging configuration: logging.yaml
+
+Now we have to repeat our earlier steps for each collaborator:
+
+8. (**On each new collaborator machine**) Create the collaborator image that includes the 2d unet, as before.
+
+9. (**On each new collaborator machine**) Copy the certs over, as before. (**This is incorrect for use over an unsecured network! Real cases require unique certs!!!**)
+
+10. (**For each collaborator**) On the given collaborator machine, create the alias for the run command, replacing #### with the collaborator number (starting with 0). So you'll want a 
+
+.. code-block:: console
+
+  $ alias tfl-docker-col####='docker run \
+  --net=host \
+  -it --name=tfl_$(whoami)_col_#### \
+  --rm \
+  -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
+  -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
+  -v "/raid/datasets/BraTS17/symlinks/####":/home/$(whoami)/tfl/datasets/brats:ro \
+  -v "/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG":/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro \
+  -w /home/$(whoami)/tfl/bin \
+  tfl_unet_col_$(whoami):0.1'
+
+
+11. (**For each collaborator**) On the given collaborator machine, run the collaborator, replacing #### with the collaborator number
+
+.. code-block:: console
+
+  $ tfl-docker-col#### bash -c "../venv/bin/python3 run_collaborator_from_flplan.py -p brats17_a.yaml -col col_####;"

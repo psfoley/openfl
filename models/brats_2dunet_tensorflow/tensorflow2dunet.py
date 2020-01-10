@@ -40,7 +40,7 @@ class TensorFlow2DUNet(object):
 
         self.tvars = tf.trainable_variables()
 
-        self.optimizer = tf.train.AdamOptimizer(1e-4, beta1=0.9, beta2=0.999)
+        self.optimizer = tf.train.AdamOptimizer(4e-5, beta1=0.9, beta2=0.999)
         # self.optimizer = tf.train.RMSPropOptimizer(1e-5)
 
         self.gvs = self.optimizer.compute_gradients(self.loss, self.tvars)

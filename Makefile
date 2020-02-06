@@ -32,6 +32,14 @@ $(whl): venv/bin/python3
 
 $(tfl): $(whl)
 	venv/bin/pip3 install $(whl)
+	
+uninstall:
+	venv/bin/pip3 uninstall -y tfedlrn
+	rm -rf tfedlrn/dist
+	rm -rf tfedlrn/build
+
+.PHONY: reinstall
+reinstall: uninstall install
 
 bin/federations/certs/test:
 	mkdir -p bin/federations/certs/test

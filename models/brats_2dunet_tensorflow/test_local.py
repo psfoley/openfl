@@ -22,11 +22,6 @@ model = get_model('/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG/', pe
 val_results = model.validate()
 print("Initial val_results", val_results)
 
-# from models.export_init_weights import export_weights
-
-# tensor_dict = model.get_tensor_dict(True)
-# fpath = os.path.join(tempfile.gettempdir(), 'mnist_cnn_keras_init.pbuf')
-# export_weights(model.__class__.__name__, 0, tensor_dict, fpath)
 epochs = 16
 for e in range(epochs):
     start = timer()

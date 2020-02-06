@@ -1,9 +1,7 @@
-import os
-from math import ceil
-
-import numpy as np
 import tensorflow as tf
-# from tqdm import tqdm
+from math import ceil
+import numpy as np
+from tqdm import tqdm
 
 from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_dict, tf_reset_vars
 
@@ -40,8 +38,8 @@ class TensorFlow2DUNet(object):
 
         self.tvars = tf.trainable_variables()
 
-        self.optimizer = tf.train.AdamOptimizer(4e-5, beta1=0.9, beta2=0.999)
-        # self.optimizer = tf.train.RMSPropOptimizer(1e-5)
+        # self.optimizer = tf.train.AdamOptimizer(4e-5, beta1=0.9, beta2=0.999)
+        self.optimizer = tf.train.RMSPropOptimizer(1e-5)
 
         self.gvs = self.optimizer.compute_gradients(self.loss, self.tvars)
         self.train_step = self.optimizer.apply_gradients(self.gvs,
@@ -75,7 +73,7 @@ class TensorFlow2DUNet(object):
     def reset_opt_vars(self):
         return tf_reset_vars(self.sess, self.opt_vars)
 
-    def train_epoch(self, epoch=None, batch_size=64):
+    def train_epoch(self, epoch=None, batch_size=64, use_tqdm=False):
         tf.keras.backend.set_learning_phase(True)
 
         # shuffle data
@@ -87,20 +85,26 @@ class TensorFlow2DUNet(object):
         num_batches = ceil(X.shape[0] / batch_size)
 
         losses = []
-        # for i in tqdm(range(num_batches), desc="training epoch"):
-        for i in range(num_batches):
+        if use_tqdm:
+            gen = tqdm(range(num_batches), desc="training epoch")
+        else:
+            gen = range(num_batches)
+        for i in gen:
             a = i * batch_size
             b = a + batch_size
             losses.append(self.train_batch(X[idx[a:b]], y[idx[a:b]]))
 
         return np.mean(losses)
 
-    def validate(self, batch_size=64):
+    def validate(self, batch_size=64, use_tqdm=False):
         tf.keras.backend.set_learning_phase(False)
 
         score = 0
-        # for i in tqdm(np.arange(0, self.X_val.shape[0], batch_size), desc="validating"):
-        for i in np.arange(0, self.X_val.shape[0], batch_size):
+        if use_tqdm:
+            gen = tqdm(np.arange(0, self.X_val.shape[0], batch_size), desc="validating")
+        else:
+            gen = np.arange(0, self.X_val.shape[0], batch_size)
+        for i in gen:
             X = self.X_val[i:i+batch_size]
             y = self.y_val[i:i+batch_size]
             weight = X.shape[0] / self.X_val.shape[0]
@@ -162,7 +166,19 @@ else:
 tf.keras.backend.set_image_data_format(data_format)
 
 
-def define_model(input_tensor, use_upsampling=False, n_cl_out=1, dropout=0.2, print_summary = False, activation_function='relu', seed=0xFEEDFACE, **kwargs):
+def define_model(input_tensor,
+                 use_upsampling=False,
+                 n_cl_out=1,
+                 dropout=0.2,
+                 print_summary = False,
+                 activation_function='relu',
+                 seed=0xFEEDFACE,
+                 depth=5,
+                 dropout_at=[2,3],
+                 initial_filters=32,
+                 batch_norm=True,
+                 **kwargs):
+
     # Set keras learning phase to train
     tf.keras.backend.set_learning_phase(True)
 
@@ -178,78 +194,45 @@ def define_model(input_tensor, use_upsampling=False, n_cl_out=1, dropout=0.2, pr
             
     params = dict(kernel_size=(3, 3), activation=activation,
                   padding='same', data_format=data_format,
-                  # kernel_initializer='he_uniform')
                   kernel_initializer=tf.keras.initializers.he_uniform(seed=seed))
-#                   kernel_initializer=tf.keras.initializers.he_normal(seed=0xFEEDFEACE))
-#                   tf.keras.initializers.RandomUniform(minval=0.01, maxval=0.5, seed=0xFEEDFACE))
     
-    conv1 = tf.keras.layers.Conv2D(name='conv1a', filters=32, **params)(inputs)
-    conv1 = tf.keras.layers.Conv2D(name='conv1b', filters=32, **params)(conv1)
-    pool1 = tf.keras.layers.MaxPooling2D(name='pool1', pool_size=(2, 2))(conv1)
+    convb_layers = {}
 
-    conv2 = tf.keras.layers.Conv2D(name='conv2a', filters=64, **params)(pool1)
-    conv2 = tf.keras.layers.Conv2D(name='conv2b', filters=64, **params)(conv2)
-    pool2 = tf.keras.layers.MaxPooling2D(name='pool2', pool_size=(2, 2))(conv2)
+    net = inputs
+    filters = initial_filters
+    for i in range(depth):
+        name = 'conv{}a'.format(i+1)
+        net = tf.keras.layers.Conv2D(name=name, filters=filters, **params)(net)
+        if i in dropout_at:
+            net = tf.keras.layers.Dropout(dropout)(net)
+        name = 'conv{}b'.format(i+1)
+        net = tf.keras.layers.Conv2D(name=name, filters=filters, **params)(net)
+        if batch_norm:
+            net = tf.keras.layers.BatchNormalization()(net)
+        convb_layers[name] = net
+        # only pool if not last level
+        if i != depth - 1:
+            name = 'pool{}'.format(i+1)
+            net = tf.keras.layers.MaxPooling2D(name=name, pool_size=(2, 2))(net)
+            filters *= 2
 
-    conv3 = tf.keras.layers.Conv2D(name='conv3a', filters=128, **params)(pool2)
-    conv3 = tf.keras.layers.Dropout(dropout)(conv3) ### Trying dropout layers earlier on, as indicated in the paper
-    conv3 = tf.keras.layers.Conv2D(name='conv3b', filters=128, **params)(conv3)
+    # do the up levels
+    filters //= 2
+    for i in range(depth - 1):        
+        if use_upsampling:
+            up = tf.keras.layers.UpSampling2D(name='up{}'.format(depth + i + 1), size=(2, 2))(net) 
+        else:
+            up = tf.keras.layers.Conv2DTranspose(name='transConv6', filters=filters, data_format=data_format, kernel_size=(2, 2), strides=(2, 2), padding='same')(net)
+        net = tf.keras.layers.concatenate([up, convb_layers['conv{}b'.format(depth - i - 1)]], axis=concat_axis)
+        net = tf.keras.layers.Conv2D(name='conv{}a'.format(depth + i + 1), filters=filters, **params)(net)
+        net = tf.keras.layers.Conv2D(name='conv{}b'.format(depth + i + 1), filters=filters, **params)(net)
+        filters //= 2
 
-    pool3 = tf.keras.layers.MaxPooling2D(name='pool3', pool_size=(2, 2))(conv3)
+    net = tf.keras.layers.Conv2D(name='Mask', filters=n_cl_out, kernel_size=(1, 1), data_format=data_format, activation='sigmoid')(net)
 
-    conv4 = tf.keras.layers.Conv2D(name='conv4a', filters=256, **params)(pool3)
-    conv4 = tf.keras.layers.Dropout(dropout)(conv4) ### Trying dropout layers earlier on, as indicated in the paper
-    conv4 = tf.keras.layers.Conv2D(name='conv4b', filters=256, **params)(conv4)
-
-    pool4 = tf.keras.layers.MaxPooling2D(name='pool4', pool_size=(2, 2))(conv4)
-
-    conv5 = tf.keras.layers.Conv2D(name='conv5a', filters=512, **params)(pool4)
-    conv5 = tf.keras.layers.Conv2D(name='conv5b', filters=512, **params)(conv5)
-
-    if use_upsampling:
-        up6 = tf.keras.layers.concatenate([tf.keras.layers.UpSampling2D(name='up6', size=(2, 2))(conv5), conv4], axis=concat_axis)
-    else:
-        up6 = tf.keras.layers.concatenate([tf.keras.layers.Conv2DTranspose(name='transConv6', filters=256, data_format=data_format,
-                           kernel_size=(2, 2), strides=(2, 2), padding='same')(conv5), conv4], axis=concat_axis)
-
-    conv6 = tf.keras.layers.Conv2D(name='conv6a', filters=256, **params)(up6)
-    conv6 = tf.keras.layers.Conv2D(name='conv6b', filters=256, **params)(conv6)
-
-    if use_upsampling:
-        up7 = tf.keras.layers.concatenate([tf.keras.layers.UpSampling2D(name='up7', size=(2, 2))(conv6), conv3], axis=concat_axis)
-    else:
-        up7 = tf.keras.layers.concatenate([tf.keras.layers.Conv2DTranspose(name='transConv7', filters=128, data_format=data_format,
-                           kernel_size=(2, 2), strides=(2, 2), padding='same')(conv6), conv3], axis=concat_axis)
-
-    conv7 = tf.keras.layers.Conv2D(name='conv7a', filters=128, **params)(up7)
-    conv7 = tf.keras.layers.Conv2D(name='conv7b', filters=128, **params)(conv7)
-
-    if use_upsampling:
-        up8 = tf.keras.layers.concatenate([tf.keras.layers.UpSampling2D(name='up8', size=(2, 2))(conv7), conv2], axis=concat_axis)
-    else:
-        up8 = tf.keras.layers.concatenate([tf.keras.layers.Conv2DTranspose(name='transConv8', filters=64, data_format=data_format,
-                           kernel_size=(2, 2), strides=(2, 2), padding='same')(conv7), conv2], axis=concat_axis)
-
-
-    conv8 = tf.keras.layers.Conv2D(name='conv8a', filters=64, **params)(up8)
-    conv8 = tf.keras.layers.Conv2D(name='conv8b', filters=64, **params)(conv8)
-
-    if use_upsampling:
-        up9 = tf.keras.layers.concatenate([tf.keras.layers.UpSampling2D(name='up9', size=(2, 2))(conv8), conv1], axis=concat_axis)
-    else:
-        up9 = tf.keras.layers.concatenate([tf.keras.layers.Conv2DTranspose(name='transConv9', filters=32, data_format=data_format,
-                           kernel_size=(2, 2), strides=(2, 2), padding='same')(conv8), conv1], axis=concat_axis)
-
-
-    conv9 = tf.keras.layers.Conv2D(name='conv9a', filters=32, **params)(up9)
-    conv9 = tf.keras.layers.Conv2D(name='conv9b', filters=32, **params)(conv9)
-
-    conv10 = tf.keras.layers.Conv2D(name='Mask', filters=n_cl_out, kernel_size=(1, 1),
-                    data_format=data_format, activation='sigmoid')(conv9)
-
-    model = tf.keras.models.Model(inputs=[inputs], outputs=[conv10])
+    model = tf.keras.models.Model(inputs=[inputs], outputs=[net])
 
     if print_summary:
         print (model.summary())
 
-    return conv10
+    return net

@@ -8,16 +8,24 @@ from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_di
 
 class TensorFlow2DUNet(object):
 
-    def __init__(self, X_train, y_train, X_val, y_val):
+    def __init__(self, data_handler):
+        
         self.assign_ops = None
         self.placeholders = None
 
-        self.X_train = X_train
-        self.y_train = y_train
-        self.X_val = X_val
-        self.y_val = y_val
+        self.tvar_assign_ops = None
+        self.tvar_placeholders = None
 
-        self.create_model()
+        self.data_handler = data_handler
+        
+        self.create_model(input_shape=data_handler.data[0].shape)
+
+    def get_data_handler(self):
+        return self.data_handler
+
+    def set_data_handler(self, data_handler):
+        if data_handler.data_dims
+        self.data_handler = data_handler
 
     def create_model(self):
         config = tf.ConfigProto()
@@ -47,10 +55,13 @@ class TensorFlow2DUNet(object):
         
         self.opt_vars = self.optimizer.variables()
 
-        # FIXME: Do we really need to share the opt_vars? Two opt_vars for one tvar: gradient and square sum for RMSprop.
+        # FIXME: Do we really need to share the opt_vars? 
+        # Two opt_vars for one tvar: gradient and square sum for RMSprop.
         self.fl_vars = self.tvars + self.opt_vars
 
         self.sess.run(tf.global_variables_initializer())
+
+    def 
 
     def get_tensor_dict(self, with_opt_vars=True):
         if with_opt_vars is True:
@@ -66,9 +77,14 @@ class TensorFlow2DUNet(object):
         tensor_dict : dict
             Weights.
         with_opt_vars : bool
-            If we should set the variablies of the optimizer. (TODO: not supported yet.)
+            If we should set the variablies of the optimizer.
         """
-        self.assign_ops, self.placeholders = tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
+        if with_opt_vars:
+            self.assign_ops, self.placeholders = \
+                tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
+        else:
+            self.tvar_assign_ops, self.tvar_placeholders = \
+                tf_set_tensor_dict(tensor_dict, self.sess, self.tvars, self.tvar_assign_ops, self.tvar_placeholders)
 
     def reset_opt_vars(self):
         return tf_reset_vars(self.sess, self.opt_vars)
@@ -76,13 +92,13 @@ class TensorFlow2DUNet(object):
     def train_epoch(self, epoch=None, batch_size=64, use_tqdm=False):
         tf.keras.backend.set_learning_phase(True)
 
-        # shuffle data
-        idx = np.random.permutation(np.arange(self.X_train.shape[0]))
-        X = self.X_train
-        y = self.y_train
+        # get training data and shuffle data indices
+        X_train, y_train = self.data_handler.data[0:2]
+        idx = np.random.permutation(np.arange(X_train.shape[0]))
+        
 
         # compute the number of batches
-        num_batches = ceil(X.shape[0] / batch_size)
+        num_batches = ceil(X_train.shape[0] / batch_size)
 
         losses = []
         if use_tqdm:
@@ -92,12 +108,15 @@ class TensorFlow2DUNet(object):
         for i in gen:
             a = i * batch_size
             b = a + batch_size
-            losses.append(self.train_batch(X[idx[a:b]], y[idx[a:b]]))
+            losses.append(self.train_batch(X_train[idx[a:b]], y_train[idx[a:b]]))
 
         return np.mean(losses)
 
     def validate(self, batch_size=64, use_tqdm=False):
         tf.keras.backend.set_learning_phase(False)
+
+        # get validation data
+        X_val, y_val = self.data_handler.data[2:4]
 
         score = 0
         if use_tqdm:

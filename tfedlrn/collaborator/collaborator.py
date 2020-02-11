@@ -86,6 +86,32 @@ class Collaborator(object):
             elif job is JOB_DOWNLOAD_MODEL:
                 self.do_download_model_job()
 
+    def run_to_yield(self):
+        self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
+        self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
+        while True:
+            # query for job
+            # returns when a job has been received
+            job = self.query_for_job()
+
+            self.logger.debug("Got a job %s" % Job.Name(job))
+
+            # if time to quit
+            if job is JOB_QUIT:
+                print(self, 'quitting')
+                break
+            elif job is JOB_TRAIN:
+                print('DEBUG: training now')
+                self.do_train_job()
+            elif job is JOB_VALIDATE:
+                print('DEBUG: validating now')
+                self.do_validate_job()
+            elif job is JOB_DOWNLOAD_MODEL:
+                print('DEBUG: downloading now')
+                self.do_download_model_job()
+            elif job is JOB_YIELD:
+                break
+
     def query_for_job(self):
         # loop until we get a job other than 'yield'
         while True:

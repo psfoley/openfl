@@ -3,7 +3,11 @@ from math import ceil
 import numpy as np
 from tqdm import tqdm
 
-from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_dict, tf_reset_vars
+from .tensorflowflutils import tf_get_vars, \
+                               tf_get_tensor_dict, \
+                               tf_set_tensor_dict, \
+                               tf_reset_vars, \
+                               tf_export_init_weights
 
 
 class TensorFlow2DUNet(object):
@@ -17,15 +21,14 @@ class TensorFlow2DUNet(object):
         self.tvar_placeholders = None
 
         self.data_handler = data_handler
-        
-        self.create_model(input_shape=data_handler.data[0].shape)
+          
+        input_shape = list(self.data_handler.feature_shape)
+        input_shape.insert(0, None)
+        input_shape = tuple(input_shape)
+        self.input_shape = input_shape
 
-    def get_data_handler(self):
-        return self.data_handler
+        self.create_model()
 
-    def set_data_handler(self, data_handler):
-        if data_handler.data_dims
-        self.data_handler = data_handler
 
     def create_model(self):
         config = tf.ConfigProto()
@@ -33,10 +36,9 @@ class TensorFlow2DUNet(object):
         config.intra_op_parallelism_threads = 112
         config.inter_op_parallelism_threads = 1
         self.sess = tf.Session(config=config)
-
-        # FIXME: shape should be derived from input data
-        self.X = tf.placeholder(tf.float32, (None, 128, 128, 1))
-        self.y = tf.placeholder(tf.float32, (None, 128, 128, 1))
+              
+        self.X = tf.placeholder(tf.float32, self.input_shape)
+        self.y = tf.placeholder(tf.float32, self.input_shape)
         self.output = define_model(self.X, use_upsampling=True)
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=32.0)
@@ -59,9 +61,19 @@ class TensorFlow2DUNet(object):
         # Two opt_vars for one tvar: gradient and square sum for RMSprop.
         self.fl_vars = self.tvars + self.opt_vars
 
+        self.initialize_globals()
+
+    def get_data_handler(self):
+        return self.data_handler
+
+    def set_data_handler(self, data_handler):
+        if data_handler.feature_shape != self.data_handler.feature_shape:
+            raise ValueError('Data handler data shape is not compatible with model.')
+        self.data_handler = data_handler
+
+    def initialize_globals(self):
         self.sess.run(tf.global_variables_initializer())
 
-    def 
 
     def get_tensor_dict(self, with_opt_vars=True):
         if with_opt_vars is True:
@@ -88,6 +100,12 @@ class TensorFlow2DUNet(object):
 
     def reset_opt_vars(self):
         return tf_reset_vars(self.sess, self.opt_vars)
+
+    def export_init_weights(self, model_name, version, fpath):
+        tf_export_init_weights(model_name=model_name, 
+                              version=version, 
+                              tensor_dict=self.get_tensor_dict(), 
+                              fpath=fpath)
 
     def train_epoch(self, epoch=None, batch_size=64, use_tqdm=False):
         tf.keras.backend.set_learning_phase(True)
@@ -120,13 +138,13 @@ class TensorFlow2DUNet(object):
 
         score = 0
         if use_tqdm:
-            gen = tqdm(np.arange(0, self.X_val.shape[0], batch_size), desc="validating")
+            gen = tqdm(np.arange(0, X_val.shape[0], batch_size), desc="validating")
         else:
-            gen = np.arange(0, self.X_val.shape[0], batch_size)
+            gen = np.arange(0, X_val.shape[0], batch_size)
         for i in gen:
-            X = self.X_val[i:i+batch_size]
-            y = self.y_val[i:i+batch_size]
-            weight = X.shape[0] / self.X_val.shape[0]
+            X = X_val[i:i+batch_size]
+            y = y_val[i:i+batch_size]
+            weight = X.shape[0] / X_val.shape[0]
             _, s = self.validate_batch(X, y)
             score += s * weight
         return score
@@ -144,10 +162,10 @@ class TensorFlow2DUNet(object):
         return self.sess.run([self.output, self.validation_metric], feed_dict=feed_dict)
 
     def get_training_data_size(self):
-        return self.X_train.shape[0]
+        return self.data_handler.data[0].shape[0]
 
     def get_validation_data_size(self):
-        return self.X_val.shape[0]
+        return self.data_handler.data[2].shape[0]
 
 
 def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):

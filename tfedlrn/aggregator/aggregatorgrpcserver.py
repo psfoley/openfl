@@ -73,7 +73,7 @@ class AggregatorGRPCServer(AggregatorServicer):
             )
             server.add_secure_port(uri, server_credentials)
         
-        logger.debug('Starting aggregator.')
+        logger.info('Starting aggregator.')
         server.start()
         try:
             while True:

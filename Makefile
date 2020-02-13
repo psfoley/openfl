@@ -3,7 +3,16 @@
 whl = dist/tfedlrn-0.0.0-py3-none-any.whl
 tfl = venv/lib/python3.5/site-packages/tfedlrn
 
-col_id ?= col_0
+col_num ?= 0
+model_name ?= mnist_cnn_keras
+
+ifeq ($(model_name),brats_2dunet_tensorflow)
+    additional_run_col_container_lines = \
+	-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
+    -v '/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG':/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro
+endif
+
+
 
 full_hostname = $(shell hostname).$(shell hostname -d)
 
@@ -51,13 +60,13 @@ bin/federations/weights/mnist_cnn_keras_init.pbuf:
 # 	venv/bin/python3 bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls --disable_client_auth
 
 # start_mnist_col_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
-# 	venv/bin/python3 bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_id $(col_id) --disable_tls --disable_client_auth
+# 	venv/bin/python3 bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_num $(col_num) --disable_tls --disable_client_auth
 
 start_mnist_agg: $(tfl) bin/federations/weights/mnist_cnn_keras_init.pbuf local_certs
 	cd bin && ../venv/bin/python3 run_aggregator_from_flplan.py -p mnist_a.yaml
 
 start_mnist_col: $(tfl) bin/federations/weights/mnist_cnn_keras_init.pbuf local_certs
-	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col $(col_id)
+	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col $(col_num)
 
 bin/federations/certs/test/ca.key:
 	openssl genrsa -out bin/federations/certs/test/ca.key 3072
@@ -94,39 +103,38 @@ build_containers:
 	--build-arg UID=$(shell id -u) \
 	--build-arg GID=$(shell id -g) \
 	--build-arg UNAME=$(shell whoami) \
-	-t tfl_agg_$(shell whoami):0.1 \
+	-t tfl_agg_$(model_name)_$(shell whoami):0.1 \
 	-f Dockerfile \
 	.
 
 	docker build --build-arg whoami=$(shell whoami) \
-	-t tfl_col_$(shell whoami):0.1 \
-	-f ./models/mnist_cnn_keras/Dockerfile \
+	-t tfl_col_$(model_name)_$(shell whoami):0.1 \
+	-f ./models/$(model_name)/Dockerfile \
 	.
 
 run_agg_container:
 
 	docker run \
 	--net=host \
-	-it --name=tfl_agg_$(shell whoami) \
+	-it --name=tfl_agg_$(model_name)_$(shell whoami) \
 	--rm \
 	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
 	-w /home/$(shell whoami)/tfl/bin \
-	tfl_agg_$(shell whoami):0.1 \
+	tfl_agg_$(model_name)_$(shell whoami):0.1 \
 	bash 
-#"chmod +x start_mnist_aggregator.sh"
 
 run_col_container:
 
 	docker run \
 	--net=host \
-	-it --name=tfl_col_$(shell whoami)_$(col_num) \
+	-it --name=tfl_col_$(model_name)_$(shell whoami)_$(col_num) \
 	--rm \
 	-v $(shell pwd)/models:/home/$(shell whoami)/tfl/models:ro \
 	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
+	$(additional_run_col_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
-	tfl_col_$(shell whoami):0.1 \
+	tfl_col_$(model_name)_$(shell whoami):0.1 \
 	bash 
-# "chmod +x start_mnist_collaborator.sh"
 
 
 

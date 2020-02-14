@@ -44,9 +44,6 @@ def get_col_data(get_data_func, col_ids, base_data_path,  **kwargs):
 def get_collaborators(model, aggregator, col_ids, **kwargs):
     collaborators = [] 
     for col_id in col_ids:
-        print()
-        print('DEBUG: creating col with id: {}'.format(col_id))
-        print()
         collaborators.append(Collaborator(id=col_id, 
                                           wrapped_model=model, 
                                           channel=aggregator, 
@@ -93,14 +90,11 @@ def federate(get_model_func,
                                        **col_config)
 
     rounds = fed_config['rounds']
-    print('DEBUG: rounds are: {}'.format(rounds))
-
+    
     # TODO: Enable flat score detection, minimum accept, etc.
     for r in range(rounds):
         print()
-        print('DEBUG: ')
         print('Training Round {}'.format(r))
-        print('DEBUG: ')
         print()
         for col_num in range(num_cols):
 

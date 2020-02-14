@@ -33,88 +33,74 @@ def parse_tensor_dict(tensor_dict, tensor_dict_opt_keys):
     opt_dict = {key: layer_dict.pop(key) for key in tensor_dict_opt_keys}
     return layer_dict, opt_dict
 
-# FIXME: figure out where results and model proto files should go
+def get_col_data(get_data_func, col_ids, base_data_path,  **kwargs):
+    col_data_paths = [os.path.join(base_data_path, col_id) for col_id in col_ids]
+    col_data = []
+    for path in col_data_paths:
+        col_data.append(get_data_func(data_path = path, 
+                                      **kwargs))
+    return col_data
 
-
-def main(model_constructor, 
-         col_data_handlers,
-         full_kwargs,
-         init_model_fpath, 
-         latest_model_fpath,
-         best_model_fpath,
-         agg_id, 
-         fed_id, 
-         epochs, 
-         rounds, 
-         seed, 
-         abort_patience, 
-         iterations, 
-         opt_mode, 
-         minimum_accept, 
-         training_dice_test, 
-         **kwargs):
-
-    config = full_kwargs
-    print('Running experiment with config {}'.format(config))    
+def get_collaborators(model, aggregator, col_ids, **kwargs):
+    collaborators = [] 
+    for col_id in col_ids:
+        collaborators.append(Collaborator(id=col_id, 
+                                          wrapped_model=model, 
+                                          channel=aggregator, 
+                                          **kwargs))
+    return collaborators  
     
-    # infer the number of collaborators
-    num_cols = len(col_data_handlers)    
+
+def federate(get_model_func,
+             get_data_func, 
+             col_config,
+             agg_config,
+             data_config, 
+             model_config, 
+             weights_dir, 
+             base_data_path, 
+             **kwargs):
+
+    # get the number of collaborators
+    col_ids = col_config['col_ids']
+    num_cols = len(col_ids) 
+
+    col_data = get_col_data(get_data_func=get_data_func, 
+                            col_ids=col_ids,
+                            base_data_path=base_data_path, 
+                            **data_config)  
     
     # instantiate the model (using the first collaborator dataset for now)
-    model = model_constructor(col_data_handlers[0], **kwargs)
+    model = get_model_func(data= col_data[0],
+                           **model_config)
 
-    while iterations > 0:
-        # FIXME: 
-        # note the seed coupling below. The random seed for tf effects the model weight initialization, whereas the 
-        # ramdom seed for numpy effects the data set shuffling. If you want to explore these effects independently 
-        # be sure to define an independent seed for numpy and track it in the config and results.
-        tf.set_random_seed(seed)
-        np.random.seed(seed+1)
+    # create the aggregator
+    aggregator = Aggregator(init_model_fpath = os.path.join(weights_dir, agg_config['initial_weights']),
+                            latest_model_fpath = os.path.join(weights_dir, agg_config['latest_weights']), 
+                            best_model_fpath = os.path.join(weights_dir, agg_config['best_weights']), 
+                            **agg_config)
 
-        # start with a fresh model, initialized using the tf seed
-        model.initialize_globals()
+    # create the collaborataors
+    collaborators = get_collaborators(model=model, 
+                                       aggregator=aggregator, 
+                                       **col_config)
 
-        # save the initalized model to proto
-        # FIXME: Currently for testing and until a better solution this is
-        # written over each itteration
+    # TODO: maybe have a seperate fed_config?
+    rounds = agg_config['rounds']
 
-        model.export_init_weights(model_name = type(model).__name__,
-                                 version=0, 
-                                 fpath=init_model_fpath)
-
-        # create aggregator and all collaborator objects
-        # FIXME: all proto paths are the same
-        aggregator = Aggregator(id=agg_id, 
-                               fed_id=fed_id, 
-                               col_ids = [str(n) for n in range(num_cols)], 
-                               init_model_fpath=init_model_fpath, 
-                               latest_model_fpath=latest_model_fpath, 
-                               best_model_fpath=best_model_fpath)
-
-        # create the collaborator objects
-        collaborators = [] 
+    # TODO: Enable flat score detection, minimum accept, etc.
+    for r in range(rounds):
+        print('Training Round {}'.format(r))
         for col_num in range(num_cols):
-            collaborators.append(Collaborator(id=str(col_num), 
-                                             agg_id=agg_id, 
-                                             fed_id=fed_id, 
-                                             wrapped_model=model, 
-                                             channel=aggregator, 
-                                             model_version=0, 
-                                             opt_treatment=opt_mode, 
-                                             polling_interval=4))
 
+            collaborator = collaborators[col_num]
 
-        # TODO: Enable flat score detection, minimum accept, etc.
-        for r in range(rounds):
-            print('Training Round {}'.format(r))
-            for col_num in range(num_cols):
+            # overwrite the model's data using current insitution
+            model.set_data(col_data[col_num])
 
-                collaborator = collaborators[col_num]
+            # run the collaborator jobs for this round
+            collaborator.run_to_yield_or_quit()
 
-                # overwrite the model's data handler using current insitution
-                model.set_data_handler(col_data_handlers[col_num])
-
-                # run the collaborator jobs for this round
-                collaborator.run_to_yield()
+       
 
                 

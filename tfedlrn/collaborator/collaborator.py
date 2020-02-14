@@ -66,65 +66,44 @@ class Collaborator(object):
         check_equal(reply.header.federation_id, self.fed_id, self.logger)
 
     def run(self):
-        self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
-        self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
+        time_to_quit = False
         while True:
-            # query for job
-            # returns when a job has been received
-            job = self.query_for_job()
-
-            self.logger.debug("Got a job %s" % Job.Name(job))
-
-            # if time to quit
-            if job is JOB_QUIT:
+            time_to_quit = self.run_to_yield_or_quit()
+            if time_to_quit:
                 print(self, 'quitting')
                 break
-            elif job is JOB_TRAIN:
-                self.do_train_job()
-            elif job is JOB_VALIDATE:
-                self.do_validate_job()
-            elif job is JOB_DOWNLOAD_MODEL:
+            else:
+                time.sleep(self.polling_interval)
+
+    def run_to_yield_or_quit(self):
+        self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
+        self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
+        time_to_quit = False
+        while True:
+            # query for job and validate it
+            reply = self.channel.RequestJob(JobRequest(header=self.create_message_header(), model_header=self.model_header))
+            self.validate_header(reply)
+            check_type(reply, JobReply, self.logger)
+            job = reply.job
+
+            self.logger.debug("Got a job %s" % Job.Name(job))
+           
+            if job is JOB_DOWNLOAD_MODEL:
+                print('DEBUG: downloading now')
                 self.do_download_model_job()
-
-    def run_to_yield(self):
-        self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
-        self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
-        while True:
-            # query for job
-            # returns when a job has been received
-            job = self.query_for_job()
-
-            self.logger.debug("Got a job %s" % Job.Name(job))
-
-            # if time to quit
-            if job is JOB_QUIT:
-                print(self, 'quitting')
-                break
-            elif job is JOB_TRAIN:
-                print('DEBUG: training now')
-                self.do_train_job()
             elif job is JOB_VALIDATE:
                 print('DEBUG: validating now')
                 self.do_validate_job()
-            elif job is JOB_DOWNLOAD_MODEL:
-                print('DEBUG: downloading now')
-                self.do_download_model_job()
+            elif job is JOB_TRAIN:
+                print('DEBUG: training now')
+                self.do_train_job()
             elif job is JOB_YIELD:
-                break
+                return time_to_quit
+            elif job is JOB_QUIT:
+                time_to_quit = True
+                return time_to_quit
+            
 
-    def query_for_job(self):
-        # loop until we get a job other than 'yield'
-        while True:
-            reply = self.channel.RequestJob(JobRequest(header=self.create_message_header(), model_header=self.model_header))
-            self.validate_header(reply)
-
-            check_type(reply, JobReply, self.logger)
-
-            if reply.job is not JOB_YIELD:
-                break
-            time.sleep(self.polling_interval)
-
-        return reply.job
 
     def do_train_job(self):
         # get the initial tensor dict

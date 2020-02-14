@@ -12,7 +12,7 @@ from .tensorflowflutils import tf_get_vars, \
 
 class TensorFlow2DUNet(object):
 
-    def __init__(self, data_handler):
+    def __init__(self, data):
         
         self.assign_ops = None
         self.placeholders = None
@@ -20,9 +20,9 @@ class TensorFlow2DUNet(object):
         self.tvar_assign_ops = None
         self.tvar_placeholders = None
 
-        self.data_handler = data_handler
+        self.data = data
           
-        input_shape = list(self.data_handler.feature_shape)
+        input_shape = list(self.data.feature_shape)
         input_shape.insert(0, None)
         input_shape = tuple(input_shape)
         self.input_shape = input_shape
@@ -63,13 +63,13 @@ class TensorFlow2DUNet(object):
 
         self.initialize_globals()
 
-    def get_data_handler(self):
-        return self.data_handler
+    def get_data(self):
+        return self.data
 
-    def set_data_handler(self, data_handler):
-        if data_handler.feature_shape != self.data_handler.feature_shape:
-            raise ValueError('Data handler data shape is not compatible with model.')
-        self.data_handler = data_handler
+    def set_data(self, data):
+        if data.feature_shape != self.data.feature_shape:
+            raise ValueError('Data feature shape is not compatible with model.')
+        self.data = data
 
     def initialize_globals(self):
         self.sess.run(tf.global_variables_initializer())
@@ -111,9 +111,8 @@ class TensorFlow2DUNet(object):
         tf.keras.backend.set_learning_phase(True)
 
         # get training data and shuffle data indices
-        X_train, y_train = self.data_handler.data[0:2]
+        X_train, y_train = self.data.get_train_data()
         idx = np.random.permutation(np.arange(X_train.shape[0]))
-        
 
         # compute the number of batches
         num_batches = ceil(X_train.shape[0] / batch_size)
@@ -134,7 +133,7 @@ class TensorFlow2DUNet(object):
         tf.keras.backend.set_learning_phase(False)
 
         # get validation data
-        X_val, y_val = self.data_handler.data[2:4]
+        X_val, y_val = self.data.get_val_data() 
 
         score = 0
         if use_tqdm:
@@ -144,7 +143,7 @@ class TensorFlow2DUNet(object):
         for i in gen:
             X = X_val[i:i+batch_size]
             y = y_val[i:i+batch_size]
-            weight = X.shape[0] / X_val.shape[0]
+            weight = X.shape[0] / X_val.shape[0]  
             _, s = self.validate_batch(X, y)
             score += s * weight
         return score
@@ -162,10 +161,11 @@ class TensorFlow2DUNet(object):
         return self.sess.run([self.output, self.validation_metric], feed_dict=feed_dict)
 
     def get_training_data_size(self):
-        return self.data_handler.data[0].shape[0]
+        # TODO: Look into where this is used (can)
+        return self.data.get_training_data_size()
 
     def get_validation_data_size(self):
-        return self.data_handler.data[2].shape[0]
+        return self.data.get_validation_data_size()
 
 
 def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):

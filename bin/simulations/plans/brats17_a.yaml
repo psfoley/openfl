@@ -1,0 +1,48 @@
+# Compose an SFL "Simulation FL" plan in JSON/YAML.
+# * Task name
+# * Task description
+# * The folder path to the locally runnable code.
+# * The software dependency.
+# * FL parameters: fed_id, opt_treatment.
+
+
+
+# We may have several plans for one dataset, to search the best model architecture for exammple.
+
+task            : brats
+version         : '1'
+description     : Train a model to perform semantic segmentation on brain fMRI images.
+status          : active
+simulation      : fl_brats_2dunet
+
+model:
+  name     : brats_2dunet_tensorflow
+  code_path: models.brats_2dunet_tensorflow
+  version : 1
+  params:
+    batch_size: 1024
+    percent_train: 0.8
+    shuffle: True
+    dataset_path: ../datasets/brats/
+
+aggregator:
+  id             : '0'
+  rounds         : 2
+  collaborators  : 2
+  initial_weights: TensorFlow2DUNet_init.pbuf
+  latest_weights : TensorFlow2DUNet_latest.pbuf
+  best_weights   : TensorFlow2DUNet_best.pbuf
+
+collaborators:
+  col_ids:
+    - '2'
+    - '3'
+  agg_id : '0'
+  fed_id : '0'
+  model_version : '0'
+  
+data: 
+  code_path: models.brats_2dunet_tensorflow
+  percent_train: 0.8
+  shuffle: True
+

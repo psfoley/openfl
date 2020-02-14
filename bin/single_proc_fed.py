@@ -44,6 +44,9 @@ def get_col_data(get_data_func, col_ids, base_data_path,  **kwargs):
 def get_collaborators(model, aggregator, col_ids, **kwargs):
     collaborators = [] 
     for col_id in col_ids:
+        print()
+        print('DEBUG: creating col with id: {}'.format(col_id))
+        print()
         collaborators.append(Collaborator(id=col_id, 
                                           wrapped_model=model, 
                                           channel=aggregator, 
@@ -57,8 +60,12 @@ def federate(get_model_func,
              agg_config,
              data_config, 
              model_config, 
+             fed_config, 
              weights_dir, 
              base_data_path, 
+             init_model_fpath, 
+             latest_model_fpath, 
+             best_model_fpath, 
              **kwargs):
 
     # get the number of collaborators
@@ -75,9 +82,9 @@ def federate(get_model_func,
                            **model_config)
 
     # create the aggregator
-    aggregator = Aggregator(init_model_fpath = os.path.join(weights_dir, agg_config['initial_weights']),
-                            latest_model_fpath = os.path.join(weights_dir, agg_config['latest_weights']), 
-                            best_model_fpath = os.path.join(weights_dir, agg_config['best_weights']), 
+    aggregator = Aggregator(init_model_fpath = init_model_fpath,
+                            latest_model_fpath = latest_model_fpath, 
+                            best_model_fpath = best_model_fpath, 
                             **agg_config)
 
     # create the collaborataors
@@ -85,12 +92,16 @@ def federate(get_model_func,
                                        aggregator=aggregator, 
                                        **col_config)
 
-    # TODO: maybe have a seperate fed_config?
-    rounds = agg_config['rounds']
+    rounds = fed_config['rounds']
+    print('DEBUG: rounds are: {}'.format(rounds))
 
     # TODO: Enable flat score detection, minimum accept, etc.
     for r in range(rounds):
+        print()
+        print('DEBUG: ')
         print('Training Round {}'.format(r))
+        print('DEBUG: ')
+        print()
         for col_num in range(num_cols):
 
             collaborator = collaborators[col_num]

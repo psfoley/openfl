@@ -5,7 +5,7 @@
 # * The software dependency.
 # * FL parameters: fed_id, opt_treatment.
 
-
+# TODO: enforce certain fields to be identical?
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
@@ -18,31 +18,36 @@ simulation      : fl_brats_2dunet
 model:
   name     : brats_2dunet_tensorflow
   code_path: models.brats_2dunet_tensorflow
-  version : 1
+  version : &model_version_num 0
   params:
     batch_size: 1024
-    percent_train: 0.8
-    shuffle: True
+    percent_train: &percent_train_val 0.8
+    shuffle: &shuffle_val True
     dataset_path: ../datasets/brats/
 
 aggregator:
-  id             : '0'
+  id             : &agg_id_str '0'
+  fed_id         : &fed_id_str '0'
+  col_ids        : 
+    - &col_id_1 '2'
+    - &col_id_2 '3'
+  
+federation:
   rounds         : 2
-  collaborators  : 2
   initial_weights: TensorFlow2DUNet_init.pbuf
   latest_weights : TensorFlow2DUNet_latest.pbuf
   best_weights   : TensorFlow2DUNet_best.pbuf
 
 collaborators:
-  col_ids:
-    - '2'
-    - '3'
-  agg_id : '0'
-  fed_id : '0'
-  model_version : '0'
+  col_ids: 
+    - *col_id_1
+    - *col_id_2
+  agg_id : *agg_id_str
+  fed_id : *fed_id_str
+  model_version : *model_version_num
   
 data: 
   code_path: models.brats_2dunet_tensorflow
-  percent_train: 0.8
-  shuffle: True
+  percent_train: *percent_train_val
+  shuffle: *shuffle_val
 

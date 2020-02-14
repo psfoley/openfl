@@ -89,13 +89,10 @@ class Collaborator(object):
             self.logger.debug("Got a job %s" % Job.Name(job))
            
             if job is JOB_DOWNLOAD_MODEL:
-                print('DEBUG: downloading now')
                 self.do_download_model_job()
             elif job is JOB_VALIDATE:
-                print('DEBUG: validating now')
                 self.do_validate_job()
             elif job is JOB_TRAIN:
-                print('DEBUG: training now')
                 self.do_train_job()
             elif job is JOB_YIELD:
                 return time_to_quit

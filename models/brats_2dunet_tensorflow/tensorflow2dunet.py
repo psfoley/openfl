@@ -21,8 +21,9 @@ class TensorFlow2DUNet(object):
         self.tvar_placeholders = None
 
         self.data = data
-          
-        input_shape = list(self.data.feature_shape)
+
+        # construct the shape needed for the input features
+        input_shape = list(self.data.get_feature_shape()) 
         input_shape.insert(0, None)
         input_shape = tuple(input_shape)
         self.input_shape = input_shape
@@ -67,7 +68,7 @@ class TensorFlow2DUNet(object):
         return self.data
 
     def set_data(self, data):
-        if data.feature_shape != self.data.feature_shape:
+        if data.get_feature_shape() != self.data.get_feature_shape():
             raise ValueError('Data feature shape is not compatible with model.')
         self.data = data
 
@@ -111,7 +112,7 @@ class TensorFlow2DUNet(object):
         tf.keras.backend.set_learning_phase(True)
 
         # get training data and shuffle data indices
-        X_train, y_train = self.data.get_train_data()
+        X_train, y_train = self.data.get_training_data()
         idx = np.random.permutation(np.arange(X_train.shape[0]))
 
         # compute the number of batches
@@ -133,7 +134,7 @@ class TensorFlow2DUNet(object):
         tf.keras.backend.set_learning_phase(False)
 
         # get validation data
-        X_val, y_val = self.data.get_val_data() 
+        X_val, y_val = self.data.get_validation_data() 
 
         score = 0
         if use_tqdm:
@@ -161,7 +162,6 @@ class TensorFlow2DUNet(object):
         return self.sess.run([self.output, self.validation_metric], feed_dict=feed_dict)
 
     def get_training_data_size(self):
-        # TODO: Look into where this is used (can)
         return self.data.get_training_data_size()
 
     def get_validation_data_size(self):

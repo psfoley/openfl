@@ -1,12 +1,11 @@
 # Compose an SFL "Simulation FL" plan in JSON/YAML.
-# * Plan is consumed by bin/run_sim_from_sflplan.py and 
-# *     bin/create_initial_weights_file_from_plan.py 
-# * one code path points to get_model function and the other
-# *     points to the data object constructor
-# * model version is used to validate model updates
-# * Aggregator, collaborator, and fed ids as well as model version are currently
-# *     used to validate message headers. Collaborator ids are also 
-# *     used for identifying the data folder of each collaborator.
+# * Task name
+# * Task description
+# * The folder path to the locally runnable code.
+# * The software dependency.
+# * FL parameters: fed_id, opt_treatment.
+
+# TODO: enforce certain fields to be identical?
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
@@ -17,11 +16,14 @@ status          : active
 simulation      : fl_brats_2dunet
 
 model:
-  name     : brats_2dunet_tensorflow
-  code_path: models.brats_2dunet_tensorflow
+  name     : brats_2dunet_pytorch
+  code_path: models.brats_2dunet_pytorch
   version : &model_version_num 0
   params:
     batch_size: 64
+    percent_train: &percent_train_val 0.8
+    shuffle: &shuffle_val True
+    dataset_path: ../datasets/brats/
 
 aggregator:
   id             : &agg_id_str '0'
@@ -40,9 +42,9 @@ aggregator:
   
 federation:
   rounds         : 50
-  initial_weights: TensorFlow2DUNet_all10_init.pbuf
-  latest_weights : TensorFlow2DUNet_all10_latest.pbuf
-  best_weights   : TensorFlow2DUNet_all10_best.pbuf
+  initial_weights: PyTorch2DUNet_all10_init.pbuf
+  latest_weights : PyTorch2DUNet_all10_latest.pbuf
+  best_weights   : PyTorch2DUNet_all10_best.pbuf
 
 collaborators:
   col_ids: 
@@ -61,6 +63,7 @@ collaborators:
   model_version : *model_version_num
   
 data: 
-  code_path: models.brats_2dunet_tensorflow
-  percent_train: 0.8
+  code_path: models.brats_2dunet_pytorch
+  percent_train: *percent_train_val
+  shuffle: *shuffle_val
 

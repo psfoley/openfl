@@ -15,7 +15,7 @@ def load_model(code_path, **kwargs):
     model = module.get_model(**kwargs)
     return model
 
-def main(plan, collaborator_id, logging_config_path, logging_default_level):
+def main(plan, collaborator_id, data_config_path, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)

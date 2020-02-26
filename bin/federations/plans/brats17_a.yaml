@@ -1,8 +1,14 @@
 # Compose an FL plan in JSON/YAML.
-# * Task name
-# * Task description
-# * The folder path to the locally runnable code.
-# * The software dependency.
+# * Plan is consumed by bin/run_aggregator_from_flplan.py, 
+# *     bin/run_collaborator_from_flplan.py, and 
+# *     bin/create_initial_weights_file_from_plan.py 
+# * one code path points to get_model function and the other
+# *     points to the data object constructor
+# * model version is used to validate model updates
+# * Aggregator, collaborator, and fed ids as well as model version are currently
+# *     used to validate message headers. Collaborator ids are also 
+# *     used for identifying the data folder of each collaborator.
+
 # * FL parameters: fed_id, opt_treatment.
 
 # * Added by the coordinator later: agg_id, agg_url, poll_interval.
@@ -23,9 +29,7 @@ model:
   params:
     batch_size: 1024
     percent_train: 0.8
-    shuffle: True
-    dataset_path: ../datasets/brats/
-
+    
 aggregator:
   id             : agg_brats
   addr           : "spr-gpu01.jf.intel.com"

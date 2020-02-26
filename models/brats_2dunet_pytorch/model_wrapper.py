@@ -1,17 +1,15 @@
 import os
 import numpy as np
 
-from .tensorflow2dunet import TensorFlow2DUNet
+from .pytorch2dunet import PyTorch2DUNet
 from .brats_data import BratsData 
 
 def get_model(data=None, 
              data_path=None, 
              percent_train=0.8, 
-             shuffle=True, 
              **kwargs):
     if data == None: 
         data = BratsData(data_path=data_path, 
                          percent_train=percent_train, 
-                         shuffle=shuffle, 
                          **kwargs)
-    return TensorFlow2DUNet(data)
+    return PyTorch2DUNet(data)

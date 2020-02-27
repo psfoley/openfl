@@ -6,7 +6,7 @@ import importlib
 
 from tfedlrn.collaborator.collaborator import Collaborator
 from tfedlrn.collaborator.collaboratorgpcclient import CollaboratorGRPCClient
-from tfedlrn import load_flplan
+from tfedlrn import load_yaml
 
 from setup_logging import setup_logging
 
@@ -15,7 +15,7 @@ def load_model(code_path, **kwargs):
     model = module.get_model(**kwargs)
     return model
 
-def main(plan, collaborator_id, data_config_path, logging_config_path, logging_default_level):
+def main(plan, collaborator_id, col_config_path, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
@@ -23,7 +23,7 @@ def main(plan, collaborator_id, data_config_path, logging_config_path, logging_d
     base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
 
-    flplan = load_flplan(os.path.join(plan_dir, plan))
+    flplan = load_yaml(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
     model_config = flplan['model']
 
@@ -56,7 +56,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
     parser.add_argument('--collaborator_id', '-col', type=str, required=True)
-    parser.add_argument('--logging_config_path', '-c', type=str, default="logging.yaml")
+    parser.add_argument('--col_config_path', '-cc', type=str, default=" collaborators.yaml")
+    parser.add_argument('--logging_config_path', '-lc', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

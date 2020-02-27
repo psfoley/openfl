@@ -13,7 +13,6 @@
 
 # * Added by the coordinator later: agg_id, agg_url, poll_interval.
 
-
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
 task            : brats

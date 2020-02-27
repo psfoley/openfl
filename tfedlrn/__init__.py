@@ -1,4 +1,4 @@
-from .flplan import load_flplan
+from .yaml_utils import load_yaml
 
 def check_type(obj, expected_type, logger):
     if not isinstance(obj, expected_type):

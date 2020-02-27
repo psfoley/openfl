@@ -4,7 +4,7 @@ import os
 import logging
 import importlib
 
-from tfedlrn import load_flplan
+from tfedlrn import load_yaml
 from models import export_weights
 from setup_logging import setup_logging
 
@@ -28,7 +28,7 @@ def main(plan_name, plan_type, logging_config_path, logging_default_level):
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
 
-    plan = load_flplan(os.path.join(plan_dir, plan_name))
+    plan = load_yaml(os.path.join(plan_dir, plan_name))
     model_config = plan['model']
     agg_config = plan['aggregator']
     fed_config = plan['federation']

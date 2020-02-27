@@ -4,7 +4,7 @@ import os
 import logging
 import importlib
 
-from tfedlrn import load_flplan
+from tfedlrn import load_yaml
 from single_proc_fed import federate
 from setup_logging import setup_logging
 
@@ -26,7 +26,7 @@ def main(plan, logging_config_path, logging_default_level, base_data_path, **kwa
     weights_dir = os.path.join(base_dir, 'weights')
 
     # parse configs from sflplan
-    sflplan = load_flplan(os.path.join(plan_dir, plan))
+    sflplan = load_yaml(os.path.join(plan_dir, plan))
     agg_config = sflplan['aggregator']
     col_config = sflplan['collaborators']
     data_config = sflplan['data']

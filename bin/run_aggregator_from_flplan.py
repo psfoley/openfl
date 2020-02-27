@@ -5,7 +5,7 @@ import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.aggregator.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import load_flplan
+from tfedlrn import load_yaml 
 
 from setup_logging import setup_logging
 
@@ -19,7 +19,7 @@ def main(plan, logging_config_path, logging_default_level):
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
 
-    flplan = load_flplan(os.path.join(plan_dir, plan))
+    flplan = load_yaml(os.path.join(plan_dir, plan))
 
     # FIXME: this should be easily consumed by the Aggregator object (#16)
     agg_config = flplan['aggregator']

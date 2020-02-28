@@ -18,6 +18,10 @@ installed and confugured properly. Here is a easy test to run:
   ...
 
 
+Federated Training of an MNIST Classifier
+-------------------------------------------
+
+
 Start an Aggregator
 ^^^^^^^^^^^^^^^^^^^^
 1. Enter the project folder and clean the build folder.
@@ -29,10 +33,14 @@ It can be anything of your choice on your machine.
 
   $ cd spr_secure_intelligence-trusted_federated_learning
   $ make clean
+  rm -r -f venv
+  rm -r -f dist
+  rm -r -f build
+  rm -r -f tfedlrn.egg-info
+  rm -r -f bin/federations/certs/test/*
 
-
-2. Build the docker images "tfl_agg_<username>:0.1" and 
-"tfl_col_<username>:0.1" using project folder Makefile targets.
+2. Build the docker images "tfl_agg_<model_name>_<username>:0.1" and 
+"tfl_col_<model_name>_<username>:0.1" using project folder Makefile targets.
 This uses the project folder "Dockerfile".
 We only build them once, unless we change `Dockerfile`.
 We pass along the proxy configuration from the host machine
@@ -50,29 +58,81 @@ the needed packages.
 
 .. code-block:: console
 
-  $ make build_containers
+  $ make build_containers model_name=mnist_cnn_keras
+  --build-arg http_proxy \
+  --build-arg https_proxy \
+  --build-arg socks_proxy \
+  --build-arg ftp_proxy \
+  --build-arg no_proxy \
+  --build-arg UID=11632344 \
+  --build-arg GID=2222 \
+  --build-arg UNAME=edwardsb \
+  -t tfl_agg_mnist_cnn_keras_edwardsb:0.1 \
+  -f Dockerfile \
+  .
+  Sending build context to Docker daemon  12.95MB
+  Step 1/28 : FROM ubuntu:18.04
+   ---> 775349758637
+  Step 2/28 : LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
+   ---> Using cache
+   ---> fae6ee6bdabf
 
+   ...
+   ...
+   ...
+   
+   Step 7/7 : RUN pip3 install intel-tensorflow==1.14.0;
+   ---> Using cache
+   ---> 54ac91a69eb1
+  Successfully built 54ac91a69eb1
+  Successfully tagged tfl_col_mnist_cnn_keras_edwardsb:0.1
 
 3. Run the aggregator container (entering a bash shell inside the container), 
 again using the Makefile.
 
 .. code-block:: console
 
-  $ make run_agg_container
-
+  $ make run_agg_container model_name=mnist_cnn_keras
+  docker run \
+  --net=host \
+  -it --name=tfl_agg_mnist_cnn_keras_edwardsb \
+  --rm \
+  -v /home/edwardsb/repositories/gitlab_tfedlearn/bin:/home/edwardsb/tfl/bin:rw \
+  -w /home/edwardsb/tfl/bin \
+  tfl_agg_mnist_cnn_keras_edwardsb:0.1 \
+  bash
 
 4. In this container shell, generate the files for TLS communication.
 The folder is initially empty.
-We will generate the files using a script (via another makefile).
+We will generate the files using a script (via the makefile).
 The details of TLS, see :ref:`tutorial-tls-pki`.
 
 .. code-block:: console
 
   $ cd ../
   $ make local_certs
+  openssl genrsa -out bin/federations/certs/test/local.key 3072
+  Generating RSA private key, 3072 bit long modulus (2 primes)
+  ...................................................................................................................++++
+  ..........................................................++++
+  e is 65537 (0x010001)
+  openssl req -new -key bin/federations/certs/test/local.key -out bin/federations/certs/test/local.csr -subj /CN=spr-gpu01.jf.intel.com
+  Can't load /home/edwardsb/.rnd into RNG
+  140391364972992:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/home/edwardsb/.rnd
+  openssl genrsa -out bin/federations/certs/test/ca.key 3072
+  Generating RSA private key, 3072 bit long modulus (2 primes)
+  ..............................................++++
+  ....................++++
+  e is 65537 (0x010001)
+  openssl req -new -x509 -key bin/federations/certs/test/ca.key -out bin/federations/certs/test/ca.crt -subj "/CN=Trusted Federated Learning Test Cert Authority"
+  Can't load /home/edwardsb/.rnd into RNG
+  140520576963008:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/home/edwardsb/.rnd
+  openssl x509 -req -in bin/federations/certs/test/local.csr -CA bin/federations/certs/test/ca.crt -CAkey bin/federations/certs/test/ca.key -CAcreateserial -out bin/federations/certs/test/local.crt
+  Signature ok
+  subject=CN = spr-gpu01.jf.intel.com
+  Getting CA Private Key
 
-
-The files should now be present.
+Navigate back to the bin directory, and see that the relevant files are now present.
 
 .. code-block:: console
 
@@ -82,14 +142,14 @@ The files should now be present.
 
 
 
-5. Still in the aggregator container shell, start the aggregator, using
+5. Still in the aggregator container shell, run the aggregator, using
 a shell script provided in the project.
 
 .. code-block:: console
 
-  $ chmod +x start_mnist_aggregator.sh
-  $ ./start_mnist_aggregator.sh 
-  
+  $ ./run_mnist_aggregator.sh 
+  Loaded logging configuration: logging.yaml
+  2020-01-15 23:17:18,143 - tfedlrn.aggregator.aggregatorgrpcserver - DEBUG - Starting aggregator.
 
 
 Start Collaborators
@@ -104,7 +164,7 @@ and build the containers as above.
 
   $ cd spr_secure_intelligence-trusted_federated_learning
   $ make clean
-  $ make build_containers
+  $ make build_containers model_name=mnist_cnn_keras
 
 
 2. (**Only if not on the aggregator machine**) Copy over authentication files. 
@@ -127,37 +187,94 @@ docker image.
 
 .. code-block:: console
 
-  $ make run_col_container col_num=0
+  $ make run_col_container model_name=mnist_cnn_keras col_num=0
+  docker run \
+  --net=host \
+  -it --name=tfl_col_mnist_cnn_keras_edwardsb_0 \
+  --rm \
+  -v /home/edwardsb/repositories/gitlab_tfedlearn/models:/home/edwardsb/tfl/models:ro \
+  -v /home/edwardsb/repositories/gitlab_tfedlearn/bin:/home/edwardsb/tfl/bin:rw \
+   \
+  -w /home/edwardsb/tfl/bin \
+  tfl_col_mnist_cnn_keras_edwardsb:0.1 \
+  bash 
 
-
-4. In this first collaborator shell, start the collabotor using the provided shell script.
+4. In this first collaborator shell, run the collabotor using the provided shell script.
 
 .. code-block:: console
 
-  $ chmod +x start_mnist_collaborator.sh
-  $ ./start_mnist_collaborator.sh 0 
+  $ ./run_mnist_collaborator.sh 0 
+  /home/edwardsb/tfl/venv/lib/python3.6/site-packages/tensorflow/python/framework/dtypes.py:516: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
+  _np_qint8 = np.dtype([("qint8", np.int8, 1)])
 
+  ...
+  ...
+  ...
 
-5. In a second shell on the same machine that you ran the first collaborator, run 
-the second collaborator (entering a bash shell inside the container). Note that the
-two collaborators can run on separate machines as well, all that is needed is to 
+  Downloading data from https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz
+  11493376/11490434 [==============================] - 0s 0us/step
+  Loaded logging configuration: logging.yaml
+
+  ...
+  ...
+  ...
+
+  x_train shape: (6000, 28, 28, 1)
+  y_train shape: (6000,)
+  6000 train samples
+  1000 test samples
+
+  ...
+  ...
+  ...
+
+  Training set size: 6000; Validation set size: 1000
+  2020-01-24 19:19:40,684 - tfedlrn.collaborator.collaboratorgpcclient - DEBUG - Connecting to gRPC at spr-gpu01.jf.intel.com:8844
+  2020-01-24 19:19:40,684 - tfedlrn.collaborator.collaborator - INFO - Collaborator [col_0] connects to federation [fl_mnist_conv2fc2] and aggegator [agg_mnist].
+  2020-01-24 19:19:40 spr-gpu01 tfedlrn.collaborator.collaborator[18] INFO Collaborator [col_0] connects to federation [fl_mnist_conv2fc2] and aggegator [agg_mnist].
+  2020-01-24 19:19:40,685 - tfedlrn.collaborator.collaborator - DEBUG - The optimizer variable treatment is [OptTreatment.RESET].
+  2020-01-24 19:19:40,747 - tfedlrn.collaborator.collaborator - DEBUG - Got a job JOB_DOWNLOAD_MODEL
+  2020-01-24 19:19:40,761 - tfedlrn.collaborator.collaborator - INFO - Completed the model downloading job.
+
+  ...
+  ...
+  ...
+
+5. In a second shell on the same machine that you ran the first collaborator container, run 
+the second collaborator container (entering a bash shell inside the container). Note that the
+two collaborator containers can run on separate machines as well, all that is needed is to 
 build the containers on the new machine and copy over the authentication files as
 was done above.
 
 .. code-block:: console
 
-  $ make run_col_container col_num=1
+  $ make run_col_container model_name=mnist_cnn_keras col_num=1
+  docker run \
+  --net=host \
+  -it --name=tfl_col_mnist_cnn_keras_edwardsb_1 \
+  --rm \
+  -v /home/edwardsb/repositories/gitlab_tfedlearn/models:/home/edwardsb/tfl/models:ro \
+  -v /home/edwardsb/repositories/gitlab_tfedlearn/bin:/home/edwardsb/tfl/bin:rw \
+   \
+  -w /home/edwardsb/tfl/bin \
+  tfl_col_mnist_cnn_keras_edwardsb:0.1 \
+  bash
 
 
-6. In the second collaborator container shell, start the second collaborator.
+6. In the second collaborator container shell, run the second collaborator.
 
 .. code-block:: console
 
-  $ ./start_mnist_collaborator.sh 1 
+  $ ./run_mnist_collaborator.sh 1 
+
+  ...
+  ...
+  ...
+
 
 
 Understand federated learning using Tensorboard
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The aggregator collects performace readings from the
 collaborators and the federation, and outputs to
@@ -168,21 +285,44 @@ program from the project folder to visualize the learning process.
 
   $ tensorboard --logdir ./bin/logs
 
-Running the BraTS 2D UNet
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Federated Training of the BraTS 2D UNet (Brain Tumor Segmentation)
+-----------------------------------------------------------------
 
-(**This tutorial assumes that you've run the MNIST example above.**)
+This tutorial assumes that you've run the MNIST example above in that less details are provided.
+
+BraTS Federation with One Collaborator
+----------------------------------------
 
 We'll start the tutorial by training with a single collaborator. Then, we'll edit the FLPlan to include more collaborators and run multiple.
 
-1. (**On the aggregator machine**) Start the aggregator. 
+Start an Aggregator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. (**On the aggregator machine**) Build the brats aggregator and collaborator containers. 
 
 .. code-block:: console
 
-  $ tfl-agg-docker python3 run_aggregator_from_flplan.py -p brats17_a.yaml
-  Loaded logging configuration: logging.yaml
+  $ make build_containers model_name=brats_2dunet_tensorflow
 
-2. Create the symlinks for the per-institution datasets. 
+2. Run the aggregator container, then inside the shell create the files for TLS and run the aggregator.
+
+.. code-block:: console
+
+  $ make run_agg_container model_name=brats_2dunet_tensorflow
+
+(inside the aggregator container shell)
+
+.. code-block:: console
+
+  $ cd ../
+  $ make local_certs
+  $ cd bin/
+  $ ./run_brats_aggregator.sh
+
+Start Collaborator
+^^^^^^^^^^^^^^^^^^^^
+
+3. Create the symlinks for the per-institution datasets. 
 
 We host the entire brats 17 dataset on a single volume that the collaborators can all reach and 
 provide directories with symlinks for each insitution, such that each institution then only sees its own data.
@@ -202,37 +342,23 @@ So in our case, the command is:
 
 Note: to remove the links, we recommend using find <symlink_path> -type l -exec unlink {} \; to avoid deleting the actual files.
 
-3. (**On a collaborator machine**) Create the collaborator image that includes the 2d unet:
+4. (**On a collaborator machine**) Run the collaborator container (entering a bash shell inside the container).
 
 .. code-block:: console
 
-  $ docker build --build-arg whoami=$(whoami) \
-  -t tfl_unet_col_$(whoami):0.1 \
-  -f ./models/brats_2dunet_tensorflow/Dockerfile \
-  .
-
-4. (**On a collaborator machine**) Create the alias for the collaborator.
+  $ make run_col_container model_name=brats_2dunet_tensorflow col_num=0
+  
+  
+5. (**On a collaborator machine**) Run the collaborator inside the collaborator container.
 
 .. code-block:: console
 
-  $ alias tfl-docker-col0='docker run \
-  --net=host \
-  -it --name=tfl_$(whoami)_col_0 \
-  --rm \
-  -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
-  -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
-  -v "/raid/datasets/BraTS17/symlinks/0":/home/$(whoami)/tfl/datasets/brats:ro \
-  -v "/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG":/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro \
-  -w /home/$(whoami)/tfl/bin \
-  tfl_unet_col_$(whoami):0.1'
-
-5. (**On a collaborator machine**) Run the collaborator
-
-.. code-block:: console
-
-  $ tfl-docker-col0 bash -c "../venv/bin/python3 run_collaborator_from_flplan.py -p brats17_a.yaml -col col_0;"
+  $ ./run_brats_collaborator.sh 0
 
 The model will now train with a single insitution. To stop the training, CTRL-C on each process will suffice.
+
+BraTS Federation with Two or More Collaborators
+--------------------------------------------
 
 6. (**On the aggregator machine**) Edit the FLPlan to run with up to 10 collaborators. In bin/federations/plans/brats17_a.yaml, you'll change the "collaborators" value in the "aggregator" block:
 
@@ -250,39 +376,49 @@ becomes
 
 (or less than 10).
 
-Typically, you would want to change the FLPlan file on each machine, but it isn't strictly necessary, since the collaborators will ignore that value anyway. Eventually, the collaborators and aggregators will all kepe their files in sync via the Governor.
+Note: Typically, you would want to change the FLPlan file on each machine, but it isn't strictly necessary, since the collaborators will ignore that value anyway. Eventually, the collaborators and aggregators will all kepe their files in sync via the Governor.
 
-7. (**On the aggregator machine**) Start the aggregator. 
+
+Start the Aggregator
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+7. (**On the aggregator machine**) Run the aggregator container, then inside the shell run the aggregator.
 
 .. code-block:: console
 
-  $ tfl-agg-docker python3 run_aggregator_from_flplan.py -p brats17_a.yaml
-  Loaded logging configuration: logging.yaml
+  $ make run_agg_container model_name=brats_2dunet_tensorflow
 
-Now we have to repeat our earlier steps for each collaborator:
+(inside the aggregator container shell)
 
-8. (**On each new collaborator machine**) Create the collaborator image that includes the 2d unet, as before.
+.. code-block:: console
+
+  $ ./run_brats_aggregator.sh
+
+Start the Collaborators
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We have to repeat our earlier steps for each collaborator:
+
+8. (**On each new collaborator machine**) Build the brats containers, as before.
 
 9. (**On each new collaborator machine**) Copy the certs over, as before. (**This is incorrect for use over an unsecured network! Real cases require unique certs!!!**)
 
-10. (**For each collaborator**) On the given collaborator machine, create the alias for the run command, replacing #### with the collaborator number (starting with 0). So you'll want a 
+10. (**For each collaborator**) On the given collaborator machine, run the collaborator conainer and run the collaborator inside the container shell(replacing #### with the collaborator number, starting with 0). 
 
 .. code-block:: console
 
-  $ alias tfl-docker-col####='docker run \
-  --net=host \
-  -it --name=tfl_$(whoami)_col_#### \
-  --rm \
-  -v "$PWD"/models:/home/$(whoami)/tfl/models:ro \
-  -v "$PWD"/bin:/home/$(whoami)/tfl/bin:rw \
-  -v "/raid/datasets/BraTS17/symlinks/####":/home/$(whoami)/tfl/datasets/brats:ro \
-  -v "/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG":/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro \
-  -w /home/$(whoami)/tfl/bin \
-  tfl_unet_col_$(whoami):0.1'
-
-
-11. (**For each collaborator**) On the given collaborator machine, run the collaborator, replacing #### with the collaborator number
+  $ make run_col_container model_name=brats_2dunet_tensorflow col_num=####
+  
+  
+(inside the collaborator container shell)
 
 .. code-block:: console
 
-  $ tfl-docker-col#### bash -c "../venv/bin/python3 run_collaborator_from_flplan.py -p brats17_a.yaml -col col_####;"
+  $ ./run_brats_collaborator.sh ####
+  
+  
+  
+  
+
+

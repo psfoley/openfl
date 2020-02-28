@@ -19,11 +19,7 @@ model:
   name     : brats_2dunet_pytorch
   code_path: models.brats_2dunet_pytorch
   version : &model_version_num 0
-  params:
-    batch_size: 64
-    percent_train: &percent_train_val 0.8
-    shuffle: &shuffle_val True
-    dataset_path: ../datasets/brats/
+  params: {}
 
 aggregator:
   id             : &agg_id_str '0'

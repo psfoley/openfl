@@ -20,8 +20,7 @@ model:
   name     : brats_2dunet_tensorflow
   code_path: models.brats_2dunet_tensorflow
   version : &model_version_num 0
-  params:
-    batch_size: 64
+  params: {}
 
 aggregator:
   id             : &agg_id_str 'agg_0'

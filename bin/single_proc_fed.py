@@ -1,6 +1,3 @@
-from pickagpu import pick_a_gpu
-pick_a_gpu()
-
 import numpy as np
 import tensorflow as tf
 from datetime import datetime
@@ -22,16 +19,6 @@ class OptMode(Enum):
     RESET = 1
     AGG = 2
     EDGE = 3
-
-def aggregate_tensordicts(td0, td1, n0, n1):
-    return {key: np.average(np.array([td0[key], td1[key]]), axis=0, weights=[n0, n1]) \
-            for key in td0}
-
-
-def parse_tensor_dict(tensor_dict, tensor_dict_opt_keys):
-    layer_dict = tensor_dict.copy()
-    opt_dict = {key: layer_dict.pop(key) for key in tensor_dict_opt_keys}
-    return layer_dict, opt_dict
 
 def get_collaborators(model, aggregator, col_ids, **kwargs):
     collaborators = {} 
@@ -57,7 +44,6 @@ def federate(get_model_func,
 
     # get the number of collaborators
     col_ids = col_config['col_ids']
-    num_cols = len(col_ids)
     
     # instantiate the model (using the first collaborator dataset for now)
     model = get_model_func(data= col_data[col_ids[0]],

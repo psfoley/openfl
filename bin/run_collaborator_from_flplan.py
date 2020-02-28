@@ -10,12 +10,15 @@ from tfedlrn import load_yaml
 
 from setup_logging import setup_logging
 
-def load_model(code_path, data_config, model_kwargs):
+def load_model(code_path, data, model_kwargs):
     module = importlib.import_module(code_path)
-    model = module.get_model(data=None, 
-                             data_kwargs=data_config, 
-                             model_kwargs=model_kwargs)
+    model = module.get_model(data=data, model_kwargs=model_kwargs)
     return model
+
+def load_data(code_path, data_object_name, data_kwargs):
+    module = importlib.import_module(code_path)  
+    data = module.__getattribute__(data_object_name)(data_kwargs)
+    return data 
 
 def main(plan, collaborator_id, data_config_fname, logging_config_fname, logging_default_level):
     setup_logging(path=logging_config_fname, default_level=logging_default_level)
@@ -33,7 +36,12 @@ def main(plan, collaborator_id, data_config_fname, logging_config_fname, logging
     tls_config = flplan['tls']
     cert_dir = os.path.join(base_dir, 'certs', tls_config['cert_folder'])
 
-    wrapped_model = load_model(model_config['code_path'], data_config, model_config['params'])
+    data = load_data(code_path=data_config['data_code_path'], 
+                     data_object_name=data_config['data_object_name'], 
+                     data_kwargs = data_config['data_kwargs'])
+    wrapped_model = load_model(code_path=model_config['code_path'], 
+                               data=data, 
+                               model_kwargs=model_config['params'])
     opt_treatment = flplan['collaborator']['opt_vars_treatment']
     
     channel = CollaboratorGRPCClient(addr=agg_config['addr'],

@@ -2,7 +2,6 @@ import os
 import numpy as np
 
 from .pytorch2dunet import PyTorch2DUNet
-from .brats_data import BratsData 
 
 def get_model(data=None, data_kwargs={}, model_kwargs={}):
     if data == None:

@@ -78,7 +78,6 @@ class Collaborator(object):
     def run_to_yield_or_quit(self):
         self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
         self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
-        time_to_quit = False
         while True:
             # query for job and validate it
             reply = self.channel.RequestJob(JobRequest(header=self.create_message_header(), model_header=self.model_header))
@@ -95,10 +94,9 @@ class Collaborator(object):
             elif job is JOB_TRAIN:
                 self.do_train_job()
             elif job is JOB_YIELD:
-                return time_to_quit
+                return False
             elif job is JOB_QUIT:
-                time_to_quit = True
-                return time_to_quit
+                return True
             
 
 

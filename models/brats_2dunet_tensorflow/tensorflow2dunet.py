@@ -1,7 +1,5 @@
 import tensorflow as tf
-from math import ceil
 import numpy as np
-from tqdm import tqdm
 
 from .tensorflowflutils import tf_get_vars, \
                                tf_get_tensor_dict, \
@@ -12,7 +10,7 @@ from .tensorflowflutils import tf_get_vars, \
 
 class TensorFlow2DUNet(object):
 
-    def __init__(self, data, batch_size, **kwargs):
+    def __init__(self, data, **kwargs):
         
         self.assign_ops = None
         self.placeholders = None
@@ -21,8 +19,6 @@ class TensorFlow2DUNet(object):
         self.tvar_placeholders = None
 
         self.data = data
-
-        self.batch_size = batch_size
 
         # construct the shape needed for the input features
         input_shape = list(self.data.get_feature_shape()) 
@@ -110,45 +106,28 @@ class TensorFlow2DUNet(object):
                               tensor_dict=self.get_tensor_dict(), 
                               fpath=fpath)
 
-    def train_epoch(self, epoch=None, use_tqdm=False):
+    def train_epoch(self, batch_size=None, use_tqdm=False):
+
         tf.keras.backend.set_learning_phase(True)
 
-        # get training data and shuffle data indices
-        X_train, y_train = self.data.get_training_data()
-        idx = np.random.permutation(np.arange(X_train.shape[0]))
-
-        # compute the number of batches
-        num_batches = ceil(X_train.shape[0] / self.batch_size)
-
         losses = []
-        if use_tqdm:
-            gen = tqdm(range(num_batches), desc="training epoch")
-        else:
-            gen = range(num_batches)
-        for i in gen:
-            a = i * self.batch_size
-            b = a + self.batch_size
-            losses.append(self.train_batch(X_train[idx[a:b]], y_train[idx[a:b]]))
+        gen = self.data.get_batch_generator('train', batch_size, use_tqdm)
+        for X, y in gen:
+            losses.append(self.train_batch(X, y))
 
         return np.mean(losses)
 
-    def validate(self, use_tqdm=False):
+    def validate(self, batch_size=None, use_tqdm=False):
+
         tf.keras.backend.set_learning_phase(False)
 
-        # get validation data
-        X_val, y_val = self.data.get_validation_data() 
-
         score = 0
-        if use_tqdm:
-            gen = tqdm(np.arange(0, X_val.shape[0], self.batch_size), desc="validating")
-        else:
-            gen = np.arange(0, X_val.shape[0], self.batch_size)
-        for i in gen:
-            X = X_val[i:i+self.batch_size]
-            y = y_val[i:i+self.batch_size]
-            weight = X.shape[0] / X_val.shape[0]  
+        gen = self.data.get_batch_generator('val', batch_size, use_tqdm)
+        for X, y in gen:
+            weight = X.shape[0] / self.data.get_validation_data_size()  
             _, s = self.validate_batch(X, y)
             score += s * weight
+
         return score
 
     def train_batch(self, X, y):
@@ -168,6 +147,7 @@ class TensorFlow2DUNet(object):
 
     def get_validation_data_size(self):
         return self.data.get_validation_data_size()
+
 
 
 def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):

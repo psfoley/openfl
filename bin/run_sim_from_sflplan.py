@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+from tfedlrn.gpuutils import pick_cuda_device
+pick_cuda_device()
+
+
+
 import argparse
 import os
 import logging
@@ -41,7 +46,7 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
 
     # get the BraTS data objects for each collaborator
     col_ids = col_config['col_ids']
-    get_data_funcs = {col_id: load_func(data_config[col_id]['code_path'], \
+    get_data_funcs = {col_id: load_func(data_config[col_id]['data_code_path'], \
                                         data_config[col_id]['data_object_name'])\
                       for col_id in col_ids}
     data_paths = {col_id: data_config[col_id]['data_path'] for col_id in col_ids}

@@ -10,13 +10,15 @@ from tfedlrn import load_yaml
 
 from setup_logging import setup_logging
 
-def load_model(code_path, **kwargs):
+def load_model(code_path, data_config, model_kwargs):
     module = importlib.import_module(code_path)
-    model = module.get_model(**kwargs)
+    model = module.get_model(data=None, 
+                             data_kwargs=data_config, 
+                             model_kwargs=model_kwargs)
     return model
 
-def main(plan, collaborator_id, col_config_path, logging_config_path, logging_default_level):
-    setup_logging(path=logging_config_path, default_level=logging_default_level)
+def main(plan, collaborator_id, data_config_fname, logging_config_fname, logging_default_level):
+    setup_logging(path=logging_config_fname, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
     script_dir = os.path.dirname(os.path.realpath(__file__))
@@ -26,12 +28,12 @@ def main(plan, collaborator_id, col_config_path, logging_config_path, logging_de
     flplan = load_yaml(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
     model_config = flplan['model']
+    data_config = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
 
     tls_config = flplan['tls']
     cert_dir = os.path.join(base_dir, 'certs', tls_config['cert_folder'])
 
-    #FIXME: model loading needs to received model paramters from flplan (#17)
-    wrapped_model = load_model(model_config['code_path'], **model_config['params'])
+    wrapped_model = load_model(model_config['code_path'], data_config, model_config['params'])
     opt_treatment = flplan['collaborator']['opt_vars_treatment']
     
     channel = CollaboratorGRPCClient(addr=agg_config['addr'],
@@ -56,8 +58,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
     parser.add_argument('--collaborator_id', '-col', type=str, required=True)
-    parser.add_argument('--col_config_path', '-cc', type=str, default=" collaborators.yaml")
-    parser.add_argument('--logging_config_path', '-lc', type=str, default="logging.yaml")
+    parser.add_argument('--data_config_fname', '-dc', type=str, default=" data.yaml")
+    parser.add_argument('--logging_config_fname', '-lc', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

@@ -12,7 +12,7 @@ from .tensorflowflutils import tf_get_vars, \
 
 class TensorFlow2DUNet(object):
 
-    def __init__(self, data):
+    def __init__(self, data, batch_size, **kwargs):
         
         self.assign_ops = None
         self.placeholders = None
@@ -21,6 +21,8 @@ class TensorFlow2DUNet(object):
         self.tvar_placeholders = None
 
         self.data = data
+
+        self.batch_size = batch_size
 
         # construct the shape needed for the input features
         input_shape = list(self.data.get_feature_shape()) 
@@ -108,7 +110,7 @@ class TensorFlow2DUNet(object):
                               tensor_dict=self.get_tensor_dict(), 
                               fpath=fpath)
 
-    def train_epoch(self, epoch=None, batch_size=64, use_tqdm=False):
+    def train_epoch(self, epoch=None, use_tqdm=False):
         tf.keras.backend.set_learning_phase(True)
 
         # get training data and shuffle data indices
@@ -116,7 +118,7 @@ class TensorFlow2DUNet(object):
         idx = np.random.permutation(np.arange(X_train.shape[0]))
 
         # compute the number of batches
-        num_batches = ceil(X_train.shape[0] / batch_size)
+        num_batches = ceil(X_train.shape[0] / self.batch_size)
 
         losses = []
         if use_tqdm:
@@ -124,13 +126,13 @@ class TensorFlow2DUNet(object):
         else:
             gen = range(num_batches)
         for i in gen:
-            a = i * batch_size
-            b = a + batch_size
+            a = i * self.batch_size
+            b = a + self.batch_size
             losses.append(self.train_batch(X_train[idx[a:b]], y_train[idx[a:b]]))
 
         return np.mean(losses)
 
-    def validate(self, batch_size=64, use_tqdm=False):
+    def validate(self, use_tqdm=False):
         tf.keras.backend.set_learning_phase(False)
 
         # get validation data
@@ -138,12 +140,12 @@ class TensorFlow2DUNet(object):
 
         score = 0
         if use_tqdm:
-            gen = tqdm(np.arange(0, X_val.shape[0], batch_size), desc="validating")
+            gen = tqdm(np.arange(0, X_val.shape[0], self.batch_size), desc="validating")
         else:
-            gen = np.arange(0, X_val.shape[0], batch_size)
+            gen = np.arange(0, X_val.shape[0], self.batch_size)
         for i in gen:
-            X = X_val[i:i+batch_size]
-            y = y_val[i:i+batch_size]
+            X = X_val[i:i+self.batch_size]
+            y = y_val[i:i+self.batch_size]
             weight = X.shape[0] / X_val.shape[0]  
             _, s = self.validate_batch(X, y)
             score += s * weight

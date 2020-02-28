@@ -23,7 +23,7 @@ def main(plan, logging_config_path, logging_default_level):
 
     # FIXME: this should be easily consumed by the Aggregator object (#16)
     agg_config = flplan['aggregator']
-    col_ids = ['col_{}'.format(i) for i in range(agg_config['collaborators'])]
+    col_ids = agg_config['collaborators']
     agg = Aggregator(agg_config['id'],
                      flplan['federation'],
                      col_ids,

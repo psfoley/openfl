@@ -24,11 +24,11 @@ model:
     batch_size: 64
 
 aggregator:
-  id             : &agg_id_str '0'
-  fed_id         : &fed_id_str '0'
+  id             : &agg_id_str 'agg_0'
+  fed_id         : &fed_id_str 'fed_0'
   col_ids        : 
-    - &col_id_1 '2'
-    - &col_id_2 '3'
+    - &col_id_1 'col_2'
+    - &col_id_2 'col_3'
   
 federation:
   rounds         : 2
@@ -43,8 +43,5 @@ collaborators:
   agg_id : *agg_id_str
   fed_id : *fed_id_str
   model_version : *model_version_num
-  
-data: 
-  code_path: models.brats_2dunet_tensorflow
-  percent_train: 0.8
+
 

@@ -26,16 +26,15 @@ model:
   code_path: models.brats_2dunet_tensorflow
   version : 1
   params:
-    batch_size: 1024
-    percent_train: 0.8
+    batch_size: 64
     
 aggregator:
   id             : agg_brats
   addr           : "spr-gpu01.jf.intel.com"
   port           : 8878
 
-  # FIXME: a list of names who are permitted to join the federation. 
-  collaborators  : 1
+  collaborators  : 
+    - 'col_one_big'
   initial_weights: TensorFlow2DUNet_init.pbuf
   latest_weights : TensorFlow2DUNet_latest.pbuf
   best_weights   : TensorFlow2DUNet_best.pbuf

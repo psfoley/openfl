@@ -1,0 +1,63 @@
+version: 1
+
+collaborators:
+  col_0:
+    code_path: models.brats_2dunet_tensorflow 
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+    data_kwargs:
+      percent_train: 0.8
+  col_1:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
+    data_kwargs:
+      percent_train: 0.8
+  col_2:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
+    data_kwargs:
+      percent_train: 0.8
+  col_3:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/3'
+    data_kwargs:
+      percent_train: 0.8
+  col_4:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/4'
+    data_kwargs:
+      percent_train: 0.8
+  col_5:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/5'
+    data_kwargs:
+      percent_train: 0.8
+  col_6:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/6'
+    data_kwargs:
+      percent_train: 0.8
+  col_7:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/7'
+    data_kwargs:
+      percent_train: 0.8
+  col_8:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/8'
+    data_kwargs:
+      percent_train: 0.8
+  col_9:
+    code_path: models.brats_2dunet_tensorflow
+    data_object_name: BratsData
+    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/9'
+    data_kwargs:
+      percent_train: 0.8

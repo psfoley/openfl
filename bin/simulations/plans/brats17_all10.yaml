@@ -24,19 +24,19 @@ model:
     batch_size: 64
 
 aggregator:
-  id             : &agg_id_str '0'
-  fed_id         : &fed_id_str '0'
+  id             : &agg_id_str 'agg_0'
+  fed_id         : &fed_id_str 'fed_0'
   col_ids        : 
-    - &col_id_0 '0'
-    - &col_id_1 '1'
-    - &col_id_2 '2'
-    - &col_id_3 '3'
-    - &col_id_4 '4'
-    - &col_id_5 '5'
-    - &col_id_6 '6'
-    - &col_id_7 '7'
-    - &col_id_8 '8'
-    - &col_id_9 '9'
+    - &col_id_0 'col_0'
+    - &col_id_1 'col_1'
+    - &col_id_2 'col_2'
+    - &col_id_3 'col_3'
+    - &col_id_4 'col_4'
+    - &col_id_5 'col_5'
+    - &col_id_6 'col_6'
+    - &col_id_7 'col_7'
+    - &col_id_8 'col_8'
+    - &col_id_9 'col_9'
   
 federation:
   rounds         : 50
@@ -59,8 +59,4 @@ collaborators:
   agg_id : *agg_id_str
   fed_id : *fed_id_str
   model_version : *model_version_num
-  
-data: 
-  code_path: models.brats_2dunet_tensorflow
-  percent_train: 0.8
 

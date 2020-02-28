@@ -33,33 +33,23 @@ def parse_tensor_dict(tensor_dict, tensor_dict_opt_keys):
     opt_dict = {key: layer_dict.pop(key) for key in tensor_dict_opt_keys}
     return layer_dict, opt_dict
 
-def get_col_data(get_data_func, col_ids, base_data_path,  **kwargs):
-    col_data_paths = [os.path.join(base_data_path, col_id) for col_id in col_ids]
-    col_data = []
-    for path in col_data_paths:
-        col_data.append(get_data_func(data_path = path, 
-                                      **kwargs))
-    return col_data
-
 def get_collaborators(model, aggregator, col_ids, **kwargs):
-    collaborators = [] 
+    collaborators = {} 
     for col_id in col_ids:
-        collaborators.append(Collaborator(id=col_id, 
-                                          wrapped_model=model, 
-                                          channel=aggregator, 
-                                          **kwargs))
+        collaborators[col_id] = Collaborator(id=col_id, 
+                                             wrapped_model=model, 
+                                             channel=aggregator, 
+                                             **kwargs)
     return collaborators  
     
 
 def federate(get_model_func,
-             get_data_func, 
              col_config,
              agg_config,
-             data_config, 
+             col_data, 
              model_config, 
              fed_config, 
              weights_dir, 
-             base_data_path, 
              init_model_fpath, 
              latest_model_fpath, 
              best_model_fpath, 
@@ -67,16 +57,11 @@ def federate(get_model_func,
 
     # get the number of collaborators
     col_ids = col_config['col_ids']
-    num_cols = len(col_ids) 
-
-    col_data = get_col_data(get_data_func=get_data_func, 
-                            col_ids=col_ids,
-                            base_data_path=base_data_path, 
-                            **data_config)  
+    num_cols = len(col_ids)
     
     # instantiate the model (using the first collaborator dataset for now)
-    model = get_model_func(data= col_data[0],
-                           **model_config)
+    model = get_model_func(data= col_data[col_ids[0]],
+                           model_kwargs=model_config['params'])
 
     # create the aggregator
     aggregator = Aggregator(init_model_fpath = init_model_fpath,
@@ -96,12 +81,12 @@ def federate(get_model_func,
         print()
         print('Training Round {}'.format(r))
         print()
-        for col_num in range(num_cols):
+        for col_id in col_ids:
 
-            collaborator = collaborators[col_num]
+            collaborator = collaborators[col_id]
 
             # overwrite the model's data using current insitution
-            model.set_data(col_data[col_num])
+            model.set_data(col_data[col_id])
 
             # run the collaborator jobs for this round
             collaborator.run_to_yield_or_quit()

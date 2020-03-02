@@ -12,4 +12,4 @@ def get_model(dataset_path, **kwargs):
         y_train = None
         X_val = None
         y_val = None
-    return TensorFlow2DUNet(X_train, y_train, X_val, y_val)
+    return TensorFlow2DUNet(X_train, y_train, X_val, y_val, **kwargs)

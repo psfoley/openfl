@@ -8,7 +8,7 @@ from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_di
 
 class TensorFlow2DUNet(object):
 
-    def __init__(self, X_train, y_train, X_val, y_val):
+    def __init__(self, X_train, y_train, X_val, y_val, **kwargs):
         self.assign_ops = None
         self.placeholders = None
 
@@ -17,9 +17,9 @@ class TensorFlow2DUNet(object):
         self.X_val = X_val
         self.y_val = y_val
 
-        self.create_model()
+        self.create_model(**kwargs)
 
-    def create_model(self):
+    def create_model(self, **kwargs):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.intra_op_parallelism_threads = 112
@@ -29,7 +29,7 @@ class TensorFlow2DUNet(object):
         # FIXME: shape should be derived from input data
         self.X = tf.placeholder(tf.float32, (None, 128, 128, 1))
         self.y = tf.placeholder(tf.float32, (None, 128, 128, 1))
-        self.output = define_model(self.X, use_upsampling=True)
+        self.output = define_model(self.X, use_upsampling=True, **kwargs)
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=32.0)
         self.validation_metric = dice_coef(self.y, self.output, smooth=1.0)

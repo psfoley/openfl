@@ -33,7 +33,7 @@ aggregator:
   port           : 8878
 
   collaborators  : 
-    - 'col_one_big'
+    - 'col_2'
   initial_weights: TensorFlow2DUNet_init.pbuf
   latest_weights : TensorFlow2DUNet_latest.pbuf
   best_weights   : TensorFlow2DUNet_best.pbuf

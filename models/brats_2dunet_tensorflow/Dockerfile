@@ -1,5 +1,5 @@
 ARG whoami
-FROM tfl_agg_$whoami:0.1
+FROM tfl_agg_brats_2dunet_tensorflow_$whoami:0.1
 
 ENV OMP_NUM_THREADS=112
 ENV KMP_BLOCKTIME=30

@@ -4,77 +4,77 @@ collaborators:
   col_one_big:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/0-9'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_0:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_1:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_2:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_3:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/3'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_4:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/4'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_5:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/5'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_6:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/6'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_7:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/7'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_8:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/8'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64
   col_9:
     data_code_path: models.data
     data_object_name: BratsData
-    data_path: '/raid/datasets/BraTS17/by_institution_NIfTY/9'
+    data_path: '/home/edwardsb/tfl/datasets/brats'
     data_kwargs:
       percent_train: 0.8
       batch_size: 64

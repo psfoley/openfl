@@ -2,8 +2,6 @@
 from tfedlrn.gpuutils import pick_cuda_device
 pick_cuda_device()
 
-
-
 import argparse
 import os
 import logging

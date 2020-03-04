@@ -18,7 +18,7 @@ class BratsData(object):
         self.X_val = X_val
         self.y_val = y_val
 
-        self.batch_size=64
+        self.batch_size=batch_size
         
     def get_feature_shape(self):
         return self.X_train[0].shape

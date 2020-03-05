@@ -41,13 +41,13 @@ class Aggregator(object):
         The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
-    def __init__(self, id, fed_id, col_ids, init_model_fpath, latest_model_fpath, best_model_fpath):
+    def __init__(self, id, fed_id, col_ids, init_model_fname, latest_model_fname, best_model_fname):
         self.logger = logging.getLogger(__name__)
         self.id = id
         self.fed_id = fed_id
-        self.model = load_proto(init_model_fpath)
-        self.latest_model_fpath = latest_model_fpath
-        self.best_model_fpath = best_model_fpath
+        self.model = load_proto(init_model_fname)
+        self.latest_model_fname = latest_model_fname
+        self.best_model_fname = best_model_fname
         self.col_ids = col_ids
         self.round_num = 1
 
@@ -138,7 +138,7 @@ class Aggregator(object):
         if self.best_model_score is None or self.best_model_score < model_score:
             self.logger.info("Saved the best model with score {:f}.".format(model_score))
             self.best_model_score = model_score
-            dump_proto(self.model, self.best_model_fpath)
+            dump_proto(self.model, self.best_model_fname)
 
         # clear the update pointer
         self.model_update_in_progress = None

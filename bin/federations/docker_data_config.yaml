@@ -1,0 +1,34 @@
+collaborators:
+  col_one_big:
+    data_name: $data_name brats 
+    data_path: $data_path '/home/edwardsb/tfl/datasets/brats'
+  col_0:
+    data_name: *data_name 
+    data_path: *data_path
+  col_1:
+    data_name: *data_name 
+    data_path: *data_path
+  col_2:
+    data_name: *data_name 
+    data_path: *data_path
+  col_3:
+    data_name: *data_name 
+    data_path: *data_path
+  col_4:
+    data_name: *data_name 
+    data_path: *data_path
+  col_5:
+    data_name: *data_name 
+    data_path: *data_path
+  col_6:
+    data_name: *data_name 
+    data_path: *data_path
+  col_7:
+    data_name: *data_name 
+    data_path: *data_path
+  col_8:
+    data_name: *data_name 
+    data_path: *data_path
+  col_9:
+    data_name: *data_name 
+    data_path: *data_path

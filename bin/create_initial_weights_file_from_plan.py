@@ -52,6 +52,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan_name', '-pn', type=str, required=True)
     parser.add_argument('--plan_type', '-pt', type=str, choices=['fl', 'sfl'], default='fl')
+    parser.add_argument('--data_config_fname', '-dc', type=str, default="data.yaml")
     parser.add_argument('--logging_config_path', '-c', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()

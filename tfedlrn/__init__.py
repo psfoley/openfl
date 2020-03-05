@@ -1,4 +1,4 @@
-from .yaml_utils import load_yaml
+from utils import load_yaml, get_object
 
 def check_type(obj, expected_type, logger):
     if not isinstance(obj, expected_type):

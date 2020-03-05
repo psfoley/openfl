@@ -1,24 +1,10 @@
-import numpy as np
-import tensorflow as tf
-from datetime import datetime
-import pickle
-import uuid
 from enum import Enum
 import os
 
+from tfedlrn import get_object
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.collaborator import Collaborator
 
-# determines whether at each institution at the beggining of each round, 
-# the first and second moments for the adam optimizer are:
-# (RESET) reset to initial values
-# (AGG)  set to an aggregation of last round final values from all institutions, or
-# (EDGE) kept as the last round final values from that particular institution
-
-class OptMode(Enum):
-    RESET = 1
-    AGG = 2
-    EDGE = 3
 
 def get_collaborators(model, aggregator, col_ids, **kwargs):
     collaborators = {} 
@@ -30,8 +16,7 @@ def get_collaborators(model, aggregator, col_ids, **kwargs):
     return collaborators  
     
 
-def federate(get_model_func,
-             col_config,
+def federate(col_config,
              agg_config,
              col_data, 
              model_config, 
@@ -43,16 +28,15 @@ def federate(get_model_func,
              **kwargs):
 
     # get the number of collaborators
-    col_ids = col_config['col_ids']
+    col_ids = fed_config['collaborator_ids']
     
     # instantiate the model (using the first collaborator dataset for now)
-    model = get_model_func(data= col_data[col_ids[0]],
-                           model_kwargs=model_config['params'])
+    model = get_object(data=col_data[col_ids[0]], **model_config)
 
     # create the aggregator
-    aggregator = Aggregator(init_model_fpath = init_model_fpath,
-                            latest_model_fpath = latest_model_fpath, 
-                            best_model_fpath = best_model_fpath, 
+    aggregator = Aggregator(init_model_fname = init_model_fpath,
+                            latest_model_fname = latest_model_fpath, 
+                            best_model_fname = best_model_fpath, 
                             **agg_config)
 
     # create the collaborataors

@@ -1,12 +1,13 @@
 # Compose an SFL "Simulation FL" plan in JSON/YAML.
-# * Plan is consumed by bin/run_sim_from_sflplan.py and 
-# *     bin/create_initial_weights_file_from_plan.py 
-# * one code path points to get_model function and the other
-# *     points to the data object constructor
-# * model version is used to validate model updates
-# * Aggregator, collaborator, and fed ids as well as model version are currently
-# *     used to validate message headers. Collaborator ids are also 
-# *     used for identifying the data folder of each collaborator.
+# * The plan is consumed by bin/run_sim_from_sflplan.py and 
+# * bin/create_initial_weights_file_from_plan.py 
+# * Code paths point to the module containing the
+# * object constructor (with speified class name)
+# * The model version is used to validate model updates
+# * Aggregator, collaborator, and fed ids (as well as model version) are currently
+# * used to validate message headers. Collaborator ids are also 
+# * used for identifying the data folder of each collaborator
+# * (using the local_data_config yaml file)
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
@@ -16,46 +17,53 @@ description     : Train a model to perform semantic segmentation on brain fMRI i
 status          : active
 simulation      : fl_brats_2dunet
 
+federation:
+  fed_id: &fed_id 'fed_0'
+  opt_mode_treatment: $opt_mode_treatment 'AGG'
+  poling_interval: $poling_interval 1
+  rounds: 50
+  agg_id: &agg_id 'agg_0'
+  
+  collaborator_ids: $collaborator_ids
+    - 'col_0'
+    - 'col_1'
+    - 'col_2'
+    - 'col_3'
+    - 'col_4'
+    - 'col_5'
+    - 'col_6'
+    - 'col_7'
+    - 'col_8'
+    - 'col_9'
+  init_model_fname: $init_model_fname TensorFlow2DUNet_init.pbuf
+  latest_model_fname: $latest_model_fname TensorFlow2DUNet_latest.pbuf
+  best_model_fname: $best_model_fname TensorFlow2DUNet_best.pbuf
+  model_version: 1
+
 model:
-  name     : brats_2dunet_tensorflow
   code_path: models.brats_2dunet_tensorflow
-  version : &model_version_num 0
-  params: {}
+  class_name: TensorFlow2DUNet
 
 aggregator:
-  id             : &agg_id_str 'agg_0'
-  fed_id         : &fed_id_str 'fed_0'
-  col_ids        : 
-    - &col_id_0 'col_0'
-    - &col_id_1 'col_1'
-    - &col_id_2 'col_2'
-    - &col_id_3 'col_3'
-    - &col_id_4 'col_4'
-    - &col_id_5 'col_5'
-    - &col_id_6 'col_6'
-    - &col_id_7 'col_7'
-    - &col_id_8 'col_8'
-    - &col_id_9 'col_9'
-  
-federation:
-  rounds         : 50
-  initial_weights: TensorFlow2DUNet_all10_init.pbuf
-  latest_weights : TensorFlow2DUNet_all10_latest.pbuf
-  best_weights   : TensorFlow2DUNet_all10_best.pbuf
+  agg_id             : *agg_id
+  fed_id         : *fed_id
+  col_ids        : *col_ids
+  init_model_fname: *init_model_fname 
+  latest_model_fname: *latest_model_fname
+  best_model_fname: *best_model_fname 
 
-collaborators:
-  col_ids: 
-    - *col_id_0
-    - *col_id_1
-    - *col_id_2
-    - *col_id_3
-    - *col_id_4
-    - *col_id_5
-    - *col_id_6
-    - *col_id_7
-    - *col_id_8
-    - *col_id_9
-  agg_id : *agg_id_str
-  fed_id : *fed_id_str
-  model_version : *model_version_num
+  
+collaborator:
+  agg_id : *agg_id
+  fed_id : *fed_id
+  model_version : *model_version
+  poling_interval: *poling_interval
+  opt_mode_treatment: *opt_mode_treatment
+
+data:
+  data_name: brats 
+  code_path: models.data 
+  class_name: BratsData
+  percent_train: 0.8
+  batch_size: 64
 

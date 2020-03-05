@@ -1,12 +1,19 @@
 # Compose an SFL "Simulation FL" plan in JSON/YAML.
 # * Plan is consumed by bin/run_sim_from_sflplan.py and 
 # *     bin/create_initial_weights_file_from_plan.py 
-# * one code path points to get_model function and the other
-# *     points to the data object constructor
-# * model version is used to validate model updates
-# * Aggregator, collaborator, and fed ids as well as model version are currently
-# *     used to validate message headers. Collaborator ids are also 
-# *     used for identifying the data folder of each collaborator.
+
+# * values for first level keys: model, aggregator, and collaborator
+# * pass in the generic kwargs for those constructors
+# * (i.e. collaborator id will be collaborator specific)
+
+# * values for first level keys: model and data pass in the generic 
+# * kwargs for get_model and get_data functions
+
+# * The model version is used to validate model updates
+# * Aggregator, collaborator, and fed ids (as well as model version) are currently
+# * used to validate message headers. Collaborator ids are also 
+# * used for identifying the data folder of each collaborator
+# * (using the local_data_config yaml file)
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
@@ -17,10 +24,8 @@ status          : active
 simulation      : fl_brats_2dunet
 
 model:
-  name     : brats_2dunet_tensorflow
   code_path: models.brats_2dunet_tensorflow
-  version : &model_version_num 0
-  params: {}
+  class_name: TensorFlow2DUNet
 
 aggregator:
   id             : &agg_id_str 'agg_0'

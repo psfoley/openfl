@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 from setuptools import setup
 
 setup(name='tfedlrn',

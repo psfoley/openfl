@@ -1,3 +1,5 @@
+// Copyright (C) 2020 Intel Corporation
+
 syntax = 'proto3';
 
 package tfedlrn_proto;

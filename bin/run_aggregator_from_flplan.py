@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Copyright (C) 2020 Intel Corporation
+
 import argparse
 import os
 import logging

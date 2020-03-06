@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 # WIP for transfering tutorial steps to makefile
 
 whl = dist/tfedlrn-0.0.0-py3-none-any.whl

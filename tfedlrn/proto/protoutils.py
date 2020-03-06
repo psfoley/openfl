@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 import numpy as np
 from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto
 

@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import tqdm
 
 from .tensorflowflutils import tf_get_vars, \
                                tf_get_tensor_dict, \
@@ -27,7 +28,6 @@ class TensorFlow2DUNet(object):
         self.input_shape = input_shape
 
         self.create_model(**kwargs)
-
 
     def create_model(self, **kwargs):
         config = tf.ConfigProto()

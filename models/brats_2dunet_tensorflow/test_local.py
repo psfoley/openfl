@@ -17,7 +17,7 @@ from timeit import default_timer as timer
 from models.brats_2dunet_tensorflow import get_model
 
 seed = 1234
-model = get_model('/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG/', percent_train=0.8, shuffle=True, batch_size=1024)
+model = get_model('/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG/', percent_train=0.8, shuffle=True, batch_size=64)
 
 val_results = model.validate()
 print("Initial val_results", val_results)

@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 from .utils import load_yaml, get_object
 
 def check_type(obj, expected_type, logger):

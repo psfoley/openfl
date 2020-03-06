@@ -26,10 +26,10 @@ class TensorFlow2DUNet(object):
         input_shape = tuple(input_shape)
         self.input_shape = input_shape
 
-        self.create_model()
+        self.create_model(**kwargs)
 
 
-    def create_model(self):
+    def create_model(self, **kwargs):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.intra_op_parallelism_threads = 112
@@ -38,7 +38,7 @@ class TensorFlow2DUNet(object):
               
         self.X = tf.placeholder(tf.float32, self.input_shape)
         self.y = tf.placeholder(tf.float32, self.input_shape)
-        self.output = define_model(self.X, use_upsampling=True)
+        self.output = define_model(self.X, use_upsampling=True, **kwargs)
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=32.0)
         self.validation_metric = dice_coef(self.y, self.output, smooth=1.0)

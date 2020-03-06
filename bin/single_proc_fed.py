@@ -9,7 +9,7 @@ from tfedlrn.collaborator import Collaborator
 def get_collaborators(model, aggregator, col_ids, **kwargs):
     collaborators = {} 
     for col_id in col_ids:
-        collaborators[col_id] = Collaborator(id=col_id, 
+        collaborators[col_id] = Collaborator(col_id=col_id, 
                                              wrapped_model=model, 
                                              channel=aggregator, 
                                              **kwargs)

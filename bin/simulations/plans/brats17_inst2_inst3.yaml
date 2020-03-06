@@ -28,8 +28,8 @@ simulation      : fl_brats_2dunet
 federation:
   fed_id: &fed_id 'fed_0'
   opt_treatment: &opt_treatment 'AGG'
-  polling_interval: &polling_interval 1
-  rounds: 2
+  polling_interval: &polling_interval 4
+  rounds: 30
   agg_id: &agg_id 'agg_0'
   
   collaborator_ids: &col_ids

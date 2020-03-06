@@ -1,11 +1,24 @@
 # Compose an SFL "Simulation FL" plan in JSON/YAML.
-# * Task name
-# * Task description
-# * The folder path to the locally runnable code.
-# * The software dependency.
-# * FL parameters: fed_id, opt_treatment.
 
-# TODO: enforce certain fields to be identical?
+# * CAUTION: This plan is WIP, and PyTorch model may not be completed.
+
+# * The plan is consumed by bin/run_sim_from_sflplan.py and 
+# * bin/create_initial_weights_file_from_plan.py 
+
+# * values for first level keys: model, aggregator, and collaborator
+# * pass in the generic kwargs for those constructors
+# * (ex. collaborator id will be collaborator specific)
+
+# * values for first level keys: model and data pass in the generic 
+# * kwargs for get_model and get_data functions
+
+# * The model version is used to validate model updates
+# * Aggregator, collaborator, and fed ids (as well as model version) are currently
+# * used to validate message headers. Collaborator ids are also 
+# * used for identifying the data folder of each collaborator
+# * (using the local_data_config yaml file)
+
+# * Added by the coordinator later: agg_id, agg_url, poll_interval.
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
@@ -15,51 +28,50 @@ description     : Train a model to perform semantic segmentation on brain fMRI i
 status          : active
 simulation      : fl_brats_2dunet
 
+federation:
+  fed_id: &fed_id 'fed_0'
+  opt_treatment: &opt_treatment 'AGG'
+  polling_interval: &polling_interval 4
+  rounds: 30
+  agg_id: &agg_id 'agg_0'
+  
+  collaborator_ids: &col_ids
+    - 'col_0'
+    - 'col_1'
+    - 'col_2'
+    - 'col_3'
+    - 'col_4'
+    - 'col_5'
+    - 'col_6'
+    - 'col_7'
+    - 'col_8'
+    - 'col_9'
+
+  init_model_fname: PyTorch2DUNet_init.pbuf
+  latest_model_fname: PyTorch2DUNet_latest.pbuf
+  best_model_fname: PyTorch2DUNet_best.pbuf
+  model_version: &model_version 1
+
 model:
-  name     : brats_2dunet_pytorch
-  code_path: models.brats_2dunet_pytorch
-  version : &model_version_num 0
-  params: {}
+  code_path: models.brats_2dunet_pytorch.pytorch2dunet
+  class_name: PyTorch2DUNet
 
 aggregator:
-  id             : &agg_id_str '0'
-  fed_id         : &fed_id_str '0'
-  col_ids        : 
-    - &col_id_0 '0'
-    - &col_id_1 '1'
-    - &col_id_2 '2'
-    - &col_id_3 '3'
-    - &col_id_4 '4'
-    - &col_id_5 '5'
-    - &col_id_6 '6'
-    - &col_id_7 '7'
-    - &col_id_8 '8'
-    - &col_id_9 '9'
-  
-federation:
-  rounds         : 50
-  initial_weights: PyTorch2DUNet_all10_init.pbuf
-  latest_weights : PyTorch2DUNet_all10_latest.pbuf
-  best_weights   : PyTorch2DUNet_all10_best.pbuf
+  agg_id: *agg_id
+  fed_id: *fed_id
+  col_ids: *col_ids
 
-collaborators:
-  col_ids: 
-    - *col_id_0
-    - *col_id_1
-    - *col_id_2
-    - *col_id_3
-    - *col_id_4
-    - *col_id_5
-    - *col_id_6
-    - *col_id_7
-    - *col_id_8
-    - *col_id_9
-  agg_id : *agg_id_str
-  fed_id : *fed_id_str
-  model_version : *model_version_num
   
-data: 
-  code_path: models.brats_2dunet_pytorch
-  percent_train: *percent_train_val
-  shuffle: *shuffle_val
+collaborator:
+  agg_id : *agg_id
+  fed_id : *fed_id
+  model_version : *model_version
+  polling_interval: *polling_interval
+  opt_treatment: *opt_treatment
 
+data:
+  data_name: brats 
+  code_path: models.data 
+  class_name: BratsData
+  percent_train: 0.8
+  batch_size: 64

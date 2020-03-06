@@ -75,6 +75,7 @@ the needed packages.
 .. code-block:: console
 
   $ make build_containers model_name=mnist_cnn_keras
+  docker build \
   --build-arg http_proxy \
   --build-arg https_proxy \
   --build-arg socks_proxy \

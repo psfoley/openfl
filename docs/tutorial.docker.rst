@@ -390,26 +390,15 @@ Note: to remove the links, we recommend using find <symlink_path> -type l -exec 
 
   $ ./run_brats_collaborator.sh 0
 
-The model will now train with a single insitution. To stop the training, CTRL-C on each process will suffice.
+The model will now train with a single small insitution (so will not train well). To stop the training, CTRL-C on each process will suffice.
 
 BraTS Federation with Two or More Collaborators
 --------------------------------------------
 
-6. (**On the aggregator machine**) Edit the FLPlan to run with up to 10 collaborators. In bin/federations/plans/brats17_a.yaml, you'll change the "collaborators" value in the "aggregator" block:
+6. (**On the aggregator machine**) Create a new FLPlan to run with up to 10 collaborators. You will find the plans in bin/federations/plans/. The one we just ran
+is brats17_inst2.yaml, and there is an example in the folder of one that runs all ten institutions (brats17_all10.yaml). When running
+a new plan, you will need to change the kick off script to point to the new plan as well (bin/run_brats_collaborator.sh).
 
-.. code-block:: console
-  aggregator:
-    ...
-    collaborators  : 1
-
-becomes
-
-.. code-block:: console
-  aggregator:
-    ...
-    collaborators  : 10
-
-(or less than 10).
 
 Note: Typically, you would want to change the FLPlan file on each machine, but it isn't strictly necessary, since the collaborators will ignore that value anyway. Eventually, the collaborators and aggregators will all kepe their files in sync via the Governor.
 

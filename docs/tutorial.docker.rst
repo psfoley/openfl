@@ -1,4 +1,3 @@
-
 How to set up Federated Learning on Docker
 -------------------------------------------
 
@@ -39,7 +38,24 @@ It can be anything of your choice on your machine.
   rm -r -f tfedlrn.egg-info
   rm -r -f bin/federations/certs/test/*
 
-2. Build the docker images "tfl_agg_<model_name>_<username>:0.1" and 
+2. Edit the FL plan file to specify the correct address and port for the 
+aggregator machine. Open bin/federations/plans/mnist_a.yaml and find the keys
+in the aggregator config for the address ("addr") and port ("port"):
+
+.. code-block:: console
+
+  $ vi bin/federations/plans/mnist_a.yaml
+  
+  ...
+  aggregator:
+    id             : agg_mnist
+    addr           : "spr-gpu01.jf.intel.com" # CHANGE THIS
+    port           : 8848                     # CHANGE THIS
+
+    collaborators  : 2
+  ...
+
+3. Build the docker images "tfl_agg_<model_name>_<username>:0.1" and 
 "tfl_col_<model_name>_<username>:0.1" using project folder Makefile targets.
 This uses the project folder "Dockerfile".
 We only build them once, unless we change `Dockerfile`.
@@ -87,7 +103,7 @@ the needed packages.
   Successfully built 54ac91a69eb1
   Successfully tagged tfl_col_mnist_cnn_keras_edwardsb:0.1
 
-3. Run the aggregator container (entering a bash shell inside the container), 
+4. Run the aggregator container (entering a bash shell inside the container), 
 again using the Makefile.
 
 .. code-block:: console
@@ -102,7 +118,7 @@ again using the Makefile.
   tfl_agg_mnist_cnn_keras_edwardsb:0.1 \
   bash
 
-4. In this container shell, generate the files for TLS communication.
+5. In this container shell, generate the files for TLS communication.
 The folder is initially empty.
 We will generate the files using a script (via the makefile).
 The details of TLS, see :ref:`tutorial-tls-pki`.
@@ -142,7 +158,7 @@ Navigate back to the bin directory, and see that the relevant files are now pres
 
 
 
-5. Still in the aggregator container shell, run the aggregator, using
+6. Still in the aggregator container shell, run the aggregator, using
 a shell script provided in the project.
 
 .. code-block:: console
@@ -154,20 +170,39 @@ a shell script provided in the project.
 
 Start Collaborators
 ^^^^^^^^^^^^^^^^^^^^
-You should **skip the first two steps** if you are running
+You should **skip the first three steps** if you are running
 the collaborators on the same machine as the aggregator.
 
-1. (**Only if not on the aggregator machine**) Enter the project folder, clean the build folder, 
-and build the containers as above.
+1. (**Only if not on the aggregator machine**) Edit the FL plan file to specify 
+the correct address and port for the aggregator machine. Open 
+bin/federations/plans/mnist_a.yaml and find the keys
+in the aggregator config for the address ("addr") and port ("port"):
 
 .. code-block:: console
 
   $ cd spr_secure_intelligence-trusted_federated_learning
+  $ vi bin/federations/plans/mnist_a.yaml
+  
+  ...
+  aggregator:
+    id             : agg_mnist
+    addr           : "spr-gpu01.jf.intel.com" # CHANGE THIS
+    port           : 8848                     # CHANGE THIS
+
+    collaborators  : 2
+  ...
+
+
+2. (**Only if not on the aggregator machine**) Enter the project folder, clean the build folder, 
+and build the containers as above.
+
+.. code-block:: console
+
   $ make clean
   $ make build_containers model_name=mnist_cnn_keras
 
 
-2. (**Only if not on the aggregator machine**) Copy over authentication files. 
+3. (**Only if not on the aggregator machine**) Copy over authentication files. 
 Create the directory 'bin/federations/certs/test/' if it does not already exist, 
 then copy the files: ca.cert local.cert and local.key 
 (from the machine running the aggregator and created during step 4 of 
@@ -179,7 +214,7 @@ practice, but is for tutorial purposes only.
   $ mkdir -p bin/federations/certs/test/
   $ scp <agg machine hostname>:<appropriate dirctory>/\{ca.crt,local.crt,local.key\} bin/federations/certs/test/
 
-3. Run the first collaborator container (entering a bash shell inside the container) 
+4. Run the first collaborator container (entering a bash shell inside the container) 
 using the project folder Makefile. Note that we map the local volumes `./models/` 
 and `./bin/` to the docker container, and that we set different names for the two 
 collaborator containers (hence the argument 'col_num'), though they share the same 
@@ -199,7 +234,7 @@ docker image.
   tfl_col_mnist_cnn_keras_edwardsb:0.1 \
   bash 
 
-4. In this first collaborator shell, run the collabotor using the provided shell script.
+5. In this first collaborator shell, run the collabotor using the provided shell script.
 
 .. code-block:: console
 
@@ -240,7 +275,7 @@ docker image.
   ...
   ...
 
-5. In a second shell on the same machine that you ran the first collaborator container, run 
+6. In a second shell on the same machine that you ran the first collaborator container, run 
 the second collaborator container (entering a bash shell inside the container). Note that the
 two collaborator containers can run on separate machines as well, all that is needed is to 
 build the containers on the new machine and copy over the authentication files as
@@ -261,7 +296,7 @@ was done above.
   bash
 
 
-6. In the second collaborator container shell, run the second collaborator.
+7. In the second collaborator container shell, run the second collaborator.
 
 .. code-block:: console
 

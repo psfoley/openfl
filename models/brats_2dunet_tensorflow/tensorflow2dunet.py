@@ -1,21 +1,31 @@
 import tensorflow as tf
-from math import ceil
 import numpy as np
-from tqdm import tqdm
+import tqdm
 
-from .tensorflowflutils import tf_get_vars, tf_get_tensor_dict, tf_set_tensor_dict, tf_reset_vars
+from .tensorflowflutils import tf_get_vars, \
+                               tf_get_tensor_dict, \
+                               tf_set_tensor_dict, \
+                               tf_reset_vars, \
+                               tf_export_init_weights
 
 
 class TensorFlow2DUNet(object):
 
-    def __init__(self, X_train, y_train, X_val, y_val, **kwargs):
+    def __init__(self, data, **kwargs):
+        
         self.assign_ops = None
         self.placeholders = None
 
-        self.X_train = X_train
-        self.y_train = y_train
-        self.X_val = X_val
-        self.y_val = y_val
+        self.tvar_assign_ops = None
+        self.tvar_placeholders = None
+
+        self.data = data
+
+        # construct the shape needed for the input features
+        input_shape = list(self.data.get_feature_shape()) 
+        input_shape.insert(0, None)
+        input_shape = tuple(input_shape)
+        self.input_shape = input_shape
 
         self.create_model(**kwargs)
 
@@ -25,10 +35,9 @@ class TensorFlow2DUNet(object):
         config.intra_op_parallelism_threads = 112
         config.inter_op_parallelism_threads = 1
         self.sess = tf.Session(config=config)
-
-        # FIXME: shape should be derived from input data
-        self.X = tf.placeholder(tf.float32, (None, 128, 128, 1))
-        self.y = tf.placeholder(tf.float32, (None, 128, 128, 1))
+              
+        self.X = tf.placeholder(tf.float32, self.input_shape)
+        self.y = tf.placeholder(tf.float32, self.input_shape)
         self.output = define_model(self.X, use_upsampling=True, **kwargs)
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=32.0)
@@ -47,10 +56,23 @@ class TensorFlow2DUNet(object):
         
         self.opt_vars = self.optimizer.variables()
 
-        # FIXME: Do we really need to share the opt_vars? Two opt_vars for one tvar: gradient and square sum for RMSprop.
+        # FIXME: Do we really need to share the opt_vars? 
+        # Two opt_vars for one tvar: gradient and square sum for RMSprop.
         self.fl_vars = self.tvars + self.opt_vars
 
+        self.initialize_globals()
+
+    def get_data(self):
+        return self.data
+
+    def set_data(self, data):
+        if data.get_feature_shape() != self.data.get_feature_shape():
+            raise ValueError('Data feature shape is not compatible with model.')
+        self.data = data
+
+    def initialize_globals(self):
         self.sess.run(tf.global_variables_initializer())
+
 
     def get_tensor_dict(self, with_opt_vars=True):
         if with_opt_vars is True:
@@ -66,50 +88,54 @@ class TensorFlow2DUNet(object):
         tensor_dict : dict
             Weights.
         with_opt_vars : bool
-            If we should set the variablies of the optimizer. (TODO: not supported yet.)
+            If we should set the variablies of the optimizer.
         """
-        self.assign_ops, self.placeholders = tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
+        if with_opt_vars:
+            self.assign_ops, self.placeholders = \
+                tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
+        else:
+            self.tvar_assign_ops, self.tvar_placeholders = \
+                tf_set_tensor_dict(tensor_dict, self.sess, self.tvars, self.tvar_assign_ops, self.tvar_placeholders)
 
     def reset_opt_vars(self):
         return tf_reset_vars(self.sess, self.opt_vars)
 
-    def train_epoch(self, epoch=None, batch_size=64, use_tqdm=False):
+    def export_init_weights(self, model_name, version, fpath):
+        tf_export_init_weights(model_name=model_name, 
+                              version=version, 
+                              tensor_dict=self.get_tensor_dict(), 
+                              fpath=fpath)
+
+    def train_epoch(self, batch_size=None, use_tqdm=False):
+
         tf.keras.backend.set_learning_phase(True)
 
-        # shuffle data
-        idx = np.random.permutation(np.arange(self.X_train.shape[0]))
-        X = self.X_train
-        y = self.y_train
-
-        # compute the number of batches
-        num_batches = ceil(X.shape[0] / batch_size)
-
         losses = []
+
+        gen = self.data.get_batch_generator('train', batch_size)
         if use_tqdm:
-            gen = tqdm(range(num_batches), desc="training epoch")
-        else:
-            gen = range(num_batches)
-        for i in gen:
-            a = i * batch_size
-            b = a + batch_size
-            losses.append(self.train_batch(X[idx[a:b]], y[idx[a:b]]))
+            gen = tqdm(gen, desc="training epoch")
+
+        for X, y in gen:
+            losses.append(self.train_batch(X, y))
 
         return np.mean(losses)
 
-    def validate(self, batch_size=64, use_tqdm=False):
+    def validate(self, batch_size=None, use_tqdm=False):
+
         tf.keras.backend.set_learning_phase(False)
 
         score = 0
+
+        gen = self.data.get_batch_generator('val', batch_size)
         if use_tqdm:
-            gen = tqdm(np.arange(0, self.X_val.shape[0], batch_size), desc="validating")
-        else:
-            gen = np.arange(0, self.X_val.shape[0], batch_size)
-        for i in gen:
-            X = self.X_val[i:i+batch_size]
-            y = self.y_val[i:i+batch_size]
-            weight = X.shape[0] / self.X_val.shape[0]
+            gen = tqdm(gen, desc="validating")
+
+        for X, y in gen:
+            weight = X.shape[0] / self.data.get_validation_data_size()  
             _, s = self.validate_batch(X, y)
             score += s * weight
+
         return score
 
     def train_batch(self, X, y):
@@ -125,10 +151,11 @@ class TensorFlow2DUNet(object):
         return self.sess.run([self.output, self.validation_metric], feed_dict=feed_dict)
 
     def get_training_data_size(self):
-        return self.X_train.shape[0]
+        return self.data.get_training_data_size()
 
     def get_validation_data_size(self):
-        return self.X_val.shape[0]
+        return self.data.get_validation_data_size()
+
 
 
 def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):

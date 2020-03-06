@@ -1,0 +1,21 @@
+collaborators:
+  col_0:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+  col_1:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
+  col_2:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
+  col_3:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/3'
+  col_4:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/4'
+  col_5:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/5'
+  col_6:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/6'
+  col_7:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/7'
+  col_8:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/8'
+  col_9:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/9'

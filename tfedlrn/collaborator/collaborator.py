@@ -27,13 +27,13 @@ class OptTreatment(Enum):
 class Collaborator(object):
     """The current class is not good for local test without channel. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, id, agg_id, fed_id, wrapped_model, channel, model_version, polling_interval=4, opt_treatment="AGG"):
+    def __init__(self, col_id, agg_id, fed_id, wrapped_model, channel, model_version, polling_interval=4, opt_treatment="AGG"):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
         self.polling_interval = 4
 
         # this stuff is really about sanity/correctness checking to ensure the bookkeeping and control flow is correct
-        self.id = id
+        self.id = col_id
         self.agg_id = agg_id
         self.fed_id = fed_id
         self.counter = 0
@@ -68,39 +68,39 @@ class Collaborator(object):
         check_equal(reply.header.federation_id, self.fed_id, self.logger)
 
     def run(self):
+        time_to_quit = False
+        while True:
+            time_to_quit = self.run_to_yield_or_quit()
+            if time_to_quit:
+                print(self, 'quitting')
+                break
+            else:
+                time.sleep(self.polling_interval)
+
+    def run_to_yield_or_quit(self):
         self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
         self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
         while True:
-            # query for job
-            # returns when a job has been received
-            job = self.query_for_job()
-
-            self.logger.debug("Got a job %s" % Job.Name(job))
-
-            # if time to quit
-            if job is JOB_QUIT:
-                print(self, 'quitting')
-                break
-            elif job is JOB_TRAIN:
-                self.do_train_job()
-            elif job is JOB_VALIDATE:
-                self.do_validate_job()
-            elif job is JOB_DOWNLOAD_MODEL:
-                self.do_download_model_job()
-
-    def query_for_job(self):
-        # loop until we get a job other than 'yield'
-        while True:
+            # query for job and validate it
             reply = self.channel.RequestJob(JobRequest(header=self.create_message_header(), model_header=self.model_header))
             self.validate_header(reply)
-
             check_type(reply, JobReply, self.logger)
+            job = reply.job
 
-            if reply.job is not JOB_YIELD:
-                break
-            time.sleep(self.polling_interval)
+            self.logger.debug("Got a job %s" % Job.Name(job))
+           
+            if job is JOB_DOWNLOAD_MODEL:
+                self.do_download_model_job()
+            elif job is JOB_VALIDATE:
+                self.do_validate_job()
+            elif job is JOB_TRAIN:
+                self.do_train_job()
+            elif job is JOB_YIELD:
+                return False
+            elif job is JOB_QUIT:
+                return True
+            
 
-        return reply.job
 
     def do_train_job(self):
         # get the initial tensor dict

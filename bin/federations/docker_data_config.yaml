@@ -1,0 +1,23 @@
+collaborators:
+  col_one_big:
+    brats: &data_path '/home/edwardsb/tfl/datasets/brats'
+  col_0:
+    brats: *data_path
+  col_1:
+    brats: *data_path
+  col_2:
+    brats: *data_path
+  col_3:
+    brats: *data_path
+  col_4:
+    brats: *data_path
+  col_5:
+    brats: *data_path
+  col_6:
+    brats: *data_path
+  col_7:
+    brats: *data_path
+  col_8:
+    brats: *data_path
+  col_9:
+    brats: *data_path

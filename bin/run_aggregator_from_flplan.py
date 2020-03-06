@@ -8,7 +8,7 @@ import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.aggregator.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import load_flplan
+from tfedlrn import load_yaml 
 
 from setup_logging import setup_logging
 
@@ -22,29 +22,27 @@ def main(plan, logging_config_path, logging_default_level):
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
 
-    flplan = load_flplan(os.path.join(plan_dir, plan))
-
-    # FIXME: this should be easily consumed by the Aggregator object (#16)
+    flplan = load_yaml(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
-    col_ids = ['col_{}'.format(i) for i in range(agg_config['collaborators'])]
-    agg = Aggregator(agg_config['id'],
-                     flplan['federation'],
-                     col_ids,
-                     os.path.join(weights_dir, agg_config['initial_weights']),
-                     os.path.join(weights_dir, agg_config['latest_weights']),
-                     os.path.join(weights_dir, agg_config['best_weights']))
+    fed_config = flplan['federation']
+    grpc_server_config = flplan['grpc']
 
-    tls_config = flplan['tls']
-    cert_dir = os.path.join(base_dir, 'certs', tls_config['cert_folder'])
+    init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
+    latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
+    best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+    
+    agg = Aggregator(init_model_fpath=init_model_fpath,
+                     latest_model_fpath=latest_model_fpath,
+                     best_model_fpath=best_model_fpath, 
+                     **agg_config)
+
+    cert_dir = os.path.join(base_dir, 'certs', grpc_server_config['cert_folder'])
 
     agg_grpc_server = AggregatorGRPCServer(agg)
-    agg_grpc_server.serve('[::]',
-                          agg_config['port'],
-                          disable_tls=tls_config['disable'],
-                          disable_client_auth=tls_config['disable_client_auth'],
-                          ca=os.path.join(cert_dir, 'ca.crt'),
+    agg_grpc_server.serve(ca=os.path.join(cert_dir, 'ca.crt'),
                           certificate=os.path.join(cert_dir, 'local.crt'),
-                          private_key=os.path.join(cert_dir, 'local.key'))
+                          private_key=os.path.join(cert_dir, 'local.key'), 
+                          **grpc_server_config)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

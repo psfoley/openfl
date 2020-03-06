@@ -7,5 +7,5 @@ setup(name='tfedlrn',
       package_dir={'tfedlrn': 'tfedlrn'},
       packages=['tfedlrn', 'tfedlrn.aggregator', 'tfedlrn.collaborator', 'tfedlrn.coordinator', 'tfedlrn.proto'],
       # 'tfedlrn.bratsunettest', 
-      install_requires=['protobuf', 'coloredlogs', 'pyyaml', 'nibabel', 'tensorboardX', 'grpcio']
+      install_requires=['protobuf', 'coloredlogs', 'pyyaml', 'nibabel', 'tensorboardX', 'grpcio', 'tqdm']
 )

@@ -1,0 +1,87 @@
+# Compose an FL plan in JSON/YAML.
+# * Plan is consumed by bin/run_aggregator_from_flplan.py, 
+# * bin/run_collaborator_from_flplan.py, and 
+# * bin/create_initial_weights_file_from_plan.py 
+
+# * values for first level keys: model, aggregator, and collaborator 
+# * pass in the generic kwargs for those 
+# * constructors(ex. collaborator id will be collaborator specific)
+
+# * values for first level key grpc provide kwargs for the 
+# * CollaboratorGRPCClient constructor and the serve method of the
+# * AggregatorGRPCServer 
+
+# * values for first level keys: model and data pass in the generic 
+# * kwargs for get_model and get_data functions
+
+# * The model version is used to validate model updates
+# * Aggregator, collaborator, and fed ids (as well as model version) are currently
+# * used to validate message headers. Collaborator ids are also 
+# * used for identifying the data folder of each collaborator
+# * (using the local_data_config yaml file)
+
+# * Added by the coordinator later: agg_id, agg_url, poll_interval.
+
+# We may have several plans for one dataset, to search the best model architecture for exammple.
+
+task            : brats
+version         : '1'
+description     : Train a model to perform semantic segmentation on brain fMRI images.
+status          : active
+federation      : fl_brats_2dunet
+
+
+federation:
+  fed_id: &fed_id 'fed_0'
+  opt_treatment: &opt_treatment 'AGG'
+  polling_interval: &polling_interval 4
+  agg_id: &agg_id 'agg_0'
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_port: &agg_port 8878 
+  col_ids: &col_ids
+    - 'col_0'
+    - 'col_1'
+    - 'col_2'
+    - 'col_3'
+    - 'col_4'
+    - 'col_5'
+    - 'col_6'
+    - 'col_7'
+    - 'col_8'
+    - 'col_9'
+  init_model_fname: TensorFlow2DUNet_init.pbuf
+  latest_model_fname: TensorFlow2DUNet_latest.pbuf
+  best_model_fname: TensorFlow2DUNet_best.pbuf
+  model_version: &model_version 1
+
+
+model:
+  model_name: brats_2dunet_tensorflow
+  code_path: models.brats_2dunet_tensorflow.tensorflow2dunet
+  class_name: TensorFlow2DUNet
+    
+aggregator:
+  agg_id: *agg_id
+  fed_id: *fed_id
+  col_ids: *col_ids
+
+collaborator:
+  agg_id: *agg_id
+  fed_id: *fed_id
+  model_version: *model_version
+  polling_interval: *polling_interval
+  opt_treatment: *opt_treatment 
+
+grpc:
+  addr: *agg_addr
+  port: *agg_port
+  disable_tls: False
+  disable_client_auth: False
+  cert_folder: test
+
+data:
+  data_name: brats 
+  code_path: models.data 
+  class_name: BratsData
+  percent_train: 0.8
+  batch_size: 64

@@ -7,12 +7,12 @@ import os
 import logging
 import importlib
 
-from tfedlrn import load_yaml get_object
+from tfedlrn import load_yaml, get_object
 from single_proc_fed import federate
 from setup_logging import setup_logging
 
 def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
-    data_path = data_names_and_paths[data_name]
+    data_path = data_names_to_paths[data_name]
     return get_object(code_path, class_name, data_path=data_path, **kwargs)
 
 def main(plan, data_config_fname, logging_config_fname, logging_default_level, **kwargs):
@@ -29,21 +29,24 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
 
     # parse configs from sflplan
     sflplan = load_yaml(os.path.join(plan_dir, plan))
-    data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
+    by_col_data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
     fed_config = sflplan['federation']
     agg_config = sflplan['aggregator']
     col_config = sflplan['collaborator']
     model_config = sflplan['model']
     data_config = sflplan['data']
+
+
+    init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
+    latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
+    best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+
     
 
 
     # get the BraTS data objects for each collaborator
     col_ids = fed_config['collaborator_ids']
-    col_data = {col_id: get_data(data_names_to_paths, **data_config) for col_id in col_ids}
-    
-    # get the get_model function
-    get_model_func = load_func(model_config['code_path'], 'get_model')
+    col_data = {col_id: get_data(by_col_data_names_to_paths[col_id], **data_config) for col_id in col_ids}
     
     # TODO: Run a loop here over various parameter values and iterations
     # TODO: implement more than just saving init, best, and latest model
@@ -52,7 +55,6 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
              col_data=col_data, 
              model_config=model_config, 
              fed_config=fed_config, 
-             weights_dir=weights_dir,
              init_model_fpath = init_model_fpath, 
              latest_model_fpath = latest_model_fpath, 
              best_model_fpath = best_model_fpath, 

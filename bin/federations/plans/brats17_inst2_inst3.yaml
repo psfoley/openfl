@@ -33,7 +33,7 @@ federation:
   opt_treatment: $opt_treatment 'AGG'
   polling_interval: $polling_interval 4
   agg_id: $agg_id 'agg_0'
-  agg_address: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
   agg_port: &agg_port 8878 
   collaborator_ids:
     - &col_id_0 'col_2'
@@ -50,7 +50,7 @@ model:
   class_name: TensorFlow2DUNet
     
 aggregator:
-  agg_address: *agg_addr
+  agg_addr: *agg_addr
   agg_port: *agg_port
   agg_id: *agg_id
   fed_id: *fed_id
@@ -64,10 +64,12 @@ collaborator:
   polling_interval: *polling_interval
   opt_treatment: *opt_treatment 
 
-tls:
-  disable             : False
-  disable_client_auth : False
-  cert_folder         : test
+col_grpc_client:
+  addr: *agg_addr
+  port: *agg_port
+  disable_tls: False
+  disable_client_auth: False
+  cert_folder: test
 
 data:
   data_name: brats 

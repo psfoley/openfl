@@ -6,19 +6,13 @@ import importlib
 
 from tfedlrn.collaborator.collaborator import Collaborator
 from tfedlrn.collaborator.collaboratorgpcclient import CollaboratorGRPCClient
-from tfedlrn.yaml_utils import load_yaml
+from tfedlrn import load_yaml, get_object
 
 from setup_logging import setup_logging
 
-def load_model(code_path, data, model_kwargs):
-    module = importlib.import_module(code_path)
-    model = module.get_model(data=data, model_kwargs=model_kwargs)
-    return model
-
-def load_data(code_path, data_object_name, data_path, data_kwargs):
-    module = importlib.import_module(code_path)  
-    data = module.__getattribute__(data_object_name)(data_path=data_path, **data_kwargs)
-    return data 
+def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+    data_path = data_names_to_paths[data_name]
+    return get_object(code_path, class_name, data_path=data_path, **kwargs) 
 
 def main(plan, collaborator_id, data_config_fname, logging_config_fname, logging_default_level):
     setup_logging(path=logging_config_fname, default_level=logging_default_level)
@@ -30,40 +24,28 @@ def main(plan, collaborator_id, data_config_fname, logging_config_fname, logging
 
     flplan = load_yaml(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
+    col_config = flplan['collaborator']
     model_config = flplan['model']
-    data_config = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][collaborator_id]
-    data_path = data_config['data_path']
-    data_kwargs = data_config['data_kwargs']
+    data_config = flplan['data']
+    data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][collaborator_id]
 
-    tls_config = flplan['tls']
-    cert_dir = os.path.join(base_dir, 'certs', tls_config['cert_folder'])
+    col_grpc_client_config = flplan['tls']
+    cert_dir = os.path.join(base_dir, 'certs', col_grpc_client_config['cert_folder'])
 
-    data = load_data(code_path=data_config['data_code_path'], 
-                     data_object_name=data_config['data_object_name'],
-                     data_path=data_path, 
-                     data_kwargs=data_kwargs)
+    data = get_data(data_names_to_paths, **data_config)
 
-    wrapped_model = load_model(code_path=model_config['code_path'], 
-                               data=data, 
-                               model_kwargs=model_config['params'])
+    wrapped_model = get_object(data=data, **model_config)
 
-    opt_treatment = flplan['collaborator']['opt_vars_treatment']
-    
-    channel = CollaboratorGRPCClient(addr=agg_config['addr'],
-                                     port=agg_config['port'],
-                                     disable_tls=tls_config['disable'],
-                                     disable_client_auth=tls_config['disable_client_auth'],
-                                     ca=os.path.join(cert_dir, 'ca.crt'),
+    channel = CollaboratorGRPCClient(ca=os.path.join(cert_dir, 'ca.crt'),
                                      certificate=os.path.join(cert_dir, 'local.crt'),
-                                     private_key=os.path.join(cert_dir, 'local.key'))
+                                     private_key=os.path.join(cert_dir, 'local.key'), 
+                                     **col_grpc_client_config)
 
-    collaborator = Collaborator(collaborator_id,
-                                agg_config['id'],
-                                flplan['federation'],
-                                wrapped_model,
-                                channel,
-                                model_config['version'],
-                                opt_treatment=opt_treatment)
+    collaborator = Collaborator(collaborator_id=collaborator_id,
+                                wrapped_model=wrapped_model, 
+                                channel=channel, 
+                                **col_config)
+
 
     collaborator.run()
 

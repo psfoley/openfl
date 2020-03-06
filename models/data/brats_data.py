@@ -42,14 +42,14 @@ class BratsData(object):
             b = a + batch_size
             yield X[idxs[a:b]], y[idxs[a:b]]
 
-    def get_batch_generator(self, dtype, batch_size=None, use_tqdm=False):
+    def get_batch_generator(self, train_or_val, batch_size=None, use_tqdm=False):
         if batch_size == None:
             batch_size = self.batch_size
 
-        if dtype == 'train':
+        if train_or_val == 'train':
             X = self.X_train
             y = self.y_train
-        elif dtype == 'val':
+        elif train_or_val == 'val':
             X = self.X_val
             y = self.y_val
         else:

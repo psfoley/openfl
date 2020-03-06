@@ -21,7 +21,6 @@ def federate(col_config,
              col_data, 
              model_config, 
              fed_config, 
-             weights_dir, 
              init_model_fpath, 
              latest_model_fpath, 
              best_model_fpath, 
@@ -34,15 +33,16 @@ def federate(col_config,
     model = get_object(data=col_data[col_ids[0]], **model_config)
 
     # create the aggregator
-    aggregator = Aggregator(init_model_fname = init_model_fpath,
-                            latest_model_fname = latest_model_fpath, 
-                            best_model_fname = best_model_fpath, 
+    aggregator = Aggregator(init_model_fpath=init_model_fpath, 
+                            latest_model_fpath=latest_model_fpath, 
+                            best_model_fpath=best_model_fpath, 
                             **agg_config)
 
     # create the collaborataors
     collaborators = get_collaborators(model=model, 
-                                       aggregator=aggregator, 
-                                       **col_config)
+                                      aggregator=aggregator, 
+                                      col_ids=col_ids,
+                                      **col_config)
 
     rounds = fed_config['rounds']
     

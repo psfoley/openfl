@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 FROM ubuntu:18.04
 LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
 

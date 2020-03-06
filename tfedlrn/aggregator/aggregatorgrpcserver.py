@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 import grpc
 import signal
 from concurrent import futures

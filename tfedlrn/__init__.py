@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 from .flplan import load_flplan
 
 def check_type(obj, expected_type, logger):

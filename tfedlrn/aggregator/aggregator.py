@@ -1,3 +1,5 @@
+# Copyright (C) 2020 Intel Corporation
+
 import time
 import os
 import logging

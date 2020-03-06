@@ -1,6 +1,5 @@
 import numpy as np
 from math import ceil
-from tqdm import tqdm
 from .datasets import load_from_NIfTY 
 
 
@@ -42,7 +41,7 @@ class BratsData(object):
             b = a + batch_size
             yield X[idxs[a:b]], y[idxs[a:b]]
 
-    def get_batch_generator(self, train_or_val, batch_size=None, use_tqdm=False):
+    def get_batch_generator(self, train_or_val, batch_size=None):
         if batch_size == None:
             batch_size = self.batch_size
 
@@ -61,12 +60,8 @@ class BratsData(object):
         # compute the number of batches
         num_batches = ceil(X.shape[0] / batch_size)
 
-        # build the generator
-        gen = self.batch_generator(X, y, idxs, batch_size, num_batches)
-        if use_tqdm:
-            gen = tqdm(gen, desc="training epoch")
-        
-        return gen
+        # build the generator and return it
+        return self.batch_generator(X, y, idxs, batch_size, num_batches)
         
 
 

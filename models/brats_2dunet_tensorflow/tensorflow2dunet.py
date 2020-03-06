@@ -111,7 +111,11 @@ class TensorFlow2DUNet(object):
         tf.keras.backend.set_learning_phase(True)
 
         losses = []
-        gen = self.data.get_batch_generator('train', batch_size, use_tqdm)
+
+        gen = self.data.get_batch_generator('train', batch_size)
+        if use_tqdm:
+            gen = tqdm(gen, desc="training epoch")
+
         for X, y in gen:
             losses.append(self.train_batch(X, y))
 
@@ -122,7 +126,11 @@ class TensorFlow2DUNet(object):
         tf.keras.backend.set_learning_phase(False)
 
         score = 0
-        gen = self.data.get_batch_generator('val', batch_size, use_tqdm)
+
+        gen = self.data.get_batch_generator('val', batch_size)
+        if use_tqdm:
+            gen = tqdm(gen, desc="validating")
+
         for X, y in gen:
             weight = X.shape[0] / self.data.get_validation_data_size()  
             _, s = self.validate_batch(X, y)

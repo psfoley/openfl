@@ -3,9 +3,13 @@
 # * bin/run_collaborator_from_flplan.py, and 
 # * bin/create_initial_weights_file_from_plan.py 
 
-# * values for first level keys: model, aggregator, and collaborator
-# * pass in the generic kwargs for those constructors
-# * (i.e. collaborator id will be collaborator specific)
+# * values for first level keys: model, aggregator, and collaborator 
+# * pass in the generic kwargs for those 
+# * constructors(ex. collaborator id will be collaborator specific)
+
+# * values for first level key grpc provide kwargs for the 
+# * CollaboratorGRPCClient constructor and the serve method of the
+# * AggregatorGRPCServer 
 
 # * values for first level keys: model and data pass in the generic 
 # * kwargs for get_model and get_data functions
@@ -28,20 +32,19 @@ federation      : fl_brats_2dunet
 
 
 federation:
-  fed_id: $fed_id 'fed_0'
-  rounds: 2
-  opt_treatment: $opt_treatment 'AGG'
-  polling_interval: $polling_interval 4
-  agg_id: $agg_id 'agg_0'
+  fed_id: &fed_id 'fed_0'
+  opt_treatment: &opt_treatment 'AGG'
+  polling_interval: &polling_interval 4
+  agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
   agg_port: &agg_port 8878 
-  collaborator_ids:
-    - &col_id_0 'col_2'
-    - &col_id_1 'col_3'
+  col_ids: &col_ids
+    - 'col_2'
+    - 'col_3'
   init_model_fname: TensorFlow2DUNet_init.pbuf
   latest_model_fname: TensorFlow2DUNet_latest.pbuf
   best_model_fname: TensorFlow2DUNet_best.pbuf
-  model_version: 1
+  model_version: &model_version 1
 
 
 model:
@@ -50,12 +53,9 @@ model:
   class_name: TensorFlow2DUNet
     
 aggregator:
-  agg_addr: *agg_addr
-  agg_port: *agg_port
   agg_id: *agg_id
   fed_id: *fed_id
-  col_ids: 
-    *col_id_0
+  col_ids: *col_ids
 
 collaborator:
   agg_id: *agg_id
@@ -64,7 +64,7 @@ collaborator:
   polling_interval: *polling_interval
   opt_treatment: *opt_treatment 
 
-col_grpc_client:
+grpc:
   addr: *agg_addr
   port: *agg_port
   disable_tls: False

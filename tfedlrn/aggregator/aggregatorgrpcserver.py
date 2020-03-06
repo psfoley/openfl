@@ -26,7 +26,15 @@ class AggregatorGRPCServer(AggregatorServicer):
         """Pass through to wrapped aggregator. Pulls nothing from context."""
         return self.aggregator.UploadLocalMetricsUpdate(request)
 
-    def serve(self, addr, port, disable_tls=False, disable_client_auth=False, ca=None, certificate=None, private_key=None):
+    def serve(self, 
+              addr, 
+              port, 
+              disable_tls=False, 
+              disable_client_auth=False, 
+              ca=None, 
+              certificate=None, 
+              private_key=None, 
+              **kwargs):
         """Start an aggregator gRPC service.
 
         Parameters
@@ -43,6 +51,8 @@ class AggregatorGRPCServer(AggregatorServicer):
             File path to the server certificate.
         private_key         : str
             File path to the private key.
+        kwargs              : dict
+            Not currently used
         """
         logger = logging.getLogger(__name__)
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), 

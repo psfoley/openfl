@@ -25,13 +25,13 @@ class OptTreatment(Enum):
 class Collaborator(object):
     """The current class is not good for local test without channel. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, id, agg_id, fed_id, wrapped_model, channel, model_version, polling_interval=4, opt_treatment="AGG"):
+    def __init__(self, col_id, agg_id, fed_id, wrapped_model, channel, model_version, polling_interval=4, opt_treatment="AGG"):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
         self.polling_interval = 4
 
         # this stuff is really about sanity/correctness checking to ensure the bookkeeping and control flow is correct
-        self.id = id
+        self.id = col_id
         self.agg_id = agg_id
         self.fed_id = fed_id
         self.counter = 0

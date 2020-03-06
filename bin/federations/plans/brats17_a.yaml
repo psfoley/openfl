@@ -5,7 +5,7 @@
 
 # * values for first level keys: model, aggregator, and collaborator
 # * pass in the generic kwargs for those constructors
-# * (i.e. collaborator id will be collaborator specific)
+# * (ex. collaborator id will be collaborator specific)
 
 # * values for first level keys: model and data pass in the generic 
 # * kwargs for get_model and get_data functions

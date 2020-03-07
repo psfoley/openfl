@@ -12,5 +12,9 @@ def set_cuda_vis_device(gpu):
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
 
 def pick_cuda_device(**kwargs):
-    gpu = get_available_nvidia_gpus(**kwargs)[0]
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
+    try:
+        gpu = get_available_nvidia_gpus(**kwargs)[0]
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu)
+    except FileNotFoundError:
+        print("No GPU chosen, nvidia-smi not found")
+        pass

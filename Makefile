@@ -7,6 +7,16 @@ tfl = venv/lib/python3.5/site-packages/tfedlrn
 
 col_num ?= 0
 model_name ?= mnist_cnn_keras
+use_gpu ?= false
+
+ifeq ($(use_gpu), true)
+	base_image = tensorflow/tensorflow:1.14.0-gpu-py3
+	device = gpu
+	runtime_line = --runtime nvidia
+else
+	base_image = ubuntu:18.04
+	device = cpu
+endif
 
 ifeq ($(model_name),brats_2dunet_tensorflow)
     additional_run_col_container_lines = \
@@ -97,6 +107,7 @@ clean:
 
 build_containers:
 	docker build \
+	--build-arg BASE_IMAGE=$(base_image) \
 	--build-arg http_proxy \
 	--build-arg https_proxy \
 	--build-arg socks_proxy \
@@ -110,8 +121,9 @@ build_containers:
 	.
 
 	docker build --build-arg whoami=$(shell whoami) \
-	-t tfl_col_$(model_name)_$(shell whoami):0.1 \
-	-f ./models/$(model_name)/Dockerfile \
+	--build-arg use_gpu=$(use_gpu) \
+	-t tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
+	-f ./models/$(model_name)/$(device).dockerfile \
 	.
 
 run_agg_container:
@@ -128,14 +140,15 @@ run_agg_container:
 run_col_container:
 
 	docker run \
+	$(runtime_line) \
 	--net=host \
-	-it --name=tfl_col_$(model_name)_$(shell whoami)_$(col_num) \
+	-it --name=tfl_col_$(device)_$(model_name)_$(shell whoami)_$(col_num) \
 	--rm \
 	-v $(shell pwd)/models:/home/$(shell whoami)/tfl/models:ro \
 	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
 	$(additional_run_col_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
-	tfl_col_$(model_name)_$(shell whoami):0.1 \
+	tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
 	bash 
 
 

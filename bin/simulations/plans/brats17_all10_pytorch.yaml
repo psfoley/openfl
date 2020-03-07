@@ -44,14 +44,14 @@ federation:
     - 'col_8'
     - 'col_9'
 
-  init_model_fname: PyTorch2DUNet_init.pbuf
-  latest_model_fname: PyTorch2DUNet_latest.pbuf
-  best_model_fname: PyTorch2DUNet_best.pbuf
+  init_model_fname: UNet2D_PT_init.pbuf
+  latest_model_fname: UNet2D_PT_latest.pbuf
+  best_model_fname: UNet2D_PT_best.pbuf
   model_version: &model_version 1
 
 model:
-  code_path: models.brats_2dunet_pytorch.pytorch2dunet
-  class_name: PyTorch2DUNet
+  code_path: models.unet2d_pt.unet2d_pt
+  class_name: UNet2D_PT
 
 aggregator:
   agg_id: *agg_id

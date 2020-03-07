@@ -28,11 +28,11 @@ def dice_coef_loss(pred, target, smoothing=1.0):
     return term1.mean() + term2.mean()
 
 
-class PyTorch2DUNet(nn.Module):
+class UNet2D_PT(nn.Module):
 
     def __init__(self, data, device='cpu', train_loader=None, val_loader=None, optimizer='SGD', 
       dropout_layers=[2, 3]):
-        super(PyTorch2DUNet, self).__init__()
+        super(UNet2D_PT, self).__init__()
 
         if dropout_layers is None:
             self.dropout_layers = []

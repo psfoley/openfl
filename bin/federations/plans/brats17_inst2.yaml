@@ -36,16 +36,15 @@ federation:
   agg_port: &agg_port 8878 
   col_ids: &col_ids
     - 'col_2'
-  init_model_fname: TensorFlow2DUNet_init.pbuf
-  latest_model_fname: TensorFlow2DUNet_latest.pbuf
-  best_model_fname: TensorFlow2DUNet_best.pbuf
+
+  init_model_fname: UNet2D_TF_init.pbuf
+  latest_model_fname: UNet2D_TF_latest.pbuf
+  best_model_fname: UNet2D_TF_best.pbuf
   model_version: &model_version 1
 
-
 model:
-  model_name: brats_2dunet_tensorflow
-  code_path: models.brats_2dunet_tensorflow.tensorflow2dunet
-  class_name: TensorFlow2DUNet
+  code_path: models.unet2d_tf.unet2d_tf
+  class_name: UNet2D_TF
     
 aggregator:
   agg_id: *agg_id

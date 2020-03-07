@@ -9,10 +9,11 @@ from .tensorflowflutils import tf_get_vars, \
                                tf_export_init_weights
 
 
-class TensorFlow2DUNet(object):
+class UNet2D_TF(object):
 
     def __init__(self, data, **kwargs):
-        
+        super(UNet2D_TF, self).__init__()        
+
         self.assign_ops = None
         self.placeholders = None
 

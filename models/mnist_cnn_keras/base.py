@@ -3,16 +3,41 @@
 You may copy this file as the starting point of your own model.
 """
 import logging
+import numpy as np
 import tensorflow as tf
+import tqdm
 
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
+from .export_init_weights import export_weights
 
 class FLModel(object):
     """An abstract class used to represent a model training procedure."""
     def __init__(self, *args, **argv):
         super(FLModel, self).__init__()
         self.logger = logging.getLogger(__name__)
+
+    def get_data(self):
+        """
+        Get the data object.
+        Serves up batches and provides infor regarding data.
+
+        Returns
+        -------
+        data object
+        """
+        # TODO: establish class inheritance for data object for guidance.
+        raise NotImplementedError
+
+    def set_data(self, data):
+        """
+        Set data object.
+
+        Returns
+        -------
+        None
+        """
+        raise NotImplementedError
 
     def train_epoch(self):
         """
@@ -59,6 +84,17 @@ class FLModel(object):
             The number of validation examples.
         """
         raise NotImplementedError
+        
+    def initialize_globals(self):
+        """
+        Initialize all global variables
+        ----------
+
+        Returns
+        -------
+        None
+        """
+        raise NotImplementedError
 
     def get_tensor_dict(self, with_opt_vars):
         """
@@ -98,41 +134,50 @@ class FLModel(object):
 
 class FLKerasModel(FLModel):
     """A class used to represent a Keras model training procedure."""
-    def __init__(self, *args, **argv):
+    def __init__(self, data, *args, **argv):
         super(FLKerasModel, self).__init__(*args, **argv)
         self.model = keras.Model()
-        self.x_train, self.y_train, self.x_val, self.y_val = None, None, None, None
-
-        self.batch_size = None
-
+        self.data = data
         NUM_PARALLEL_EXEC_UNITS = 1
-        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, inter_op_parallelism_threads=1, allow_soft_placement=True, device_count = {'CPU': NUM_PARALLEL_EXEC_UNITS })
-        config.gpu_options.allow_growth = True
-
+        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, 
+                                inter_op_parallelism_threads=1, 
+                                allow_soft_placement=True, 
+                                device_count = {'CPU': NUM_PARALLEL_EXEC_UNITS })
+        config.gpu_options.allow_growth=True
+        
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
+    def get_data(self):
+        return self.data
+
+    def set_data(self, data):
+        if data.get_feature_shape() != self.data.get_feature_shape():
+            raise ValueError('Data feature shape is not compatible with model.')
+        self.data = data
+
     def train_epoch(self):
         self.is_initial = False
-        history = self.model.fit(self.x_train, self.y_train,
-          batch_size=self.batch_size,
+        history = self.model.fit(self.data.X_train, self.data.y_train,
+          batch_size=self.data.batch_size,
           epochs=1,
           verbose=0,)
-        # As we alwasy train one epoch, we only need the first element in the list.
+
+        # As we always train one epoch, we only need the first element in the list.
         ret_dict = {name:values[0] for name, values in history.history.items()}
         return ret_dict['loss']
 
     def validate(self):
-        vals = self.model.evaluate(self.x_val, self.y_val, verbose=0)
+        vals = self.model.evaluate(self.data.X_val, self.data.y_val, verbose=0)
         metrics_names = self.model.metrics_names
         ret_dict = dict(zip(metrics_names, vals))
         return ret_dict['acc']
 
     def get_training_data_size(self):
-        return len(self.x_train)
+        return self.data.get_training_data_size()
 
     def get_validation_data_size(self):
-        return len(self.x_val)
+        return self.data.get_validation_data_size()
 
     @staticmethod
     def _get_weights_dict(obj):
@@ -174,6 +219,9 @@ class FLKerasModel(FLModel):
         weight_values = [weights_dict[name] for name in weight_names]
         obj.set_weights(weight_values)
 
+    def initialize_globals(self):
+        self.sess.run(tf.global_variables_initializer())
+
     def get_tensor_dict(self, with_opt_vars):
         """
         Get the model weights as a tensor dictionary.
@@ -192,6 +240,7 @@ class FLKerasModel(FLModel):
 
         if with_opt_vars is True:
             opt_weights = self._get_weights_dict(self.model.optimizer)
+
             model_weights.update(opt_weights)
             if len(opt_weights) == 0:
                 self.logger.debug("WARNING: We didn't find variables for the optimizer.")
@@ -213,3 +262,10 @@ class FLKerasModel(FLModel):
     def reset_opt_vars(self):
         for weight in self.model.optimizer.weights:
             weight.initializer.run(session=self.sess)
+
+    
+    def export_init_weights(self, model_name, version, fpath):
+        export_weights(model_name=model_name, 
+                       version=version, 
+                       tensor_dict=self.get_tensor_dict(with_opt_vars=False), 
+                       fpath=fpath)

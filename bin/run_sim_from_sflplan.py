@@ -45,7 +45,7 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
 
 
     # get the BraTS data objects for each collaborator
-    col_ids = fed_config['collaborator_ids']
+    col_ids = fed_config['col_ids']
     col_data = {col_id: get_data(by_col_data_names_to_paths[col_id], **data_config) for col_id in col_ids}
     
     # TODO: Run a loop here over various parameter values and iterations

@@ -320,7 +320,7 @@ program from the project folder to visualize the learning process.
 
   $ tensorboard --logdir ./bin/logs
 
-Federated Training of the BraTS 2D UNet (Brain Tumor Segmentation)
+Federated Training of the 2D UNet (Brain Tumor Segmentation)
 -----------------------------------------------------------------
 
 This tutorial assumes that you've run the MNIST example above in that less details are provided.
@@ -333,17 +333,17 @@ We'll start the tutorial by training with a single collaborator. Then, we'll edi
 Start an Aggregator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1. (**On the aggregator machine**) Build the brats aggregator and collaborator containers. 
+1. (**On the aggregator machine**) Build the unet aggregator and collaborator containers. 
 
 .. code-block:: console
 
-  $ make build_containers model_name=brats_2dunet_tensorflow
+  $ make build_containers model_name=unet2d_tf
 
 2. Run the aggregator container, then inside the shell create the files for TLS and run the aggregator.
 
 .. code-block:: console
 
-  $ make run_agg_container model_name=brats_2dunet_tensorflow
+  $ make run_agg_container model_name=unet2d_tf
 
 (inside the aggregator container shell)
 
@@ -352,7 +352,7 @@ Start an Aggregator
   $ cd ../
   $ make local_certs
   $ cd bin/
-  $ ./run_brats_aggregator.sh
+  $ python3 run_aggregator_from_flplan.py -p brats17_inst2.yaml
 
 Start Collaborator
 ^^^^^^^^^^^^^^^^^^^^
@@ -381,14 +381,14 @@ Note: to remove the links, we recommend using find <symlink_path> -type l -exec 
 
 .. code-block:: console
 
-  $ make run_col_container model_name=brats_2dunet_tensorflow col_num=0
+  $ make run_col_container model_name=unet2d_tf col_num=2 dataset=brats
   
   
 5. (**On a collaborator machine**) Run the collaborator inside the collaborator container.
 
 .. code-block:: console
 
-  $ ./run_brats_collaborator.sh 0
+  $ python3 run_collaborator_from_flplan.py -p=brats17_inst2.yaml -col=col_2 -dc=docker_data_config.yaml
 
 The model will now train with a single small insitution (so will not train well). To stop the training, CTRL-C on each process will suffice.
 
@@ -411,7 +411,7 @@ Start the Aggregator
 
 .. code-block:: console
 
-  $ make run_agg_container model_name=brats_2dunet_tensorflow
+  $ make run_agg_container model_name=unet2d_tf
 
 (inside the aggregator container shell)
 

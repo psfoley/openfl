@@ -1,5 +1,5 @@
 ARG whoami
-FROM tfl_agg_UNet2D_TF_$whoami:0.1
+FROM tfl_agg_unet2d_tf_$whoami:0.1
 
 ENV OMP_NUM_THREADS=112
 ENV KMP_BLOCKTIME=30

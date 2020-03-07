@@ -8,6 +8,7 @@ tfl = venv/lib/python3.5/site-packages/tfedlrn
 col_num ?= 0
 model_name ?= mnist_cnn_keras
 use_gpu ?= false
+dataset ?= mnist
 
 ifeq ($(use_gpu), true)
 	base_image = tensorflow/tensorflow:1.14.0-gpu-py3
@@ -18,7 +19,7 @@ else
 	device = cpu
 endif
 
-ifeq ($(model_name),brats_2dunet_tensorflow)
+ifeq ($(dataset),brats)
     additional_run_col_container_lines = \
 	-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
     -v '/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG':/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro

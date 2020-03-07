@@ -139,7 +139,12 @@ class FLKerasModel(FLModel):
         self.model = keras.Model()
         self.data = data
         NUM_PARALLEL_EXEC_UNITS = 1
-        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, inter_op_parallelism_threads=1, allow_soft_placement=True, device_count = {'CPU': NUM_PARALLEL_EXEC_UNITS })
+        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, 
+                                inter_op_parallelism_threads=1, 
+                                allow_soft_placement=True, 
+                                device_count = {'CPU': NUM_PARALLEL_EXEC_UNITS })
+        config.gpu_options.allow_growth=True
+        
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
@@ -155,7 +160,7 @@ class FLKerasModel(FLModel):
         self.is_initial = False
         history = self.model.fit(self.data.X_train, self.data.y_train,
           batch_size=self.data.batch_size,
-          epochs=1,
+          epochs=epochs, # DEBUG FIXME 1,
           verbose=0,)
         # As we alwasy train one epoch, we only need the first element in the list.
         ret_dict = {name:values[0] for name, values in history.history.items()}

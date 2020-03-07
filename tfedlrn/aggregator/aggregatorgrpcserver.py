@@ -88,8 +88,8 @@ class AggregatorGRPCServer(AggregatorServicer):
         logger.info('Starting aggregator.')
         server.start()
         try:
-            while True:
-                signal.pause()
+            while not self.aggregator.all_quit_jobs_sent():
+                time.sleep(5)
         except KeyboardInterrupt:
             pass
         server.stop(0)

@@ -43,7 +43,7 @@ class Aggregator(object):
         The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
-    def __init__(self, agg_id, fed_id, col_ids, init_model_fpath, latest_model_fpath, best_model_fpath):
+    def __init__(self, agg_id, fed_id, col_ids, init_model_fpath, latest_model_fpath, best_model_fpath, rounds_to_train=256):
         self.logger = logging.getLogger(__name__)
         self.id = agg_id
         self.fed_id = fed_id
@@ -52,6 +52,8 @@ class Aggregator(object):
         self.best_model_fpath = best_model_fpath
         self.col_ids = col_ids
         self.round_num = 1
+        self.rounds_to_train = rounds_to_train
+        self.quit_job_sent_to = []
 
         #FIXME: close the handler before termination.
         log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
@@ -61,6 +63,9 @@ class Aggregator(object):
 
         self.init_per_col_round_stats()
         self.best_model_score = None
+
+    def all_quit_jobs_sent(self):
+        return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
 
     def validate_header(self, message):
         # validate that the message is for me
@@ -273,11 +278,16 @@ class Aggregator(object):
     def RequestJob(self, message):
         t = time.time()
         self.validate_header(message)
-        
+
+        # FIXME: we should really have each collaborator validate one last time
+        # check if we are done
+        if self.round_num > self.rounds_to_train:
+            job = JOB_QUIT
+            self.quit_job_sent_to.append(message.header.sender)
         # FIXME: this flow needs to depend on a job selection output for the round
         # for now, all jobs require and in-sync model, so it is the first check
         # check if the sender model is out of date
-        if self.collaborator_out_of_date(message.model_header):
+        elif self.collaborator_out_of_date(message.model_header):
             job = JOB_DOWNLOAD_MODEL
         # else, check if this collaborator has not sent validation results
         elif message.header.sender not in self.per_col_round_stats["agg_validation_results"]:

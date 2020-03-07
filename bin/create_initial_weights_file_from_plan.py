@@ -39,6 +39,7 @@ def main(plan_name, plan_type, data_config_fname, logging_config_path, logging_d
     fed_config = plan['federation']
     data_config = plan['data']
 
+    # FIXME: this will ultimately run in a governor environment and should not require any data to work
     # pick the first collaborator to create the data and model (could be any)
     col_id = fed_config['col_ids'][0]
     data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]

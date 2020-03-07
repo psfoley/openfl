@@ -22,11 +22,8 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-task            : brats
-version         : '1'
 description     : Train a model to perform semantic segmentation on brain fMRI images.
 status          : active
-simulation      : fl_brats_2dunet
 
 federation:
   fed_id: &fed_id 'fed_0'

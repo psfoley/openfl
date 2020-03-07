@@ -24,12 +24,8 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-task            : mnist_classification
-version         : '1'
 description     : Train a model to perform semantic segmentation on brain fMRI images.
 status          : active
-federation      : mnist
-
 
 federation:
   fed_id: &fed_id 'fed_0'
@@ -37,13 +33,13 @@ federation:
   polling_interval: &polling_interval 4
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 8878 
+  agg_port: &agg_port 82278 
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'
-  init_model_fname: MNISTCNN_init.pbuf
-  latest_model_fname: MNISTCNN_latest.pbuf
-  best_model_fname: MNISTCNN_best.pbuf
+  init_model_fname: mnist_cnn_keras_init.pbuf
+  latest_model_fname: mnist_cnn_keras_latest.pbuf
+  best_model_fname: mnist_cnn_keras_best.pbuf
   model_version: &model_version 1
 
 

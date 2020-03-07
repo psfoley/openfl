@@ -52,6 +52,7 @@ aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
   col_ids: *col_ids
+  rounds_to_train: 16
 
 collaborator:
   agg_id: *agg_id

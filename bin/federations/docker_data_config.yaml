@@ -1,7 +1,7 @@
 collaborators:
   col_one_big:
-    brats: &brats_data_path '/home/edwardsb/tfl/datasets/brats'
-    mnist: &mnist_data_path '/home/edwardsb/tfl/datasets/mnist_batch/mnist_batch.npz'
+    brats: &brats_data_path '/home/msheller/tfl/datasets/brats'
+    mnist: &mnist_data_path '/home/msheller/tfl/datasets/mnist_batch/mnist_batch.npz'
   col_0:
     brats: *brats_data_path
     mnist: *mnist_data_path

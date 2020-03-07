@@ -10,97 +10,17 @@ from .base import FLKerasModel
 class ConvModel(FLKerasModel):
     """A convolutional neural network model for MNIST.
 
-    Parameters
-    ----------
-    input_shape : (tuple of ints)
-        Shape of image (including channels in last dim)
-    num_classes : int
-        number of classification classes
-    x_train : np.array
-        training images
-    y_train : np.array
-        training labels
-    x_val : np.array
-        validation images
-    y_val : np.array
-        validation labels
-    batch_size : int
-        Batch size for training/validating
     """
-    def __init__(self, input_shape, num_classes, x_train, y_train, x_val, y_val, batch_size=256):
-        super(ConvModel, self).__init__(batch_size=batch_size)
+    def __init__(self, data, **kwargs):
+        super(ConvModel, self).__init__(data=data)
         self.logger = logging.getLogger(__name__)
-        self.batch_size = batch_size
-        self.x_train = x_train
-        self.y_train = y_train
-        self.x_val = x_val
-        self.y_val = y_val
-        self.model = self.build_model(input_shape, num_classes)
+        self.model = self.build_model(data.get_feature_shape(), data.num_classes)
         print(self.model.summary())
-        if self.y_train is not None and self.y_val is not None:
-            print("Training set size: %d; Validation set size: %d" % (len(self.y_train), len(self.y_val)))
+        if self.data.y_train is not None and self.data.y_val is not None:
+            print("Training set size: %d; Validation set size: %d" % (len(self.data.y_train), len(self.data.y_val)))
 
         self.is_initial = True
         self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)
-
-            
-    @staticmethod
-    def load_dataset(raw_path):
-        """
-        Load the MNIST dataset.
-
-        Params
-        ------
-        raw_path: str
-            The path to the raw npz file.
-
-        Returns
-        -------
-        list
-            The input shape.
-        int
-            The number of classes.
-        numpy.ndarray
-            The training data.
-        numpy.ndarray
-            The training labels.
-        numpy.ndarray
-            The validation data.
-        numpy.ndarray
-            The validation labels.
-        """
-        def _load_raw_dataset(path):
-            with np.load(path) as f:
-                x_train, y_train = f['x_train'], f['y_train']
-                x_test, y_test = f['x_test'], f['y_test']
-                return (x_train, y_train), (x_test, y_test)
-
-        img_rows, img_cols = 28, 28
-        num_classes = 10
-        (x_train, y_train), (x_test, y_test) = _load_raw_dataset(raw_path)
-        if K.image_data_format() == 'channels_first':
-            x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-            x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
-            input_shape = (1, img_rows, img_cols)
-        else:
-            x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-            x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-            input_shape = (img_rows, img_cols, 1)
-
-        x_train = x_train.astype('float32')
-        x_test = x_test.astype('float32')
-        x_train /= 255
-        x_test /= 255
-        print('x_train shape:', x_train.shape)
-        print('y_train shape:', y_train.shape)
-        print(x_train.shape[0], 'train samples')
-        print(x_test.shape[0], 'test samples')
-
-        # convert class vectors to binary class matrices
-        y_train = keras.utils.to_categorical(y_train, num_classes)
-        y_test = keras.utils.to_categorical(y_test, num_classes)
-
-        return input_shape, num_classes, x_train, y_train, x_test, y_test
 
 
     @staticmethod
@@ -138,3 +58,6 @@ class ConvModel(FLKerasModel):
                         optimizer=keras.optimizers.Adam(),
                         metrics=['accuracy'])
         return model
+
+
+    

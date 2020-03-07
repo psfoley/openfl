@@ -18,5 +18,5 @@ python3 \
 -ve=$ve \
 --output_path=../datasets/mnist_batch/mnist_batch.npz
 
-python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col col_$col_num
+python3 run_collaborator_from_flplan.py -p mnist_two_big_cols.yaml -col col_$col_num -dc docker_data_config.yaml
 

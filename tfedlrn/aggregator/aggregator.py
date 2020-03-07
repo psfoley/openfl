@@ -202,8 +202,11 @@ class Aggregator(object):
 
                 check_not_equal(l, None, self.logger)
                 
-                # sanity check that the tensors are indeed different for non opt tensors                
-                if (not g.name.startswith('__opt') and 'RMSProp' not in g.name):
+                # sanity check that the tensors are indeed different for non opt tensors 
+                # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)               
+                if (not g.name.startswith('__opt') \
+                    and 'RMSProp' not in g.name \
+                    and 'Adam' not in g.name):
                     check_not_equal(g.npbytes, l.npbytes, self.logger)
                     
                 if g.shape != l.shape:

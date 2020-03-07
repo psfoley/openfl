@@ -165,6 +165,9 @@ class Collaborator(object):
 
         # create the tensor dict
         tensor_dict = {}
+        # FIXME: This breaks for the Adam param involving 'iter' that
+        #        is an int (and not a tensor) rather than a float
+        #        (I currently catch this by observing that shape==[])
         for tensor_proto in reply.model.tensors:
             tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
 

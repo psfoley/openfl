@@ -20,6 +20,7 @@ class ConvModel(FLKerasModel):
             print("Training set size: %d; Validation set size: %d" % (len(self.data.y_train), len(self.data.y_val)))
 
         self.is_initial = True
+
         self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)
 
 

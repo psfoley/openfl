@@ -33,7 +33,7 @@ federation      : mnist
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'AGG'
+  opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"

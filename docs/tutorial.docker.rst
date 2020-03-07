@@ -39,20 +39,21 @@ It can be anything of your choice on your machine.
   rm -r -f bin/federations/certs/test/*
 
 2. Edit the FL plan file to specify the correct address and port for the 
-aggregator machine. Open bin/federations/plans/mnist_a.yaml and find the keys
-in the aggregator config for the address ("addr") and port ("port"):
+aggregator machine. Open bin/federations/plans/mnist_two_big_cols.yaml and find the keys
+in the federation config for the address ("agg_addr") and port ("agg_port"):
 
 .. code-block:: console
 
-  $ vi bin/federations/plans/mnist_a.yaml
+  $ vi bin/federations/plans/mnist_two_big_cols.yaml
   
   ...
-  aggregator:
-    id             : agg_mnist
-    addr           : "spr-gpu01.jf.intel.com" # CHANGE THIS
-    port           : 8848                     # CHANGE THIS
-
-    collaborators  : 2
+  federation:
+    fed_id: &fed_id 'fed_0'
+    opt_treatment: &opt_treatment 'RESET'
+    polling_interval: &polling_interval 4
+    agg_id: &agg_id 'agg_0'
+    agg_addr: &agg_addr "spr-gpu01.jf.intel.com"   # CHANGE THIS STRING
+    agg_port: &agg_port 8878                       # CHANGE THIS INT
   ...
 
 3. Build the docker images "tfl_agg_<model_name>_<username>:0.1" and 
@@ -175,24 +176,22 @@ You should **skip the first three steps** if you are running
 the collaborators on the same machine as the aggregator.
 
 1. (**Only if not on the aggregator machine**) Edit the FL plan file to specify 
-the correct address and port for the aggregator machine. Open 
-bin/federations/plans/mnist_a.yaml and find the keys
-in the aggregator config for the address ("addr") and port ("port"):
+the correct address and port for the aggregator machine. Open bin/federations/plans/mnist_two_big_cols.yaml and find the keys
+in the federation config for the address ("agg_addr") and port ("agg_port"):
 
 .. code-block:: console
 
-  $ cd spr_secure_intelligence-trusted_federated_learning
-  $ vi bin/federations/plans/mnist_a.yaml
+  $ vi bin/federations/plans/mnist_two_big_cols.yaml
   
   ...
-  aggregator:
-    id             : agg_mnist
-    addr           : "spr-gpu01.jf.intel.com" # CHANGE THIS
-    port           : 8848                     # CHANGE THIS
-
-    collaborators  : 2
+  federation:
+    fed_id: &fed_id 'fed_0'
+    opt_treatment: &opt_treatment 'RESET'
+    polling_interval: &polling_interval 4
+    agg_id: &agg_id 'agg_0'
+    agg_addr: &agg_addr "spr-gpu01.jf.intel.com"   # CHANGE THIS STRING
+    agg_port: &agg_port 8878                       # CHANGE THIS INT
   ...
-
 
 2. (**Only if not on the aggregator machine**) Enter the project folder, clean the build folder, 
 and build the containers as above.

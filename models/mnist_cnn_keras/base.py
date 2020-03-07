@@ -160,9 +160,10 @@ class FLKerasModel(FLModel):
         self.is_initial = False
         history = self.model.fit(self.data.X_train, self.data.y_train,
           batch_size=self.data.batch_size,
-          epochs=epochs, # DEBUG FIXME 1,
+          epochs=1,
           verbose=0,)
-        # As we alwasy train one epoch, we only need the first element in the list.
+
+        # As we always train one epoch, we only need the first element in the list.
         ret_dict = {name:values[0] for name, values in history.history.items()}
         return ret_dict['loss']
 
@@ -239,6 +240,7 @@ class FLKerasModel(FLModel):
 
         if with_opt_vars is True:
             opt_weights = self._get_weights_dict(self.model.optimizer)
+
             model_weights.update(opt_weights)
             if len(opt_weights) == 0:
                 self.logger.debug("WARNING: We didn't find variables for the optimizer.")

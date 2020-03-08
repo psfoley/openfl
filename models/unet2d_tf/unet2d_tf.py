@@ -30,7 +30,11 @@ class UNet2D_TF(object):
 
         self.create_model(**kwargs)
 
-    def create_model(self, **kwargs):
+    def create_model(self,
+                     training_smoothing=32.0,
+                     validation_smoothing=1.0,
+                     **kwargs):
+
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.intra_op_parallelism_threads = 112
@@ -41,8 +45,8 @@ class UNet2D_TF(object):
         self.y = tf.placeholder(tf.float32, self.input_shape)
         self.output = define_model(self.X, use_upsampling=True, **kwargs)
 
-        self.loss = dice_coef_loss(self.y, self.output, smooth=32.0)
-        self.validation_metric = dice_coef(self.y, self.output, smooth=1.0)
+        self.loss = dice_coef_loss(self.y, self.output, smooth=training_smoothing)
+        self.validation_metric = dice_coef(self.y, self.output, smooth=validation_smoothing)
 
         self.global_step = tf.train.get_or_create_global_step()
 

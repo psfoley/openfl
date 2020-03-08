@@ -27,7 +27,7 @@ def federate(col_config,
              **kwargs):
 
     # get the number of collaborators
-    col_ids = fed_config['collaborator_ids']
+    col_ids = fed_config['col_ids']
     
     # instantiate the model (using the first collaborator dataset for now)
     model = get_object(data=col_data[col_ids[0]], **model_config)

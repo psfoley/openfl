@@ -1,4 +1,6 @@
 collaborators:
+  col_one_big:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0-9'
   col_0:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
   col_1:

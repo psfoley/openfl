@@ -32,7 +32,7 @@ federation:
   rounds: 30
   agg_id: &agg_id 'agg_0'
   
-  collaborator_ids: &col_ids
+  col_ids: &col_ids
     - 'col_0'
     - 'col_1'
     - 'col_2'

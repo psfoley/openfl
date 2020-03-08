@@ -26,7 +26,7 @@ federation:
   fed_id: &fed_id 'fed_0'
   opt_treatment: &opt_treatment 'AGG'
   polling_interval: &polling_interval 4
-  rounds: 30
+  rounds: 120
   agg_id: &agg_id 'agg_0'
   
   col_ids: &col_ids

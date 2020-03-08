@@ -38,7 +38,7 @@ It can be anything of your choice on your machine.
   rm -r -f tfedlrn.egg-info
   rm -r -f bin/federations/certs/test/*
 
-2. Edit the FL plan file to specify the correct address and port for the 
+2a. Edit the FL plan file to specify the correct address and port for the 
 aggregator machine. Open bin/federations/plans/mnist_two_big_cols.yaml and find the keys
 in the federation config for the address ("agg_addr") and port ("agg_port"):
 
@@ -54,6 +54,23 @@ in the federation config for the address ("agg_addr") and port ("agg_port"):
     agg_id: &agg_id 'agg_0'
     agg_addr: &agg_addr "spr-gpu01.jf.intel.com"   # CHANGE THIS STRING
     agg_port: &agg_port 8878                       # CHANGE THIS INT
+  ...
+
+2b. Edit the docker data config file to refer to the correct username (the name of the account
+you are using. Open bin/federations/docker_data_config.yaml and replace the username with your username
+
+.. code-block:: console
+
+  $ vi bin/federations/docker_data_config.yaml
+
+
+  collaborators:
+    col_one_big:
+      brats: &brats_data_path '/home/<USERNAME>/tfl/datasets/brats'                       # replace with your username
+      mnist: &mnist_data_path '/home/<USERNAME>/tfl/datasets/mnist_batch/mnist_batch.npz' # replace with your username
+    col_0:
+      brats: *brats_data_path
+      mnist: *mnist_data_path
   ...
 
 3. Build the docker images "tfl_agg_<model_name>_<username>:0.1" and 

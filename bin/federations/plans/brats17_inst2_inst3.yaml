@@ -40,8 +40,8 @@ federation:
   polling_interval: &polling_interval 4
   rounds_to_train: &rounds_to_train 50
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "agg.domain.com"
-  agg_port: &agg_port <SOME_PORT> 
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_port: &agg_port 8912
   col_ids: &col_ids
     - 'col_2'
     - 'col_3'
@@ -52,7 +52,8 @@ federation:
   model_version: &model_version 1
 
 hostnames:
-  __DEFAULT_HOSTNAME__: some.url
+  col_2: spr-gpu01.jf.intel.com
+  col_3: spr-gpu02.jf.intel.com
 
 model:
   code_path: models.unet2d_tf.unet2d_tf

@@ -9,34 +9,34 @@
 
 collaborators:
   col_one_big:
-    brats: '<PATH TO ALL DATA>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0-9'
   col_0:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
     mnist_shard: 0
   col_1:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
     mnist_shard: 1
   col_2:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
     mnist_shard: 2
   col_3:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/3'
     mnist_shard: 3
   col_4:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/4'
     mnist_shard: 4
   col_5:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/5'
     mnist_shard: 5
   col_6:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/6'
     mnist_shard: 6
   col_7:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/7'
     mnist_shard: 7
   col_8:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/8'
     mnist_shard: 8
   col_9:
-    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/9'
     mnist_shard: 9

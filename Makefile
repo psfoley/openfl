@@ -51,6 +51,8 @@ venv/bin/python3:
 	
 $(whl): venv/bin/python3
 	venv/bin/python3 setup.py bdist_wheel
+	# we will use the wheel, and do not want the egg info
+	rm -r -f tfedlrn.egg-info
 
 $(tfl): $(whl)
 	venv/bin/pip3 install $(whl)
@@ -100,7 +102,6 @@ clean:
 	rm -r -f venv
 	rm -r -f dist
 	rm -r -f build
-	rm -r -f tfedlrn.egg-info
 	rm -r -f bin/federations/certs/test/*
 
 
@@ -133,8 +134,8 @@ run_agg_container:
 	--net=host \
 	-it --name=tfl_agg_$(model_name)_$(shell whoami) \
 	--rm \
-	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
 	-w /home/$(shell whoami)/tfl/bin \
+	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:rw \
 	tfl_agg_$(model_name)_$(shell whoami):0.1 \
 	bash 
 
@@ -145,8 +146,7 @@ run_col_container:
 	--net=host \
 	-it --name=tfl_col_$(device)_$(model_name)_$(shell whoami)_$(col_num) \
 	--rm \
-	-v $(shell pwd)/models:/home/$(shell whoami)/tfl/models:ro \
-	-v $(shell pwd)/bin:/home/$(shell whoami)/tfl/bin:rw \
+	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:ro \
 	$(additional_run_col_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
 	tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \

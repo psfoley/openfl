@@ -1,3 +1,6 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 import numpy as np
 
 from tfedlrn.proto.collaborator_aggregator_interface_pb2 import TensorProto, ModelProto, ModelHeader

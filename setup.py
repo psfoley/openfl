@@ -4,8 +4,14 @@ from setuptools import setup
 
 setup(name='tfedlrn',
       version='0.0.0',
-      package_dir={'tfedlrn': 'tfedlrn'},
-      packages=['tfedlrn', 'tfedlrn.aggregator', 'tfedlrn.collaborator', 'tfedlrn.coordinator', 'tfedlrn.proto'],
-      # 'tfedlrn.bratsunettest', 
-      install_requires=['protobuf', 'coloredlogs', 'pyyaml', 'nibabel', 'tensorboardX', 'grpcio', 'tqdm']
+      packages=['tfedlrn',
+                'tfedlrn.aggregator',
+                'tfedlrn.collaborator',
+                'tfedlrn.proto',
+                'models',
+                'models.data',
+                'models.mnist_cnn_keras',
+                'models.unet2d_pt',
+                'models.unet2d_tf'],
+      install_requires=['tensorflow==1.14.0', 'torch==1.1.0', 'protobuf', 'pyyaml', 'grpcio', 'tqdm']
 )

@@ -1,11 +1,63 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
-
-import torch
-from torch.utils.data import Dataset
-import numpy as np
+from functools import partial
 from copy import deepcopy
-from tqdm import tqdm
+
+import numpy as np
+import torch
+import torch.nn as nn
+from torch.utils.data import Dataset
+
+from .flmodelmixin import FLModelMixin
+from .export_init_weights import export_weights
+
+
+class PytorchFLModelBase(nn.Module, FLModelMixin):
+
+    def __init__(self, data, device='cpu'):
+        super(PytorchFLModelBase, self).__init__()
+
+        self.set_logger()
+
+        self.device = device
+        self.data = data
+        self.optimizer = None
+        self.loss_fn = None
+
+    def get_tensor_dict(self, with_opt_vars=False):
+        return pt_get_tensor_dict(self, self.optimizer, with_opt_vars)
+
+    def set_tensor_dict(self, tensor_dict, with_opt_vars=False):
+        pt_set_tensor_dict(self, tensor_dict, with_opt_vars)
+
+    # FIXME: create a good general version. For now, models should implement this
+    # def train_epoch(self, epoch=None, batch_size=64, use_tqdm=False):
+    #     batch_generator = self.data.get_batch_generator(train_or_val='train')
+    #     return pt_train_epoch(self, 
+    #                           batch_generator, 
+    #                           self.device, 
+    #                           self.optimizer, 
+    #                           self.loss_fn, 
+    #                           batch_size, 
+    #                           use_tqdm)
+
+    # FIXME: create a good general version. For now, models should implement this
+    # def validate(self):
+    #     batch_generator = self.data.get_batch_generator(train_or_val='val')
+    #     return pt_validate(self, batch_generator, self.device, self.loss_fn)
+
+    def get_optimizer(self):
+        return self.optimizer
+
+    def get_training_data_size(self):
+        return self.data.get_training_data_size()
+
+    def get_validation_data_size(self):
+        return self.data.get_validation_data_size()
+
+    def export_init_weights(self, model_name, version, fpath):
+        export_weights(model_name=model_name, 
+                       version=version, 
+                       tensor_dict=self.get_tensor_dict(), 
+                       fpath=fpath)
 
 
 def _derive_opt_state_dict(opt_state_dict):
@@ -184,46 +236,45 @@ def pt_set_tensor_dict(torch_nn, tensor_dict, with_opt_vars):
         # sanity check that we did not record any state that was not used
         assert len(tensor_dict) == 0
 
+# FIXME: This isn't quite general enough. For now, models should implement
+# def pt_validate(torch_nn, batch_generator, device, metric):
+#     torch_nn.eval()
+#     val_score = 0
+#     total_samples = 0
 
-def pt_validate(torch_nn, val_loader, device, metric):
-    torch_nn.eval()
-    val_score = 0
-    total_samples = 0
+#     with torch.no_grad():
+#         for data, target in batch_generator:
+#             if isinstance(data, np.ndarray):
+#                 data = torch.Tensor(data)
+#             if isinstance(target, np.ndarray):
+#                 target = torch.Tensor(data)
+#             samples = target.shape[0]
+#             total_samples += samples
+#             data, target = data.to(device), target.to(device, dtype=torch.int64)
+#             output = torch_nn(data)
+#             val_score += metric(output, target).cpu().numpy() * samples
+#     return val_score / total_samples
 
-    with torch.no_grad():
-        for data, target in val_loader:
-            samples = target.shape[0]
-            total_samples += samples
-            data, target = data.to(device), target.to(device)
-            output = torch_nn(data)
-            val_score += metric(output, target).cpu().numpy() * samples
-    return val_score / total_samples
 
-
-def pt_train_epoch(torch_nn, train_loader, device, optimizer, loss_fn, batch_size, use_tqdm):
-    # set to "training" mode
-    torch_nn.train()
+# FIXME: This isn't quite general enough. For now, models should implement
+# def pt_train_epoch(torch_nn, batch_generator, device, optimizer, loss_fn, use_tqdm):
+#     # set to "training" mode
+#     torch_nn.train()
     
-    losses = []
-    if use_tqdm:
-        gen = tqdm(train_loader, desc="training epoch")
-    else:
-        gen = train_loader
-    for data, target in gen:
-        data, target = data.to(device), target.to(device)
-        optimizer.zero_grad()
-        output = torch_nn(data)
-        loss = loss_fn(output, target)
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.detach().cpu().numpy())
+#     losses = []
+#     if use_tqdm:
+#         batch_generator = tqdm(batch_generator, desc="training epoch")
+#     for data, target in batch_generator:
+#         if isinstance(data, np.ndarray):
+#             data = torch.Tensor(data)
+#         if isinstance(target, np.ndarray):
+#             target = torch.Tensor(data)
+#         data, target = data.to(device), target.to(device, dtype=torch.int64)
+#         optimizer.zero_grad()
+#         output = torch_nn(data)
+#         loss = loss_fn(output, target)
+#         loss.backward()
+#         optimizer.step()
+#         losses.append(loss.detach().cpu().numpy())
 
-    return np.mean(losses)
-
-
-def pt_create_loader(X, y, **kwargs):
-    tX = torch.stack([torch.Tensor(i) for i in X])
-    ty = torch.stack([torch.Tensor(i) for i in y])
-    return torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), **kwargs)
-
-
+#     return np.mean(losses)

@@ -1,23 +1,42 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
+# all keys under 'collaborators' corresponds to a specific colaborator name
+# the corresponding dictionary has data_name, data_path pairs. Note
+# that in the mnist case we do not store the data locally, and
+# the data_path is used to pass an integer that helps the data object construct
+# the shard of the mnist dataset to be use for this collaborator.
+
 collaborators:
   col_one_big:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0-9'
+    brats: '<PATH TO ALL DATA>'
   col_0:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 0
   col_1:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 1
   col_2:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 2
   col_3:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/3'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 3
   col_4:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/4'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 4
   col_5:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/5'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 5
   col_6:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/6'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 6
   col_7:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/7'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 7
   col_8:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/8'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 8
   col_9:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/9'
+    brats: '<PATH TO DATA FOR THIS COL (WE USE SYMLINKS)>'
+    mnist_shard: 9

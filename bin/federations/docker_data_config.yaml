@@ -1,34 +1,33 @@
 collaborators:
   col_one_big:
-    brats: &brats_data_path '/home/msheller/tfl/datasets/brats'
-    mnist: &mnist_data_path '/home/msheller/tfl/datasets/mnist_batch/mnist_batch.npz'
+    brats: &brats_data_path '/home/<USERNAME>/tfl/datasets/brats'
   col_0:
-    brats: *brats_data_path
-    mnist: *mnist_data_path
+    brats: *brats_data_path   
+    mnist_shard: 0
   col_1:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 1
   col_2:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 2
   col_3:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 3
   col_4:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 4
   col_5:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 5
   col_6:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 6
   col_7:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 7
   col_8:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 8
   col_9:
     brats: *brats_data_path
-    mnist: *mnist_data_path
+    mnist_shard: 9

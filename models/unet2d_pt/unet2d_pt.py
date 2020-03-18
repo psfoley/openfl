@@ -1,3 +1,6 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 from functools import partial
 
 import numpy as np
@@ -189,3 +192,13 @@ class UNet2D_PT(nn.Module):
 
     def get_validation_data_size(self):
         return len(self.val_loader.dataset)
+    
+    def get_data(self):
+        raise NotImplementedError
+
+    # FIXME: check the input shape
+    def set_data(self, data):
+        self.init_data_pipeline(data)
+
+    def reset_opt_vars(self):
+        self.init_optimizer(self.optimizer.__class__.__name__)

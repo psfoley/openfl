@@ -22,25 +22,16 @@ def _load_raw_datashards(shard_num, nb_collaborators):
         x_train = x_train.reshape(x_train.shape[0], img_channel, img_rows, img_cols)
         x_test = x_test.reshape(x_test.shape[0], img_channel, img_rows, img_cols)
         input_shape = (img_channel, img_rows, img_cols)
-    else:
+    else:# normal case
         x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, img_channel)
         x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, img_channel)
         input_shape = (img_rows, img_cols, img_channel)
-    x_train = x_train.astype('float32')
-    x_test = x_test.astype('float32')
-    x_train /= 255
-    x_test /= 255
-    print('x_train shape:', x_train.shape)
-    print('y_train shape:', y_train.shape)
-    print(x_train.shape[0], 'train samples')
-    print(x_test.shape[0], 'test samples')
-    # convert class vectors to binary class matrices
-    y_train = keras.utils.to_categorical(y_train, num_classes)
-    y_test = keras.utils.to_categorical(y_test, num_classes)
+    # fix the label dimension to be (N,)
+    y_train = y_train.reshape(-1)
+    y_test = y_test.reshape(-1)
+    
     # create the shards
-    print('x_train: ', x_train.shape)
     X_train_shards = x_train[shard_num::nb_collaborators]
-    print('X_train_shards: ', X_train_shards.shape)
     y_train_shards = y_train[shard_num::nb_collaborators]
     
     X_test_shards = x_test[shard_num::nb_collaborators]
@@ -91,10 +82,6 @@ def load_cifar10_shard(shard_num, nb_collaborators, data_format=None, categorica
     X_test = X_test.astype('float32')
     X_train /= 255
     X_test /= 255
-    print('X_train shape:', X_train.shape)
-    print('y_train shape:', y_train.shape)
-    print(X_train.shape[0], 'train samples')
-    print(X_test.shape[0], 'test samples')
 
     if categorical:
         # convert class vectors to binary class matrices
@@ -137,15 +124,15 @@ class CIFAR10Data(object):
 
 if __name__=="__main__":
     print('testing start...')
-    path = 0
+    shard_num = 0
     batch_size = 100
-    tmp_dict = {'nb_collaborators':10}
-    #obj = CIFAR10Data(path, batch_size, tmp_dict)
     for idx in range(3):
         print('================================================')
         path = idx
-        obj = CIFAR10Data(path, batch_size, nb_collaborators=10)
+        obj = CIFAR10Data(shard_num, batch_size, nb_collaborators=10)
         print('shape: ', obj.get_feature_shape())
+        print('y label shape: ', obj.y_val.shape)  
+        print('y label shape: \n', obj.y_val)  
         print('================================================')
     print('testing done ...')
         

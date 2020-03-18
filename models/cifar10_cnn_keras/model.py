@@ -1,12 +1,11 @@
 # based on https://github.com/tensorflow/models/tree/master/resnet
-import logging                                                                                                                                                                          
-                                                                                                                                                                                        
-import tensorflow as tf                                                                                                                                                                 
-import tensorflow.keras as keras                                                                                                                                                        
-from tensorflow.keras import backend as K                                                                                                                                               
+import logging
+import tensorflow as tf
+import tensorflow.keras as keras
+from tensorflow.keras import backend as K
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Conv2D, Flatten, Dense                                                                                                                              
-from .base import FLKerasModel                                                                                                                                                          
+from tensorflow.keras.layers import Conv2D, Flatten, Dense
+from .base import FLKerasModel
 from tensorflow.keras.layers import Dense, Conv2D, BatchNormalization, Activation
 from tensorflow.keras.layers import AveragePooling2D, Input, Flatten
 from tensorflow.keras.optimizers import Adam
@@ -20,13 +19,6 @@ from tensorflow.keras.datasets import cifar10
 import numpy as np
 import os
 
-# Training parameters
-batch_size = 32  # orig paper trained all networks with batch_size=128
-epochs = 200
-data_augmentation = True
-num_classes = 10
-
-import numpy as np
 def resnet_layer(inputs,
                  num_filters=16,
                  kernel_size=3,
@@ -250,6 +242,7 @@ class ConvModel(FLKerasModel):
         super(ConvModel, self).__init__(data=data)                                                                                                       
         #TODO: set the mode
         mode = 'train'
+        #mode = 'eval'
         self.mode = mode
         self.logger = logging.getLogger(__name__)                                                                                                        
         self.model = self.build_model(data.get_feature_shape(), data.num_classes)                                                                        
@@ -260,48 +253,6 @@ class ConvModel(FLKerasModel):
         self.is_initial = True                                                                                                                           
                                                                                                                                                          
         self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)  
-
-    @staticmethod
-    def load_dataset():
-        """
-        Load the CIFAR10 dataset
-        """
-        img_rows, img_cols, img_channel = 32, 32, 3
-        num_classes = 10                                                                                                                                 
-        (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-        if K.image_data_format() == 'channels_first':                                                                                                    
-            x_train = x_train.reshape(x_train.shape[0], img_channel, img_rows, img_cols)                                                                           
-            x_test = x_test.reshape(x_test.shape[0], img_channel, img_rows, img_cols)                                                                              
-            input_shape = (img_channel, img_rows, img_cols)                                                                                                        
-        else:                                                                                                                                            
-            x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, img_channel)
-            x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, img_channel)
-            input_shape = (img_rows, img_cols, img_channel)
-                                                                                                                                                         
-        x_train = x_train.astype('float32')                                                                                                              
-        x_test = x_test.astype('float32')                                                                                                                
-        x_train /= 255                                                                                                                                   
-        x_test /= 255                                                                                                                                    
-        print('x_train shape:', x_train.shape)                                                                                                           
-        print('y_train shape:', y_train.shape)                                                                                                           
-        print(x_train.shape[0], 'train samples')                                                                                                         
-        print(x_test.shape[0], 'test samples')                                                                                                           
-                                                                                                                                                         
-        # convert class vectors to binary class matrices                                                                                                 
-        y_train = keras.utils.to_categorical(y_train, num_classes)                                                                                       
-        y_test = keras.utils.to_categorical(y_test, num_classes)                                                                                         
-                                                                                                                                                         
-        return input_shape, num_classes, x_train, y_train, x_test, y_test
-
-    def get_data_shard_idx(self, is_iid, splits, split_idx):
-        """
-        """
-        if not(len(splits) > split_idx):
-            self.logger.exception("Assertion failed: len(splits) > split_idx")
-        if is_iid:
-            pass
-        else:
-            raise NotImplementedError
 
     @staticmethod
     def build_model(input_shape, num_classes, depth=20):
@@ -331,7 +282,6 @@ class ConvModel(FLKerasModel):
                         optimizer=keras.optimizers.Adam(),                                                                                               
                         metrics=['accuracy'])                                                                                                            
         return model 
-        #return self._build_model()
 
   #########################################################################
     def add_internal_summaries(self):

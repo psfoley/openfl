@@ -40,8 +40,8 @@ federation:
   polling_interval: &polling_interval 4
   rounds_to_train: &rounds_to_train 50
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "agg.domain.com"
-  agg_port: &agg_port <some_port> 
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_port: &agg_port 13462
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'

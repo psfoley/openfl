@@ -59,8 +59,8 @@ $(tfl): $(whl)
 	
 uninstall:
 	venv/bin/pip3 uninstall -y tfedlrn
-	rm -rf tfedlrn/dist
-	rm -rf tfedlrn/build
+	rm -rf dist
+	rm -rf build
 
 .PHONY: reinstall
 reinstall: uninstall install

@@ -62,6 +62,7 @@ federation:
 model:
   code_path: models.unet2d_pt.unet2d_pt
   class_name: UNet2D_PT
+  optimizer: RMSprop
   device: cuda
     
 aggregator:
@@ -69,6 +70,7 @@ aggregator:
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
+  disable_equality_check: True
 
 collaborator:
   agg_id: *agg_id

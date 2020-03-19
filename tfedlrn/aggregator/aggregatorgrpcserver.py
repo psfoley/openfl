@@ -59,7 +59,7 @@ class AggregatorGRPCServer(AggregatorServicer):
         """
         logger = logging.getLogger(__name__)
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), 
-                             options=[('grpc.max_metadata_size', 128 * 1024 * 1024),
+                             options=[('grpc.max_metadata_size', 32 * 1024 * 1024),
                                       ('grpc.max_send_message_length', 128 * 1024 * 1024),
                                       ('grpc.max_receive_message_length', 128 * 1024 * 1024)])
         add_AggregatorServicer_to_server(self, server)

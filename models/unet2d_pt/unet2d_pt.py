@@ -34,7 +34,7 @@ def dice_coef_loss(pred, target, smoothing=1.0):
 class UNet2D_PT(nn.Module):
 
     def __init__(self, data, device='cpu', train_loader=None, val_loader=None, optimizer='SGD', 
-      dropout_layers=[2, 3]):
+      dropout_layers=[2, 3], **kwargs):
         super(UNet2D_PT, self).__init__()
 
         if dropout_layers is None:
@@ -45,7 +45,7 @@ class UNet2D_PT(nn.Module):
         self.device = device
         self.data = data
         self.init_data_pipeline(data)
-        self.init_network(device)
+        self.init_network(device, **kwargs)
         self.init_optimizer(optimizer)
 
     def get_tensor_dict(self, with_opt_vars=True):

@@ -43,7 +43,7 @@ class Aggregator(object):
         The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
-    def __init__(self, agg_id, fed_id, col_ids, init_model_fpath, latest_model_fpath, best_model_fpath, rounds_to_train=256):
+    def __init__(self, agg_id, fed_id, col_ids, init_model_fpath, latest_model_fpath, best_model_fpath, rounds_to_train=256, disable_equality_check=False, **kwargs):
         self.logger = logging.getLogger(__name__)
         self.id = agg_id
         self.fed_id = fed_id
@@ -54,6 +54,7 @@ class Aggregator(object):
         self.round_num = 1
         self.rounds_to_train = rounds_to_train
         self.quit_job_sent_to = []
+        self.disable_equality_check = disable_equality_check
 
         #FIXME: close the handler before termination.
         log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
@@ -209,9 +210,11 @@ class Aggregator(object):
                 
                 # sanity check that the tensors are indeed different for non opt tensors 
                 # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)               
-                if (not g.name.startswith('__opt') \
-                    and 'RMSProp' not in g.name \
-                    and 'Adam' not in g.name):
+                if (not self.disable_equality_check \
+                    and not g.name.startswith('__opt') \
+                    and 'RMSprop' not in g.name \
+                    and 'Adam' not in g.name \
+                    and 'RMSProp' not in g.name):
                     check_not_equal(g.npbytes, l.npbytes, self.logger)
                     
                 if g.shape != l.shape:

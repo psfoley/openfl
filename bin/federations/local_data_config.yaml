@@ -42,19 +42,45 @@ collaborators:
     mnist_shard: 9
   col_10:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
-    mnist_shard: 10
   col_11:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
-    mnist_shard: 11
   col_12:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
-    mnist_shard: 12
   col_13:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/3'
-    mnist_shard: 13
   col_14:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/4'
-    mnist_shard: 14
   col_15:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/5'
-    mnist_shard: 15
+  col_16:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/6'
+  col_17:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/7'
+  col_18:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/8'
+  col_19:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/9'
+  col_20:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+  col_21:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
+  col_22:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
+  col_23:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/3'
+  col_24:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/4'
+  col_25:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/5'
+  col_26:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/6'
+  col_27:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/7'
+  col_28:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/8'
+  col_29:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/9'
+  col_30:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+  col_31:
+    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'

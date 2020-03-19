@@ -11,8 +11,9 @@ class CollaboratorGRPCClient():
         self.logger = logging.getLogger(__name__)
         uri = "{addr:s}:{port:d}".format(addr=addr, port=port)
 
-        self.channel_options=[('grpc.max_send_message_length', 128 * 1024 * 1024),
-                              ('grpc.max_receive_message_length', 128 * 1024 * 1024)]
+        self.channel_options=[('grpc.max_metadata_size', 32 * 1024 * 1024),
+                              ('grpc.max_send_message_length', 128 * 1024 * 1024),
+                              ('grpc.max_receive_message_length', 128 * 1024 * 1024)])
 
         if disable_tls:
             self.channel = self.create_insecure_channel(uri)

@@ -1,12 +1,13 @@
 venv
 initial_models
-bin
 build
 dist
 dockerfiles
 docs
 initial_models
-models
 tests
 tfedlrn.egg-info
-venv
+models
+*.git
+.git
+.git*

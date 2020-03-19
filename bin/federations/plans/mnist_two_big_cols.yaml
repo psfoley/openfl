@@ -1,26 +1,33 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 # Compose an FL plan in JSON/YAML.
-# * Plan is consumed by bin/run_aggregator_from_flplan.py, 
-# * bin/run_collaborator_from_flplan.py, and 
-# * bin/create_initial_weights_file_from_plan.py 
+# The plan is consumed by bin/run_simulation_from_flplan.py, 
+# bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and 
+# bin/create_initial_weights_file_from_plan.py
 
-# * values for first level keys: model, aggregator, and collaborator 
-# * pass in the generic kwargs for those 
-# * constructors(ex. collaborator id will be collaborator specific)
+# Note the use of yaml anchors and aliases in order to enforce dependencies
+# across portions of the config:
+# The anochor '&' assigns a name to a piece of the config
+# The alias '*' references an achor  
 
-# * values for first level key grpc provide kwargs for the 
-# * CollaboratorGRPCClient constructor and the serve method of the
-# * AggregatorGRPCServer 
+# values for first level keys: model, aggregator, and collaborator
+# pass in the generic kwargs for those constructors
+# (ex. collaborator id will be collaborator specific)
 
-# * values for first level keys: model and data pass in the generic 
-# * kwargs for get_model and get_data functions
+# values for first level keys: model and data pass in the generic 
+# kwargs for get_model and get_data functions
 
-# * The model version is used to validate model updates
-# * Aggregator, collaborator, and fed ids (as well as model version) are currently
-# * used to validate message headers. Collaborator ids are also 
-# * used for identifying the data folder of each collaborator
-# * (using the local_data_config yaml file)
+# values for the first level key: hostnames is used in the creation of the public
+# key infrastructure
 
-# * Added by the coordinator later: agg_id, agg_url, poll_interval.
+# The model version is used to validate model updates
+# Aggregator, collaborator, and fed ids (as well as model version) are currently
+# used to validate message headers. Collaborator ids are also 
+# used for identifying the data folder of each collaborator
+# (using the local_data_config yaml file)
+
+# Added by the coordinator later: agg_id, agg_url, poll_interval.
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
@@ -31,8 +38,9 @@ federation:
   fed_id: &fed_id 'fed_0'
   opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
+  rounds_to_train: &rounds_to_train 16
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_addr: &agg_addr "some.url"
   agg_port: &agg_port 82278 
   col_ids: &col_ids
     - 'col_0'
@@ -42,6 +50,8 @@ federation:
   best_model_fname: mnist_cnn_keras_best.pbuf
   model_version: &model_version 1
 
+hostnames:
+  __DEFAULT_HOSTNAME__: some.url
 
 model:
   model_name: mnist_cnn_keras
@@ -52,7 +62,7 @@ aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
   col_ids: *col_ids
-  rounds_to_train: 16
+  rounds_to_train: *rounds_to_train
 
 collaborator:
   agg_id: *agg_id
@@ -69,7 +79,8 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: mnist 
+  data_name: mnist_shard 
   code_path: models.data 
   class_name: MNISTData
+  nb_collaborators: 2
   batch_size: 256

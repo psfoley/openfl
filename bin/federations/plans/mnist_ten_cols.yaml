@@ -1,3 +1,6 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 # Compose an FL plan in JSON/YAML.
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and 
@@ -33,12 +36,12 @@ status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'AGG'
+  opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 50
+  rounds_to_train: &rounds_to_train 16
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "agg.domain.com"
-  agg_port: &agg_port <some_port> 
+  agg_addr: &agg_addr "some.url"
+  agg_port: &agg_port 82278 
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'
@@ -50,15 +53,17 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-
-  init_model_fname: UNet2D_TF_init.pbuf
-  latest_model_fname: UNet2D_TF_latest.pbuf
-  best_model_fname: UNet2D_TF_best.pbuf
+  init_model_fname: mnist_cnn_keras_init.pbuf
+  latest_model_fname: mnist_cnn_keras_latest.pbuf
+  best_model_fname: mnist_cnn_keras_best.pbuf
   model_version: &model_version 1
 
+hostnames:
+  __DEFAULT_HOSTNAME__: some.url
+
 model:
-  code_path: models.unet2d_tf.unet2d_tf
-  class_name: UNet2D_TF
+  code_path: models.mnist_cnn_keras.model
+  class_name: ConvModel
     
 aggregator:
   agg_id: *agg_id
@@ -81,11 +86,8 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: brats 
+  data_name: mnist_shard 
   code_path: models.data 
-  class_name: BratsData
-  percent_train: 0.8
-  batch_size: 64
-
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
+  class_name: MNISTData
+  nb_collaborators: 10
+  batch_size: 256

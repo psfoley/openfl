@@ -1,14 +1,19 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 # Models for Federated Learning
 
 The folder contains runnable code for different models (and a generic test module to validate the code) in the FL framework. 
 
-The collaborators will download the code to join federated learning. 
+As our tool develops, the collaborators will eventually download the code to join federated learning. 
 
 
 ## Interface
-The current example is a class with these methods:
+The current examples are classes, whose constructors take a data object along with other key word arguments. In order to run federations (or single process simulations), the model class should have the methods:
 > TODO: we should implement a base class for all models
 
+* get_data()
+* set_data(data_object)
 * train_epoch()
 * get_training_data_size()
 * validate()

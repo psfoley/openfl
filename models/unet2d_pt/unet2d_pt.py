@@ -1,3 +1,6 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 from functools import partial
 
 import numpy as np
@@ -31,7 +34,7 @@ def dice_coef_loss(pred, target, smoothing=1.0):
 class UNet2D_PT(nn.Module):
 
     def __init__(self, data, device='cpu', train_loader=None, val_loader=None, optimizer='SGD', 
-      dropout_layers=[2, 3]):
+      dropout_layers=[2, 3], **kwargs):
         super(UNet2D_PT, self).__init__()
 
         if dropout_layers is None:
@@ -42,7 +45,7 @@ class UNet2D_PT(nn.Module):
         self.device = device
         self.data = data
         self.init_data_pipeline(data)
-        self.init_network(device)
+        self.init_network(device, **kwargs)
         self.init_optimizer(optimizer)
 
     def get_tensor_dict(self, with_opt_vars=True):
@@ -189,3 +192,13 @@ class UNet2D_PT(nn.Module):
 
     def get_validation_data_size(self):
         return len(self.val_loader.dataset)
+    
+    def get_data(self):
+        raise NotImplementedError
+
+    # FIXME: check the input shape
+    def set_data(self, data):
+        self.init_data_pipeline(data)
+
+    def reset_opt_vars(self):
+        self.init_optimizer(self.optimizer.__class__.__name__)

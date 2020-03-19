@@ -1,66 +1,92 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 import numpy as np
 from math import ceil
 
+# FIXME: we should remove the keras dependency since it is only really for file downloading
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
+from tensorflow.python.keras.utils.data_utils import get_file
 
 
-def load_dataset(raw_path):
-        """
-        Load the MNIST dataset.
+def _load_raw_datashards(shard_num, nb_collaborators):
+    origin_folder = 'https://storage.googleapis.com/tensorflow/tf-keras-datasets/'
+    path = get_file('mnist.npz',
+                    origin=origin_folder + 'mnist.npz',
+                    file_hash='731c5ac602752760c8e48fbffcf8c3b850d9dc2a2aedcf2cc48468fc17b673d1')
+    with np.load(path) as f:
+        # get all of mnist
+        X_train_tot = f['x_train']
+        y_train_tot = f['y_train']
+        
+        X_test_tot = f['x_test']
+        y_test_tot = f['y_test']
 
-        Params
-        ------
-        raw_path: str
-            The path to the raw npz file.
+    # create the shards
+    X_train = X_train_tot[shard_num::nb_collaborators]
+    y_train = y_train_tot[shard_num::nb_collaborators]
+    
+    X_test = X_test_tot[shard_num::nb_collaborators]
+    y_test = y_test_tot[shard_num::nb_collaborators]
 
-        Returns
-        -------
-        list
-            The input shape.
-        int
-            The number of classes.
-        numpy.ndarray
-            The training data.
-        numpy.ndarray
-            The training labels.
-        numpy.ndarray
-            The validation data.
-        numpy.ndarray
-            The validation labels.
-        """
-        def _load_raw_dataset(path):
-            with np.load(path) as f:
-                x_train, y_train = f['x_train'], f['y_train']
-                x_test, y_test = f['x_test'], f['y_test']
-                return (x_train, y_train), (x_test, y_test)
+    return (X_train, y_train), (X_test, y_test)
 
-        img_rows, img_cols = 28, 28
-        num_classes = 10
-        (x_train, y_train), (x_test, y_test) = _load_raw_dataset(raw_path)
-        if K.image_data_format() == 'channels_first':
-            x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
-            x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
-            input_shape = (1, img_rows, img_cols)
-        else:
-            x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-            x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-            input_shape = (img_rows, img_cols, 1)
 
-        x_train = x_train.astype('float32')
-        x_test = x_test.astype('float32')
-        x_train /= 255
-        x_test /= 255
-        print('x_train shape:', x_train.shape)
-        print('y_train shape:', y_train.shape)
-        print(x_train.shape[0], 'train samples')
-        print(x_test.shape[0], 'test samples')
+def load_mnist_shard(shard_num, nb_collaborators, data_format=None, categorical=True, **kwargs):
+    """
+    Load the MNIST dataset.
 
+    Params
+    ------
+    raw_path: str
+        The path to the raw npz file.
+
+    Returns
+    -------
+    list
+        The input shape.
+    int
+        The number of classes.
+    numpy.ndarray
+        The training data.
+    numpy.ndarray
+        The training labels.
+    numpy.ndarray
+        The validation data.
+    numpy.ndarray
+        The validation labels.
+    """
+    img_rows, img_cols = 28, 28
+    num_classes = 10
+
+    (X_train, y_train), (X_test, y_test) = _load_raw_datashards(shard_num, nb_collaborators)
+    if data_format is None:
+        data_format = K.image_data_format()
+    if data_format == 'channels_first':
+        X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
+        X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
+        input_shape = (1, img_rows, img_cols)
+    else:
+        X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, 1)
+        X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, 1)
+        input_shape = (img_rows, img_cols, 1)
+
+    X_train = X_train.astype('float32')
+    X_test = X_test.astype('float32')
+    X_train /= 255
+    X_test /= 255
+    print('X_train shape:', X_train.shape)
+    print('y_train shape:', y_train.shape)
+    print(X_train.shape[0], 'train samples')
+    print(X_test.shape[0], 'test samples')
+
+    if categorical:
         # convert class vectors to binary class matrices
         y_train = keras.utils.to_categorical(y_train, num_classes)
         y_test = keras.utils.to_categorical(y_test, num_classes)
 
-        return input_shape, num_classes, x_train, y_train, x_test, y_test
+    return input_shape, num_classes, X_train, y_train, X_test, y_test
 
 
 
@@ -68,7 +94,7 @@ class MNISTData(object):
 
     def __init__(self, data_path, batch_size, **kwargs):
 
-        _, num_classes, X_train, y_train, X_val, y_val = load_dataset(data_path)
+        _, num_classes, X_train, y_train, X_val, y_val = load_mnist_shard(shard_num=data_path, **kwargs)
         
         self.X_train = X_train
         self.y_train = y_train
@@ -94,32 +120,4 @@ class MNISTData(object):
     def get_validation_data_size(self):
         return self.X_val.shape[0]
 
-    @staticmethod
-    def batch_generator(X, y, idxs, batch_size, num_batches):
-        for i in range(num_batches):
-            a = i * batch_size
-            b = a + batch_size
-            yield X[idxs[a:b]], y[idxs[a:b]]
-
-    def get_batch_generator(self, train_or_val, batch_size=None):
-        if batch_size == None:
-            batch_size = self.batch_size
-
-        if train_or_val == 'train':
-            X = self.X_train
-            y = self.y_train
-        elif train_or_val == 'val':
-            X = self.X_val
-            y = self.y_val
-        else:
-            raise ValueError('dtype needs to be train or val')
-
-        # shuffle data indices
-        idxs = np.random.permutation(np.arange(X.shape[0]))
-
-        # compute the number of batches
-        num_batches = ceil(X.shape[0] / batch_size)
-
-        # build the generator and return it
-        return self.batch_generator(X, y, idxs, batch_size, num_batches)
         

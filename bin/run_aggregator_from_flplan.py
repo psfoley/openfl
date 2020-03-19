@@ -40,8 +40,8 @@ def main(plan, logging_config_path, logging_default_level):
 
     agg_grpc_server = AggregatorGRPCServer(agg)
     agg_grpc_server.serve(ca=os.path.join(cert_dir, 'ca.crt'),
-                          certificate=os.path.join(cert_dir, 'local.crt'),
-                          private_key=os.path.join(cert_dir, 'local.key'), 
+                          certificate=os.path.join(cert_dir, '{}.crt'.format(agg_config['agg_id'])),
+                          private_key=os.path.join(cert_dir, '{}.key'.format(agg_config['agg_id'])), 
                           **grpc_server_config)
 
 if __name__ == '__main__':

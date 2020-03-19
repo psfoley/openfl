@@ -1,3 +1,6 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 # Compose an FL plan in JSON/YAML.
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and 
@@ -33,32 +36,28 @@ status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'AGG'
+  opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
   rounds_to_train: &rounds_to_train 50
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "agg.domain.com"
-  agg_port: &agg_port <some_port> 
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_port: &agg_port 32345 
   col_ids: &col_ids
-    - 'col_0'
-    - 'col_1'
     - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
 
-  init_model_fname: UNet2D_TF_init.pbuf
-  latest_model_fname: UNet2D_TF_latest.pbuf
-  best_model_fname: UNet2D_TF_best.pbuf
+  init_model_fname: UNet2D_PT_init.pbuf
+  latest_model_fname: UNet2D_PT_latest.pbuf
+  best_model_fname: UNet2D_PT_best.pbuf
   model_version: &model_version 1
 
+hostnames:
+  __DEFAULT_HOSTNAME__: some.url
+
 model:
-  code_path: models.unet2d_tf.unet2d_tf
-  class_name: UNet2D_TF
+  code_path: models.unet2d_pt.unet2d_pt
+  class_name: UNet2D_PT
+  device: cuda
+  optimizer: RMSprop
     
 aggregator:
   agg_id: *agg_id
@@ -86,6 +85,4 @@ data:
   class_name: BratsData
   percent_train: 0.8
   batch_size: 64
-
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
+  channels_last: False

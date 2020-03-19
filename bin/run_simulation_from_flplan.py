@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from tfedlrn.gpuutils import pick_cuda_device
-pick_cuda_device()
+
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
 
 import argparse
 import os
@@ -20,21 +21,21 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     setup_logging(path=logging_config_fname, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
-    # establish location for sfl plan as well as 
+    # establish location for fl plan as well as 
     # where to get and write model protobufs
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    base_dir = os.path.join(script_dir, 'simulations')
+    base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
 
-    # parse configs from sflplan
-    sflplan = load_yaml(os.path.join(plan_dir, plan))
+    # parse configs from flplan
+    flplan = load_yaml(os.path.join(plan_dir, plan))
     by_col_data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
-    fed_config = sflplan['federation']
-    agg_config = sflplan['aggregator']
-    col_config = sflplan['collaborator']
-    model_config = sflplan['model']
-    data_config = sflplan['data']
+    fed_config = flplan['federation']
+    agg_config = flplan['aggregator']
+    col_config = flplan['collaborator']
+    model_config = flplan['model']
+    data_config = flplan['data']
 
 
     init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])

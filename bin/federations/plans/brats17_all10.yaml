@@ -2,7 +2,6 @@
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and 
 # bin/create_initial_weights_file_from_plan.py
-
 # Note the use of yaml anchors and aliases in order to enforce dependencies
 # across portions of the config:
 # The anochor '&' assigns a name to a piece of the config

@@ -63,7 +63,7 @@ hostnames:
 
 model:
   code_path: models.cifar10_cnn_keras.model
-  class_name: ConvModel
+  class_name: ResNetModel
     
 aggregator:
   agg_id: *agg_id

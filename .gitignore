@@ -15,3 +15,10 @@ tfedlrn.egg-info/
 docs/_build
 bin/out
 bin/federations/certs
+Debug/
+Release/
+.metadata/
+RemoteSystemsTempFiles/
+.project
+.pydevproject
+

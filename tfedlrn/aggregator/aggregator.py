@@ -6,6 +6,7 @@ import logging
 
 import numpy as np
 import tensorboardX
+from threading import Lock
 
 from .. import check_equal, check_not_equal, check_is_in, check_not_in
 from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
@@ -64,6 +65,7 @@ class Aggregator(object):
 
         self.init_per_col_round_stats()
         self.best_model_score = None
+        self.mutex = Lock()
 
     def all_quit_jobs_sent(self):
         return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
@@ -154,127 +156,135 @@ class Aggregator(object):
         self.init_per_col_round_stats()
 
     def UploadLocalModelUpdate(self, message):
-        t = time.time()
-        self.validate_header(message)
+        self.mutex.acquire(blocking=True)
+        try:
+            t = time.time()
+            self.validate_header(message)
 
-        self.logger.info("Receive model update from %s " % message.header.sender)
-        model_proto = message.model
-        model_header = model_proto.header
+            self.logger.info("Receive model update from %s " % message.header.sender)
+            model_proto = message.model
+            model_header = model_proto.header
 
-        # validate this model header
-        check_equal(model_header.id, self.model.header.id, self.logger)
-        check_equal(model_header.version, self.model.header.version, self.logger)
-               
-        # ensure we haven't received an update from this collaborator already
-        check_not_in(message.header.sender, self.per_col_round_stats["loss_results"], self.logger)
-        check_not_in(message.header.sender, self.per_col_round_stats["collaborator_training_sizes"], self.logger)
-                
-        # if this is our very first update for the round, we take this model as-is
-        # FIXME: move to model deltas, add with original to reconstructf
-        # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
-        if self.model_update_in_progress is None:
-            self.model_update_in_progress = model_proto
+            # validate this model header
+            check_equal(model_header.id, self.model.header.id, self.logger)
+            check_equal(model_header.version, self.model.header.version, self.logger)
 
-        # otherwise, we compute the streaming weighted average
-        else:            
-            # get the current update size total
-            total_update_size = np.sum(list(self.per_col_round_stats["collaborator_training_sizes"].values()))
+            # ensure we haven't received an update from this collaborator already
+            check_not_in(message.header.sender, self.per_col_round_stats["loss_results"], self.logger)
+            check_not_in(message.header.sender, self.per_col_round_stats["collaborator_training_sizes"], self.logger)
 
-            # compute the weights for the global vs local tensors for our streaming average
-            weight_g = total_update_size / (message.data_size + total_update_size)
-            weight_l = message.data_size / (message.data_size + total_update_size)
+            # if this is our very first update for the round, we take this model as-is
+            # FIXME: move to model deltas, add with original to reconstructf
+            # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
+            if self.model_update_in_progress is None:
+                self.model_update_in_progress = model_proto
 
-            # The model parameters are represented in float32 and will be transmitted in byte stream.
-            weight_g = weight_g.astype(np.float32)
-            weight_l = weight_l.astype(np.float32)
+            # otherwise, we compute the streaming weighted average
+            else:
+                # get the current update size total
+                total_update_size = np.sum(list(self.per_col_round_stats["collaborator_training_sizes"].values()))
 
-            # FIXME: right now we're really using names just to sanity check consistent ordering
+                # compute the weights for the global vs local tensors for our streaming average
+                weight_g = total_update_size / (message.data_size + total_update_size)
+                weight_l = message.data_size / (message.data_size + total_update_size)
 
-            # assert that the models include the same number of tensors
-            check_equal(len(self.model_update_in_progress.tensors), len(model_proto.tensors), self.logger)
-            
-            # aggregate all the model tensors in the protobuf
-            # this is a streaming average
-            for i in range(len(self.model_update_in_progress.tensors)):
-                # global tensor
-                g = self.model_update_in_progress.tensors[i]
+                # The model parameters are represented in float32 and will be transmitted in byte stream.
+                weight_g = weight_g.astype(np.float32)
+                weight_l = weight_l.astype(np.float32)
 
-                # find the local collaborator tensor
-                l = None
-                for local_tensor in model_proto.tensors:
-                    if local_tensor.name == g.name:
-                        l = local_tensor
-                        break
+                # FIXME: right now we're really using names just to sanity check consistent ordering
 
-                check_not_equal(l, None, self.logger)
-                
-                # sanity check that the tensors are indeed different for non opt tensors 
-                # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)               
-                if (not self.disable_equality_check \
-                    and not g.name.startswith('__opt') \
-                    and 'RMSprop' not in g.name \
-                    and 'Adam' not in g.name \
-                    and 'RMSProp' not in g.name):
-                    check_not_equal(g.npbytes, l.npbytes, self.logger)
+                # assert that the models include the same number of tensors
+                check_equal(len(self.model_update_in_progress.tensors), len(model_proto.tensors), self.logger)
+
+                # aggregate all the model tensors in the protobuf
+                # this is a streaming average
+                for i in range(len(self.model_update_in_progress.tensors)):
+                    # global tensor
+                    g = self.model_update_in_progress.tensors[i]
+
+                    # find the local collaborator tensor
+                    l = None
+                    for local_tensor in model_proto.tensors:
+                        if local_tensor.name == g.name:
+                            l = local_tensor
+                            break
+
+                    check_not_equal(l, None, self.logger)
                     
-                if g.shape != l.shape:
-                    raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
+                    # sanity check that the tensors are indeed different for non opt tensors 
+                    # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)               
+                    if (not self.disable_equality_check \
+                        and not g.name.startswith('__opt') \
+                        and 'RMSprop' not in g.name \
+                        and 'Adam' not in g.name \
+                        and 'RMSProp' not in g.name):
+                        check_not_equal(g.npbytes, l.npbytes, self.logger)
+                        
+                    if g.shape != l.shape:
+                        raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
 
-                # now just weighted average these
-                g_values = np.frombuffer(g.npbytes, dtype=np.float32)
-                l_values = np.frombuffer(l.npbytes, dtype=np.float32)
-                new_values = np.average([g_values, l_values], weights=[weight_g, weight_l], axis=0)
-                del g_values, l_values
-                # FIXME: we shouldn't convert it to bytes until we are ready to send it back to the collaborators.
-                self.model_update_in_progress.tensors[i].npbytes = new_values.tobytes('C')
+                    # now just weighted average these
+                    g_values = np.frombuffer(g.npbytes, dtype=np.float32)
+                    l_values = np.frombuffer(l.npbytes, dtype=np.float32)
+                    new_values = np.average([g_values, l_values], weights=[weight_g, weight_l], axis=0)
+                    del g_values, l_values
+                    # FIXME: we shouldn't convert it to bytes until we are ready to send it back to the collaborators.
+                    self.model_update_in_progress.tensors[i].npbytes = new_values.tobytes('C')
 
-        # store the loss results and training update size
-        self.per_col_round_stats["loss_results"][message.header.sender] = message.loss
-        self.per_col_round_stats["collaborator_training_sizes"][message.header.sender] = message.data_size
+            # store the loss results and training update size
+            self.per_col_round_stats["loss_results"][message.header.sender] = message.loss
+            self.per_col_round_stats["collaborator_training_sizes"][message.header.sender] = message.data_size
 
-        # return LocalModelUpdateAck
-        self.logger.debug("Complete model update from %s " % message.header.sender)
-        reply = LocalModelUpdateAck(header=self.create_reply_header(message))
+            # return LocalModelUpdateAck
+            self.logger.debug("Complete model update from %s " % message.header.sender)
+            reply = LocalModelUpdateAck(header=self.create_reply_header(message))
 
-        self.end_of_round_check()
+            self.end_of_round_check()
 
-        self.logger.debug('aggregator handled UploadLocalModelUpdate in time {}'.format(time.time() - t))
+            self.logger.debug('aggregator handled UploadLocalModelUpdate in time {}'.format(time.time() - t))
+        finally:
+            self.mutex.release()
 
         return reply
 
     def UploadLocalMetricsUpdate(self, message):
-        t = time.time()
-        self.validate_header(message)
+        self.mutex.acquire(blocking=True)
+        try:
+            t = time.time()
+            self.validate_header(message)
 
-        self.logger.debug("Receive local validation results from %s " % message.header.sender)
-        model_header = message.model_header
+            self.logger.debug("Receive local validation results from %s " % message.header.sender)
+            model_header = message.model_header
 
-        # validate this model header
-        check_equal(model_header.id, self.model.header.id, self.logger)
-        check_equal(model_header.version, self.model.header.version, self.logger)
-        
-        sender = message.header.sender
-
-        if sender not in self.per_col_round_stats["agg_validation_results"]:
-            # Pre-train validation
-            # ensure we haven't received an update from this collaborator already
-            # FIXME: is this an error case that should be handled?
-            check_not_in(message.header.sender, self.per_col_round_stats["agg_validation_results"], self.logger)
-            check_not_in(message.header.sender, self.per_col_round_stats["collaborator_validation_sizes"], self.logger)
+            # validate this model header
+            check_equal(model_header.id, self.model.header.id, self.logger)
+            check_equal(model_header.version, self.model.header.version, self.logger)
             
-            # store the validation results and validation size
-            self.per_col_round_stats["agg_validation_results"][message.header.sender] = message.results
-            self.per_col_round_stats["collaborator_validation_sizes"][message.header.sender] = message.data_size
-        elif sender not in self.per_col_round_stats["preagg_validation_results"]:
-            # Post-train validation
-            check_not_in(message.header.sender, self.per_col_round_stats["preagg_validation_results"], self.logger)
-            self.per_col_round_stats["preagg_validation_results"][message.header.sender] = message.results
+            sender = message.header.sender
 
-        reply = LocalValidationResultsAck(header=self.create_reply_header(message))
-        
-        self.end_of_round_check()
+            if sender not in self.per_col_round_stats["agg_validation_results"]:
+                # Pre-train validation
+                # ensure we haven't received an update from this collaborator already
+                # FIXME: is this an error case that should be handled?
+                check_not_in(message.header.sender, self.per_col_round_stats["agg_validation_results"], self.logger)
+                check_not_in(message.header.sender, self.per_col_round_stats["collaborator_validation_sizes"], self.logger)
+                
+                # store the validation results and validation size
+                self.per_col_round_stats["agg_validation_results"][message.header.sender] = message.results
+                self.per_col_round_stats["collaborator_validation_sizes"][message.header.sender] = message.data_size
+            elif sender not in self.per_col_round_stats["preagg_validation_results"]:
+                # Post-train validation
+                check_not_in(message.header.sender, self.per_col_round_stats["preagg_validation_results"], self.logger)
+                self.per_col_round_stats["preagg_validation_results"][message.header.sender] = message.results
 
-        self.logger.debug('aggregator handled UploadLocalMetricsUpdate in time {}'.format(time.time() - t))
+            reply = LocalValidationResultsAck(header=self.create_reply_header(message))
+
+            self.end_of_round_check()
+
+            self.logger.debug('aggregator handled UploadLocalMetricsUpdate in time {}'.format(time.time() - t))
+        finally:
+            self.mutex.release()
 
         return reply
 

@@ -3,6 +3,7 @@
 import grpc
 import signal
 from concurrent import futures
+import multiprocessing
 import os
 import logging
 import time
@@ -58,7 +59,7 @@ class AggregatorGRPCServer(AggregatorServicer):
             Not currently used
         """
         logger = logging.getLogger(__name__)
-        server = grpc.server(futures.ThreadPoolExecutor(max_workers=1), 
+        server = grpc.server(futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()), 
                              options=[('grpc.max_metadata_size', 32 * 1024 * 1024),
                                       ('grpc.max_send_message_length', 128 * 1024 * 1024),
                                       ('grpc.max_receive_message_length', 128 * 1024 * 1024)])

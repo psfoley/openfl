@@ -18,7 +18,11 @@ def _load_raw_datashards(shard_num, nb_collaborators):
     img_rows, img_cols, img_channel = 32, 32, 3
     num_classes = 10
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    if K.image_data_format() == 'channels_first':
+    print('======================================================')
+    print(K.image_data_format())
+    print('======================================================')
+    #if K.image_data_format() == 'channels_first':
+    if True:# pytorch
         x_train = x_train.reshape(x_train.shape[0], img_channel, img_rows, img_cols)
         x_test = x_test.reshape(x_test.shape[0], img_channel, img_rows, img_cols)
         input_shape = (img_channel, img_rows, img_cols)

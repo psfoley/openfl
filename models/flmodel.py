@@ -14,6 +14,7 @@ class FLModel(object):
 
     def __init__(self, data):
         self.data = data
+        self.feature_shape = self.data.get_feature_shape()
 
     def set_logger(self):
         self.logger = logging.getLogger(__name__)

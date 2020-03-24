@@ -8,7 +8,7 @@ import torch.utils.data
 from data.fldata import FLData
 
 
-class PTFLDataInMemory(FLData):
+class PyTorchFLDataInMemory(FLData):
 
     def __init__(self, batch_size):
         """

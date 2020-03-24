@@ -2,10 +2,10 @@ import numpy as np
 import tqdm
 import tensorflow as tf
 
-from data import FLModel
+from models import FLModel
 
 
-class TFFLModel(FLModel):
+class TensorFlowFLModel(FLModel):
 
     def __init__(self, data):
         super().__init__(data)
@@ -32,13 +32,19 @@ class TFFLModel(FLModel):
         # input labels to the model
         self.y = None
         # optimizer train step operation
-        self.train_step
+        self.train_step = None
         # model loss function
         self.loss = None
         # model output tensor
         self.output = None
         # function used to validate the model outputs against labels
         self.validation_metric = None
+        # tensorflow trainable variables
+        self.tvars = None
+        # self.optimizer.variables() once self.optimizer is defined
+        self.opt_vars = None
+        # self.tvars + self.opt_vars 
+        self.fl_vars = None
 
     def train_epoch(self, batch_size=None, use_tqdm=False):
         """
@@ -142,8 +148,8 @@ class TFFLModel(FLModel):
 
     def reset_opt_vars(self):
         """Reinitialize the optimizer variables."""
-        for var in self.vars:
-            var.initializer.run(session=self.session)
+        for v in self.opt_vars:
+            v.initializer.run(session=self.sess)
 
     def initialize_globals(self):
         """

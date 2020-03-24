@@ -4,11 +4,11 @@
 import numpy as np
 
 from data import load_cifar10_shard
-from data.tensorflow.tffldata_inmemory import TFFLDataInMemory
+from data.tensorflow.tffldata_inmemory import TensorFlowFLDataInMemory
 
 
 
-class TFCIFAR10InMemory(TFFLDataInMemory):
+class TensorFlowCIFAR10InMemory(TensorFlowFLDataInMemory):
 
     def __init__(self, data_path, batch_size, **kwargs):
 

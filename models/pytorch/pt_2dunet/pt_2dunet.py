@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from models.pytorch.pytorchflmodel import PyTorchFLModel
+from models.pytorch import PyTorchFLModel
 
 # FIXME: move to some custom losses.py file?
 def dice_coef(pred, target, smoothing=1.0):    
@@ -30,13 +30,11 @@ def dice_coef_loss(pred, target, smoothing=1.0):
     return term1.mean() + term2.mean()
 
 
-class UNet2D_PT(PyTorchFLModel):
+class PyTorch2DUNet(PyTorchFLModel):
 
     def __init__(self, data, device='cpu', optimizer='SGD', **kwargs):
-        super(UNet2D_PT, self).__init__(data=data, device=device)
+        super().__init__(data=data, device=device)
 
-        self.device = device
-        self.init_data_pipeline(data)
         self.init_network(device, **kwargs)
         self.init_optimizer(optimizer)
         self.loss_fn = partial(dice_coef_loss, smoothing=1.0)
@@ -84,19 +82,7 @@ class UNet2D_PT(PyTorchFLModel):
 
     def reset_opt_vars(self):
         self.init_optimizer(self.optimizer.__class__.__name__)
-
-    def init_data_pipeline(self, data):
-
-        self.train_loader = self.create_loader(data.X_train, 
-                                               data.y_train, 
-                                               batch_size=self.data.batch_size, 
-                                               shuffle=True)
-        self.val_loader = self.create_loader(data.X_val, 
-                                             data.y_val, 
-                                             batch_size=self.data.batch_size, 
-                                             shuffle=True)
-
-            
+           
     def init_network(self,
                      device,
                      dropout_layers=[2, 3],
@@ -201,5 +187,3 @@ class UNet2D_PT(PyTorchFLModel):
         else:
             raise ValueError('Optimizer: {} is not curently supported'.format(optimizer))
 
-    def get_optimizer(self):
-        return self.optimizer

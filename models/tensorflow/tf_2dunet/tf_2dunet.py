@@ -4,12 +4,12 @@
 import tensorflow as tf
 import numpy as np
 
-from models.tensorflow import TFFLModel
+from models.tensorflow import TensorFlowFLModel
 
-class TF2DUNet(TFFLModel):
+class TensorFlow2DUNet(TensorFlowFLModel):
 
     def __init__(self, data, **kwargs):
-        super(TF2DUNet, self).__init__(data)        
+        super().__init__(data) 
 
         self.create_model(**kwargs)
 
@@ -24,8 +24,8 @@ class TF2DUNet(TFFLModel):
         config.inter_op_parallelism_threads = 1
         self.sess = tf.Session(config=config)
               
-        self.X = tf.placeholder(tf.float32, self.input_shape)
-        self.y = tf.placeholder(tf.float32, self.input_shape)
+        self.X = tf.placeholder(tf.float32, self.feature_shape)
+        self.y = tf.placeholder(tf.float32, self.feature_shape)
         self.output = define_model(self.X, use_upsampling=True, **kwargs)
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=training_smoothing)

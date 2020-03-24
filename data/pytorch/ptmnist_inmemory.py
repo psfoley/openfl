@@ -2,10 +2,10 @@
 # Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
 
 from data import load_mnist_shard
-from data.pytorch.ptfldata_inmemory import PTFLDataInMemory
+from data.pytorch.ptfldata_inmemory import PyTorchFLDataInMemory
 
 
-class PTMNISTInMemory(PTFLDataInMemory):
+class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
 
     def __init__(self, data_path, batch_size, **kwargs):
         """

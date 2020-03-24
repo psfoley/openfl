@@ -4,11 +4,11 @@
 import numpy as np
 
 from data import load_mnist_shard
-from data.tensorflow.tffldata_inmemory import TFFLDataInMemory
+from data.tensorflow.tffldata_inmemory import TensorFlowFLDataInMemory
 
 
 
-class TFMNISTInMemory(TFFLDataInMemory):
+class TensorFlowMNISTInMemory(TenforFlowFLDataInMemory):
 
     def __init__(self, data_path, batch_size, **kwargs):
 

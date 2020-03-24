@@ -8,21 +8,23 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Flatten, Dense
-from models.tensorflow.kerasflmodel import KerasFLModel
+from models.tensorflow import KerasFLModel
 
-class KerasSimpleCNN(KerasFLModel):
+class KerasCNN(KerasFLModel):
     """A basic convolutional neural network model.
 
     """
     def __init__(self, data, **kwargs):
-        super(KerasSimpleCNN, self).__init__(data)
-        self.model = self.build_model(data.get_feature_shape(), data.num_classes)
+        super().__init__(data)
+        
+        self.model = self.build_model(self.feature_shape, data.num_classes, **kwargs)
+        
         print(self.model.summary())
-        if self.data.y_train is not None and self.data.y_val is not None:
-            print("Training set size: %d; Validation set size: %d" % (len(self.data.y_train), len(self.data.y_val)))
+        if self.data is not None:
+            print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size, self.get_validation_data_size))
 
     @staticmethod
-    def build_model(input_shape, num_classes):
+    def build_model(input_shape, num_classes, **kwargs):
         """
         Define the model architecture.
         Parameters

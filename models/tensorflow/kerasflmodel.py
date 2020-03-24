@@ -13,13 +13,13 @@ from models import FLModel
 
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
-from tfedlrn.proto.protoutils import export_weights
 
-
-class FLKerasModel(FLModel):
-    def __init__(self, data, *args, **argv):
+class KerasFLModel(FLModel):
+    def __init__(self, data):
         super().__init__(data)
+
         self.model = keras.Model()
+
         NUM_PARALLEL_EXEC_UNITS = 1
         config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, 
                                 inter_op_parallelism_threads=1, 

@@ -5,17 +5,19 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from models.flmodel import FLModel
-from models.export_init_weights import export_weights
+from models import FLModel
 
 
-class PytorchFLModel(nn.Module, FLModel):
+class PyTorchFLModel(FLModel, nn.Module):
 
     def __init__(self, data, device='cpu'):
-        super(PytorchFLModel, self).__init__(data)
+        super().__init__(data)
 
-        self.set_logger()
         self.device = device
+        
+        self.train_loader = self.data.get_train_loader()
+        self.val_loader = self.data.get_val_loader()
+        
         self.optimizer = None
         self.loss_fn = None
 
@@ -65,7 +67,7 @@ class PytorchFLModel(nn.Module, FLModel):
     #             val_score += self.loss_fn(output, target).cpu().numpy() * samples
     #     return val_score / total_samples
 
-    def get_tensor_dict(self, torch_optimizer, with_opt_vars=False):
+    def get_tensor_dict(self, with_opt_vars=False):
         # Gets information regarding tensor model layers and optimizer state.
         # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
         # for now, state dict gives us names which is good
@@ -79,7 +81,7 @@ class PytorchFLModel(nn.Module, FLModel):
 
         return state
 
-    def pt_set_tensor_dict(self, tensor_dict, with_opt_vars=False):
+    def set_tensor_dict(self, tensor_dict, with_opt_vars=False):
         # Sets tensors for model layers and optimizer state.
         # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
         # for now, state dict gives us names, which is good
@@ -106,13 +108,6 @@ class PytorchFLModel(nn.Module, FLModel):
 
     def get_optimizer(self):
         return self.optimizer
-
-    def export_init_weights(self, model_name, version, fpath):
-        export_weights(model_name=model_name, 
-                       version=version, 
-                       tensor_dict=self.get_tensor_dict(self.optimizer), 
-                       fpath=fpath)
-
 
 def _derive_opt_state_dict(opt_state_dict):
     # Flattens the optimizer state dict so as to have key, value pairs with values as numpy arrays.

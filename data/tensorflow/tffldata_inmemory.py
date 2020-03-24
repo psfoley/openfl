@@ -6,7 +6,7 @@ import numpy as np
 
 from data import FLData
 
-class TFFLDataInMemory(FLData):
+class TensorFlowFLDataInMemory(FLData):
 
     def __init__(self, batch_size):
         """

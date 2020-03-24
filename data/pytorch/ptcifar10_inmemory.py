@@ -7,10 +7,10 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.python.keras.utils.data_utils import get_file
 
-from data.pytorch.ptfldata_inmemory import PTFLDataInMemory
+from data.pytorch.ptfldata_inmemory import PyTorchFLDataInMemory
 
 
-class PTCIFAR10InMemory(PTFLDataInMemory):
+class PyTorchCIFAR10InMemory(PyTorchFLDataInMemory):
 
     def __init__(self, data_path, batch_size, **kwargs):
         """

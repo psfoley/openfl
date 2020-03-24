@@ -17,11 +17,13 @@ class KerasCNN(KerasFLModel):
     def __init__(self, data, **kwargs):
         super().__init__(data)
         
+        self.set_logger()
+
         self.model = self.build_model(self.feature_shape, data.num_classes, **kwargs)
         
         print(self.model.summary())
         if self.data is not None:
-            print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size, self.get_validation_data_size))
+            print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size(), self.get_validation_data_size()))
 
     @staticmethod
     def build_model(input_shape, num_classes, **kwargs):

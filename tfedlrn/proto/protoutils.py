@@ -1,7 +1,7 @@
 # Copyright (C) 2020 Intel Corporation
 
 import numpy as np
-from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto TensorProto ModelHeader
+from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader
 
 def repeated_values_to_nparray(repeated_values):
     return np.array(list(repeated_values))

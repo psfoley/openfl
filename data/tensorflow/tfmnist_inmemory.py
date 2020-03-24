@@ -8,7 +8,7 @@ from data.tensorflow.tffldata_inmemory import TensorFlowFLDataInMemory
 
 
 
-class TensorFlowMNISTInMemory(TenforFlowFLDataInMemory):
+class TensorFlowMNISTInMemory(TensorFlowFLDataInMemory):
 
     def __init__(self, data_path, batch_size, **kwargs):
 

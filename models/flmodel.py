@@ -7,6 +7,8 @@ You may copy use this file or the appropriate framework-specific base-class to p
 
 import logging
 
+from tfedlrn.proto import export_weights
+
 
 class FLModel(object):
 
@@ -35,6 +37,8 @@ class FLModel(object):
         -------
         None
         """
+        if data.get_feature_shape() != self.data.get_feature_shape():
+            raise ValueError('Data feature shape is not compatible with model.')
         self.data = data
 
     def get_training_datasize(self):
@@ -128,3 +132,7 @@ class FLModel(object):
         None
         """
         raise NotImplementedError
+
+    @staticmethod
+    def export_weights(model_name, version, tensor_dict, fpath):
+        export_weights(model_name, version, tensor_dict, fpath)

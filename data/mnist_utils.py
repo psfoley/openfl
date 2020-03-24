@@ -1,31 +1,8 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
-
 import numpy as np
-
-from .tffldata_noprefetch import TFFLDataNoPrefetch
-
-
 # FIXME: we should remove the keras dependency since it is only really for file downloading
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.python.keras.utils.data_utils import get_file
-
-
-class MNISTData(TFFLDataNoPrefetch):
-
-    def __init__(self, data_path, batch_size, **kwargs):
-
-        _, num_classes, X_train, y_train, X_val, y_val = load_mnist_shard(shard_num=data_path, **kwargs)
-        
-        self.X_train = X_train
-        self.y_train = y_train
-        self.X_val = X_val
-        self.y_val = y_val
-
-        self.num_classes = num_classes
-
-        self.batch_size=batch_size
 
 
 def _load_raw_datashards(shard_num, nb_collaborators):
@@ -106,10 +83,3 @@ def load_mnist_shard(shard_num, nb_collaborators, data_format=None, categorical=
 
     return input_shape, num_classes, X_train, y_train, X_test, y_test
 
-
-
-
-        
-
-
-        

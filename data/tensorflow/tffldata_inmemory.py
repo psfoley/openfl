@@ -4,22 +4,27 @@
 from math import ceil
 import numpy as np
 
-from models.data.fldata import FLData
+from data import FLData
 
-class TFFLDataNoPrefetch(FLData):
+class TFFLDataInMemory(FLData):
 
-    def __init__(self, data_path, **kwargs):
+    def __init__(self, batch_size):
         """
         Instantiate the data object 
-        (should define numpy arrays:
-         self.X_train, self.y_train, self.X_val, and self.y_val
-         with data instances enumerated along first axis)
-
+        
         Returns
         -------
         None
         """
-        raise NotImplementedError
+        self.batch_size = batch_size
+        self.X_train = None
+        self.y_train = None
+        self.X_val = None
+        self.y_val = None
+
+        # Child classes should have init signature:
+        # (self, data_path, batch_size, **kwargs), should call this __init__ and then
+        # define self.X_train, self.y_train, self.X_val, and self.y_val
 
     def get_feature_shape(self):
         """
@@ -39,9 +44,9 @@ class TFFLDataNoPrefetch(FLData):
         -------
         loader object
         """      
-        return self._get_batch_generator('train', batch_size=None)
+        return self._get_batch_generator(X=self.X_train, y=self.y_train, batch_size=batch_size)
     
-    def get_val_loader(self):
+    def get_val_loader(self, batch_size=None):
         """
         Get validation data loader 
 
@@ -49,7 +54,7 @@ class TFFLDataNoPrefetch(FLData):
         -------
         loader object
         """
-        return self._get_batch_generator('val', batch_size=None)
+        return self._get_batch_generator(X=self.X_val, y=self.y_val, batch_size=batch_size)
 
     def get_training_data_size(self):
         """
@@ -78,18 +83,9 @@ class TFFLDataNoPrefetch(FLData):
             b = a + batch_size
             yield X[idxs[a:b]], y[idxs[a:b]]
 
-    def _get_batch_generator(self, train_or_val, batch_size):
+    def _get_batch_generator(self, X, y, batch_size):
         if batch_size == None:
             batch_size = self.batch_size
-
-        if train_or_val == 'train':
-            X = self.X_train
-            y = self.y_train
-        elif train_or_val == 'val':
-            X = self.X_val
-            y = self.y_val
-        else:
-            raise ValueError('dtype needs to be train or val')
 
         # shuffle data indices
         idxs = np.random.permutation(np.arange(X.shape[0]))

@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import torch.utils.data
 
-from models.data.fldata import FLData
+from data.fldata import FLData
 
 
 class PTFLDataInMemory(FLData):
@@ -19,6 +19,8 @@ class PTFLDataInMemory(FLData):
         None
         """
         self.batch_size = batch_size
+        self.train_loader = None
+        self.val_loader = None
 
         # Child classes should have init signature:
         # (self, data_path, batch_size, **kwargs), should call this __init__ and then

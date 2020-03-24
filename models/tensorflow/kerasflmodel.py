@@ -1,28 +1,25 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
 
-"""Base classes for developing a Federated Learning model.
+"""Base classes for developing a keras.Model() Federated Learning model.
 
-You may copy this file as the starting point of your own model.
+You may copy this file as the starting point of your own keras model.
 """
 import logging
 import numpy as np
 import tensorflow as tf
-import tqdm
 
-from models.flmodelmixin import FLModelMixin
+from models import FLModel
 
 import tensorflow.keras as keras
 from tensorflow.keras import backend as K
-from .export_init_weights import export_weights
+from tfedlrn.proto.protoutils import export_weights
 
 
-class FLKerasModel(FLModelMixin):
-    """A class used to represent a Keras model training procedure."""
+class FLKerasModel(FLModel):
     def __init__(self, data, *args, **argv):
-        super(FLKerasModel, self).__init__(*args, **argv)
+        super().__init__(data)
         self.model = keras.Model()
-        self.data = data
         NUM_PARALLEL_EXEC_UNITS = 1
         config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, 
                                 inter_op_parallelism_threads=1, 
@@ -33,22 +30,17 @@ class FLKerasModel(FLModelMixin):
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
-    def get_data(self):
-        return self.data
-
-    def set_data(self, data):
-        if data.get_feature_shape() != self.data.get_feature_shape():
-            raise ValueError('Data feature shape is not compatible with model.')
-        self.data = data
+        # child class should have an __init__ function with signature: (self, data, **kwargs)
+        # and should overwrite self.model with a child of keras.Model
 
     def train_epoch(self):
-        self.is_initial = False
-        history = self.model.fit(self.data.X_train, self.data.y_train,
-          batch_size=self.data.batch_size,
-          epochs=1,
-          verbose=0,)
+        history = self.model.fit(self.data.X_train, 
+                                 self.data.y_train,
+                                 batch_size=self.data.batch_size,
+                                 epochs=1,
+                                 verbose=0,)
 
-        # As we always train one epoch, we only need the first element in the list.
+        # As we are training for one epoch, we only need the first element in each list.
         ret_dict = {name:values[0] for name, values in history.history.items()}
         return ret_dict['loss']
 
@@ -132,8 +124,7 @@ class FLKerasModel(FLModelMixin):
         return model_weights
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
-        self.is_initial = False
-
+        
         if with_opt_vars is False:
             self._set_weights_dict(self.model, tensor_dict)
         else:

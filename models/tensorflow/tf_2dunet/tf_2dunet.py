@@ -3,33 +3,13 @@
 
 import tensorflow as tf
 import numpy as np
-import tqdm
 
-from .tensorflowflutils import tf_get_vars, \
-                               tf_get_tensor_dict, \
-                               tf_set_tensor_dict, \
-                               tf_reset_vars, \
-                               tf_export_init_weights
+from models.tensorflow import TFFLModel
 
-
-class UNet2D_TF(object):
+class TF2DUNet(TFFLModel):
 
     def __init__(self, data, **kwargs):
-        super(UNet2D_TF, self).__init__()        
-
-        self.assign_ops = None
-        self.placeholders = None
-
-        self.tvar_assign_ops = None
-        self.tvar_placeholders = None
-
-        self.data = data
-
-        # construct the shape needed for the input features
-        input_shape = list(self.data.get_feature_shape()) 
-        input_shape.insert(0, None)
-        input_shape = tuple(input_shape)
-        self.input_shape = input_shape
+        super(TF2DUNet, self).__init__(data)        
 
         self.create_model(**kwargs)
 
@@ -69,101 +49,6 @@ class UNet2D_TF(object):
         self.fl_vars = self.tvars + self.opt_vars
 
         self.initialize_globals()
-
-    def get_data(self):
-        return self.data
-
-    def set_data(self, data):
-        if data.get_feature_shape() != self.data.get_feature_shape():
-            raise ValueError('Data feature shape is not compatible with model.')
-        self.data = data
-
-    def initialize_globals(self):
-        self.sess.run(tf.global_variables_initializer())
-
-
-    def get_tensor_dict(self, with_opt_vars=True):
-        if with_opt_vars is True:
-            return tf_get_tensor_dict(self.sess, self.fl_vars)
-        else:
-            return tf_get_tensor_dict(self.sess, self.tvars)
-
-    def set_tensor_dict(self, tensor_dict, with_opt_vars):
-        """Set the tensor dictionary (weights) with new values.
-
-        Parameters
-        ----------
-        tensor_dict : dict
-            Weights.
-        with_opt_vars : bool
-            If we should set the variablies of the optimizer.
-        """
-        if with_opt_vars:
-            self.assign_ops, self.placeholders = \
-                tf_set_tensor_dict(tensor_dict, self.sess, self.fl_vars, self.assign_ops, self.placeholders)
-        else:
-            self.tvar_assign_ops, self.tvar_placeholders = \
-                tf_set_tensor_dict(tensor_dict, self.sess, self.tvars, self.tvar_assign_ops, self.tvar_placeholders)
-
-    def reset_opt_vars(self):
-        return tf_reset_vars(self.sess, self.opt_vars)
-
-    def export_init_weights(self, model_name, version, fpath):
-        tf_export_init_weights(model_name=model_name, 
-                              version=version, 
-                              tensor_dict=self.get_tensor_dict(), 
-                              fpath=fpath)
-
-    def train_epoch(self, batch_size=None, use_tqdm=False):
-
-        tf.keras.backend.set_learning_phase(True)
-
-        losses = []
-
-        gen = self.data.get_batch_generator('train', batch_size)
-        if use_tqdm:
-            gen = tqdm(gen, desc="training epoch")
-
-        for X, y in gen:
-            losses.append(self.train_batch(X, y))
-
-        return np.mean(losses)
-
-    def validate(self, batch_size=None, use_tqdm=False):
-
-        tf.keras.backend.set_learning_phase(False)
-
-        score = 0
-
-        gen = self.data.get_batch_generator('val', batch_size)
-        if use_tqdm:
-            gen = tqdm(gen, desc="validating")
-
-        for X, y in gen:
-            weight = X.shape[0] / self.data.get_validation_data_size()  
-            _, s = self.validate_batch(X, y)
-            score += s * weight
-
-        return score
-
-    def train_batch(self, X, y):
-        feed_dict = {self.X: X, self.y: y}
-        
-        # run the train step and return the loss
-        _, loss = self.sess.run([self.train_step, self.loss], feed_dict=feed_dict)
-        return loss
-
-    def validate_batch(self, X, y):
-        feed_dict = {self.X: X, self.y: y}
-
-        return self.sess.run([self.output, self.validation_metric], feed_dict=feed_dict)
-
-    def get_training_data_size(self):
-        return self.data.get_training_data_size()
-
-    def get_validation_data_size(self):
-        return self.data.get_validation_data_size()
-
 
 
 def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):

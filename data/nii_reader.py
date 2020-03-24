@@ -4,10 +4,6 @@ import numpy as np
 import argparse
 import nibabel as nib
 
-# for testing performance
-import time
-
-
 def parse_segments(seg, msk_modes):
     # Each channel corresponds to a different region of the tumor, decouple and stack these
     msks_parsed = []

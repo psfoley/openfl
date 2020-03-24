@@ -8,24 +8,18 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Flatten, Dense
-from models.keras.kerasflmodelbase import FLKerasModel
+from models.tensorflow.kerasflmodel import KerasFLModel
 
-class ConvModel(FLKerasModel):
-    """A convolutional neural network model for MNIST.
+class KerasSimpleCNN(KerasFLModel):
+    """A basic convolutional neural network model.
 
     """
     def __init__(self, data, **kwargs):
-        super(ConvModel, self).__init__(data=data)
-        self.logger = logging.getLogger(__name__)
+        super(KerasSimpleCNN, self).__init__(data)
         self.model = self.build_model(data.get_feature_shape(), data.num_classes)
         print(self.model.summary())
         if self.data.y_train is not None and self.data.y_val is not None:
             print("Training set size: %d; Validation set size: %d" % (len(self.data.y_train), len(self.data.y_val)))
-
-        self.is_initial = True
-
-        self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)
-
 
     @staticmethod
     def build_model(input_shape, num_classes):

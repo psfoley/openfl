@@ -7,7 +7,7 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.python.keras.utils.data_utils import get_file
 
-from models.data.pytorch.ptfldata_inmemory import PTFLDataInMemory
+from data.pytorch.ptfldata_inmemory import PTFLDataInMemory
 
 
 class PTCIFAR10InMemory(PTFLDataInMemory):
@@ -30,7 +30,7 @@ class PTCIFAR10InMemory(PTFLDataInMemory):
 
     
 
-# should find the following functions from Han's work
+#FIXME: WIP - should find the following functions from Han's work
 def _load_raw_datashards(shard_num, nb_collaborators):
     ---
     ---

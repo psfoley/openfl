@@ -30,7 +30,7 @@ class Collaborator(object):
     def __init__(self, col_id, agg_id, fed_id, wrapped_model, channel, model_version, polling_interval=4, opt_treatment="AGG"):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
-        self.polling_interval = 4
+        self.polling_interval = polling_interval
 
         # this stuff is really about sanity/correctness checking to ensure the bookkeeping and control flow is correct
         self.id = col_id

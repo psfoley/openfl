@@ -18,18 +18,6 @@ def _load_raw_datashards(shard_num, nb_collaborators):
     img_rows, img_cols, img_channel = 32, 32, 3
     num_classes = 10
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
-    print('======================================================')
-    print(K.image_data_format())
-    print('======================================================')
-    #if K.image_data_format() == 'channels_first':
-    if True:# pytorch
-        x_train = x_train.reshape(x_train.shape[0], img_channel, img_rows, img_cols)
-        x_test = x_test.reshape(x_test.shape[0], img_channel, img_rows, img_cols)
-        input_shape = (img_channel, img_rows, img_cols)
-    else:# normal case
-        x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, img_channel)
-        x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, img_channel)
-        input_shape = (img_rows, img_cols, img_channel)
     # fix the label dimension to be (N,)
     y_train = y_train.reshape(-1)
     y_test = y_test.reshape(-1)
@@ -41,9 +29,8 @@ def _load_raw_datashards(shard_num, nb_collaborators):
     X_test_shards = x_test[shard_num::nb_collaborators]
     y_test_shards  = y_test[shard_num::nb_collaborators]
     return (X_train_shards, y_train_shards), (X_test_shards, y_test_shards)
-    #return input_shape, num_classes, x_train, y_train, x_test, y_test
 
-def load_cifar10_shard(shard_num, nb_collaborators, data_format=None, categorical=True, **kwargs):
+def load_cifar10_shard(shard_num, nb_collaborators, data_format=None, categorical=True, channels_last=False, **kwargs):
     """
     Load the CIFAR10 dataset.
 
@@ -73,14 +60,14 @@ def load_cifar10_shard(shard_num, nb_collaborators, data_format=None, categorica
     (X_train, y_train), (X_test, y_test) = _load_raw_datashards(shard_num, nb_collaborators)
     if data_format is None:
         data_format = K.image_data_format()
-    if data_format == 'channels_first':
-        X_train = X_train.reshape(X_train.shape[0], img_channel, img_rows, img_cols)
-        X_test = X_test.reshape(X_test.shape[0], img_channel, img_rows, img_cols)
-        input_shape = (img_channel, img_rows, img_cols)
-    else:
+    if channels_last:
         X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, img_channel)
         X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, img_channel)
         input_shape = (img_rows, img_cols, img_channel)
+    else:
+        X_train = X_train.reshape(X_train.shape[0], img_channel, img_rows, img_cols)
+        X_test = X_test.reshape(X_test.shape[0], img_channel, img_rows, img_cols)
+        input_shape = (img_channel, img_rows, img_cols)
 
     X_train = X_train.astype('float32')
     X_test = X_test.astype('float32')

@@ -88,7 +88,7 @@ class PyTorchFLDataInMemory(FLData):
         else:
             tX = torch.Tensor(X)
         if isinstance(y[0], np.ndarray):
-            ty = [torch.Tensor(i) for i in y]
+            ty = torch.stack([torch.Tensor(i) for i in y])
         else:
             ty = torch.Tensor(y)
         return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX, ty), 

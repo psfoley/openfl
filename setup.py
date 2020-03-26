@@ -15,8 +15,10 @@ setup(name='tfedlrn',
                 'models.tensorflow', 
                 'models.tensorflow.keras_cnn', 
                 'models.tensorflow.tf_2dunet',
+                'models.cifar10_cnn_pytorch',
+                'models.data',
                 'data', 
                 'data.pytorch', 
                 'data.tensorflow'],
-      install_requires=['tensorflow==1.14.0', 'torch==1.1.0', 'protobuf', 'pyyaml', 'grpcio', 'tqdm', 'coloredlogs', 'tensorboardX', 'nibabel']
+      install_requires=['tensorflow==1.14.0', 'torch==1.2.0', 'protobuf', 'pyyaml', 'grpcio', 'tqdm', 'coloredlogs', 'tensorboardX', 'nibabel']
 )

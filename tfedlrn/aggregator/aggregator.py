@@ -286,6 +286,8 @@ class Aggregator(object):
         finally:
             self.mutex.release()
 
+        self.logger.debug('aggregator handled UploadLocalMetricsUpdate in time {}'.format(time.time() - t))
+
         return reply
 
     def RequestJob(self, message):

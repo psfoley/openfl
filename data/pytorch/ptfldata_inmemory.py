@@ -35,7 +35,7 @@ class PyTorchFLDataInMemory(FLData):
         -------
         tuple - shape of an example feature array
         """
-        return tuple(self.train_loader.dataset.shape[0][0])
+        return tuple(self.train_loader.dataset[0][0].shape)
 
     def get_train_loader(self):
         """

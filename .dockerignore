@@ -7,7 +7,6 @@ docs
 initial_models
 tests
 tfedlrn.egg-info
-models
 *.git
 .git
 .git*

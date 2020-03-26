@@ -82,7 +82,7 @@ class PyTorchFLDataInMemory(FLData):
         return len(self.val_loader)
 
 
-    def create_loader(self, X, y, **kwargs):
+    def create_loader(self, X, y):
         if isinstance(X[0], np.ndarray):
             tX = torch.stack([torch.Tensor(i) for i in X])
         else:
@@ -92,8 +92,7 @@ class PyTorchFLDataInMemory(FLData):
         else:
             ty = torch.Tensor(y)
         return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX, ty), 
-                                           batch_size=self.batch_size, 
-                                           **kwargs)
+                                           batch_size=self.batch_size)
 
 
 

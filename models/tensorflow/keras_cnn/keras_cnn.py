@@ -20,13 +20,19 @@ class KerasCNN(KerasFLModel):
         self.set_logger()
 
         self.model = self.build_model(self.feature_shape, data.num_classes, **kwargs)
-        
+
         print(self.model.summary())
         if self.data is not None:
             print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size(), self.get_validation_data_size()))
 
     @staticmethod
-    def build_model(input_shape, num_classes, **kwargs):
+    def build_model(input_shape, 
+                    num_classes, 
+                    conv_kernel_size=(4, 4), 
+                    conv_strides = (2, 2), 
+                    conv1_channels_out=16,
+                    conv2_channels_out=32,
+                    final_dense_inputsize=100):
         """
         Define the model architecture.
         Parameters
@@ -43,22 +49,23 @@ class KerasCNN(KerasFLModel):
 
         """
         model = Sequential()
-        model.add(Conv2D(16,
-                        kernel_size=(4, 4),
-                        strides=(2,2),
+        model.add(Conv2D(conv1_channels_out,
+                        kernel_size=conv_kernel_size,
+                        strides=conv_strides,
                         activation='relu',
                         input_shape=input_shape))
-        model.add(Conv2D(32,
-                        kernel_size=(4, 4),
-                        strides=(2,2),
+        model.add(Conv2D(conv2_channels_out,
+                        kernel_size=conv_kernel_size,
+                        strides=conv_strides,
                         activation='relu'))
         model.add(Flatten())
-        model.add(Dense(100, activation='relu'))
+        model.add(Dense(final_dense_inputsize, activation='relu'))
         model.add(Dense(num_classes, activation='softmax'))
 
         model.compile(loss=keras.losses.categorical_crossentropy,
                         optimizer=keras.optimizers.Adam(),
                         metrics=['accuracy'])
+
         return model
 
 

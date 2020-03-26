@@ -24,8 +24,8 @@ class TensorFlow2DUNet(TensorFlowFLModel):
         config.inter_op_parallelism_threads = 1
         self.sess = tf.Session(config=config)
               
-        self.X = tf.placeholder(tf.float32, self.feature_shape)
-        self.y = tf.placeholder(tf.float32, self.feature_shape)
+        self.X = tf.placeholder(tf.float32, self.input_shape)
+        self.y = tf.placeholder(tf.float32, self.input_shape)
         self.output = define_model(self.X, use_upsampling=True, **kwargs)
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=training_smoothing)
@@ -90,7 +90,7 @@ def define_model(input_tensor,
                  use_upsampling=False,
                  n_cl_out=1,
                  dropout=0.2,
-                 print_summary = False,
+                 print_summary = True,
                  activation_function='relu',
                  seed=0xFEEDFACE,
                  depth=5,

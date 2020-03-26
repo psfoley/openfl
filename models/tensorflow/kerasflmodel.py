@@ -115,7 +115,7 @@ class KerasFLModel(FLModel):
         """
         model_weights = self._get_weights_dict(self.model)
 
-        if with_opt_vars is True:
+        if with_opt_vars:
             opt_weights = self._get_weights_dict(self.model.optimizer)
 
             model_weights.update(opt_weights)

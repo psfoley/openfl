@@ -17,10 +17,7 @@ class TensorFlowFLModel(FLModel):
         self.tvar_placeholders = None
 
         # construct the shape needed for the input features
-        input_shape = list(self.data.get_feature_shape()) 
-        input_shape.insert(0, None)
-        input_shape = tuple(input_shape)
-        self.input_shape = input_shape
+        self.input_shape = (None,) + self.data.get_feature_shape() 
 
         # child classes should have __init__ function signature (self, data, kwargs), 
         # and should overwrite at least the following while defining the model

@@ -42,7 +42,7 @@ class FLModel(object):
             raise ValueError('Data feature shape is not compatible with model.')
         self.data = data
 
-    def get_training_datasize(self):
+    def get_training_data_size(self):
         """
         Get the number of training examples.
         It will be used for weighted averaging in aggregation.
@@ -52,7 +52,7 @@ class FLModel(object):
         int
             The number of training examples.
         """
-        return self.data.get_training_datasize()
+        return self.data.get_training_data_size()
 
     def get_validation_data_size(self):
         """

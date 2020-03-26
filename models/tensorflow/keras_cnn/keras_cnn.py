@@ -17,16 +17,16 @@ class KerasCNN(KerasFLModel):
     def __init__(self, data, **kwargs):
         super().__init__(data)
         
-        self.set_logger()
-
         self.model = self.build_model(self.feature_shape, data.num_classes, **kwargs)
+
+        self.set_logger()
 
         print(self.model.summary())
         if self.data is not None:
             print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size(), self.get_validation_data_size()))
 
-    @staticmethod
-    def build_model(input_shape, 
+    def build_model(self, 
+                    input_shape, 
                     num_classes, 
                     conv_kernel_size=(4, 4), 
                     conv_strides = (2, 2), 
@@ -65,6 +65,11 @@ class KerasCNN(KerasFLModel):
         model.compile(loss=keras.losses.categorical_crossentropy,
                         optimizer=keras.optimizers.Adam(),
                         metrics=['accuracy'])
+
+        # initialize the optimizer variables
+        opt_vars = model.optimizer.variables()
+        for v in opt_vars:
+            v.initializer.run(session=self.sess)
 
         return model
 

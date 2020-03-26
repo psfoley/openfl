@@ -50,12 +50,6 @@ class KerasFLModel(FLModel):
         ret_dict = dict(zip(metrics_names, vals))
         return ret_dict['acc']
 
-    def get_training_data_size(self):
-        return self.data.get_training_data_size()
-
-    def get_validation_data_size(self):
-        return self.data.get_validation_data_size()
-
     @staticmethod
     def _get_weights_dict(obj):
         """
@@ -138,10 +132,3 @@ class KerasFLModel(FLModel):
     def reset_opt_vars(self):
         for weight in self.model.optimizer.weights:
             weight.initializer.run(session=self.sess)
-
-    
-    def export_init_weights(self, model_name, version, fpath):
-        export_weights(model_name=model_name, 
-                       version=version, 
-                       tensor_dict=self.get_tensor_dict(with_opt_vars=False), 
-                       fpath=fpath)

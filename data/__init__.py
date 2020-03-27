@@ -3,4 +3,5 @@
 
 from .brats_utils import load_from_NIfTY
 from .mnist_utils import load_mnist_shard
+from .cifar10_utils import load_cifar10_shard
 from .fldata import FLData

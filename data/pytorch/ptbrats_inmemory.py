@@ -15,8 +15,8 @@ class PyTorchBratsInMemory(PyTorchFLDataInMemory):
                                                         percent_train=percent_train, 
                                                         shuffle=pre_split_shuffle, 
                                                         **kwargs)
-        self.train_loader = self.create_loader(self, X=X_train, y=y_train, batch_size=self.batch_size)
-        self.val_loader = self.create_loader(self, X=X_val, y=y_val, batch_size=self.batch_size)
+        self.train_loader = self.create_loader(X=X_train, y=y_train)
+        self.val_loader = self.create_loader(X=X_val, y=y_val)
 
         
 

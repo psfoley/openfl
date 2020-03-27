@@ -3,6 +3,7 @@
 You may copy this file as the starting point of your own model.
 """
 import numpy as np
+import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -87,13 +88,17 @@ class PyTorchCNN(PyTorchFLModel):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
-    def validate(self):
+    def validate(self, use_tqdm=False):
         self.eval()
         val_score = 0
         total_samples = 0
 
+        loader = self.data.get_val_loader()
+        if use_tqdm:
+            loader = tqdm(loader, desc="validate")
+
         with torch.no_grad():
-            for data, target in self.data.get_val_loader():
+            for data, target in loader:
                 samples = target.shape[0]
                 total_samples += samples
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
@@ -104,12 +109,17 @@ class PyTorchCNN(PyTorchFLModel):
                 
         return val_score / total_samples
 
-    def train_epoch(self): 
+    def train_epoch(self, use_tqdm=False): 
         # set to "training" mode
         self.train()
         
         losses = []
-        for data, target in self.data.get_train_loader():
+
+        loader = self.data.get_train_loader()
+        if use_tqdm:
+            loader = tqdm(loader, desc="train epoch")
+
+        for data, target in loader:
             data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
             output = self(data)

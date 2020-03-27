@@ -11,7 +11,7 @@ import torch.optim as optim
 from models.pytorch import PyTorchFLModel
 
 def cross_entropy(output, target):
-            return F.cross_entropy(input=output, target=target)
+    return F.binary_cross_entropy_with_logits(input=output, target=target)
 
         
 
@@ -33,7 +33,8 @@ class PyTorchCNN(PyTorchFLModel):
         self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
 
     def init_network(self, 
-                     device, 
+                     device,
+                     print_model=True, 
                      pool_sqrkernel_size=2,
                      conv_sqrkernel_size=5, 
                      conv1_channels_out=20, 
@@ -54,7 +55,8 @@ class PyTorchCNN(PyTorchFLModel):
         self.conv1 = nn.Conv2d(1, conv1_channels_out, conv_sqrkernel_size, 1)
 
         # perform some calculations to track the size of the single channel activations
-        conv1_sqrsize_in = self.feature_shape[0]
+        # channels are first for pytorch
+        conv1_sqrsize_in = self.feature_shape[-1]
         conv1_sqrsize_out = conv1_sqrsize_in - (conv_sqrkernel_size - 1)
         # a pool operation happens after conv1 out 
         # (note dependence on 'forward' function below)
@@ -70,6 +72,8 @@ class PyTorchCNN(PyTorchFLModel):
         self.fc1_insize = l*l*conv2_channels_out
         self.fc1 = nn.Linear(self.fc1_insize, fc2_insize)
         self.fc2 = nn.Linear(fc2_insize, self.num_classes)
+        if print_model:
+            print(self)
         self.to(device)
 
     def forward(self, x):
@@ -93,10 +97,11 @@ class PyTorchCNN(PyTorchFLModel):
                 samples = target.shape[0]
                 total_samples += samples
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
-                output = self(data)                
+                output = self(data)
                 pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
-                val_score += pred.eq(target).diag().sum().cpu().numpy()
-
+                target_categorical = target.argmax(dim=1, keepdim=True)
+                val_score += pred.eq(target_categorical).sum().cpu().numpy()
+                
         return val_score / total_samples
 
     def train_epoch(self): 
@@ -105,13 +110,15 @@ class PyTorchCNN(PyTorchFLModel):
         
         losses = []
         for data, target in self.train_loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
+            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
             output = self(data)
             loss = self.loss_fn(output=output, target=target)
             loss.backward()
             self.optimizer.step()
             losses.append(loss.detach().cpu().numpy())
+        # DEBUG
+        print(np.mean(losses))
 
         return np.mean(losses)
 

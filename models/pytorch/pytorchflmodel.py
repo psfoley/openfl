@@ -8,10 +8,11 @@ import torch.nn as nn
 from models import FLModel
 
 
-class PyTorchFLModel(FLModel, nn.Module):
+class PyTorchFLModel(nn.Module, FLModel):
 
     def __init__(self, data, device='cpu'):
-        super().__init__(data)
+        super().__init__()
+        FLModel.__init__(self, data)
 
         self.device = device
         

@@ -8,4 +8,4 @@ ENV KMP_BLOCKTIME=30
 ENV KMP_SETTINGS=1
 ENV KMP_AFFINITY=granularity=fine,verbose,compact,1,0
 
-RUN pip3 install torch==1.1.0
+RUN pip3 install torch==1.2.0

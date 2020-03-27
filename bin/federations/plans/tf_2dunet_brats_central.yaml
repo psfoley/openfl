@@ -36,83 +36,45 @@ status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'RESET'
+  opt_treatment: &opt_treatment 'AGG'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 50
+  rounds_to_train: &rounds_to_train 30
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 32316
+  agg_port: &agg_port 8878
   col_ids: &col_ids
-    - 'col_0'
-    - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
-    - 'col_10'
-    - 'col_11'
-    - 'col_12'
-    - 'col_13'
-    - 'col_14'
-    - 'col_15'
-    - 'col_16'
-    - 'col_17'
-    - 'col_18'
-    - 'col_19'
-    - 'col_20'
-    - 'col_21'
-    - 'col_22'
-    - 'col_23'
-    - 'col_24'
-    - 'col_25'
-    - 'col_26'
-    - 'col_27'
-    - 'col_28'
-    - 'col_29'
-    - 'col_30'
-    - 'col_31'
-
-  init_model_fname: UNet2D_PT_init.pbuf
-  latest_model_fname: UNet2D_PT_latest.pbuf
-  best_model_fname: UNet2D_PT_best.pbuf
+    - 'col_one_big'
+  init_model_fname: tf_2dunet_brats_init.pbuf
+  latest_model_fname: tf_2dunet_brats_latest.pbuf
+  best_model_fname: tf_2dunet_brats_best.pbuf
   model_version: &model_version 1
 
 model:
-  code_path: models.unet2d_pt.unet2d_pt
-  class_name: UNet2D_PT
-  device: cuda
-    
+  code_path: models.tensorflow
+  class_name: TensorFlow2DUNet
+
 aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
 
+  
 collaborator:
-  agg_id: *agg_id
-  fed_id: *fed_id
-  model_version: *model_version
+  agg_id : *agg_id
+  fed_id : *fed_id
+  model_version : *model_version
   polling_interval: *polling_interval
-  opt_treatment: *opt_treatment 
-
-grpc:
-  addr: *agg_addr
-  port: *agg_port
-  disable_tls: True
-  disable_client_auth: True
-  cert_folder: test
+  opt_treatment: *opt_treatment
 
 data:
   data_name: brats 
-  code_path: models.data 
-  class_name: BratsData
+  code_path: data.tensorflow 
+  class_name: TensorFlowBratsInMemory
   percent_train: 0.8
   batch_size: 64
-  channels_last: False
 
 hostnames:
   __DEFAULT_HOSTNAME__: some.url
+
+

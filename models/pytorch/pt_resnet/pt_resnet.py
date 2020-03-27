@@ -112,7 +112,7 @@ class PyTorchResnet(PyTorchFLModel):
             self.optimizer.zero_grad()
             output = self(data)
             #TODO: target loading problem
-            target = torch.FloatTensor(output.shape[0]).uniform_(0,10).long()   
+            target = torch.FloatTensor(output.shape).uniform_(0,10)
             #
             loss = self.loss_fn(output, target)
             loss.backward()

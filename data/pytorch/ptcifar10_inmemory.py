@@ -30,5 +30,5 @@ class PyTorchCIFAR10InMemory(PyTorchFLDataInMemory):
         #self.y_val = y_val
         self.num_classes = num_classes
         self.batch_size = batch_size
-        self.train_loader = self.create_loader(self, X=X_train, y=y_train, **kwargs)
-        self.val_loader = self.create_loader(self, X=X_val, y=y_val, **kwargs)
+        self.train_loader = self.create_loader(X=X_train, y=y_train)
+        self.val_loader = self.create_loader(X=X_val, y=y_val)

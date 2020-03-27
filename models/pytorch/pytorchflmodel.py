@@ -16,9 +16,6 @@ class PyTorchFLModel(nn.Module, FLModel):
 
         self.device = device
         
-        self.train_loader = self.data.get_train_loader()
-        self.val_loader = self.data.get_val_loader()
-        
         self.optimizer = None
         self.loss_fn = None
 

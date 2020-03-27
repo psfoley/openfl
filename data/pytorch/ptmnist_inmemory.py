@@ -22,7 +22,7 @@ class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
         self.num_classes = num_classes
         self.train_loader = self.create_loader(X=X_train, y=y_train)
         self.val_loader = self.create_loader(X=X_val, y=y_val)
-
+    
     
 
 

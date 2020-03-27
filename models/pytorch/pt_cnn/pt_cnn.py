@@ -93,7 +93,7 @@ class PyTorchCNN(PyTorchFLModel):
         total_samples = 0
 
         with torch.no_grad():
-            for data, target in self.val_loader:
+            for data, target in self.data.get_val_loader():
                 samples = target.shape[0]
                 total_samples += samples
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
@@ -109,7 +109,7 @@ class PyTorchCNN(PyTorchFLModel):
         self.train()
         
         losses = []
-        for data, target in self.train_loader:
+        for data, target in self.data.get_train_loader():
             data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
             output = self(data)

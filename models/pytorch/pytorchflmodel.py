@@ -8,15 +8,13 @@ import torch.nn as nn
 from models import FLModel
 
 
-class PyTorchFLModel(FLModel, nn.Module):
+class PyTorchFLModel(nn.Module, FLModel):
 
     def __init__(self, data, device='cpu'):
-        super().__init__(data)
+        super().__init__()
+        FLModel.__init__(self, data)
 
         self.device = device
-        
-        self.train_loader = self.data.get_train_loader()
-        self.val_loader = self.data.get_val_loader()
         
         self.optimizer = None
         self.loss_fn = None

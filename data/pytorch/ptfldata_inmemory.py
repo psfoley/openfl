@@ -35,7 +35,7 @@ class PyTorchFLDataInMemory(FLData):
         -------
         tuple - shape of an example feature array
         """
-        return tuple(self.train_loader.dataset.shape[0][0])
+        return tuple(self.train_loader.dataset[0][0].shape)
 
     def get_train_loader(self):
         """
@@ -82,18 +82,17 @@ class PyTorchFLDataInMemory(FLData):
         return len(self.val_loader)
 
 
-    def create_loader(self, X, y, **kwargs):
+    def create_loader(self, X, y):
         if isinstance(X[0], np.ndarray):
             tX = torch.stack([torch.Tensor(i) for i in X])
         else:
             tX = torch.Tensor(X)
         if isinstance(y[0], np.ndarray):
-            ty = [torch.Tensor(i) for i in y]
+            ty = torch.stack([torch.Tensor(i) for i in y])
         else:
             ty = torch.Tensor(y)
         return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX, ty), 
-                                           batch_size=self.batch_size, 
-                                           **kwargs)
+                                           batch_size=self.batch_size)
 
 
 

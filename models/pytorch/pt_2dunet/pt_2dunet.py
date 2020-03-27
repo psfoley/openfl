@@ -48,10 +48,11 @@ class PyTorch2DUNet(PyTorchFLModel):
         self.train()
         
         losses = []
+        
+        gen = self.data.get_train_loader()
         if use_tqdm:
-            gen = tqdm(self.train_loader, desc="training epoch")
-        else:
-            gen = self.train_loader
+            gen = tqdm(gen, desc="training epoch")
+        
         for data, target in gen:
             if isinstance(data, np.ndarray):
                     data = torch.Tensor(data)
@@ -66,13 +67,17 @@ class PyTorch2DUNet(PyTorchFLModel):
             losses.append(loss.detach().cpu().numpy())
         return np.mean(losses)
 
-    def validate(self):       
+    def validate(self, use_tqdm=False):       
         self.eval()
         val_score = 0
         total_samples = 0
 
+        gen = self.data.get_val_loader()
+        if use_tqdm:
+            gen = tqdm(gen, desc="validate")
+
         with torch.no_grad():
-            for data, target in self.val_loader:
+            for data, target in gen:
                 samples = target.shape[0]
                 total_samples += samples
                 data, target = data.to(self.device), target.to(self.device)

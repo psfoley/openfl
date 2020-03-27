@@ -10,4 +10,4 @@ ENV KMP_AFFINITY=granularity=fine,verbose,compact,1,0
 
 # FIXME: this is only for the MNIST data object and should ultimately be removed!
 RUN pip3 install tensorflow==1.14.0
-RUN pip3 install torch==1.1.0
+RUN pip3 install torch==1.3.1

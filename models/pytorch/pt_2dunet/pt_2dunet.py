@@ -90,6 +90,7 @@ class PyTorch2DUNet(PyTorchFLModel):
            
     def init_network(self,
                      device,
+                     print_model=True,
                      dropout_layers=[2, 3],
                      initial_channels=1,
                      depth_per_side=5,
@@ -141,6 +142,9 @@ class PyTorch2DUNet(PyTorchFLModel):
             setattr(self, 'conv_up_{}a'.format(i+1), a)
             setattr(self, 'conv_up_{}b'.format(i+1), b)
         
+        if print_model:
+            print(self)
+
         # send this to the device
         self.to(device)
         

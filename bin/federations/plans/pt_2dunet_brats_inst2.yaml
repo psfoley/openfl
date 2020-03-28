@@ -38,33 +38,26 @@ federation:
   fed_id: &fed_id 'fed_0'
   opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 16
+  rounds_to_train: &rounds_to_train 50
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "some.url"
-  agg_port: &agg_port 8227 
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_port: &agg_port 32345 
   col_ids: &col_ids
-    - 'col_0'
-    - 'col_1'
     - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
-  init_model_fname: mnist_cnn_pt_init.pbuf
-  latest_model_fname: mnist_cnn_pt_latest.pbuf
-  best_model_fname: mnist_cnn_pt_best.pbuf
+
+  init_model_fname: pt_2dunet_brats_init.pbuf
+  latest_model_fname: pt_2dunet_brats_latest.pbuf
+  best_model_fname: pt_2dunet_brats_best.pbuf
   model_version: &model_version 1
 
 hostnames:
   __DEFAULT_HOSTNAME__: some.url
 
 model:
-  code_path: models.mnist_cnn_pt.mnist_cnn_pt
-  class_name: MnistCNN_PT
-  device: cpu
+  code_path: models.pytorch
+  class_name: PyTorch2DUNet
+  device: cuda
+  optimizer: RMSprop
     
 aggregator:
   agg_id: *agg_id
@@ -87,10 +80,9 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: mnist_shard 
-  code_path: models.data 
-  class_name: MNISTData
-  data_format: channels_first
-  categorical: False
-  nb_collaborators: 10
-  batch_size: 256
+  data_name: brats 
+  code_path: data.pytorch 
+  class_name: PyTorchBratsInMemory
+  percent_train: 0.8
+  batch_size: 64
+  channels_last: False

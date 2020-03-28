@@ -31,17 +31,17 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-description     : Train a model to perform classification on CIFAR10 images.
+description     : Train a model to perform image classification on cifar10 dataset.
 status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
   opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 4
+  rounds_to_train: &rounds_to_train 170
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 8878 
+  agg_addr: &agg_addr "some.url"
+  agg_port: &agg_port 82278 
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'
@@ -53,17 +53,17 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-  init_model_fname: pytorch_resnet_init.pbuf
-  latest_model_fname: pytorch_resnet_latest.pbuf
-  best_model_fname: pytorch_resnet_best.pbuf
+  init_model_fname: cifar10_cnn_pt_init.pbuf
+  latest_model_fname: cifar10_cnn_pt_latest.pbuf
+  best_model_fname: cifar10_cnn_pt_best.pbuf
   model_version: &model_version 1
 
 hostnames:
-  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
+  __DEFAULT_HOSTNAME__: some.url
 
 model:
-  code_path: models.pytorch
-  class_name: PyTorchResnet
+  code_path: models.cifar10_cnn_pytorch.model
+  class_name: MnistCNN_PT 
     
 aggregator:
   agg_id: *agg_id
@@ -87,9 +87,7 @@ grpc:
 
 data:
   data_name: cifar10_shard 
-  code_path: data.pytorch 
-  class_name: PyTorchCIFAR10InMemory
+  code_path: models.data 
+  class_name: CIFAR10Data
   nb_collaborators: 10
   batch_size: 256
-  channels_last: False
-  data_format: 'channels_first'

@@ -87,7 +87,7 @@ class Collaborator(object):
             check_type(reply, JobReply, self.logger)
             job = reply.job
 
-            self.logger.debug("Got a job %s" % Job.Name(job))
+            self.logger.debug("%s - Got a job %s" % (self, Job.Name(job)))
            
             if job is JOB_DOWNLOAD_MODEL:
                 self.do_download_model_job()
@@ -109,7 +109,7 @@ class Collaborator(object):
         # train the model
         # FIXME: model header "version" needs to be changed to "rounds_trained"
         loss = self.wrapped_model.train_epoch()
-        self.logger.debug("Completed the training job.")
+        self.logger.debug("{} Completed the training job.".format(self))
 
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
@@ -133,16 +133,16 @@ class Collaborator(object):
             tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
 
         model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
-        self.logger.debug("Sending the model to the aggeregator.")
+        self.logger.debug("{} - Sending the model to the aggeregator.".format(self))
 
         reply = self.channel.UploadLocalModelUpdate(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
         self.validate_header(reply)
         check_type(reply, LocalModelUpdateAck, self.logger)
-        self.logger.info("Model update succesfully sent to aggregtor")
+        self.logger.info("{} - Model update succesfully sent to aggregtor".format(self))
 
     def do_validate_job(self):
         results = self.wrapped_model.validate()
-        self.logger.debug("Completed the validation job.")
+        self.logger.debug("{} - Completed the validation job.".format(self))
         data_size = self.wrapped_model.get_validation_data_size()
 
         reply = self.channel.UploadLocalMetricsUpdate(LocalValidationResults(header=self.create_message_header(), model_header=self.model_header, results=results, data_size=data_size))
@@ -153,7 +153,7 @@ class Collaborator(object):
         # sanity check on version is implicit in send
         reply = self.channel.DownloadModel(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
         self.validate_header(reply)
-        self.logger.info("Completed the model downloading job.")
+        self.logger.info("{} - Completed the model downloading job.".format(self))
 
         check_type(reply, GlobalModelUpdate, self.logger)
         

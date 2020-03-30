@@ -6,7 +6,8 @@ whl = dist/tfedlrn-0.0.0-py3-none-any.whl
 tfl = venv/lib/python3.5/site-packages/tfedlrn
 
 col_num ?= 0
-model_name ?= tf_cnn
+framework_name ?= tensorflow
+model_name ?= keras_cnn
 use_gpu ?= false
 dataset ?= mnist
 
@@ -125,7 +126,7 @@ build_containers:
 	docker build --build-arg whoami=$(shell whoami) \
 	--build-arg use_gpu=$(use_gpu) \
 	-t tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
-	-f ./models/$(model_name)/$(device).dockerfile \
+	-f ./models/$(framework_name)/$(model_name)/$(device).dockerfile \
 	.
 
 run_agg_container:

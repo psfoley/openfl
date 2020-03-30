@@ -24,6 +24,7 @@ class PyTorchCNN(PyTorchFLModel):
     def __init__(self, data, device='cpu', num_classes=10, **kwargs):
         super().__init__(data, device=device)
 
+        self.data = data
         self.num_classes = num_classes
         self.init_network(device, **kwargs)
         self._init_optimizer()        
@@ -53,7 +54,8 @@ class PyTorchCNN(PyTorchFLModel):
                      
         """
         self.pool_sqrkernel_size = pool_sqrkernel_size
-        self.conv1 = nn.Conv2d(1, conv1_channels_out, conv_sqrkernel_size, 1)
+        channel = self.data.get_feature_shape()[0]# (channel, dim1, dim2)
+        self.conv1 = nn.Conv2d(channel, conv1_channels_out, conv_sqrkernel_size, 1)
 
         # perform some calculations to track the size of the single channel activations
         # channels are first for pytorch

@@ -22,8 +22,7 @@ class TensorFlowCIFAR10InMemory(TensorFlowFLDataInMemory):
 
         self.num_classes = num_classes
         #self.batch_size = batch_size
-        self.X_train = X_train                                                                                                                                                          
-        self.y_train = y_train                                                                                                                                                          
-        self.X_val = X_val                                                                                                                                                              
-        self.y_val = y_val                                                                                                                                                              
-                                                                                                                                                                                        
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_val = X_val
+        self.y_val = y_val

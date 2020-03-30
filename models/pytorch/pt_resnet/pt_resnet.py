@@ -10,12 +10,12 @@ import torch.optim as optim
 
 from models.pytorch import PyTorchFLModel
 import torch.optim as optim
-                          
+
 from models.pytorch import PyTorchFLModel
-                                                                                                                                                                                        
+
 def cross_entropy(output, target):
-    return F.binary_cross_entropy_with_logits(input=output, target=target)                                                                                                              
-                                                                                                                                                                                        
+    return F.binary_cross_entropy_with_logits(input=output, target=target)
+
 class PyTorchResnet(PyTorchFLModel):
 
     def __init__(self, data, device='cpu', num_classes=10, **kwargs):

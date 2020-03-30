@@ -134,57 +134,57 @@ the needed packages.
 .. code-block:: console
 
   $ make build_containers model_name=keras_cnn
-docker build \
---build-arg BASE_IMAGE=ubuntu:18.04 \
---build-arg http_proxy \
---build-arg https_proxy \
---build-arg socks_proxy \
---build-arg ftp_proxy \
---build-arg no_proxy \
---build-arg UID=11632344 \
---build-arg GID=2222 \
---build-arg UNAME=edwardsb \
--t tfl_agg_keras_cnn_edwardsb:0.1 \
--f Dockerfile \
-.
-Sending build context to Docker daemon   3.25GB
-Step 1/29 : ARG BASE_IMAGE=ubuntu:18.04
-Step 2/29 : FROM $BASE_IMAGE
- ---> ccc6e87d482b
-Step 3/29 : LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
- ---> Using cache
- ---> 7850bfc2c817
-
-   ...
-   ...
-   ...
-   
-Step 29/29 : ENV PATH=/home/${UNAME}/tfl/venv/bin:$PATH
- ---> Running in 5d41487d94f4
-Removing intermediate container 5d41487d94f4
- ---> 1e71e09a4a5a
-Successfully built 1e71e09a4a5a
-Successfully tagged tfl_agg_keras_cnn_edwardsb:0.1
-docker build --build-arg whoami=edwardsb \
---build-arg use_gpu=false \
--t tfl_col_cpu_keras_cnn_edwardsb:0.1 \
--f ./models/tensorflow/keras_cnn/cpu.dockerfile \
-.
-Sending build context to Docker daemon  3.251GB
-Step 1/7 : ARG whoami
-
-  ...
-  ...
-  ...
-
-
-
-Step 7/7 : RUN pip3 install intel-tensorflow==1.14.0;
- ---> Using cache
- ---> 7d1b3ef6fb8c
-[Warning] One or more build-args [use_gpu] were not consumed
-Successfully built 7d1b3ef6fb8c
-Successfully tagged tfl_col_cpu_keras_cnn_edwardsb:0.1
+    docker build \
+    --build-arg BASE_IMAGE=ubuntu:18.04 \
+    --build-arg http_proxy \
+    --build-arg https_proxy \
+    --build-arg socks_proxy \
+    --build-arg ftp_proxy \
+    --build-arg no_proxy \
+    --build-arg UID=11632344 \
+    --build-arg GID=2222 \
+    --build-arg UNAME=edwardsb \
+    -t tfl_agg_keras_cnn_edwardsb:0.1 \
+    -f Dockerfile \
+    .
+    Sending build context to Docker daemon   3.25GB
+    Step 1/29 : ARG BASE_IMAGE=ubuntu:18.04
+    Step 2/29 : FROM $BASE_IMAGE
+     ---> ccc6e87d482b
+    Step 3/29 : LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
+     ---> Using cache
+     ---> 7850bfc2c817
+    
+       ...
+       ...
+       ...
+       
+    Step 29/29 : ENV PATH=/home/${UNAME}/tfl/venv/bin:$PATH
+     ---> Running in 5d41487d94f4
+    Removing intermediate container 5d41487d94f4
+     ---> 1e71e09a4a5a
+    Successfully built 1e71e09a4a5a
+    Successfully tagged tfl_agg_keras_cnn_edwardsb:0.1
+    docker build --build-arg whoami=edwardsb \
+    --build-arg use_gpu=false \
+    -t tfl_col_cpu_keras_cnn_edwardsb:0.1 \
+    -f ./models/tensorflow/keras_cnn/cpu.dockerfile \
+    .
+    Sending build context to Docker daemon  3.251GB
+    Step 1/7 : ARG whoami
+    
+      ...
+      ...
+      ...
+    
+    
+    
+    Step 7/7 : RUN pip3 install intel-tensorflow==1.14.0;
+     ---> Using cache
+     ---> 7d1b3ef6fb8c
+    [Warning] One or more build-args [use_gpu] were not consumed
+    Successfully built 7d1b3ef6fb8c
+    Successfully tagged tfl_col_cpu_keras_cnn_edwardsb:0.1
 
 2. Run the aggregator container (entering a bash shell inside the container), 
 again using the Makefile. Note that we map the local volumes `./bin/federations` to the container
@@ -192,14 +192,14 @@ again using the Makefile. Note that we map the local volumes `./bin/federations`
 .. code-block:: console
 
   $ make run_agg_container model_name=keras_cnn
-docker run \
---net=host \
--it --name=tfl_agg_keras_cnn_edwardsb \
---rm \
--w /home/edwardsb/tfl/bin \
--v /home/edwardsb/repositories/gitlab_tfedlearn/bin/federations:/home/edwardsb/tfl/bin/federations:rw \
-tfl_agg_keras_cnn_edwardsb:0.1 \
-bash 
+    docker run \
+    --net=host \
+    -it --name=tfl_agg_keras_cnn_edwardsb \
+    --rm \
+    -w /home/edwardsb/tfl/bin \
+    -v /home/edwardsb/repositories/gitlab_tfedlearn/bin/federations:/home/edwardsb/tfl/bin/federations:rw \
+    tfl_agg_keras_cnn_edwardsb:0.1 \
+    bash 
 
 3. In the aggregator container shell, build the initial weights files providing the global model initialization 
 that will be sent from the aggregator out to all collaborators.

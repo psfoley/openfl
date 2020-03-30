@@ -6,7 +6,8 @@ whl = dist/tfedlrn-0.0.0-py3-none-any.whl
 tfl = venv/lib/python3.5/site-packages/tfedlrn
 
 col_num ?= 0
-model_name ?= tf_cnn
+framework_name ?= tensorflow
+model_name ?= keras_cnn
 use_gpu ?= false
 dataset ?= mnist
 
@@ -20,7 +21,7 @@ else
 endif
 
 ifeq ($(dataset),brats)
-    additional_run_col_container_lines = \
+    additional_brats_container_lines = \
 	-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
     -v '/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG':/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro
 endif
@@ -125,7 +126,7 @@ build_containers:
 	docker build --build-arg whoami=$(shell whoami) \
 	--build-arg use_gpu=$(use_gpu) \
 	-t tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
-	-f ./models/$(model_name)/$(device).dockerfile \
+	-f ./models/$(framework_name)/$(model_name)/$(device).dockerfile \
 	.
 
 run_agg_container:
@@ -136,6 +137,7 @@ run_agg_container:
 	--rm \
 	-w /home/$(shell whoami)/tfl/bin \
 	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:rw \
+	$(additional_brats_container_lines) \
 	tfl_agg_$(model_name)_$(shell whoami):0.1 \
 	bash 
 
@@ -147,7 +149,7 @@ run_col_container:
 	-it --name=tfl_col_$(device)_$(model_name)_$(shell whoami)_$(col_num) \
 	--rm \
 	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:ro \
-	$(additional_run_col_container_lines) \
+	$(additional_brats_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
 	tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
 	bash 

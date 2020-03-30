@@ -5,5 +5,5 @@
 
 col_num=$1
 
-python3 run_collaborator_from_flplan.py -p brats17_inst2_inst3.yaml -col col_$col_num -dc docker_data_config.yaml
+python3 run_collaborator_from_flplan.py -p tf_2dunet_brats_insts2_3.yaml -col col_$col_num -dc docker_data_config.yaml
 

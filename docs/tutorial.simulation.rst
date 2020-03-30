@@ -13,7 +13,7 @@ spr_secure_intelligence-trusted_federated_learning/bin/federations/plans.
 is the folder name we chose for the local repository.
 It can be changed to anything of your choice on your machine.**
 
-The plan we will use for this tutorial is mnist_ten_cols.yaml.
+The plan we will use for this tutorial is keras_cnn_mnist_10.yaml.
 
 
 Simulated Federated Training of an MNIST Classifier across 10 Collaborators
@@ -40,33 +40,34 @@ and cd to the bin directory.
 
 .. code-block:: console
 
-  $ ../venv/bin/python create_initial_weights_file_from_flplan.py -p mnist_ten_cols.yaml
+  $ ../venv/bin/python create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_10.yaml
 
 
-4. Kick off the simulation, copying the output to a text file.
-
-.. code-block:: console
-
-  $ ../venv/bin/python run_simulation_from_flplan.py -p mnist_ten_cols.yaml 2>&1 | tee output_mnist_ten_cols_simulation.txt
-
-
-
-5. Grep the output for info (one example below)
+4. Kick off the simulation.
 
 .. code-block:: console
 
-  $ grep -A 1 round output_mnist_ten_cols_simulation.txt                                                                                                                                                                 msheller@spr-gpu01
-    INFO:tfedlrn.aggregator.aggregator:round results for model id/version ConvModel/1
-    INFO:tfedlrn.aggregator.aggregator:     validation: 0.8365000031888485
+  $ ../venv/bin/python run_simulation_from_flplan.py -p keras_cnn_mnist_10.yaml
+
+
+
+5. You'll find the output from the aggregator in bin/logs/aggregator.log. Grep this file to see results (one example below). You can check the progress as the simulation runs, if desired.
+
+.. code-block:: console
+
+  $ pwd                                                                                                                                                                                                                            msheller@spr-gpu01
+    /home/<user>/git/tfedlrn/bin
+  $ grep -A 2 "round results" logs/aggregator.log
+    2020-03-30 13:45:33,404 - tfedlrn.aggregator.aggregator - INFO - round results for model id/version KerasCNN/1
+    2020-03-30 13:45:33,404 - tfedlrn.aggregator.aggregator - INFO -        validation: 0.4465000107884407
+    2020-03-30 13:45:33,404 - tfedlrn.aggregator.aggregator - INFO -        loss: 1.0632034242153168
     --
-    INFO:tfedlrn.aggregator.aggregator:round results for model id/version ConvModel/2
-    INFO:tfedlrn.aggregator.aggregator:     validation: 0.9359000027179718
+    2020-03-30 13:45:35,127 - tfedlrn.aggregator.aggregator - INFO - round results for model id/version KerasCNN/2
+    2020-03-30 13:45:35,127 - tfedlrn.aggregator.aggregator - INFO -        validation: 0.8630000054836273
+    2020-03-30 13:45:35,127 - tfedlrn.aggregator.aggregator - INFO -        loss: 0.41314733028411865
     --
-    INFO:tfedlrn.aggregator.aggregator:round results for model id/version ConvModel/3
-    INFO:tfedlrn.aggregator.aggregator:     validation: 0.9465999960899353
 
-
-
+Note that aggregator.log is always appended to, so will include results from previous runs.
 
 6. Edit the plan to train for more rounds, etc.
 

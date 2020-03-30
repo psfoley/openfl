@@ -36,34 +36,28 @@ status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'RESET'
+  opt_treatment: &opt_treatment 'AGG'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 16
+  rounds_to_train: &rounds_to_train 50
   agg_id: &agg_id 'agg_0'
-  agg_addr: &agg_addr "some.url"
-  agg_port: &agg_port 82278 
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_port: &agg_port 8912
   col_ids: &col_ids
-    - 'col_0'
-    - 'col_1'
     - 'col_2'
     - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
-  init_model_fname: mnist_cnn_keras_init.pbuf
-  latest_model_fname: mnist_cnn_keras_latest.pbuf
-  best_model_fname: mnist_cnn_keras_best.pbuf
+
+  init_model_fname: tf_2dunet_brats_init.pbuf
+  latest_model_fname: tf_2dunet_brats_latest.pbuf
+  best_model_fname: tf_2dunet_brats_best.pbuf
   model_version: &model_version 1
 
 hostnames:
-  __DEFAULT_HOSTNAME__: some.url
+  col_2: spr-gpu01.jf.intel.com
+  col_3: spr-gpu02.jf.intel.com
 
 model:
-  code_path: models.mnist_cnn_keras.model
-  class_name: ConvModel
+  code_path: models.tensorflow
+  class_name: TensorFlow2DUNet
     
 aggregator:
   agg_id: *agg_id
@@ -86,8 +80,8 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: mnist_shard 
-  code_path: models.data 
-  class_name: MNISTData
-  nb_collaborators: 10
-  batch_size: 256
+  data_name: brats 
+  code_path: data.tensorflow 
+  class_name: TensorFlowBratsInMemory
+  percent_train: 0.8
+  batch_size: 64

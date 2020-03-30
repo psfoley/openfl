@@ -36,28 +36,26 @@ status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'AGG'
+  opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 50
+  rounds_to_train: &rounds_to_train 16
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 8912
+  agg_port: &agg_port 82278 
   col_ids: &col_ids
-    - 'col_2'
-    - 'col_3'
-
-  init_model_fname: UNet2D_TF_init.pbuf
-  latest_model_fname: UNet2D_TF_latest.pbuf
-  best_model_fname: UNet2D_TF_best.pbuf
+    - 'col_0'
+    - 'col_1'
+  init_model_fname: keras_cnn_mnist_init.pbuf
+  latest_model_fname: keras_cnn_mnist_latest.pbuf
+  best_model_fname: keras_cnn_mnist_best.pbuf
   model_version: &model_version 1
 
 hostnames:
-  col_2: spr-gpu01.jf.intel.com
-  col_3: spr-gpu02.jf.intel.com
+  __DEFAULT_HOSTNAME__: some.url
 
 model:
-  code_path: models.unet2d_tf.unet2d_tf
-  class_name: UNet2D_TF
+  code_path: models.tensorflow
+  class_name: KerasCNN
     
 aggregator:
   agg_id: *agg_id
@@ -80,8 +78,8 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: brats 
-  code_path: models.data 
-  class_name: BratsData
-  percent_train: 0.8
-  batch_size: 64
+  data_name: mnist_shard 
+  code_path: data.tensorflow 
+  class_name: TensorFlowMNISTInMemory
+  nb_collaborators: 10
+  batch_size: 256

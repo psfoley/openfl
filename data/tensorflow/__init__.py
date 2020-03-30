@@ -1,0 +1,3 @@
+from .tfbrats_inmemory import TensorFlowBratsInMemory
+from .tffldata_inmemory import TensorFlowFLDataInMemory
+from .tfmnist_inmemory import TensorFlowMNISTInMemory

@@ -9,7 +9,7 @@ import logging
 import importlib
 
 from tfedlrn import load_yaml, get_object
-from models import export_weights
+from tfedlrn.proto import export_weights
 from setup_logging import setup_logging
 
 def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):

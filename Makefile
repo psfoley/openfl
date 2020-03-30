@@ -6,7 +6,7 @@ whl = dist/tfedlrn-0.0.0-py3-none-any.whl
 tfl = venv/lib/python3.5/site-packages/tfedlrn
 
 col_num ?= 0
-model_name ?= mnist_cnn_keras
+model_name ?= tf_cnn
 use_gpu ?= false
 dataset ?= mnist
 
@@ -68,7 +68,7 @@ reinstall: uninstall install
 bin/federations/certs/test:
 	mkdir -p bin/federations/certs/test
 
-bin/federations/weights/mnist_cnn_keras_init.pbuf:
+bin/federations/weights/keras_cnn_mnist_init.pbuf:
 	echo "recipe needed!"
 
 # start_mnist_agg_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
@@ -77,11 +77,11 @@ bin/federations/weights/mnist_cnn_keras_init.pbuf:
 # start_mnist_col_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
 # 	venv/bin/python3 bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_num $(col_num) --disable_tls --disable_client_auth
 
-start_mnist_agg: $(tfl) bin/federations/weights/mnist_cnn_keras_init.pbuf local_certs
-	cd bin && ../venv/bin/python3 run_aggregator_from_flplan.py -p mnist_a.yaml
+start_mnist_agg: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
+	cd bin && ../venv/bin/python3 run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml
 
-start_mnist_col: $(tfl) bin/federations/weights/mnist_cnn_keras_init.pbuf local_certs
-	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p mnist_a.yaml -col $(col_num)
+start_mnist_col: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
+	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_$(col_num)
 
 bin/federations/certs/test/ca.key:
 	openssl genrsa -out bin/federations/certs/test/ca.key 3072

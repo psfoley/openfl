@@ -206,7 +206,7 @@ that will be sent from the aggregator out to all collaborators.
 
 .. code-block:: console
 
-  $ ./create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml
+  $ ./create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml -dc docker_data_config.yaml
 
   ...
   ...
@@ -432,14 +432,14 @@ again using the Makefile. Note that we map the local volumes `./bin/federations`
 
 .. code-block:: console
 
-  $ make run_agg_container model_name=tf_2dunet
+  $ make run_agg_container model_name=tf_2dunet dataset=brats
 
 3. In the aggregator container shell, build the initial weights files providing the global model initialization 
 that will be sent from the aggregator out to all collaborators.
 
 .. code-block:: console
 
-  $ ./create_initial_weights_file_from_flplan.py -p tf_2dunet_brats_insts2_3.yaml
+  $ ./create_initial_weights_file_from_flplan.py -p tf_2dunet_brats_insts2_3.yaml -dc docker_data_config.yaml
 
 
 

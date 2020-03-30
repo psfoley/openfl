@@ -21,7 +21,7 @@ else
 endif
 
 ifeq ($(dataset),brats)
-    additional_run_col_container_lines = \
+    additional_brats_container_lines = \
 	-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
     -v '/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG':/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro
 endif
@@ -137,6 +137,7 @@ run_agg_container:
 	--rm \
 	-w /home/$(shell whoami)/tfl/bin \
 	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:rw \
+	$(additional_brats_container_lines) \
 	tfl_agg_$(model_name)_$(shell whoami):0.1 \
 	bash 
 
@@ -148,7 +149,7 @@ run_col_container:
 	-it --name=tfl_col_$(device)_$(model_name)_$(shell whoami)_$(col_num) \
 	--rm \
 	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:ro \
-	$(additional_run_col_container_lines) \
+	$(additional_brats_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
 	tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
 	bash 

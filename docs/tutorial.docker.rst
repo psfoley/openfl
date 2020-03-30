@@ -202,7 +202,7 @@ tfl_agg_keras_cnn_edwardsb:0.1 \
 bash 
 
 3. In the aggregator container shell, build the initial weights files providing the global model initialization 
-that will be sent from the aggregaator out to all collaborators.
+that will be sent from the aggregator out to all collaborators.
 
 .. code-block:: console
 
@@ -434,7 +434,16 @@ again using the Makefile. Note that we map the local volumes `./bin/federations`
 
   $ make run_agg_container model_name=tf_2dunet
 
-3. In the aggregator container shell, run the aggregator, using
+3. In the aggregator container shell, build the initial weights files providing the global model initialization 
+that will be sent from the aggregator out to all collaborators.
+
+.. code-block:: console
+
+  $ ./create_initial_weights_file_from_flplan.py -p tf_2dunet_brats_insts2_3.yaml
+
+
+
+4. In the aggregator container shell, run the aggregator, using
 a shell script provided in the project.
 
 .. code-block:: console

@@ -5,7 +5,7 @@ We will show you how to set up federated learning on Docker
 using the simplest MNIST dataset as an example.
 
 Before we start the tutorial, please make sure you have Docker
-installed and confugured properly. Here is a easy test to run:
+installed and confugured properly. Here is a easy test to run in order to test some basic functionality:
 
 .. code-block:: console
 
@@ -37,11 +37,11 @@ It can be anything of your choice on your machine.
   $ cd spr_secure_intelligence-trusted_federated_learning
 
 2. Edit the FL plan file to specify the correct addresses for your machines.
-Open bin/federations/plans/mnist_two_big_cols.yaml:
+Open bin/federations/plans/keras_cnn_mnist_2.yaml:
 
 .. code-block:: console
 
-  $ vi bin/federations/plans/mnist_two_big_cols.yaml
+  $ vi bin/federations/plans/keras_cnn_mnist_2.yaml
 
 
 Find the keys in the federation config for the address ("agg_addr") and port ("agg_port"):
@@ -53,10 +53,11 @@ Find the keys in the federation config for the address ("agg_addr") and port ("a
     fed_id: &fed_id 'fed_0'
     opt_treatment: &opt_treatment 'RESET'
     polling_interval: &polling_interval 4
+    rounds_to_train: &rounds_to_train 16
     agg_id: &agg_id 'agg_0'
     agg_addr: &agg_addr "agg.domain.com"   # CHANGE THIS STRING
     agg_port: &agg_port <some_port>        # CHANGE THIS INT
-  ...
+...
 
 
 Next find the hostnames key and set the machine names for each collaborator.
@@ -73,12 +74,12 @@ will use the "__DEFAULT_HOSTNAME__".
   ...
 
 
-3. Build the pki using our plan file. For some pki details, see :ref:`tutorial-tls`. 
+3. Build the pki using our plan file. For some pki details, see :ref:`tutorial-tls` (requires pyyaml be installed). 
 
 
 .. code-block:: console
 
-  $ bin/create_pki_for_flplan.py -p mnist_two_big_cols.yaml
+  $ bin/create_pki_for_flplan.py -p keras_cnn_mnist_2.yaml
 
 
   Generating RSA private key, 3072 bit long modulus (2 primes)
@@ -89,27 +90,7 @@ will use the "__DEFAULT_HOSTNAME__".
   ...
 
 
-4. Edit the docker data config file to refer to the correct username (the name of the account
-you are using. Open bin/federations/docker_data_config.yaml and replace the username with your username
-
-.. code-block:: console
-
-  $ vi bin/federations/docker_data_config.yaml
-
-
-  collaborators:
-    col_one_big:
-      brats: &brats_data_path '/home/<USERNAME>/tfl/datasets/brats'                       # replace with your username
-      mnist: &mnist_data_path '/home/<USERNAME>/tfl/datasets/mnist_batch/mnist_batch.npz' # replace with your username
-    col_0:
-      brats: *brats_data_path
-      mnist: *mnist_data_path
-  ...
-
-
-5. TODO: build the initial weights files. Currently, these are in the code repository.
-
-6. Copy files to each machine as needed:
+4. Copy files to each machine as needed:
 
 .. list-table:: Files to copy
    :widths: 25 25
@@ -119,7 +100,7 @@ you are using. Open bin/federations/docker_data_config.yaml and replace the user
      - Needed By
    * - ca.crt
      - All
-   * - mnist_two_big_cols.yaml
+   * - keras_cnn_mnist_2.yaml
      - All
    * - docker_data_config.yaml
      - all collaborators
@@ -152,7 +133,7 @@ the needed packages.
 
 .. code-block:: console
 
-  $ make build_containers model_name=mnist_cnn_keras
+  $ make build_containers model_name=keras_cnn
   docker build \
   --build-arg http_proxy \
   --build-arg https_proxy \
@@ -162,7 +143,7 @@ the needed packages.
   --build-arg UID=11632344 \
   --build-arg GID=2222 \
   --build-arg UNAME=edwardsb \
-  -t tfl_agg_mnist_cnn_keras_edwardsb:0.1 \
+  -t tfl_agg_keras_cnn_edwardsb:0.1 \
   -f Dockerfile \
   .
   Sending build context to Docker daemon  12.95MB
@@ -180,22 +161,31 @@ the needed packages.
    ---> Using cache
    ---> 54ac91a69eb1
   Successfully built 54ac91a69eb1
-  Successfully tagged tfl_col_mnist_cnn_keras_edwardsb:0.1
+  Successfully tagged tfl_col_keras_cnn_edwardsb:0.1
 
 2. Run the aggregator container (entering a bash shell inside the container), 
 again using the Makefile. Note that we map the local volumes `./bin/federations` to the container
 
 .. code-block:: console
 
-  $ make run_agg_container model_name=mnist_cnn_keras
+  $ make run_agg_container model_name=keras_cnn
   docker run \
   --net=host \
-  -it --name=tfl_agg_mnist_cnn_keras_edwardsb \
+  -it --name=tfl_agg_keras_cnn_edwardsb \
   --rm \
-  tfl_agg_mnist_cnn_keras_edwardsb:0.1 \
+  tfl_agg_keras_cnn_edwardsb:0.1 \
   bash
 
-3. In the aggregator container shell, run the aggregator, using
+3. In the aggregator container shell, build the initial weights files providing the global model initialization 
+that will be sent from the aggregaator out to all collaborators.
+
+.. code-block:: console
+
+  $ ./create_intial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml
+
+
+
+4. In the aggregator container shell, run the aggregator, using
 a shell script provided in the project.
 
 .. code-block:: console

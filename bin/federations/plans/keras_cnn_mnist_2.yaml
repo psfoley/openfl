@@ -51,7 +51,7 @@ federation:
   model_version: &model_version 1
 
 hostnames:
-  __DEFAULT_HOSTNAME__: some.url
+  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
 
 model:
   code_path: models.tensorflow

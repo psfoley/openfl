@@ -49,33 +49,10 @@ class PyTorchResnet(PyTorchFLModel):
         self.init_network(device, BasicBlock, [2,2,2,2], **kwargs)# Resnet18
         self._init_optimizer()        
 
-        #def loss_fn(output, target):
-        #    return F.cross_entropy(output, target)
-
-        # transform our numpy arrays into a pytorch dataloader
-        # FIXME: we're holding a second copy for the sake of get_data. Need to make a version of this that really matchs pytorch
-        self.data = data
-        #self.train_loader, self.val_loader = self._data_to_pt_loader(data)
-
         self.loss_fn = cross_entropy
 
     def _init_optimizer(self):
         self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
-    '''
-    @staticmethod
-    def _data_to_pt_loader(data):
-        tX = torch.stack([torch.Tensor(i) for i in data.X_train])
-        # ty = torch.stack([torch.Tensor(i) for i in data.y_train])
-        ty = torch.Tensor(data.y_train)
-        train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), batch_size=data.batch_size, shuffle=True)
-        
-        tX = torch.stack([torch.Tensor(i) for i in data.X_val])
-        # ty = torch.stack([torch.Tensor(i) for i in data.y_val])
-        ty = torch.Tensor(data.y_val)
-        val_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), batch_size=data.batch_size, shuffle=True)
-
-        return train_loader, val_loader
-        '''
 
     def init_network(self, device, block, num_blocks, num_classes=10):
         self.in_planes = 64
@@ -119,8 +96,6 @@ class PyTorchResnet(PyTorchFLModel):
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
                 output = self(data)                
                 pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
-                #TODO: diag problem
-                #val_score += pred.eq(target).diag().sum().cpu().numpy()
                 val_score += pred.eq(target).sum().cpu().numpy()
 
         return val_score / total_samples
@@ -145,16 +120,5 @@ class PyTorchResnet(PyTorchFLModel):
 
         return np.mean(losses)
 
-    def get_data(self):
-        return self.data
-
-    '''
-    def set_data(self, data):
-        if data.get_feature_shape() != self.data.get_feature_shape():
-            raise ValueError('Data feature shape is not compatible with model.')
-        self.data = data
-        self.train_loader, self.val_loader = self._data_to_pt_loader(data)
-    
-    '''
     def reset_opt_vars(self):
         self._init_optimizer()

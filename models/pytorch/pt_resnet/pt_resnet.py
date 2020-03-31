@@ -55,27 +55,11 @@ class PyTorchResnet(PyTorchFLModel):
         # transform our numpy arrays into a pytorch dataloader
         # FIXME: we're holding a second copy for the sake of get_data. Need to make a version of this that really matchs pytorch
         self.data = data
-        #self.train_loader, self.val_loader = self._data_to_pt_loader(data)
 
         self.loss_fn = cross_entropy
 
     def _init_optimizer(self):
         self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
-    '''
-    @staticmethod
-    def _data_to_pt_loader(data):
-        tX = torch.stack([torch.Tensor(i) for i in data.X_train])
-        # ty = torch.stack([torch.Tensor(i) for i in data.y_train])
-        ty = torch.Tensor(data.y_train)
-        train_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), batch_size=data.batch_size, shuffle=True)
-        
-        tX = torch.stack([torch.Tensor(i) for i in data.X_val])
-        # ty = torch.stack([torch.Tensor(i) for i in data.y_val])
-        ty = torch.Tensor(data.y_val)
-        val_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(tX, ty), batch_size=data.batch_size, shuffle=True)
-
-        return train_loader, val_loader
-        '''
 
     def init_network(self, device, block, num_blocks, num_classes=10):
         self.in_planes = 64
@@ -87,6 +71,7 @@ class PyTorchResnet(PyTorchFLModel):
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512*block.expansion, num_classes)
+        self.to(device)
 
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -121,8 +106,9 @@ class PyTorchResnet(PyTorchFLModel):
                 output = self(data)                
                 pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
                 #TODO: diag problem
-                #val_score += pred.eq(target).diag().sum().cpu().numpy()
-                val_score += pred.eq(target).sum().cpu().numpy()
+                target_categorical = target.argmax(dim=1, keepdim=True)
+                val_score += pred.eq(target_categorical).sum().cpu().numpy()
+                #val_score += pred.eq(target).sum().cpu().numpy()
 
         return val_score / total_samples
 
@@ -133,12 +119,9 @@ class PyTorchResnet(PyTorchFLModel):
         losses = []
         loader = self.data.get_train_loader()
         for data, target in loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
+            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
             output = self(data)
-            #TODO: target loading problem
-            target = torch.FloatTensor(output.shape).uniform_(0,10)
-            #
             loss = self.loss_fn(output, target)
             loss.backward()
             self.optimizer.step()

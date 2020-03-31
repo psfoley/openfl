@@ -48,16 +48,6 @@ class PyTorchResnet(PyTorchFLModel):
         self.init_network(device, BasicBlock, [2,2,2,2], **kwargs)# Resnet18
         self._init_optimizer()        
 
-<<<<<<< HEAD
-=======
-        #def loss_fn(output, target):
-        #    return F.cross_entropy(output, target)
-
-        # transform our numpy arrays into a pytorch dataloader
-        # FIXME: we're holding a second copy for the sake of get_data. Need to make a version of this that really matchs pytorch
-        self.data = data
-
->>>>>>> f9c1d42902795907c5e2a75a6c87cb5e583c0d2d
         self.loss_fn = cross_entropy
 
     def _init_optimizer(self):
@@ -107,14 +97,8 @@ class PyTorchResnet(PyTorchFLModel):
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
                 output = self(data)                
                 pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
-<<<<<<< HEAD
-                val_score += pred.eq(target).sum().cpu().numpy()
-=======
-                #TODO: diag problem
                 target_categorical = target.argmax(dim=1, keepdim=True)
                 val_score += pred.eq(target_categorical).sum().cpu().numpy()
-                #val_score += pred.eq(target).sum().cpu().numpy()
->>>>>>> f9c1d42902795907c5e2a75a6c87cb5e583c0d2d
 
         return val_score / total_samples
 

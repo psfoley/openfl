@@ -150,8 +150,16 @@ class Collaborator(object):
         check_type(reply, LocalValidationResultsAck, self.logger)
         
     def do_download_model_job(self):
+
+        # time the download
+        download_start = time.time()
+
         # sanity check on version is implicit in send
         reply = self.channel.DownloadModel(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
+
+        time_taken = time.time() - download_start
+        self.logger.info("{} took {} seconds to download the model".format(self, round(time.time() - download_start, 3)))
+
         self.validate_header(reply)
         self.logger.info("{} - Completed the model downloading job.".format(self))
 

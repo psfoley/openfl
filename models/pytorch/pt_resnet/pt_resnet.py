@@ -1,5 +1,4 @@
-"""Base classes for developing a Federated Learning model on PyTorch
-
+"""
 You may copy this file as the starting point of your own model.
 """
 import numpy as np
@@ -49,6 +48,16 @@ class PyTorchResnet(PyTorchFLModel):
         self.init_network(device, BasicBlock, [2,2,2,2], **kwargs)# Resnet18
         self._init_optimizer()        
 
+<<<<<<< HEAD
+=======
+        #def loss_fn(output, target):
+        #    return F.cross_entropy(output, target)
+
+        # transform our numpy arrays into a pytorch dataloader
+        # FIXME: we're holding a second copy for the sake of get_data. Need to make a version of this that really matchs pytorch
+        self.data = data
+
+>>>>>>> f9c1d42902795907c5e2a75a6c87cb5e583c0d2d
         self.loss_fn = cross_entropy
 
     def _init_optimizer(self):
@@ -56,13 +65,15 @@ class PyTorchResnet(PyTorchFLModel):
 
     def init_network(self, device, block, num_blocks, num_classes=10):
         self.in_planes = 64
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        channel = self.data.get_feature_shape()[0]
+        self.conv1 = nn.Conv2d(channel, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512*block.expansion, num_classes)
+        self.to(device)
 
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -96,7 +107,14 @@ class PyTorchResnet(PyTorchFLModel):
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
                 output = self(data)                
                 pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+<<<<<<< HEAD
                 val_score += pred.eq(target).sum().cpu().numpy()
+=======
+                #TODO: diag problem
+                target_categorical = target.argmax(dim=1, keepdim=True)
+                val_score += pred.eq(target_categorical).sum().cpu().numpy()
+                #val_score += pred.eq(target).sum().cpu().numpy()
+>>>>>>> f9c1d42902795907c5e2a75a6c87cb5e583c0d2d
 
         return val_score / total_samples
 
@@ -107,12 +125,9 @@ class PyTorchResnet(PyTorchFLModel):
         losses = []
         loader = self.data.get_train_loader()
         for data, target in loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
+            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
             output = self(data)
-            #TODO: target loading problem
-            target = torch.FloatTensor(output.shape).uniform_(0,10)
-            #
             loss = self.loss_fn(output, target)
             loss.backward()
             self.optimizer.step()

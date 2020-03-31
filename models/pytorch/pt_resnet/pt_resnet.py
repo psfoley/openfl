@@ -1,5 +1,4 @@
-"""Base classes for developing a Federated Learning model on PyTorch
-
+"""
 You may copy this file as the starting point of your own model.
 """
 import numpy as np

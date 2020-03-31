@@ -134,34 +134,57 @@ the needed packages.
 .. code-block:: console
 
   $ make build_containers model_name=keras_cnn
-  docker build \
-  --build-arg http_proxy \
-  --build-arg https_proxy \
-  --build-arg socks_proxy \
-  --build-arg ftp_proxy \
-  --build-arg no_proxy \
-  --build-arg UID=11632344 \
-  --build-arg GID=2222 \
-  --build-arg UNAME=edwardsb \
-  -t tfl_agg_keras_cnn_edwardsb:0.1 \
-  -f Dockerfile \
-  .
-  Sending build context to Docker daemon  12.95MB
-  Step 1/28 : FROM ubuntu:18.04
-   ---> 775349758637
-  Step 2/28 : LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
-   ---> Using cache
-   ---> fae6ee6bdabf
-
-   ...
-   ...
-   ...
-   
-   Step 7/7 : RUN pip3 install intel-tensorflow==1.14.0;
-   ---> Using cache
-   ---> 54ac91a69eb1
-  Successfully built 54ac91a69eb1
-  Successfully tagged tfl_col_keras_cnn_edwardsb:0.1
+    docker build \
+    --build-arg BASE_IMAGE=ubuntu:18.04 \
+    --build-arg http_proxy \
+    --build-arg https_proxy \
+    --build-arg socks_proxy \
+    --build-arg ftp_proxy \
+    --build-arg no_proxy \
+    --build-arg UID=11632344 \
+    --build-arg GID=2222 \
+    --build-arg UNAME=edwardsb \
+    -t tfl_agg_keras_cnn_edwardsb:0.1 \
+    -f Dockerfile \
+    .
+    Sending build context to Docker daemon   3.25GB
+    Step 1/29 : ARG BASE_IMAGE=ubuntu:18.04
+    Step 2/29 : FROM $BASE_IMAGE
+     ---> ccc6e87d482b
+    Step 3/29 : LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
+     ---> Using cache
+     ---> 7850bfc2c817
+    
+       ...
+       ...
+       ...
+       
+    Step 29/29 : ENV PATH=/home/${UNAME}/tfl/venv/bin:$PATH
+     ---> Running in 5d41487d94f4
+    Removing intermediate container 5d41487d94f4
+     ---> 1e71e09a4a5a
+    Successfully built 1e71e09a4a5a
+    Successfully tagged tfl_agg_keras_cnn_edwardsb:0.1
+    docker build --build-arg whoami=edwardsb \
+    --build-arg use_gpu=false \
+    -t tfl_col_cpu_keras_cnn_edwardsb:0.1 \
+    -f ./models/tensorflow/keras_cnn/cpu.dockerfile \
+    .
+    Sending build context to Docker daemon  3.251GB
+    Step 1/7 : ARG whoami
+    
+      ...
+      ...
+      ...
+    
+    
+    
+    Step 7/7 : RUN pip3 install intel-tensorflow==1.14.0;
+     ---> Using cache
+     ---> 7d1b3ef6fb8c
+    [Warning] One or more build-args [use_gpu] were not consumed
+    Successfully built 7d1b3ef6fb8c
+    Successfully tagged tfl_col_cpu_keras_cnn_edwardsb:0.1
 
 2. Run the aggregator container (entering a bash shell inside the container), 
 again using the Makefile. Note that we map the local volumes `./bin/federations` to the container
@@ -169,21 +192,27 @@ again using the Makefile. Note that we map the local volumes `./bin/federations`
 .. code-block:: console
 
   $ make run_agg_container model_name=keras_cnn
-  docker run \
-  --net=host \
-  -it --name=tfl_agg_keras_cnn_edwardsb \
-  --rm \
-  tfl_agg_keras_cnn_edwardsb:0.1 \
-  bash
+    docker run \
+    --net=host \
+    -it --name=tfl_agg_keras_cnn_edwardsb \
+    --rm \
+    -w /home/edwardsb/tfl/bin \
+    -v /home/edwardsb/repositories/gitlab_tfedlearn/bin/federations:/home/edwardsb/tfl/bin/federations:rw \
+    tfl_agg_keras_cnn_edwardsb:0.1 \
+    bash 
 
 3. In the aggregator container shell, build the initial weights files providing the global model initialization 
-that will be sent from the aggregaator out to all collaborators.
+that will be sent from the aggregator out to all collaborators.
 
 .. code-block:: console
 
-  $ ./create_intial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml
+  $ ./create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml -dc docker_data_config.yaml
 
+  ...
+  ...
+  ...
 
+created /home/edwardsb/tfl/bin/federations/weights/keras_cnn_mnist_init.pbuf
 
 4. In the aggregator container shell, run the aggregator, using
 a shell script provided in the project.
@@ -204,7 +233,7 @@ Note: the collaborator machines can be the same as the aggregator machine.
 
 .. code-block:: console
 
-  $ make build_containers model_name=mnist_cnn_keras
+  $ make build_containers model_name=keras_cnn
 
 
 2. (**On the first collaborator machine**)
@@ -216,7 +245,7 @@ docker image.
 
 .. code-block:: console
 
-  $ make run_col_container model_name=mnist_cnn_keras col_num=0
+  $ make run_col_container model_name=keras_cnn col_num=0
   docker run \
   ...
   bash 
@@ -226,42 +255,14 @@ docker image.
 .. code-block:: console
 
   $ ./run_mnist_collaborator.sh 0 
-  /home/edwardsb/tfl/venv/lib/python3.6/site-packages/tensorflow/python/framework/dtypes.py:516: FutureWarning: Passing (type, 1) or '1type' as a synonym of type is deprecated; in a future version of numpy, it will be understood as (type, (1,)) / '(1,)type'.
-  _np_qint8 = np.dtype([("qint8", np.int8, 1)])
-
-  ...
-  ...
-  ...
-
-  Downloading data from https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz
-  11493376/11490434 [==============================] - 0s 0us/step
-  Loaded logging configuration: logging.yaml
-
-  ...
-  ...
-  ...
-
-  x_train shape: (6000, 28, 28, 1)
-  y_train shape: (6000,)
-  6000 train samples
-  1000 test samples
-
-  ...
-  ...
-  ...
-
-  Training set size: 6000; Validation set size: 1000
-
-  ...
-  ...
-  ...
+  
 
 6. (**On the second collaborator machine, which could be a second terminal on the first machine**)
 Run the second collaborator container (entering a bash shell inside the container).
 
 .. code-block:: console
 
-  $ make run_col_container model_name=mnist_cnn_keras col_num=1
+  $ make run_col_container model_name=keras_cnn col_num=1
   docker run \
   ...
   bash
@@ -272,11 +273,6 @@ Run the second collaborator container (entering a bash shell inside the containe
 .. code-block:: console
 
   $ ./run_mnist_collaborator.sh 1 
-
-  ...
-  ...
-  ...
-
 
 
 Federated Training of the 2D UNet (Brain Tumor Segmentation)
@@ -311,11 +307,11 @@ the end, our directory looks like below. Note that "0-9" allows us to do data-sh
 
 2. (**We start with just a two collaborator example.**)
 Edit the FL plan file to specify the correct addresses for your machines.
-Open bin/federations/plans/brats17_inst2_inst3.yaml.
+Open bin/federations/plans/brats17_insts2_3.yaml.
 
 .. code-block:: console
 
-  $ vi bin/federations/plans/brats17_inst2_inst3.yaml
+  $ vi bin/federations/plans/tf_2dunet_brats_insts2_3.yaml
 
 
 Find the keys in the federation config for the address ("agg_addr") and port ("agg_port"):
@@ -325,12 +321,13 @@ Find the keys in the federation config for the address ("agg_addr") and port ("a
   ...
   federation:
     fed_id: &fed_id 'fed_0'
-    opt_treatment: &opt_treatment 'RESET'
+    opt_treatment: &opt_treatment 'AGG'
     polling_interval: &polling_interval 4
+    rounds_to_train: &rounds_to_train 50
     agg_id: &agg_id 'agg_0'
     agg_addr: &agg_addr "agg.domain.com"   # CHANGE THIS STRING
     agg_port: &agg_port <some_port>        # CHANGE THIS INT
-  ...
+...
 
 
 Next find the hostnames key and set the machine names for each collaborator.
@@ -352,7 +349,7 @@ will use the "__DEFAULT_HOSTNAME__".
 
 .. code-block:: console
 
-  $ bin/create_pki_for_flplan.py -p brats17_inst2_inst3.yaml
+  $ bin/create_pki_for_flplan.py -p tf_2dunet_brats_insts2_3.yaml
 
 
   Generating RSA private key, 3072 bit long modulus (2 primes)
@@ -371,19 +368,20 @@ you are using. Open bin/federations/docker_data_config.yaml and replace the user
   $ vi bin/federations/docker_data_config.yaml
 
 
-  collaborators:
-    col_one_big:
-      brats: &brats_data_path '/home/<USERNAME>/tfl/datasets/brats'                       # replace with your username
-      mnist: &mnist_data_path '/home/<USERNAME>/tfl/datasets/mnist_batch/mnist_batch.npz' # replace with your username
-    col_0:
-      brats: *brats_data_path
-      mnist: *mnist_data_path
-  ...
+
+collaborators:
+  col_one_big:
+    brats: &brats_data_path '/home/<USERNAME>/tfl/datasets/brats'                # replace with your username
+  col_0:
+    brats: *brats_data_path   
+    mnist_shard: 0
+  col_1:
+    brats: *brats_data_path
+    mnist_shard: 1
+...
 
 
-5. TODO: build the initial weights files. Currently, these are in the code repository.
-
-6. Copy files to each machine as needed:
+5. Copy files to each machine as needed:
 
 .. list-table:: Files to copy
    :widths: 25 25
@@ -393,7 +391,7 @@ you are using. Open bin/federations/docker_data_config.yaml and replace the user
      - Needed By
    * - ca.crt
      - All
-   * - brats17_inst2_inst3.yaml
+   * - tf_2dunet_brats_insts2_3.yaml
      - All
    * - docker_data_config.yaml
      - all collaborators
@@ -426,7 +424,7 @@ the needed packages.
 
 .. code-block:: console
 
-  $ make build_containers model_name=unet2d_tf
+  $ make build_containers model_name=tf_2dunet
  
 
 2. Run the aggregator container (entering a bash shell inside the container), 
@@ -434,9 +432,18 @@ again using the Makefile. Note that we map the local volumes `./bin/federations`
 
 .. code-block:: console
 
-  $ make run_agg_container model_name=unet2d_tf
+  $ make run_agg_container model_name=tf_2dunet dataset=brats
 
-3. In the aggregator container shell, run the aggregator, using
+3. In the aggregator container shell, build the initial weights files providing the global model initialization 
+that will be sent from the aggregator out to all collaborators.
+
+.. code-block:: console
+
+  $ ./create_initial_weights_file_from_flplan.py -p tf_2dunet_brats_insts2_3.yaml -dc docker_data_config.yaml
+
+
+
+4. In the aggregator container shell, run the aggregator, using
 a shell script provided in the project.
 
 .. code-block:: console
@@ -455,7 +462,7 @@ Note: the collaborator machines can be the same as the aggregator machine.
 
 .. code-block:: console
 
-  $ make build_containers model_name=unet2d_tf
+  $ make build_containers model_name=tf_2dunet
 
 
 2. (**On the first collaborator machine**)
@@ -463,7 +470,7 @@ Run the first collaborator container. Note we are using collaborators 2 and 3.
 
 .. code-block:: console
 
-  $ make run_col_container model_name=unet2d_tf dataset=brats col_num=2
+  $ make run_col_container model_name=tf_2dunet dataset=brats col_num=2
 
 5. In this first collaborator shell, run the collabotor using the provided shell script.
 
@@ -476,7 +483,7 @@ Run the second collaborator container (entering a bash shell inside the containe
 
 .. code-block:: console
 
-  $ make run_col_container model_name=unet2d_tf col_num=3
+  $ make run_col_container model_name=tf_2dunet dataset=brats col_num=3
   docker run \
   ...
   bash

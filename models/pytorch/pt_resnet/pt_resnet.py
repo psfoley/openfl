@@ -41,10 +41,10 @@ class BasicBlock(nn.Module):
 
 class PyTorchResnet(PyTorchFLModel):
 
-    def __init__(self, data, device='cpu', num_classes=10, **kwargs):
+    def __init__(self, data, device='cpu', **kwargs):
         super().__init__(data, device=device)
 
-        self.num_classes = num_classes
+        self.num_classes = self.data.num_classes
         self.init_network(device, BasicBlock, [2,2,2,2], **kwargs)# Resnet18
         self._init_optimizer()        
 

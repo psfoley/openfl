@@ -42,6 +42,7 @@ class BasicBlock(nn.Module):
 class PyTorchResnet(PyTorchFLModel):
 
     def __init__(self, data, device='cpu', **kwargs):
+        raise NotImplementedError("Pytorch Resnet is temporarily disabled.")
         super().__init__(data, device=device)
 
         self.num_classes = self.data.num_classes

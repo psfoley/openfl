@@ -1,7 +1,11 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
 # Compose an FL plan in JSON/YAML.
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and 
 # bin/create_initial_weights_file_from_plan.py
+
 # Note the use of yaml anchors and aliases in order to enforce dependencies
 # across portions of the config:
 # The anochor '&' assigns a name to a piece of the config
@@ -27,17 +31,17 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-description     : Train a model to perform semantic segmentation on brain fMRI images.
+description     : Train a model to perform classification on CIFAR10 images.
 status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'AGG'
+  opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 50
+  rounds_to_train: &rounds_to_train 4
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 8878
+  agg_port: &agg_port 8878 
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'
@@ -49,15 +53,17 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-
-  init_model_fname: tf_2dunet_brats_init.pbuf
-  latest_model_fname: tf_2dunet_brats_latest.pbuf
-  best_model_fname: tf_2dunet_brats_best.pbuf
+  init_model_fname: pytorch_resnet_init.pbuf
+  latest_model_fname: pytorch_resnet_latest.pbuf
+  best_model_fname: pytorch_resnet_best.pbuf
   model_version: &model_version 1
 
+hostnames:
+  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
+
 model:
-  code_path: models.tensorflow
-  class_name: TensorFlow2DUNet
+  code_path: models.pytorch
+  class_name: PyTorchResnet
     
 aggregator:
   agg_id: *agg_id
@@ -80,11 +86,10 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: brats 
-  code_path: data.tensorflow 
-  class_name: TensorFlowBratsInMemory
-  percent_train: 0.8
-  batch_size: 64
-
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
+  data_name: cifar10_shard 
+  code_path: data.pytorch 
+  class_name: PyTorchCIFAR10InMemory
+  nb_collaborators: 10
+  batch_size: 256
+  channels_last: False
+  data_format: 'channels_first'

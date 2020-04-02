@@ -35,13 +35,10 @@ def federate(col_config,
     
     # instantiate the model (using the first collaborator dataset for now)
     model = get_object(data=col_data[col_ids[0]], **model_config)
-
-    if opt_treatment == 'EDGE':
-        # EDGE mode requires that we save the optimizer state for each collaborator at the
-        # end of round training, and restore the state at the beginning of the next round.
-        # (when a collaborator has its own process, this state is simply held in memory,
-        #  but here we have the collaborators share a model object)
-        last_round_states = {col_id: None for col_id in col_ids}
+    
+    # FL collaborators are statefull. Since this single process script utilizes one
+    # shared model for all collaborators, model states need to be tracked.
+    model_states = {col_id: None for col_id in col_ids}
 
     # create the aggregator
     aggregator = Aggregator(init_model_fpath=init_model_fpath, 
@@ -68,19 +65,19 @@ def federate(col_config,
             # overwrite the model's data using current insitution
             model.set_data(col_data[col_id])
 
-            if opt_treatment == 'EDGE':
-                if round == 0:
-                    model.reset_opt_vars()
-                # if it is not the 0th round, restore the end of last round opt state for this collaborator
-                # (The collaborator will overwrite the model weight piece of this before the model is used)
-                else:
-                    model.set_tensor_dict(last_round_states[col_id], with_opt_vars=True)
+            
+            if round == 0:
+                # the global model initialization may not overwrite opt params, and so
+                # making sure the previous collaborator's opt state is not used 
+                model.reset_opt_vars()
+            else:
+                # restore model state from when this collaborator last held the model
+                model.set_tensor_dict(model_states[col_id], with_opt_vars=True)
 
             # run the collaborator jobs for this round
             collaborator.run_to_yield_or_quit()
 
-            if opt_treatment == 'EDGE':
-                last_round_states[col_id] = model.get_tensor_dict(with_opt_vars=True)
+            model_states[col_id] = model.get_tensor_dict(with_opt_vars=True)
 
                 
 

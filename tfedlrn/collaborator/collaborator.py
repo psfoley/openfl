@@ -38,7 +38,7 @@ class Collaborator(object):
         self.fed_id = fed_id
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
-                                        version=model_version)
+                                        version=-1)
 
         self.wrapped_model = wrapped_model
 

@@ -8,7 +8,7 @@ import os
 import logging
 import importlib
 
-from tfedlrn import load_yaml, get_object
+from tfedlrn import load_yaml, get_object, split_tensor_dict_into_floats_and_non_floats
 from tfedlrn.proto import export_weights
 from setup_logging import setup_logging
 
@@ -49,9 +49,11 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
     model_version = fed_config['model_version']
 
+    tensor_dict, _ = split_tensor_dict_into_floats_and_non_floats(wrapped_model.get_tensor_dict(False))
+
     export_weights(model_name=wrapped_model.__class__.__name__, 
                    version=model_version, 
-                   tensor_dict=wrapped_model.get_tensor_dict(False), 
+                   tensor_dict=tensor_dict,
                    fpath=fpath)
 
 

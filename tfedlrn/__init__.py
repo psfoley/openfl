@@ -16,9 +16,9 @@ def check_equal(x, y, logger):
         raise exception
 
 
-def check_not_equal(x, y, logger):
+def check_not_equal(x, y, logger, name='None provided'):
     if x == y:
-        exception = ValueError("Expected inequality, but {} == {}".format(x, y))
+        exception = ValueError("Name {}. Expected inequality, but {} == {}".format(name, x, y))
         logger.exception(repr(exception))
         raise exception
 

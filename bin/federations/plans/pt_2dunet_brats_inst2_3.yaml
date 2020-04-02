@@ -65,6 +65,7 @@ aggregator:
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
+  disable_equality_check: False
 
 collaborator:
   agg_id: *agg_id

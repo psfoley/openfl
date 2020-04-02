@@ -1,6 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
 
-from .utils import load_yaml, get_object
+from .utils import load_yaml, get_object, split_tensor_dict_into_floats_and_non_floats
 
 def check_type(obj, expected_type, logger):
     if not isinstance(obj, expected_type):
@@ -16,9 +16,9 @@ def check_equal(x, y, logger):
         raise exception
 
 
-def check_not_equal(x, y, logger):
+def check_not_equal(x, y, logger, name='None provided'):
     if x == y:
-        exception = ValueError("Expected inequality, but {} == {}".format(x, y))
+        exception = ValueError("Name {}. Expected inequality, but {} == {}".format(name, x, y))
         logger.exception(repr(exception))
         raise exception
 

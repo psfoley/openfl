@@ -1,5 +1,5 @@
 ARG whoami
-FROM tfl_agg_mnist_cnn_pt_$whoami:0.1
+FROM tfl_agg_pt_resnet_$whoami:0.1
 
 # Only use one CPU thread to train the model
 #   to avoid the significant communication overhead.

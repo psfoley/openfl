@@ -219,7 +219,7 @@ class Aggregator(object):
                         and 'RMSprop' not in g.name \
                         and 'Adam' not in g.name \
                         and 'RMSProp' not in g.name):
-                        check_not_equal(g.npbytes, l.npbytes, self.logger)
+                        check_not_equal(g.npbytes, l.npbytes, self.logger, name=g.name)
                         
                     if g.shape != l.shape:
                         raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))

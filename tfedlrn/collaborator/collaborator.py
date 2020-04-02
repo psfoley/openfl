@@ -4,7 +4,7 @@ import time
 import logging
 import numpy as np
 
-from .. import check_type, check_equal, check_not_equal
+from .. import check_type, check_equal, check_not_equal, split_tensor_dict_into_floats_and_non_floats
 from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
 from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
 from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
@@ -27,7 +27,7 @@ class OptTreatment(Enum):
 class Collaborator(object):
     """The current class is not good for local test without channel. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, col_id, agg_id, fed_id, wrapped_model, channel, model_version, polling_interval=4, opt_treatment="AGG"):
+    def __init__(self, col_id, agg_id, fed_id, wrapped_model, channel, polling_interval=4, opt_treatment="AGG", **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
         self.polling_interval = polling_interval
@@ -38,7 +38,7 @@ class Collaborator(object):
         self.fed_id = fed_id
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
-                                        version=model_version)
+                                        version=-1)
 
         self.wrapped_model = wrapped_model
 
@@ -48,6 +48,16 @@ class Collaborator(object):
         else:
             self.logger.error("Unknown opt_treatment: %s." % opt_treatment)
             raise NotImplementedError("Unknown opt_treatment: %s." % opt_treatment)
+
+        # FIXME: this is a temporary fix for non-float values. Needs updated when we have proper collab-side state saving
+        # and proper declaration of "don't aggregate" for models
+        self._remove_and_save_non_floats(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
+
+    def _remove_and_save_non_floats(self, tensor_dict):
+        new_dict, self.non_floats = split_tensor_dict_into_floats_and_non_floats(tensor_dict)
+        if self.non_floats != {}:
+            self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.non_floats.keys())))
+        return new_dict
 
     def create_message_header(self):
         header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)
@@ -100,7 +110,13 @@ class Collaborator(object):
             elif job is JOB_QUIT:
                 return True
             
-
+    def _with_opt_vars(self):
+        if self.opt_treatment in (OptTreatment.EDGE, OptTreatment.RESET):
+            self.logger.debug("Not share the optimization variables.")
+            return False
+        elif self.opt_treatment == OptTreatment.AGG:
+            self.logger.debug("Share the optimization variables.")
+            return True
 
     def do_train_job(self):
         # get the initial tensor dict
@@ -114,14 +130,8 @@ class Collaborator(object):
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
 
-        # get the trained tensor dict
-        if self.opt_treatment in (OptTreatment.EDGE, OptTreatment.RESET):
-            with_opt_vars = False
-            self.logger.debug("Not share the optimization variables.")
-        elif self.opt_treatment == OptTreatment.AGG:
-            with_opt_vars = True
-            self.logger.debug("Share the optimization variables.")
-        tensor_dict = self.wrapped_model.get_tensor_dict(with_opt_vars)
+        # get the trained tensor dict and store any non-floats
+        tensor_dict = self._remove_and_save_non_floats(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
         # convert to a delta
         # for k in tensor_dict.keys():
@@ -157,7 +167,6 @@ class Collaborator(object):
         # sanity check on version is implicit in send
         reply = self.channel.DownloadModel(ModelDownloadRequest(header=self.create_message_header(), model_header=self.model_header))
 
-        time_taken = time.time() - download_start
         self.logger.info("{} took {} seconds to download the model".format(self, round(time.time() - download_start, 3)))
 
         self.validate_header(reply)
@@ -177,7 +186,13 @@ class Collaborator(object):
         #        is an int (and not a tensor) rather than a float
         #        (I currently catch this by observing that shape==[])
         for tensor_proto in reply.model.tensors:
-            tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
+            try:
+                tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
+            except ValueError as e:
+                self.logger.debug("ValueError for proto {}".format(tensor_proto.name))
+                raise e
+        tensor_dict = {**tensor_dict, **self.non_floats}
+        
 
         if self.opt_treatment == OptTreatment.AGG:
             with_opt_vars = True

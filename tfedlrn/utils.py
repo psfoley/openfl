@@ -3,6 +3,7 @@
 
 import yaml
 import importlib
+import numpy as np
 
 def load_yaml(path):
     plan = None
@@ -13,3 +14,13 @@ def load_yaml(path):
 def get_object(code_path, class_name, **kwargs):
     module = importlib.import_module(code_path)
     return module.__getattribute__(class_name)(**kwargs)
+
+def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
+    float_dict = {}
+    non_float_dict = {}
+    for k, v in tensor_dict.items():
+        if np.issubdtype(v.dtype, np.floating):
+            float_dict[k] = v
+        else:
+            non_float_dict[k] = v
+    return float_dict, non_float_dict

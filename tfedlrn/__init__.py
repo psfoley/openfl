@@ -1,6 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
 
-from .utils import load_yaml, get_object
+from .utils import load_yaml, get_object, split_tensor_dict_into_floats_and_non_floats
 
 def check_type(obj, expected_type, logger):
     if not isinstance(obj, expected_type):

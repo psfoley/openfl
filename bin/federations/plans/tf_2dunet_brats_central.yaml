@@ -47,7 +47,6 @@ federation:
   init_model_fname: tf_2dunet_brats_init.pbuf
   latest_model_fname: tf_2dunet_brats_latest.pbuf
   best_model_fname: tf_2dunet_brats_best.pbuf
-  model_version: &model_version 1
 
 model:
   code_path: models.tensorflow
@@ -63,7 +62,6 @@ aggregator:
 collaborator:
   agg_id : *agg_id
   fed_id : *fed_id
-  model_version : *model_version
   polling_interval: *polling_interval
   opt_treatment: *opt_treatment
 

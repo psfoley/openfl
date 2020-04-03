@@ -66,11 +66,7 @@ def federate(col_config,
             model.set_data(col_data[col_id])
 
             
-            if round == 0:
-                # the global model initialization may not overwrite opt params, and so
-                # making sure the previous collaborator's opt state is not used 
-                model.reset_opt_vars()
-            else:
+            if round != 0:
                 # restore model state from when this collaborator last held the model
                 model.set_tensor_dict(model_states[col_id], with_opt_vars=True)
 

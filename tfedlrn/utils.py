@@ -24,3 +24,29 @@ def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
         else:
             non_float_dict[k] = v
     return float_dict, non_float_dict
+
+
+def split_tensor_dict(tensor_dict, holdout_types=['non_floats'], holdout_tensor_names=[])
+
+    # initialization
+    tensors_to_send = tensor_dict
+    holdout_tensors = {}  
+    
+    # filter holdout_types from tensors_to_send and add to holdout_tensors
+    for holdout_type in holdout_types:
+        if holdout_type == 'non_floats':
+            # filter non floats from tensors_to_send and add to holdouts
+            tensors_to_send, non_float_dict = split_tensor_dict_into_floats_and_non_floats(tensors_to_send)
+            holdout_tensors = {**holdout_tensors, **non_float_dict}
+        else:
+            raise ValueError('{} is not a currently suported parameter type to hold out from a tensor dict'.format(holdout_type))
+    
+    # filter by-name tensors from tensors_to_send and add to holdout_tensors
+    for tensor_name in holdout_tensor_names:
+        try:
+            hold_out_tensors = tensors_to_send.pop(tensor_name)
+        except KeyError:
+            raise ValueError('tried to remove tensor: {} not present in the tensor dict')
+
+            WORKING HERE >>>>>>>>>
+             

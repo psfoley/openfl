@@ -53,10 +53,10 @@ class Collaborator(object):
         # and proper declaration of "don't aggregate" for models
         self._remove_and_save_non_floats(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
-    def _remove_and_save_non_floats(self, tensor_dict):
-        new_dict, self.non_floats = split_tensor_dict_into_floats_and_non_floats(tensor_dict)
-        if self.non_floats != {}:
-            self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.non_floats.keys())))
+    def _remove_and_save_holdout_params(self, tensor_dict):
+        new_dict, self.holdout_params = split_tensor_dict(tensor_dict, self.holdout_types)
+        if self.holdout_params != {}:
+            self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.holdout_params.keys())))
         return new_dict
 
     def create_message_header(self):

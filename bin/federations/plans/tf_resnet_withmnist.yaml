@@ -64,7 +64,6 @@ hostnames:
 model:
   code_path: models.tensorflow
   class_name: KerasResnet
-  device: cuda
     
 aggregator:
   agg_id: *agg_id

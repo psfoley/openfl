@@ -53,9 +53,9 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-  init_model_fname: keras_resnet_init.pbuf
-  latest_model_fname: keras_resnet_latest.pbuf
-  best_model_fname: keras_resnet_best.pbuf
+  init_model_fname: tensorflow_cnn_init.pbuf
+  latest_model_fname: tensorflow_cnn_latest.pbuf
+  best_model_fname: tensorflow_cnn_best.pbuf
   model_version: &model_version 1
 
 hostnames:
@@ -63,8 +63,8 @@ hostnames:
 
 model:
   code_path: models.tensorflow
-  class_name: KerasResnet
-    
+  class_name: KerasCNN
+
 aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
@@ -87,7 +87,7 @@ grpc:
 
 data:
   data_name: cifar10_shard 
-  code_path: data.tensorflow
+  code_path: data.tensorflow 
   class_name: TensorFlowCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256

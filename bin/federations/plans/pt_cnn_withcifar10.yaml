@@ -53,18 +53,18 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-  init_model_fname: keras_resnet_init.pbuf
-  latest_model_fname: keras_resnet_latest.pbuf
-  best_model_fname: keras_resnet_best.pbuf
+  init_model_fname: pytorch_cnn_init.pbuf
+  latest_model_fname: pytorch_cnn_latest.pbuf
+  best_model_fname: pytorch_cnn_best.pbuf
   model_version: &model_version 1
 
 hostnames:
   __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
 
 model:
-  code_path: models.tensorflow
-  class_name: KerasResnet
-    
+  code_path: models.pytorch
+  class_name: PyTorchCNN
+
 aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
@@ -87,9 +87,9 @@ grpc:
 
 data:
   data_name: cifar10_shard 
-  code_path: data.tensorflow
-  class_name: TensorFlowCIFAR10InMemory
+  code_path: data.pytorch 
+  class_name: PyTorchCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256
-  channels_last: True
-  data_format: 'channels_last'
+  channels_last: False
+  data_format: 'channels_first'

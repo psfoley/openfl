@@ -31,7 +31,7 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-description     : Train a model to perform classification on CIFAR10 images.
+description     : Train a model to perform classification on MNIST images.
 status          : active
 
 federation:
@@ -64,6 +64,7 @@ hostnames:
 model:
   code_path: models.tensorflow
   class_name: KerasResnet
+  device: cuda
     
 aggregator:
   agg_id: *agg_id
@@ -86,9 +87,9 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: cifar10_shard 
+  data_name: mnist_shard 
   code_path: data.tensorflow
-  class_name: TensorFlowCIFAR10InMemory
+  class_name: TensorFlowMNISTInMemory
   nb_collaborators: 10
   batch_size: 256
   channels_last: True

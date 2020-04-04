@@ -31,10 +31,7 @@ pages:
 
 test:
     script: 
-    - ls
-    - pwd
-    - cd ..
     - make clean && make install
-    - cd ./bin
+    - cd bin
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
     - ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml

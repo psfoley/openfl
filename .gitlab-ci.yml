@@ -41,7 +41,7 @@ test:
     #- apk --no-cache add py3-pip python3 build-base
     #- apk --no-cache add musl-dev linux-headers g++
     - apt-get update -qy
-    - apt-get install -y python-dev python-pip build-essential musl-dev linux-header-$(uname -r) g++
+    - apt-get install -y python-dev python-pip build-essential musl-dev g++
 
     - echo "1 `ls`"
     - uname -a

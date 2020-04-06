@@ -42,7 +42,7 @@ test:
     #- apk --no-cache add musl-dev linux-headers g++
 
     - echo "1 `ls`"
-    - apt-get -y install python3-venv
+    - apt-get -y install python3
     - make install
     - echo "2 `ls`"
     - ls

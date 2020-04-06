@@ -38,13 +38,13 @@ test:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    - apk --no-cache add py3-pip python3 build-base
+    - apk --no-cache add py3-pip python3 build-base build-dependencies
     - apk --no-cache add musl-dev linux-headers g++
 
     - echo "1 `ls`"
     - python3 -m pip --version
-    - py3-pip install tensorflow==1.14.0
-    - py3-pip install torch==1.2.0
+    - pip install tensorflow==1.14.0
+    - pip install torch==1.2.0
     - make install
     - echo "2 `ls`"
     - ls

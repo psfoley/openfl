@@ -1,6 +1,5 @@
-#image: alpine
+image: alpine
 #image: ubuntu:18.04 
-image: tensorflow/tensorflow:1.14.0-gpu-py3 
 
 # before_script:
 #   - mkdir -p $HOME/.docker/
@@ -30,6 +29,8 @@ pages:
     - public
   only:
   - master
+
+image: tensorflow/tensorflow:1.14.0-gpu-py3 
 
 test:
     script: 

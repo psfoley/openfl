@@ -30,16 +30,18 @@ pages:
   only:
   - master
 
-#image: tensorflow/tensorflow:1.14.0-gpu-py3 
-image: alpine
+image: tensorflow/tensorflow:1.14.0-gpu-py3 
+#image: alpine
 
 test:
     script: 
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    - apk --no-cache add py3-pip python3 build-base
-    - apk --no-cache add musl-dev linux-headers g++
+    #- apk --no-cache add py3-pip python3 build-base
+    #- apk --no-cache add musl-dev linux-headers g++
+    - apt-get update -qy
+    - apt-get install -y python-dev python-pip build-essential musl-dev linux-header-$(uname -r) g++
 
     - echo "1 `ls`"
     - uname -a

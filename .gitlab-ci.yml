@@ -31,6 +31,7 @@ pages:
 
 test:
     script: 
+    - sudo apt-get install build-essential
     - echo "1 `ls`"
     - make install
     - echo "2 `ls`"

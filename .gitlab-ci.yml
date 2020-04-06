@@ -31,10 +31,15 @@ pages:
 
 test:
     script: 
-    - make clean && make install
+    - echo "1 `ls`"
+    - make install
+    - echo "2 `ls`"
+    - ls
     - cd bin
     - pwd
     - ls
+    - ls ..
+    - ls ../venv
     - ls ../venv/bin
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
     - ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml

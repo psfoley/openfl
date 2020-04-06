@@ -43,6 +43,7 @@ test:
 
     - echo "1 `ls`"
     - python3 -m pip --version
+    - pip3 install --upgrade pip
     - pip3 install tensorflow==1.14.0
     - pip3 install torch==1.2.0
     - make install

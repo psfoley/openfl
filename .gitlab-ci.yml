@@ -30,36 +30,22 @@ pages:
   only:
   - master
 
-#image: tensorflow/tensorflow:1.14.0-gpu-py3 
 image: ubuntu:18.04
-#image: alpine
 
 test:
     script: 
+    - echo 'print out the variables: '
+    - export
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    #- apk --no-cache add py3-pip python3 build-base
-    #- apk --no-cache add musl-dev linux-headers g++
     - apt-get update -qy
-    #- apt-get install -y python3-venv python-pip build-essential musl-dev g++
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
-    # dont' use python-dev
-
-    - echo "1 `ls`"
-    - uname -a
     - python3 -m pip --version
-    #- pip3 install --upgrade pip
-    #- pip3 install tensorflow==1.14.0
-    #- pip3 install torch==1.2.0
     - make install
-    - echo "2 `ls`"
-    - ls
-    - cd bin
-    - pwd
-    - ls
-    - ls ..
-    - ls ../venv
-    - ls ../venv/bin
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
     - ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
+    - ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml
+    - ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml
+    - echo 'print out the variables: '
+    - export

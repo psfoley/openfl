@@ -49,10 +49,10 @@ test_pt_cnn_mnist:
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - make install
-    cache:
-        key: make_install
-        paths:
-        - venv
+    #cache:
+    #    key: make_install
+    #    paths:
+    #    - venv
     script: 
     - echo 'testing case1::'
     - cd bin/
@@ -74,11 +74,11 @@ test_tf_resnet_mnist:
     - echo "1---"
     - ls
     #- make install
-    cache:
-        key: make_install
-        paths:
-        - venv
-        policy: pull
+    #cache:
+    #    key: make_install
+    #    paths:
+    #    - venv
+    #    policy: pull
     script: 
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml

@@ -38,9 +38,9 @@ image: ubuntu:18.04
 test_pt_cnn_mnist:
     stage: test
     variables: 
-    - http_proxy: 'http://proxy-us.intel.com:911'
-    - https_proxy: 'http://proxy-us.intel.com:912'
-    - no_proxy: 'docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16'
+      http_proxy: 'http://proxy-us.intel.com:911'
+      https_proxy: 'http://proxy-us.intel.com:912'
+      no_proxy: 'docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16'
     before_script:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++

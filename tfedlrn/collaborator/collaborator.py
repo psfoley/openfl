@@ -131,7 +131,7 @@ class Collaborator(object):
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
 
-        # get the trained tensor dict and store any non-floats
+        # get the trained tensor dict and store any desginated to be held out from aggregation
         tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
         # convert to a delta
@@ -181,11 +181,10 @@ class Collaborator(object):
         # set our model header
         self.model_header = reply.model.header
 
-        # create the tensor dict
-        tensor_dict = {}
-        # FIXME: This breaks for the Adam param involving 'iter' that
-        #        is an int (and not a tensor) rather than a float
-        #        (I currently catch this by observing that shape==[])
+        # create the aggregated tensors dict
+        agg_tensor_dict = {}
+        # Note: Tensor components of non-float type will not reconstruct correctly below,
+        # which is why default behaviour is to hold out all non-float parameters from aggregation. 
         for tensor_proto in reply.model.tensors:
             try:
                 tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
@@ -193,7 +192,7 @@ class Collaborator(object):
                 self.logger.debug("ValueError for proto {}".format(tensor_proto.name))
                 raise e
 
-        tensor_dict = {**tensor_dict, **self.holdout_params}
+        tensor_dict = {**agg_tensor_dict, **self.holdout_params}
         
 
         if self.opt_treatment == OptTreatment.AGG and reply.model.header.version !=0:

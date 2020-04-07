@@ -195,10 +195,17 @@ class Collaborator(object):
         tensor_dict = {**agg_tensor_dict, **self.holdout_params}
         
 
-        if self.opt_treatment == OptTreatment.AGG and reply.model.header.version !=0:
+        if self.opt_treatment == OptTreatment.AGG:
             with_opt_vars = True
         else:
             with_opt_vars = False
+
+        # Ensuring proper initialization regardless of model state. Initial global models 
+        # do not contain optimizer state, and so cannot be used to reset the optimizer params.
+        if reply.model.header.version == 0:
+            with_opt_vars = False
+            wrapped_model.reset_opt_vars()
+
         self.wrapped_model.set_tensor_dict(tensor_dict, with_opt_vars=with_opt_vars)
         self.logger.debug("Loaded the model.")
 

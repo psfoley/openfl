@@ -46,7 +46,7 @@ before_script:
 - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
 - python3 -m pip --version
 - echo "0---"
-- ls venv
+- ls
 - make install
 - echo "1---"
 - ls venv

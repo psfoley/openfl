@@ -49,7 +49,6 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     wrapped_model = get_object(data=data, **model_config)
     
     fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
-    model_version = fed_config['model_version']
 
     tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
     
@@ -59,7 +58,7 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
                 'local initialization will determine values: {}'.format(list(holdout_params.keys())))       
 
     export_weights(model_name=wrapped_model.__class__.__name__, 
-                   version=model_version, 
+                   version=0, 
                    tensor_dict=tensor_dict,
                    fpath=fpath)
 

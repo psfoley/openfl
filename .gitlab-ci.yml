@@ -79,9 +79,9 @@ test_tf_resnet_mnist:
         paths:
         - venv
         policy: pull
+    script: 
     - echo "2---"
     - ls
-    script: 
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml
     #- ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml

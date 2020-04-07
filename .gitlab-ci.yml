@@ -48,11 +48,11 @@ before_script:
 - make install
 - echo "1---"
 - ls
-  cache: &global_cache
-    key: make_install
-    paths:
-    - venv
-    policy: pull-push
+  #cache: &global_cache
+  #  key: make_install
+  #  paths:
+  #  - venv
+  #  policy: pull-push
 
 test_pt_cnn_mnist:
     stage: test

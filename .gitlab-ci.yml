@@ -30,7 +30,8 @@ pages:
   only:
   - master
 
-image: tensorflow/tensorflow:1.14.0-gpu-py3 
+#image: tensorflow/tensorflow:1.14.0-gpu-py3 
+image: ubuntu:18.04
 #image: alpine
 
 test:
@@ -42,7 +43,7 @@ test:
     #- apk --no-cache add musl-dev linux-headers g++
     - apt-get update -qy
     - apt-get install -y python3-venv python-pip build-essential musl-dev g++
-    #- apt-get install -y python-venv
+    # dont' use python-dev
 
     - echo "1 `ls`"
     - uname -a

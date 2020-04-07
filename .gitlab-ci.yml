@@ -6,7 +6,7 @@ image: alpine
 #   - 'echo "{ \"proxies\": { \"default\": { \"httpProxy\": \"http://proxy-us.intel.com:911\", \"httpsProxy\": \"http://proxy-us.intel.com:912\", \"noProxy\": \"intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16\" } } }" > $HOME/.docker/config.json'
 stages:
     - build
-    - testing
+    - test
 
 pages:
   stage: build
@@ -36,18 +36,16 @@ pages:
 image: ubuntu:18.04
 
 test_pt_cnn_mnist:
-    stage: testing
+    stage: test
+    variables: 
+    - http_proxy: 'http://proxy-us.intel.com:911'
+    - https_proxy: 'http://proxy-us.intel.com:912'
+    - no_proxy: 'docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16'
     before_script:
-    - export http_proxy=http://proxy-us.intel.com:911
-    - export https_proxy=http://proxy-us.intel.com:912
-    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - make install
-    artifacts:
-      paths:
-      - venv/
     script: 
     - echo 'testing case1::'
     - cd bin/
@@ -58,7 +56,7 @@ test_pt_cnn_mnist:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
 test_tf_resnet_mnist:
-    stage: testing
+    stage: test
     script: 
     - 'testing case2::'
     - export http_proxy=http://proxy-us.intel.com:911
@@ -67,7 +65,7 @@ test_tf_resnet_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    #- make install
+    - make install
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml
     - ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml

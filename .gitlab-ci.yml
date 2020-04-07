@@ -37,6 +37,8 @@ image: ubuntu:18.04
 
 
 before_script:
+- echo "-1---"
+- ls venv
 - export http_proxy=http://proxy-us.intel.com:911
 - export https_proxy=http://proxy-us.intel.com:912
 - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
@@ -44,15 +46,15 @@ before_script:
 - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
 - python3 -m pip --version
 - echo "0---"
-- ls
+- ls venv
 - make install
 - echo "1---"
-- ls
-  #cache: &global_cache
-  #  key: make_install
-  #  paths:
-  #  - venv
-  #  policy: pull-push
+- ls venv
+cache: 
+    key: make_install
+    paths:
+    - venv
+    policy: pull-push
 
 test_pt_cnn_mnist:
     stage: test
@@ -65,6 +67,8 @@ test_pt_cnn_mnist:
       policy: pull
     script: 
     - echo 'testing case1::'
+    - echo "2---"
+    - ls
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
     #- ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
@@ -73,24 +77,11 @@ test_pt_cnn_mnist:
 
 test_tf_resnet_mnist:
     stage: test
-    before_script:
-    #- echo 'testing case2::'
-    #- export http_proxy=http://proxy-us.intel.com:911
-    #- export https_proxy=http://proxy-us.intel.com:912
-    #- export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    #- apt-get update -qy
-    #- apt-get install -y python3-venv python3-pip build-essential musl-dev g++
-    #- python3 -m pip --version
-    #- echo "1---"
-    #- ls
-    #- make install
     cache:
       key: make_install
-      paths:
-      - venv
       policy: pull
     script: 
-    - echo "2---"
+    - echo "3---"
     - ls
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml

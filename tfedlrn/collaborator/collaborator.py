@@ -55,10 +55,10 @@ class Collaborator(object):
         self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
     def _remove_and_save_holdout_params(self, tensor_dict):
-        new_dict, self.holdout_params = split_tensor_dict_for_holdouts(tensor_dict, **self.tensor_dict_split_fn_kwargs)
+        tensors_to_send, self.holdout_params = split_tensor_dict_for_holdouts(tensor_dict, **self.tensor_dict_split_fn_kwargs)
         if self.holdout_params != {}:
             self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.holdout_params.keys())))
-        return new_dict
+        return tensors_to_send
 
     def create_message_header(self):
         header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)

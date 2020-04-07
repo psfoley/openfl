@@ -29,7 +29,7 @@ def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
 def split_tensor_dict_for_holdouts(tensor_dict, holdout_types=['non_float'], holdout_tensor_names=[]):
 
     # initialization
-    tensors_to_send = tensor_dict
+    tensors_to_send = tensor_dict.copy()
     holdout_tensors = {}  
     
     # filter holdout_types from tensors_to_send and add to holdout_tensors

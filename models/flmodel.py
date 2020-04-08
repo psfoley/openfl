@@ -20,7 +20,7 @@ class FLModel(object):
         # If set to none, an empty dict will be passed, currently resulting in the defaults:
         # holdout_types=['non_float'] # all param np.arrays of this type will be held out  
         # holdout_tensor_names=[]     # params with these names will be held out
-        # params are restored from protobufs as float32 numpy arrays, so       
+        # TODO: params are restored from protobufs as float32 numpy arrays, so       
         # non-floats arrays and non-arrays are not currently supported for passing to and
         # from protobuf (and as a result for aggregation) - for such params in current examples,
         # aggregation does not make sense anyway, but if this changes support should be added.      

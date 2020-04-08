@@ -49,11 +49,11 @@ before_script:
 - make install
 - echo "1---"
 - ls venv
-cache:
-  key: make_install
-  paths:
-  - venv
-  policy: push
+#cache:
+#  key: make_install
+#  paths:
+#  - venv
+#  policy: push
 
 test_pt_cnn_mnist:
     stage: test

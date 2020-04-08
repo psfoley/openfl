@@ -53,7 +53,7 @@ cache:
   key: make_install
   paths:
   - venv
-  policy: push
+  policy: pull-push
 
 test_pt_cnn_mnist:
     stage: test

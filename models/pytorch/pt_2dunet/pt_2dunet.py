@@ -33,9 +33,9 @@ def dice_coef_loss(pred, target, smoothing=1.0):
 class PyTorch2DUNet(PyTorchFLModel):
 
     def __init__(self, data, device='cpu', optimizer='SGD', **kwargs):
-        super().__init__(data=data, device=device)
+        super().__init__(data=data, device=device, **kwargs)
 
-        self.init_network(device, **kwargs)
+        self.init_network(device=self.device, **kwargs)
         self.init_optimizer(optimizer)
         self.loss_fn = partial(dice_coef_loss, smoothing=1.0)
    
@@ -94,7 +94,8 @@ class PyTorch2DUNet(PyTorchFLModel):
                      dropout_layers=[2, 3],
                      initial_channels=1,
                      depth_per_side=5,
-                     initial_filters=32):
+                     initial_filters=32, 
+                     **kwargs):
 
         f = initial_filters
         if dropout_layers is None:

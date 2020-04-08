@@ -12,10 +12,19 @@ from tfedlrn.proto import export_weights
 
 class FLModel(object):
 
-    def __init__(self, data):
+    def __init__(self, data, tensor_dict_split_fn_kwargs=None, **kwargs):
         self.data = data
         self.feature_shape = self.data.get_feature_shape()
-        self.tensor_dict_split_fn_kwargs = None
+
+        # key word arguments for determining which parameters to hold out from aggregation. 
+        # If set to none, an empty dict will be passed, currently resulting in the defaults:
+        # holdout_types=['non_float'] # all param np.arrays of this type will be held out  
+        # holdout_tensor_names=[]     # params with these names will be held out
+        # params are restored from protobufs as float32 numpy arrays, so       
+        # non-floats arrays and non-arrays are not currently supported for passing to and
+        # from protobuf (and as a result for aggregation) - for such params in current examples,
+        # aggregation does not make sense anyway, but if this changes support should be added.      
+        self.tensor_dict_split_fn_kwargs = tensor_dict_split_fn_kwargs
 
 
     def set_logger(self):

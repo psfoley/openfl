@@ -42,10 +42,10 @@ class BasicBlock(nn.Module):
 class PyTorchResnet(PyTorchFLModel):
 
     def __init__(self, data, device='cpu', **kwargs):
-        super().__init__(data, device=device)
+        super().__init__(data=data, device=device, **kwargs)
 
         self.num_classes = self.data.num_classes
-        self.init_network(device, BasicBlock, [2,2,2,2], **kwargs)# Resnet18
+        self.init_network(self.device, BasicBlock, [2,2,2,2], **kwargs)# Resnet18
         self._init_optimizer()        
 
         self.loss_fn = cross_entropy
@@ -53,7 +53,7 @@ class PyTorchResnet(PyTorchFLModel):
     def _init_optimizer(self):
         self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
 
-    def init_network(self, device, block, num_blocks, num_classes=10):
+    def init_network(self, device, block, num_blocks, num_classes=10, **kwargs):
         self.in_planes = 64
         channel = self.data.get_feature_shape()[0]
         self.conv1 = nn.Conv2d(channel, 64, kernel_size=3, stride=1, padding=1, bias=False)

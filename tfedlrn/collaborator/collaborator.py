@@ -55,7 +55,7 @@ class Collaborator(object):
         self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
     def _remove_and_save_holdout_params(self, tensor_dict):
-        tensors_to_send, self.holdout_params = split_tensor_dict_for_holdouts(tensor_dict, **self.tensor_dict_split_fn_kwargs)
+        tensors_to_send, self.holdout_params = split_tensor_dict_for_holdouts(self.logger, tensor_dict, **self.tensor_dict_split_fn_kwargs)
         if self.holdout_params != {}:
             self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.holdout_params.keys())))
         return tensors_to_send
@@ -187,7 +187,7 @@ class Collaborator(object):
         # which is why default behaviour is to hold out all non-float parameters from aggregation. 
         for tensor_proto in reply.model.tensors:
             try:
-                tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
+                agg_tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
             except ValueError as e:
                 self.logger.debug("ValueError for proto {}".format(tensor_proto.name))
                 raise e
@@ -204,7 +204,7 @@ class Collaborator(object):
         # do not contain optimizer state, and so cannot be used to reset the optimizer params.
         if reply.model.header.version == 0:
             with_opt_vars = False
-            wrapped_model.reset_opt_vars()
+            self.wrapped_model.reset_opt_vars()
 
         self.wrapped_model.set_tensor_dict(tensor_dict, with_opt_vars=with_opt_vars)
         self.logger.debug("Loaded the model.")

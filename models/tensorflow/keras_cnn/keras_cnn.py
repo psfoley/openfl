@@ -14,10 +14,10 @@ class KerasCNN(KerasFLModel):
     """A basic convolutional neural network model.
 
     """
-    def __init__(self, data, **kwargs):
-        super().__init__(data)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         
-        self.model = self.build_model(self.feature_shape, data.num_classes, **kwargs)
+        self.model = self.build_model(self.feature_shape, self.data.num_classes, **kwargs)
 
         self.set_logger()
 
@@ -32,7 +32,8 @@ class KerasCNN(KerasFLModel):
                     conv_strides = (2, 2), 
                     conv1_channels_out=16,
                     conv2_channels_out=32,
-                    final_dense_inputsize=100):
+                    final_dense_inputsize=100, 
+                    **kwargs):
         """
         Define the model architecture.
         Parameters

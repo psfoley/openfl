@@ -8,8 +8,8 @@ from models.tensorflow import TensorFlowFLModel
 
 class TensorFlow2DUNet(TensorFlowFLModel):
 
-    def __init__(self, data, **kwargs):
-        super().__init__(data) 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs) 
 
         self.create_model(**kwargs)
 

@@ -15,8 +15,8 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 
 class KerasFLModel(FLModel):
-    def __init__(self, data):
-        super().__init__(data)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.model = keras.Model()
 

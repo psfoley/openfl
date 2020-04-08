@@ -20,14 +20,12 @@ class PyTorchCNN(PyTorchFLModel):
     Simple CNN for classification.
     """
 
-    def __init__(self, data, device='cpu', num_classes=10, **kwargs):
-        super().__init__(data, device=device)
+    def __init__(self, data, device='cpu', **kwargs):
+        super().__init__(data=data, device=device, **kwargs)
 
-        self.data = data
-        self.num_classes = num_classes
-        self.init_network(device, **kwargs)
+        self.num_classes = self.data.num_classes
+        self.init_network(device=self.device, **kwargs)
         self._init_optimizer()        
-
         self.loss_fn = cross_entropy
 
     def _init_optimizer(self):
@@ -40,7 +38,8 @@ class PyTorchCNN(PyTorchFLModel):
                      conv_sqrkernel_size=5, 
                      conv1_channels_out=20, 
                      conv2_channels_out=50, 
-                     fc2_insize = 500):
+                     fc2_insize = 500, 
+                     **kwargs):
         """
         FIXME: We are tracking only side lengths (rather than length and width) as we are assuming square 
         shapes for feature and kernels.

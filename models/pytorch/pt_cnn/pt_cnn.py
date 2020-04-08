@@ -95,7 +95,7 @@ class PyTorchCNN(PyTorchFLModel):
 
         loader = self.data.get_val_loader()
         if use_tqdm:
-            loader = tqdm(loader, desc="validate")
+            loader = tqdm.tqdm(loader, desc="validate")
 
         with torch.no_grad():
             for data, target in loader:
@@ -117,7 +117,7 @@ class PyTorchCNN(PyTorchFLModel):
 
         loader = self.data.get_train_loader()
         if use_tqdm:
-            loader = tqdm(loader, desc="train epoch")
+            loader = tqdm.tqdm(loader, desc="train epoch")
 
         for data, target in loader:
             data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)

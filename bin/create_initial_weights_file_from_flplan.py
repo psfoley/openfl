@@ -52,7 +52,8 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
 
     tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
     
-    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(wrapped_model.get_tensor_dict(False), 
+    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, 
+                                                                 wrapped_model.get_tensor_dict(False), 
                                                                  **tensor_dict_split_fn_kwargs)
     logger.warn('Following paramters omitted from global initial model, '\
                 'local initialization will determine values: {}'.format(list(holdout_params.keys())))       

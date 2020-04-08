@@ -51,7 +51,7 @@ class PyTorch2DUNet(PyTorchFLModel):
         
         gen = self.data.get_train_loader()
         if use_tqdm:
-            gen = tqdm(gen, desc="training epoch")
+            gen = tqdm.tqdm(gen, desc="training epoch")
         
         for data, target in gen:
             if isinstance(data, np.ndarray):
@@ -74,7 +74,7 @@ class PyTorch2DUNet(PyTorchFLModel):
 
         gen = self.data.get_val_loader()
         if use_tqdm:
-            gen = tqdm(gen, desc="validate")
+            gen = tqdm.tqdm(gen, desc="validate")
 
         with torch.no_grad():
             for data, target in gen:

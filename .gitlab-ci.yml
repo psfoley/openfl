@@ -35,12 +35,25 @@ pages:
 
 image: ubuntu:18.04
 
-
-cache: 
-    key: make_install
-    paths:
-    - venv
-    policy: pull-push
+before_script:
+- echo "-1---"
+- ls
+- export http_proxy=http://proxy-us.intel.com:911
+- export https_proxy=http://proxy-us.intel.com:912
+- export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+- apt-get update -qy
+- apt-get install -y python3-venv python3-pip build-essential musl-dev g++
+- python3 -m pip --version
+- echo "0---"
+- ls
+- make install
+- echo "1---"
+- ls venv
+cache:
+  key: make_install
+  paths:
+  - venv
+  policy: push
 
 test_pt_cnn_mnist:
     stage: test
@@ -49,24 +62,13 @@ test_pt_cnn_mnist:
     #  https_proxy: 'http://proxy-us.intel.com:912'
     #  no_proxy: 'docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16'
     before_script:
-    - echo "-1---"
+    - echo "testing cases1 before_script---"
     - ls
-    - export http_proxy=http://proxy-us.intel.com:911
-    - export https_proxy=http://proxy-us.intel.com:912
-    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    - apt-get update -qy
-    - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
-    - python3 -m pip --version
-    - echo "0---"
-    - ls
-    - make install
-    - echo "1---"
-    - ls venv
     cache:
       key: make_install
       paths:
       - venv
-      policy: push
+      policy: pull1
     script: 
     - echo 'testing case1::'
     - echo "2---"
@@ -79,6 +81,9 @@ test_pt_cnn_mnist:
 
 test_tf_resnet_mnist:
     stage: test
+    before_script:
+    - echo "testing cases2 before_script---"
+    - ls
     cache:
       key: make_install
       policy: pull

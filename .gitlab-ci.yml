@@ -36,11 +36,11 @@ pages:
 image: ubuntu:18.04
 
 
-#cache: 
-#    key: make_install
-#    paths:
-#    - venv
-#    policy: pull-push
+cache: 
+    key: make_install
+    paths:
+    - venv
+    policy: pull-push
 
 test_pt_cnn_mnist:
     stage: test
@@ -64,9 +64,9 @@ test_pt_cnn_mnist:
     - ls venv
     cache:
       key: make_install
-      policy: push
       paths:
       - venv
+      policy: push
     script: 
     - echo 'testing case1::'
     - echo "2---"

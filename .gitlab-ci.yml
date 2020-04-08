@@ -53,7 +53,7 @@ cache:
   key: make_install
   paths:
   - venv
-  policy: pull-push
+  policy: push
 
 test_pt_cnn_mnist:
     stage: test
@@ -68,7 +68,7 @@ test_pt_cnn_mnist:
       key: make_install
       paths:
       - venv
-      policy: pull1
+      policy: pull
     script: 
     - echo 'testing case1::'
     - echo "2---"

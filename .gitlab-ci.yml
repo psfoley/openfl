@@ -33,7 +33,8 @@ pages:
   only:
   - master
 
-image: ubuntu:18.04
+#image: ubuntu:18.04
+image: tensorflow/tensorflow:1.14.0-gpu-py3
 
 #cache:
 #  key: make_install
@@ -61,11 +62,12 @@ test_pt_cnn_mnist:
       - venv
     script: 
     - cd bin/
-    - ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
-    - ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
+    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
+    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
+'''
 test_pt_cnn_cifar10:
     stage: test
     before_script:
@@ -86,6 +88,8 @@ test_pt_cnn_cifar10:
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withcifar10.yaml
     - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withcifar10.yaml
     only:
+    - 101-Build-GitLab-CI-testing-tool-fundamentals
+'''
 
 test_tf_resnet_mnist:
     stage: test

@@ -35,9 +35,10 @@ def federate(col_config,
     
     # instantiate the model (using the first collaborator dataset for now)
     model = get_object(data=col_data[col_ids[0]], **model_config)
-
-    if opt_treatment == 'EDGE':
-        raise NotImplementedError('EDGE mode simulation is currently not supported.')
+    
+    # FL collaborators are statefull. Since this single process script utilizes one
+    # shared model for all collaborators, model states need to be tracked.
+    model_states = {col_id: None for col_id in col_ids}
 
     # create the aggregator
     aggregator = Aggregator(init_model_fpath=init_model_fpath, 
@@ -56,7 +57,7 @@ def federate(col_config,
 
 
     # TODO: Enable flat score detection, minimum accept, etc.
-    for _ in range(rounds_to_train):
+    for round in range(rounds_to_train):
         for col_id in col_ids:
 
             collaborator = collaborators[col_id]
@@ -64,10 +65,18 @@ def federate(col_config,
             # overwrite the model's data using current insitution
             model.set_data(col_data[col_id])
 
+            
+            if round != 0:
+                # restore model state from when this collaborator last held the model
+                model.set_tensor_dict(model_states[col_id], with_opt_vars=True)
+
             # run the collaborator jobs for this round
             collaborator.run_to_yield_or_quit()
 
-
-       
+            model_states[col_id] = model.get_tensor_dict(with_opt_vars=True)
 
                 
+
+
+
+       

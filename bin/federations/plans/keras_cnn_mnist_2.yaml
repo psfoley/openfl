@@ -36,7 +36,7 @@ status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'RESET'
+  opt_treatment: &opt_treatment 'EDGE'
   polling_interval: &polling_interval 4
   rounds_to_train: &rounds_to_train 16
   agg_id: &agg_id 'agg_0'

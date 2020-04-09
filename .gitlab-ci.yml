@@ -84,7 +84,7 @@ test_pt_cnn_cifar10:
     - ls
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withcifar10.yaml
-    - ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withcifar10.yaml
+    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withcifar10.yaml
     only:
 
 test_tf_resnet_mnist:
@@ -105,6 +105,6 @@ test_tf_resnet_mnist:
     - ls
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml
-    - ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml
+    - CUDA_VISIBLE_DEVICES=1 ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals

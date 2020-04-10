@@ -34,8 +34,8 @@ pages:
   - master
 
 #image: ubuntu:18.04
-image: tensorflow/tensorflow:1.14.0-gpu-py3
-#image: nvidia/cuda:9.0-base
+#image: tensorflow/tensorflow:1.14.0-gpu-py3
+image: nvidia/cuda:9.0-base
 
 #cache:
 #  key: make_install

@@ -7,8 +7,8 @@ from models import FLModel
 
 class TensorFlowFLModel(FLModel):
 
-    def __init__(self, data):
-        super().__init__(data)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.assign_ops = None
         self.placeholders = None

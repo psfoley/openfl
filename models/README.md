@@ -9,8 +9,7 @@ As our tool develops, the collaborators will eventually download the code to joi
 
 
 ## Interface
-The current examples are classes, whose constructors take a data object along with other key word arguments. In order to run federations (or single process simulations), the model class should have the methods:
-> TODO: we should implement a base class for all models
+The current examples are classes, whose constructors take a data object along with other key word arguments. In order to run federations (or single process simulations), the model class should have the attributes:
 
 * get_data()
 * set_data(data_object)
@@ -21,6 +20,10 @@ The current examples are classes, whose constructors take a data object along wi
 * get_tensor_dict(Boolean with_opt_vars)
 * set_tensor_dict(tensor_dict)
 * reset_opt_vars()
+* tensor_dict_split_fn_kwargs   
+    Determines which params to hold out from aggregation, 
+    Ex: {holdout_types=['non_float'], holdout_tensor_names=[]}
+
 
 We may also add this for the aggregator:
 

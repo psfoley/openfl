@@ -131,13 +131,13 @@ def resnet_v1(input_shape, depth, num_classes=10):
 
 class KerasResnet(KerasFLModel):
     """ResNet model."""
-    def __init__(self, data, **kwargs):
+    def __init__(self, **kwargs):
         """ResNet constructor.
 
         Args:
           mode: One of 'train' and 'eval'.
         """
-        super(KerasResnet, self).__init__(data=data)                                                                                                       
+        super(KerasResnet, self).__init__(**kwargs)                                                                                                       
         #TODO: set the mode
         mode = 'train'
         #mode = 'eval'

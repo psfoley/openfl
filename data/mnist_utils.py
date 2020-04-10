@@ -28,7 +28,7 @@ def _load_raw_datashards(shard_num, nb_collaborators):
     return (X_train, y_train), (X_test, y_test)
 
 
-def load_mnist_shard(shard_num, nb_collaborators, data_format=None, categorical=True, **kwargs):
+def load_mnist_shard(shard_num, nb_collaborators, categorical=True, channels_last=True,  **kwargs):
     """
     Load the MNIST dataset.
 
@@ -56,16 +56,15 @@ def load_mnist_shard(shard_num, nb_collaborators, data_format=None, categorical=
     num_classes = 10
 
     (X_train, y_train), (X_test, y_test) = _load_raw_datashards(shard_num, nb_collaborators)
-    if data_format is None:
-        data_format = K.image_data_format()
-    if data_format == 'channels_first':
-        X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
-        X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
-        input_shape = (1, img_rows, img_cols)
-    else:
+
+    if channels_last:
         X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, 1)
         X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, 1)
         input_shape = (img_rows, img_cols, 1)
+    else:
+        X_train = X_train.reshape(X_train.shape[0], 1, img_rows, img_cols)
+        X_test = X_test.reshape(X_test.shape[0], 1, img_rows, img_cols)
+        input_shape = (1, img_rows, img_cols)
 
     X_train = X_train.astype('float32')
     X_test = X_test.astype('float32')

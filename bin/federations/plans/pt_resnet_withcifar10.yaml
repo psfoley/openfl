@@ -90,4 +90,3 @@ data:
   nb_collaborators: 10
   batch_size: 256
   channels_last: False
-  data_format: 'channels_first'

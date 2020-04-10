@@ -31,14 +31,14 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-description     : Train a model to perform classification on MNIST images.
+description     : Train a model to perform classification on CIFAR10 images.
 status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
   opt_treatment: &opt_treatment 'RESET'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 10
+  rounds_to_train: &rounds_to_train 4
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
   agg_port: &agg_port 8878 
@@ -53,9 +53,10 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-  init_model_fname: pt_cnn_init.pbuf
-  latest_model_fname: pt_cnn_latest.pbuf
-  best_model_fname: pt_cnn_best.pbuf
+  init_model_fname: pytorch_cnn_init.pbuf
+  latest_model_fname: pytorch_cnn_latest.pbuf
+  best_model_fname: pytorch_cnn_best.pbuf
+  model_version: &model_version 1
 
 hostnames:
   __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
@@ -63,7 +64,7 @@ hostnames:
 model:
   code_path: models.pytorch
   class_name: PyTorchCNN
-    
+
 aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
@@ -73,6 +74,7 @@ aggregator:
 collaborator:
   agg_id: *agg_id
   fed_id: *fed_id
+  model_version: *model_version
   polling_interval: *polling_interval
   opt_treatment: *opt_treatment 
 
@@ -84,8 +86,9 @@ grpc:
   cert_folder: test
 
 data:
-  data_name: mnist_shard 
+  data_name: cifar10_shard 
   code_path: data.pytorch 
-  class_name: PyTorchMNISTInMemory
+  class_name: PyTorchCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256
+  channels_last: False

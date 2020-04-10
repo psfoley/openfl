@@ -30,7 +30,7 @@ def _load_raw_datashards(shard_num, nb_collaborators):
     y_test_shards  = y_test[shard_num::nb_collaborators]
     return (X_train_shards, y_train_shards), (X_test_shards, y_test_shards)
 
-def load_cifar10_shard(shard_num, nb_collaborators, data_format=None, categorical=True, channels_last=False, **kwargs):
+def load_cifar10_shard(shard_num, nb_collaborators, categorical=True, channels_last=False, **kwargs):
     """
     Load the CIFAR10 dataset.
 
@@ -58,8 +58,7 @@ def load_cifar10_shard(shard_num, nb_collaborators, data_format=None, categorica
     num_classes = 10
 
     (X_train, y_train), (X_test, y_test) = _load_raw_datashards(shard_num, nb_collaborators)
-    if data_format is None:
-        data_format = K.image_data_format()
+
     if channels_last:
         X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, img_channel)
         X_test = X_test.reshape(X_test.shape[0], img_rows, img_cols, img_channel)

@@ -43,6 +43,29 @@ image: nvidia/cuda:9.0-base
 #  - venv
 #  policy: push
 
+variables:
+   NVIDIA_VISIBLE_DEVICES: "3"  # This is going to override definition(s) in /etc/gitlab-runner/config.toml
+
+test:run_on_gpu0:
+  stage: test
+  script:
+    - echo NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
+    - nvidia-smi
+    - sleep 10s
+  tags:
+    - docker
+    - gpu0
+
+test:run_on_gpu1:
+  stage: test
+  script:
+    - echo NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
+    - nvidia-smi
+    - sleep 7s
+  tags:
+    - docker
+    - gpu1
+
 test_pt_cnn_mnist:
     stage: test
     #variables: 

@@ -51,20 +51,14 @@ test:run_on_gpu0:
   script:
     - echo NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
     - nvidia-smi
-    - sleep 10s
-  tags:
-    - docker
-    - gpu0
+    - sleep 3s
 
 test:run_on_gpu1:
   stage: test
   script:
     - echo NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
     - nvidia-smi
-    - sleep 7s
-  tags:
-    - docker
-    - gpu1
+    - sleep 5s
 
 test_pt_cnn_mnist:
     stage: test

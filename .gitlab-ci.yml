@@ -35,6 +35,7 @@ pages:
 
 #image: ubuntu:18.04
 image: tensorflow/tensorflow:1.14.0-gpu-py3
+#image: nvidia/cuda:9.0-base
 
 #cache:
 #  key: make_install
@@ -55,15 +56,16 @@ test_pt_cnn_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    - make install
+    #- make install
     cache:
       key: make_install
       paths:
       - venv
     script: 
     - cd bin/
-    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
-    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
+    - nvidia-smi
+    #- CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
+    #- CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
@@ -85,6 +87,6 @@ test_tf_resnet_mnist:
     - ls
     - cd bin/
     - ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml
-    - CUDA_VISIBLE_DEVICES=1 ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml
+    #- CUDA_VISIBLE_DEVICES=1 ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals

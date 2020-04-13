@@ -34,8 +34,7 @@ pages:
   - master
 
 #image: ubuntu:18.04
-#image: tensorflow/tensorflow:1.14.0-gpu-py3
-image: nvidia/cuda:9.0-base
+image: tensorflow/tensorflow:1.14.0-gpu-py3
 
 #cache:
 #  key: make_install
@@ -43,25 +42,9 @@ image: nvidia/cuda:9.0-base
 #  - venv
 #  policy: push
 
-variables:
-   NVIDIA_VISIBLE_DEVICES: "3"  # This is going to override definition(s) in /etc/gitlab-runner/config.toml
-
-test:run_on_gpu0:
-  stage: test
-  script:
-    - echo NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
-    - nvidia-smi
-    - sleep 3s
-
-test:run_on_gpu1:
-  stage: test
-  script:
-    - echo NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
-    - nvidia-smi
-    - sleep 5s
-
 test_pt_cnn_mnist:
     stage: test
+    tags: test1
     #variables: 
     #  http_proxy: 'http://proxy-us.intel.com:911'
     #  https_proxy: 'http://proxy-us.intel.com:912'
@@ -73,15 +56,14 @@ test_pt_cnn_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    #- make install
+    - make install
     cache:
       key: make_install
       paths:
       - venv
     script: 
     - cd bin/
-    - nvidia-smi
-    #- CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
+    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
     #- CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals

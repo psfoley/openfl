@@ -34,22 +34,11 @@ pages:
   - master
 
 #image: ubuntu:18.04
-image: tensorflow/tensorflow:1.14.0-gpu-py3
-
-#cache:
-#  key: make_install
-#  paths:
-#  - venv
-#  policy: push
+#image: tensorflow/tensorflow:1.14.0-gpu-py3
 
 test_pt_cnn_mnist:
     stage: test
     tags: 
-    - test1
-    #variables: 
-    #  http_proxy: 'http://proxy-us.intel.com:911'
-    #  https_proxy: 'http://proxy-us.intel.com:912'
-    #  no_proxy: 'docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16'
     before_script:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912

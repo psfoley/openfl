@@ -44,7 +44,8 @@ image: tensorflow/tensorflow:1.14.0-gpu-py3
 
 test_pt_cnn_mnist:
     stage: test
-    tags: test1
+    tags: 
+    - test1
     #variables: 
     #  http_proxy: 'http://proxy-us.intel.com:911'
     #  https_proxy: 'http://proxy-us.intel.com:912'

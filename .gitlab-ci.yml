@@ -39,7 +39,9 @@ image: ubuntu:18.04
 test_pt_cnn_mnist:
     stage: test
     tags: 
+    - docker-gpu
     before_script:
+    - nvidia-smi
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16

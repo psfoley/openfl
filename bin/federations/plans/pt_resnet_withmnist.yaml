@@ -64,6 +64,7 @@ hostnames:
 model:
   code_path: models.pytorch
   class_name: PyTorchResnet
+  device: cuda
     
 aggregator:
   agg_id: *agg_id

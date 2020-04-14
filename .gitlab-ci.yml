@@ -33,8 +33,8 @@ pages:
   only:
   - master
 
-image: ubuntu:18.04
-#image: tensorflow/tensorflow:1.14.0-gpu-py3
+#image: ubuntu:18.04
+image: tensorflow/tensorflow:1.14.0-gpu-py3
 
 test_pt_cnn_mnist:
     stage: test

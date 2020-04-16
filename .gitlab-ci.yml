@@ -41,7 +41,7 @@ before_script:
     - pwd
     - ls ../
 
-.test_pt_cnn_mnist:
+test_pt_cnn_mnist:
     stage: test
     tags: 
     - docker-gpu

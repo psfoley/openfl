@@ -34,7 +34,8 @@ pages:
   - master
 
 #image: ubuntu:18.04
-image: alpine
+#image: alpine
+image: tensorflow/tensorflow:1.14.0-gpu-py3
 
 before_test:
     stage: build
@@ -54,6 +55,9 @@ before_test:
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - docker run hello-world
+    - apt-get update -qy
+    - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
+    - python3 -m pip --version
     - make install
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals

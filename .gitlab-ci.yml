@@ -48,10 +48,13 @@ test_pt_cnn_mnist:
     before_script:
     - DISPLAY=:0
     - echo "clone the directory ..."
-    - cd /home/gitlab-runner/workspace
+    - pwd
+    - cd ..
+    #- cd /home/gitlab-runner/workspace
     - sudo rm -rf spr_secure_intelligence-trusted_federated_learning
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - cd spr_secure_intelligence-trusted_federated_learning/
+    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
     - nvidia-smi
     - docker run hello-world
@@ -79,10 +82,11 @@ test_tf_resnet_mnist:
     before_script:
     - DISPLAY=:0
     - echo "clone the directory ..."
-    - cd /home/gitlab-runner/workspace
+    #- cd /home/gitlab-runner/workspace
     - sudo rm -rf spr_secure_intelligence-trusted_federated_learning
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - cd spr_secure_intelligence-trusted_federated_learning/
+    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
     - whoami
     - id `whoami`

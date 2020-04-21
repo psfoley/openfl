@@ -97,6 +97,7 @@ test_pt_cnn_mnist:
     #- make install
     cache:
       key: make_install
+      policy: pull
       paths:
       - venv
     script: 

@@ -37,7 +37,6 @@ pages:
 image: tensorflow/tensorflow:1.14.0-gpu-py3
 #
 before_script:
-  stage: build
     - pwd
     - nvidia-smi
     - DISPLAY=:0

@@ -51,7 +51,7 @@ test_pt_cnn_mnist:
     - pwd
     - cd ..
     #- cd /home/gitlab-runner/workspace
-    - sudo rm -rf spr_secure_intelligence-trusted_federated_learning
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
     - cd spr_secure_intelligence-trusted_federated_learning/
     #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
@@ -83,7 +83,7 @@ test_tf_resnet_mnist:
     - DISPLAY=:0
     - echo "clone the directory ..."
     #- cd /home/gitlab-runner/workspace
-    - sudo rm -rf spr_secure_intelligence-trusted_federated_learning
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
     - cd spr_secure_intelligence-trusted_federated_learning/
     #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning

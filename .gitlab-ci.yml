@@ -27,6 +27,7 @@ pages:
   - sphinx-apidoc -f -o . ../models
   - make html
   - mv _build/html/ ../public/
+  - docker run hello-world
   artifacts:
     paths:
     - public
@@ -51,7 +52,6 @@ test_pt_cnn_mnist:
     - pwd
     - cd ..
     - nvidia-smi
-    - docker run hello-world
     - pwd
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
@@ -90,7 +90,6 @@ test_tf_resnet_mnist:
     - ls
     - ls ..
     - ls ../..
-    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - pwd
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912

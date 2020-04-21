@@ -60,6 +60,10 @@ before_test:
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - make install
+    cache:
+      key: make_install
+      paths:
+      - venv
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
@@ -68,7 +72,8 @@ image: tensorflow/tensorflow:1.14.0-gpu-py3
 test_pt_cnn_mnist:
     stage: test
     tags: 
-    - shell-runner-1
+    - docker-gpu
+    #- shell-runner-1
     before_script:
     - DISPLAY=:0
     - echo "clone the directory ..."
@@ -90,10 +95,10 @@ test_pt_cnn_mnist:
     #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
     #- make install
-    #cache:
-    #  key: make_install
-    #  paths:
-    #  - venv
+    cache:
+      key: make_install
+      paths:
+      - venv
     script: 
     - cd bin/
     - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
@@ -122,11 +127,11 @@ test_tf_resnet_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    #cache:
-    #  key: make_install
-    #  policy: pull
-    #  paths:
-    #  - venv
+    cache:
+      key: make_install
+      policy: pull
+      paths:
+      - venv
     script: 
     - ls
     - cd bin/

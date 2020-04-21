@@ -84,6 +84,8 @@ test_pt_cnn_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
+    - echo $CI_COMMIT_REF_NAME
+    - make install
     cache:
       key: make_install
       policy: pull
@@ -95,8 +97,6 @@ test_pt_cnn_mnist:
     #- git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
     #- cd spr_secure_intelligence-trusted_federated_learning/
     #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
-    - echo $CI_COMMIT_REF_NAME
-    - make install
     script: 
     - ls
     - cd bin/

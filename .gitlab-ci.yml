@@ -46,14 +46,15 @@ before_test:
     #- sudo rm -rf spr_secure_intelligence-trusted_federated_learning
     - rm -rf intel-privacy-and-security-services
     - echo "clone the directory ..."
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
-    - echo $CI_COMMIT_REF_NAME
-    - git checkout $CI_COMMIT_REF_NAME
+    #- git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    #- echo $CI_COMMIT_REF_NAME
+    #- git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - docker run hello-world
+    - make install
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
@@ -76,18 +77,18 @@ test_pt_cnn_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    - apt-get install -y git-all
+    #- apt-get install -y git-all
     #- cd /home/gitlab-runner/workspace
     #- rm -rf spr_secure_intelligence-trusted_federated_learning
     #- git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
     #- cd spr_secure_intelligence-trusted_federated_learning/
     #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
-    - make install
-    cache:
-      key: make_install
-      paths:
-      - venv
+    #- make install
+    #cache:
+    #  key: make_install
+    #  paths:
+    #  - venv
     script: 
     - cd bin/
     - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml

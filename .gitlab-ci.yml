@@ -53,12 +53,6 @@ before_script:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    - make install
-    - pwd
-    cache:
-      key: make_install
-      paths:
-      - venv
 #
 test_pt_cnn_mnist:
     stage: test

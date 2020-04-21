@@ -46,18 +46,10 @@ test_pt_cnn_mnist:
     tags: 
     - docker-gpu
     before_script:
-    - apt-get update -qy
-    - apt-get install -y git-all
     - DISPLAY=:0
     - echo "clone the directory ..."
     - pwd
     - cd ..
-    #- cd /home/gitlab-runner/workspace
-    - rm -rf spr_secure_intelligence-trusted_federated_learning
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd spr_secure_intelligence-trusted_federated_learning/
-    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
-    - echo $CI_COMMIT_REF_NAME
     - nvidia-smi
     - docker run hello-world
     - pwd
@@ -67,6 +59,13 @@ test_pt_cnn_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
+    - apt-get install -y git-all
+    #- cd /home/gitlab-runner/workspace
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - cd spr_secure_intelligence-trusted_federated_learning/
+    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - echo $CI_COMMIT_REF_NAME
     - make install
     cache:
       key: make_install
@@ -82,16 +81,8 @@ test_pt_cnn_mnist:
 test_tf_resnet_mnist:
     stage: test
     before_script:
-    - apt-get update -qy
-    - apt-get install -y git
     - DISPLAY=:0
     - echo "clone the directory ..."
-    #- cd /home/gitlab-runner/workspace
-    - rm -rf spr_secure_intelligence-trusted_federated_learning
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd spr_secure_intelligence-trusted_federated_learning/
-    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
-    - echo $CI_COMMIT_REF_NAME
     - whoami
     - id `whoami`
     - lastlog -u `whoami`
@@ -106,6 +97,13 @@ test_tf_resnet_mnist:
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
+    - apt-get install -y git
+    #- cd /home/gitlab-runner/workspace
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - cd spr_secure_intelligence-trusted_federated_learning/
+    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - echo $CI_COMMIT_REF_NAME
     - python3 -m pip --version
     cache:
       key: make_install

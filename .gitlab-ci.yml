@@ -40,13 +40,14 @@ image: tensorflow/tensorflow:1.14.0-gpu-py3
 before_test:
     stage: build
     tags: 
-    - shell-runner-1
+    - docker-gpu
+    #- shell-runner-1
     script:
     - DISPLAY=:0
-    - cd /home/gitlab-runner/workspace
+    #- cd /home/gitlab-runner/workspace
     #- sudo rm -rf spr_secure_intelligence-trusted_federated_learning
-    - rm -rf intel-privacy-and-security-services
-    - echo "clone the directory ..."
+    #- rm -rf intel-privacy-and-security-services
+    #- echo "clone the directory ..."
     #- git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
     #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     #- echo $CI_COMMIT_REF_NAME
@@ -121,11 +122,11 @@ test_tf_resnet_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    cache:
-      key: make_install
-      policy: pull
-      paths:
-      - venv
+    #cache:
+    #  key: make_install
+    #  policy: pull
+    #  paths:
+    #  - venv
     script: 
     - ls
     - cd bin/

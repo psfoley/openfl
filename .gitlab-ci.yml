@@ -46,7 +46,7 @@ test_pt_cnn_mnist:
     tags: 
     - docker-gpu
     before_script:
-    - apt-get install git
+    - apt-get install -y git-all
     - DISPLAY=:0
     - echo "clone the directory ..."
     - pwd
@@ -81,7 +81,7 @@ test_pt_cnn_mnist:
 test_tf_resnet_mnist:
     stage: test
     before_script:
-    - apt-get install git
+    - apt-get install -y git
     - DISPLAY=:0
     - echo "clone the directory ..."
     #- cd /home/gitlab-runner/workspace

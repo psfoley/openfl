@@ -154,14 +154,13 @@ before_test_shell:
     #- apt-get update -qy
     #- apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    - make install
-    cache:
-      key: make_install
-      paths:
-      - venv
+    #- make install
+    #cache:
+    #  key: make_install
+    #  paths:
+    #  - venv
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
-
 
 test_pt_cnn_mnist_shell:
     stage: test
@@ -178,11 +177,11 @@ test_pt_cnn_mnist_shell:
     #- apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     #- python3 -m pip --version
     #- echo $CI_COMMIT_REF_NAME
-    cache:
-      key: make_install
-      policy: pull
-      paths:
-      - venv
+    #cache:
+    #  key: make_install
+    #  policy: pull
+    #  paths:
+    #  - venv
     #- apt-get install -y git-all
     #- cd /home/gitlab-runner/workspace
     #- rm -rf spr_secure_intelligence-trusted_federated_learning
@@ -192,8 +191,10 @@ test_pt_cnn_mnist_shell:
     script: 
     - ls
     - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
-    - cd bin/
-    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
-    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
+    - make build_containers
+    - make run_agg_container &
+    - make run_col_container &
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
+
+

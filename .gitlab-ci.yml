@@ -140,7 +140,9 @@ before_test_shell:
     - docker run hello-world
     - DISPLAY=:0
     - cd /home/gitlab-runner/workspace
+    - ls
     - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - ls
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
     - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
@@ -149,8 +151,8 @@ before_test_shell:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    - apt-get update -qy
-    - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
+    #- apt-get update -qy
+    #- apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - make install
     cache:

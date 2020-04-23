@@ -12,7 +12,7 @@ from .. import check_equal, check_not_equal, check_is_in, check_not_in
 from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
 from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
 from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
-from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, ModelHeader, TensorProto
+from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, CompressedModelProto, ModelHeader, TensorProto
 from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, GlobalModelUpdate
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalValidationResults, LocalModelUpdateAck, LocalValidationResultsAck
 
@@ -76,6 +76,8 @@ class Aggregator(object):
         self.init_per_col_round_stats()
         self.best_model_score = None
         self.mutex = Lock()
+
+        self.custom_update_pipeline = custom_update_pipeline
 
     def all_quit_jobs_sent(self):
         return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
@@ -172,7 +174,12 @@ class Aggregator(object):
             self.validate_header(message)
 
             self.logger.info("Receive model update from %s " % message.header.sender)
-            model_proto = message.model
+            if self.custom_update_pipeline is not None:
+                model_proto = self.custom_update_pipeline.protos_to_tensors(compressed_tensor_protos=reply.model.compressed_tensors, 
+                                                                            meta_data=reply.model.metadata)
+                model_proto
+            else:
+                model_proto = message.model
             model_header = model_proto.header
 
             # validate this model header
@@ -184,7 +191,7 @@ class Aggregator(object):
             check_not_in(message.header.sender, self.per_col_round_stats["collaborator_training_sizes"], self.logger)
 
             # if this is our very first update for the round, we take this model as-is
-            # FIXME: move to model deltas, add with original to reconstructf
+            # FIXME: move to model deltas, add with original to reconstruct
             # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
             if self.model_update_in_progress is None:
                 self.model_update_in_progress = model_proto

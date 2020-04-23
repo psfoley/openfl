@@ -8,7 +8,7 @@ from .. import check_type, check_equal, check_not_equal, split_tensor_dict_for_h
 from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
 from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
 from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
-from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, ModelHeader, TensorProto
+from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, CompressedModelProto, ModelHeader, TensorProto
 from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, GlobalModelUpdate
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalModelUpdateAck
 from ..proto.collaborator_aggregator_interface_pb2 import LocalValidationResults, LocalValidationResultsAck
@@ -51,6 +51,9 @@ class Collaborator(object):
 
         self.wrapped_model = wrapped_model
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
+
+        # pipeline translating tensor_dict to and from a list of tensor protos
+        self.custom_update_pipeline = custom_update_pipeline
 
         # AGG/EDGE/RESET
         if hasattr(OptTreatment, opt_treatment):
@@ -147,12 +150,17 @@ class Collaborator(object):
         # for k in tensor_dict.keys():
         #     tensor_dict[k] -= initial_tensor_dict[k]
 
-        # create the tensor proto list
-        tensor_protos = []
-        for k, v in tensor_dict.items():
-            tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
+        # create the model proto
+        if self.custom_update_pipeline is not None:
+            compressed_tensor_protos = self.custom_update_pipeline.tensors_to_protos(tensor_dict=tensor_dict)
+            model_proto = CompressedModelProto(header=self.model_header, tensors=compressed_tensor_protos)
+        else:
+            tensor_protos = []
+            for k, v in tensor_dict.items():
+                tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
+            model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
 
-        model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
+
         self.logger.debug("{} - Sending the model to the aggeregator.".format(self))
 
         reply = self.channel.UploadLocalModelUpdate(LocalModelUpdate(header=self.create_message_header(), model=model_proto, data_size=data_size, loss=loss))
@@ -191,15 +199,19 @@ class Collaborator(object):
         self.model_header = reply.model.header
 
         # create the aggregated tensors dict
-        agg_tensor_dict = {}
-        # Note: Tensor components of non-float type will not reconstruct correctly below,
-        # which is why default behaviour is to hold out all non-float parameters from aggregation. 
-        for tensor_proto in reply.model.tensors:
-            try:
-                agg_tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
-            except ValueError as e:
-                self.logger.debug("ValueError for proto {}".format(tensor_proto.name))
-                raise e
+        if self.custom_update_pipeline is not None:
+            agg_tensor_dict = self.custom_update_pipeline.protos_to_tensors(compressed_tensor_protos=reply.model.compressed_tensors, 
+                                                                            meta_data=reply.model.metadata)
+        else:
+            agg_tensor_dict = {}
+            # Note: Tensor components of non-float type will not reconstruct correctly below,
+            # which is why default behaviour is to hold out all non-float parameters from aggregation. 
+            for tensor_proto in reply.model.tensors:
+                try:
+                    agg_tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
+                except ValueError as e:
+                    self.logger.debug("ValueError for proto {}".format(tensor_proto.name))
+                    raise e
 
         tensor_dict = {**agg_tensor_dict, **self.holdout_params}
         

@@ -56,7 +56,6 @@ federation:
   init_model_fname: keras_cnn_mnist_init.pbuf
   latest_model_fname: keras_cnn_mnist_latest.pbuf
   best_model_fname: keras_cnn_mnist_best.pbuf
-  model_version: &model_version 1
 
 hostnames:
   __DEFAULT_HOSTNAME__: some.url
@@ -74,7 +73,6 @@ aggregator:
 collaborator:
   agg_id: *agg_id
   fed_id: *fed_id
-  model_version: *model_version
   polling_interval: *polling_interval
   opt_treatment: *opt_treatment 
 

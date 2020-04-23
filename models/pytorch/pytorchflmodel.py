@@ -10,14 +10,20 @@ from models import FLModel
 
 class PyTorchFLModel(nn.Module, FLModel):
 
-    def __init__(self, data, device='cpu'):
+    def __init__(self, device='cpu', **kwargs):
         super().__init__()
-        FLModel.__init__(self, data)
+        FLModel.__init__(self, **kwargs)
 
         self.device = device
         
         self.optimizer = None
         self.loss_fn = None
+
+        # overwrite attribute to account for one optimizer param (in every child model that
+        # does not overwrite get and set tensordict) that is not a numpy array
+        self.tensor_dict_split_fn_kwargs = {'holdout_types': ['non_float'], 
+                                            'holdout_tensor_names': ['__opt_state_needed']
+                                           }
 
     # FIXME: This isn't quite general enough. For now, models should implement this
     # def train_epoch(self, use_tqdm):

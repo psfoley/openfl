@@ -4,7 +4,7 @@ import time
 import logging
 import numpy as np
 
-from .. import check_type, check_equal, check_not_equal, split_tensor_dict_into_floats_and_non_floats
+from .. import check_type, check_equal, check_not_equal, split_tensor_dict_for_holdouts
 from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
 from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
 from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
@@ -41,6 +41,7 @@ class Collaborator(object):
                                         version=-1)
 
         self.wrapped_model = wrapped_model
+        self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
 
         # AGG/EDGE/RESET
         if hasattr(OptTreatment, opt_treatment):
@@ -49,15 +50,15 @@ class Collaborator(object):
             self.logger.error("Unknown opt_treatment: %s." % opt_treatment)
             raise NotImplementedError("Unknown opt_treatment: %s." % opt_treatment)
 
-        # FIXME: this is a temporary fix for non-float values. Needs updated when we have proper collab-side state saving
-        # and proper declaration of "don't aggregate" for models
-        self._remove_and_save_non_floats(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
+        # FIXME: this is a temporary fix for non-float values and other named params designated to hold out from aggregation. 
+        # Needs updated when we have proper collab-side state saving.
+        self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
-    def _remove_and_save_non_floats(self, tensor_dict):
-        new_dict, self.non_floats = split_tensor_dict_into_floats_and_non_floats(tensor_dict)
-        if self.non_floats != {}:
-            self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.non_floats.keys())))
-        return new_dict
+    def _remove_and_save_holdout_params(self, tensor_dict):
+        tensors_to_send, self.holdout_params = split_tensor_dict_for_holdouts(self.logger, tensor_dict, **self.tensor_dict_split_fn_kwargs)
+        if self.holdout_params != {}:
+            self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.holdout_params.keys())))
+        return tensors_to_send
 
     def create_message_header(self):
         header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)
@@ -130,8 +131,8 @@ class Collaborator(object):
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
 
-        # get the trained tensor dict and store any non-floats
-        tensor_dict = self._remove_and_save_non_floats(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
+        # get the trained tensor dict and store any desginated to be held out from aggregation
+        tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
         # convert to a delta
         # for k in tensor_dict.keys():
@@ -180,19 +181,20 @@ class Collaborator(object):
         # set our model header
         self.model_header = reply.model.header
 
-        # create the tensor dict
-        tensor_dict = {}
-        # FIXME: This breaks for the Adam param involving 'iter' that
-        #        is an int (and not a tensor) rather than a float
-        #        (I currently catch this by observing that shape==[])
+        # create the aggregated tensors dict
+        agg_tensor_dict = {}
+        # Note: Tensor components of non-float type will not reconstruct correctly below,
+        # which is why default behaviour is to hold out all non-float parameters from aggregation. 
         for tensor_proto in reply.model.tensors:
             try:
-                tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
+                agg_tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
             except ValueError as e:
                 self.logger.debug("ValueError for proto {}".format(tensor_proto.name))
                 raise e
-        tensor_dict = {**tensor_dict, **self.non_floats}
+
+        tensor_dict = {**agg_tensor_dict, **self.holdout_params}
         
+
         if self.opt_treatment == OptTreatment.AGG:
             with_opt_vars = True
         else:
@@ -202,7 +204,7 @@ class Collaborator(object):
         # do not contain optimizer state, and so cannot be used to reset the optimizer params.
         if reply.model.header.version == 0:
             with_opt_vars = False
-            wrapped_model.reset_opt_vars()
+            self.wrapped_model.reset_opt_vars()
 
         self.wrapped_model.set_tensor_dict(tensor_dict, with_opt_vars=with_opt_vars)
         self.logger.debug("Loaded the model.")

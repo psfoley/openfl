@@ -41,39 +41,26 @@ before_test:
     stage: build
     tags: 
     - docker-gpu
-    #- shell-runner-1
     script:
-    - DISPLAY=:0
-    #- cd /home/gitlab-runner/workspace
-    #- sudo rm -rf spr_secure_intelligence-trusted_federated_learning
-    #- rm -rf intel-privacy-and-security-services
-    #- echo "clone the directory ..."
-    #- git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
-    #- echo $CI_COMMIT_REF_NAME
-    #- git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    #- docker run hello-world
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - make install
-    cache:
-      key: make_install
-      paths:
-      - venv
+    #cache:
+    #  key: make_install
+    #  policy: push
+    #  paths:
+    #  - venv
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
-image: tensorflow/tensorflow:1.14.0-gpu-py3
-#
 test_pt_cnn_mnist:
     stage: test
     tags: 
     - docker-gpu
-    #- shell-runner-1
     before_script:
     - ls 
     - DISPLAY=:0
@@ -85,18 +72,13 @@ test_pt_cnn_mnist:
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
     - make install
-    cache:
-      key: make_install
-      policy: pull
-      paths:
-      - venv
-    #- apt-get install -y git-all
-    #- cd /home/gitlab-runner/workspace
-    #- rm -rf spr_secure_intelligence-trusted_federated_learning
-    #- git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    #- cd spr_secure_intelligence-trusted_federated_learning/
-    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    #cache:
+    #  key: make_install
+    #  policy: pull
+    #  paths:
+    #  - venv
     script: 
     - ls
     - cd bin/
@@ -117,11 +99,12 @@ test_tf_resnet_mnist:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    cache:
-      key: make_install
-      policy: pull
-      paths:
-      - venv
+    - make install
+    #cache:
+    #  key: make_install
+    #  policy: pull
+    #  paths:
+    #  - venv
     script: 
     - ls
     - cd bin/
@@ -130,17 +113,16 @@ test_tf_resnet_mnist:
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
-
-
 before_test_shell:
     stage: build
     tags: 
     - shell-runner-1
     script:
+    - pwd
     - docker run hello-world
-    - DISPLAY=:0
     - cd /home/gitlab-runner/workspace
     - ls
+    - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
     - ls
     - echo "clone the directory ..."
@@ -151,14 +133,7 @@ before_test_shell:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    #- apt-get update -qy
-    #- apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
-    #- make install
-    #cache:
-    #  key: make_install
-    #  paths:
-    #  - venv
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
@@ -168,33 +143,11 @@ test_pt_cnn_mnist_shell:
     - shell-runner-1
     before_script:
     - ls 
-    - DISPLAY=:0
-    #- nvidia-smi
-    #- export http_proxy=http://proxy-us.intel.com:911
-    #- export https_proxy=http://proxy-us.intel.com:912
-    #- export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    ##- apt-get update -qy
-    #- apt-get install -y python3-venv python3-pip build-essential musl-dev g++
-    #- python3 -m pip --version
-    #- echo $CI_COMMIT_REF_NAME
-    #cache:
-    #  key: make_install
-    #  policy: pull
-    #  paths:
-    #  - venv
-    #- apt-get install -y git-all
-    #- cd /home/gitlab-runner/workspace
-    #- rm -rf spr_secure_intelligence-trusted_federated_learning
-    #- git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    #- cd spr_secure_intelligence-trusted_federated_learning/
-    #- cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     script: 
-    - ls
     - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - make build_containers
     - make run_agg_container &
     - make run_col_container &
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
-
 

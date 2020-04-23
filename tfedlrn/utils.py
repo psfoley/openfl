@@ -11,8 +11,8 @@ def load_yaml(path):
         plan = yaml.safe_load(f.read())
     return plan
 
-def get_object(code_path, class_name, **kwargs):
-    module = importlib.import_module(code_path)
+def get_object(module_name, class_name, **kwargs):
+    module = importlib.import_module(module_name)
     return module.__getattribute__(class_name)(**kwargs)
 
 def split_tensor_dict_into_floats_and_non_floats(tensor_dict):

@@ -14,9 +14,9 @@ from tfedlrn import load_yaml, get_object
 from setup_logging import setup_logging
 
 
-def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
-    return get_object(code_path, class_name, data_path=data_path, **kwargs)
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def get_channel(base_dir, col_id, cert_folder, **col_grpc_client_config):
     cert_dir = os.path.join(base_dir, 'certs', cert_folder) 

@@ -59,7 +59,7 @@ federation:
   best_model_fname: pt_2dunet_brats_best.pbuf
 
 model:
-  code_path: models.pytorch
+  module_name: models.pytorch
   class_name: PyTorch2DUNet
   device: cuda
   optimizer: RMSprop
@@ -86,7 +86,7 @@ grpc:
 
 data:
   data_name: brats 
-  code_path: data.pytorch 
+  module_name: data.pytorch 
   class_name: PyTorchBratsInMemory
   percent_train: 0.8
   batch_size: 64

@@ -12,12 +12,12 @@ from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
 from tfedlrn.proto import export_weights
 from setup_logging import setup_logging
 
-def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
-    return get_object(code_path, class_name, data_path=data_path, **kwargs)
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
-def load_model(code_path, **kwargs):
-    module = importlib.import_module(code_path)
+def load_model(module_name, **kwargs):
+    module = importlib.import_module(module_name)
     model = module.get_model(**kwargs)
     return model
 

@@ -44,7 +44,17 @@ class Aggregator(object):
         The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
-    def __init__(self, agg_id, fed_id, col_ids, init_model_fpath, latest_model_fpath, best_model_fpath, rounds_to_train=256, disable_equality_check=False, **kwargs):
+    def __init__(self, 
+                 agg_id, 
+                 fed_id, 
+                 col_ids, 
+                 init_model_fpath, 
+                 latest_model_fpath, 
+                 best_model_fpath, 
+                 rounds_to_train=256, 
+                 disable_equality_check=False,
+                 custom_update_pipeline=None, 
+                 **kwargs):
         self.logger = logging.getLogger(__name__)
         self.id = agg_id
         self.fed_id = fed_id

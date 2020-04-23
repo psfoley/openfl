@@ -55,7 +55,7 @@ hostnames:
   col_3: spr-gpu02.jf.intel.com
 
 model:
-  code_path: models.tensorflow
+  module_name: models.tensorflow
   class_name: TensorFlow2DUNet
     
 aggregator:
@@ -79,7 +79,7 @@ grpc:
 
 data:
   data_name: brats 
-  code_path: data.tensorflow 
+  module_name: data.tensorflow 
   class_name: TensorFlowBratsInMemory
   percent_train: 0.8
   batch_size: 64

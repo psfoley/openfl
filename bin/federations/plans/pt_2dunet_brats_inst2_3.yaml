@@ -54,7 +54,7 @@ hostnames:
   __DEFAULT_HOSTNAME__: "spr-gpu02.jf.intel.com"
 
 model:
-  code_path: models.pytorch
+  module_name: models.pytorch
   class_name: PyTorch2DUNet
   device: cuda
   optimizer: RMSprop
@@ -81,7 +81,7 @@ grpc:
 
 data:
   data_name: brats 
-  code_path: data.pytorch 
+  module_name: data.pytorch 
   class_name: PyTorchBratsInMemory
   percent_train: 0.8
   batch_size: 64

@@ -8,7 +8,7 @@ from .. import check_type, check_equal, check_not_equal, split_tensor_dict_for_h
 from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
 from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
 from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
-from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, CompressedModelProto, ModelHeader, TensorProto
+from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, ModelHeader, TensorProto
 from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, GlobalModelUpdate
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalModelUpdateAck
 from ..proto.collaborator_aggregator_interface_pb2 import LocalValidationResults, LocalValidationResultsAck
@@ -152,8 +152,8 @@ class Collaborator(object):
 
         # create the model proto
         if self.custom_update_pipeline is not None:
-            compressed_tensor_protos = self.custom_update_pipeline.tensors_to_protos(tensor_dict=tensor_dict)
-            model_proto = CompressedModelProto(header=self.model_header, tensors=compressed_tensor_protos)
+            tensor_protos = self.custom_update_pipeline.tensors_to_protos(tensor_dict=tensor_dict)
+            model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
         else:
             tensor_protos = []
             for k, v in tensor_dict.items():

@@ -34,36 +34,13 @@ pages:
   - master
 
 #image: ubuntu:18.04
-#image: alpine
 image: tensorflow/tensorflow:1.14.0-gpu-py3
 
-before_test:
-    stage: build
-    tags: 
-    - docker-gpu
-    script:
-    - export http_proxy=http://proxy-us.intel.com:911
-    - export https_proxy=http://proxy-us.intel.com:912
-    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    - apt-get update -qy
-    - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
-    - python3 -m pip --version
-    - make install
-    #cache:
-    #  key: make_install
-    #  policy: push
-    #  paths:
-    #  - venv
-    only:
-    - 101-Build-GitLab-CI-testing-tool-fundamentals
-
-test_pt_cnn_mnist:
+test_scripts:
     stage: test
     tags: 
     - docker-gpu
     before_script:
-    - ls 
-    - DISPLAY=:0
     - nvidia-smi
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
@@ -72,25 +49,16 @@ test_pt_cnn_mnist:
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - make install
-    #cache:
-    #  key: make_install
-    #  policy: pull
-    #  paths:
-    #  - venv
     script: 
     - ls
-    - cd bin/
-    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p pt_cnn_withmnist.yaml
-    - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p pt_cnn_withmnist.yaml
+    - cd bin
+    - ./test_scripts.sh
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
 
 test_tf_resnet_mnist:
     stage: test
-    tags:
-    - docker-gpu
     before_script:
-    - DISPLAY=:0
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
@@ -98,11 +66,6 @@ test_tf_resnet_mnist:
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
     - make install
-    #cache:
-    #  key: make_install
-    #  policy: pull
-    #  paths:
-    #  - venv
     script: 
     - ls
     - cd bin/
@@ -119,10 +82,8 @@ before_test_shell:
     - pwd
     - docker run hello-world
     - cd /home/gitlab-runner/workspace
-    - ls
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
-    - ls
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
     - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning

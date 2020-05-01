@@ -23,12 +23,11 @@ enum Job {
     JOB_DOWNLOAD_MODEL = 4;
 }
 
-message StageMetaData {
+message MetaData {
     string name = 1;
-    repeated int32 num_integers = 2;
-    repeated int32 num_floats = 3;
-    repeated bytes integer_bytes = 4;
-    repeated bytes float_bytes = 5;
+    map<string, string> string_map = 2;
+    map<string, int32> int_map = 3;
+    map<string, float> float_map = 4;
 }
 
 // FIXME: Remove values or rename npbytes as values.
@@ -37,7 +36,6 @@ message TensorProto {
     repeated int32 shape = 2;
     repeated float values = 3;
     bytes npbytes = 4;
-    repeated StageMetaData staged_metadata = 5;
 }
 
 // Everything but 'sender' is effectively just for sanity checking during testing
@@ -58,6 +56,7 @@ message ModelHeader {
 message ModelProto {
     ModelHeader header = 1;
     repeated TensorProto tensors = 2;
+    repeated MetaData stage_metadata = 3;
 }
 
 // COLLABORATOR MESSAGES

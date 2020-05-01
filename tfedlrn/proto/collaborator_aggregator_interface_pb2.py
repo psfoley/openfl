@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='tfedlrn_proto',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\'collaborator_aggregator_interface.proto\x12\rtfedlrn_proto\"s\n\rStageMetaData\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x14\n\x0cnum_integers\x18\x02 \x03(\x05\x12\x12\n\nnum_floats\x18\x03 \x03(\x05\x12\x15\n\rinteger_bytes\x18\x04 \x03(\x0c\x12\x13\n\x0b\x66loat_bytes\x18\x05 \x03(\x0c\"\x82\x01\n\x0bTensorProto\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05shape\x18\x02 \x03(\x05\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12\x0f\n\x07npbytes\x18\x04 \x01(\x0c\x12\x35\n\x0fstaged_metadata\x18\x05 \x03(\x0b\x32\x1c.tfedlrn_proto.StageMetaData\"Z\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x11\n\trecipient\x18\x02 \x01(\t\x12\x15\n\rfederation_id\x18\x03 \x01(\t\x12\x0f\n\x07\x63ounter\x18\x04 \x01(\x05\"*\n\x0bModelHeader\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\x05\"e\n\nModelProto\x12*\n\x06header\x18\x01 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12+\n\x07tensors\x18\x02 \x03(\x0b\x32\x1a.tfedlrn_proto.TensorProto\"\x8b\x01\n\x10LocalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\x12\x11\n\tdata_size\x18\x03 \x01(\x05\x12\x0c\n\x04loss\x18\x04 \x01(\x02\"\x9c\x01\n\x16LocalValidationResults\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12\x0f\n\x07results\x18\x03 \x01(\x02\x12\x11\n\tdata_size\x18\x04 \x01(\x05\"l\n\nJobRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"v\n\x14ModelDownloadRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"\xd2\x01\n\x0eRoundTaskQuery\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12V\n\x16task_results_last_sync\x18\x02 \x03(\x0b\x32\x36.tfedlrn_proto.RoundTaskQuery.TaskResultsLastSyncEntry\x1a:\n\x18TaskResultsLastSyncEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"k\n\x11GlobalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\"Y\n\x08JobReply\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x1f\n\x03job\x18\x02 \x01(\x0e\x32\x12.tfedlrn_proto.Job\"C\n\x13LocalModelUpdateAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"I\n\x19LocalValidationResultsAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader*[\n\x03Job\x12\r\n\tJOB_TRAIN\x10\x00\x12\x10\n\x0cJOB_VALIDATE\x10\x01\x12\r\n\tJOB_YIELD\x10\x02\x12\x0c\n\x08JOB_QUIT\x10\x03\x12\x16\n\x12JOB_DOWNLOAD_MODEL\x10\x04\x32\xfa\x02\n\nAggregator\x12\x42\n\nRequestJob\x12\x19.tfedlrn_proto.JobRequest\x1a\x17.tfedlrn_proto.JobReply\"\x00\x12X\n\rDownloadModel\x12#.tfedlrn_proto.ModelDownloadRequest\x1a .tfedlrn_proto.GlobalModelUpdate\"\x00\x12_\n\x16UploadLocalModelUpdate\x12\x1f.tfedlrn_proto.LocalModelUpdate\x1a\".tfedlrn_proto.LocalModelUpdateAck\"\x00\x12m\n\x18UploadLocalMetricsUpdate\x12%.tfedlrn_proto.LocalValidationResults\x1a(.tfedlrn_proto.LocalValidationResultsAck\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\'collaborator_aggregator_interface.proto\x12\rtfedlrn_proto\"\xd6\x02\n\x08MetaData\x12\x0c\n\x04name\x18\x01 \x01(\t\x12:\n\nstring_map\x18\x02 \x03(\x0b\x32&.tfedlrn_proto.MetaData.StringMapEntry\x12\x34\n\x07int_map\x18\x03 \x03(\x0b\x32#.tfedlrn_proto.MetaData.IntMapEntry\x12\x38\n\tfloat_map\x18\x04 \x03(\x0b\x32%.tfedlrn_proto.MetaData.FloatMapEntry\x1a\x30\n\x0eStringMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a-\n\x0bIntMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\x1a/\n\rFloatMapEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\"K\n\x0bTensorProto\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05shape\x18\x02 \x03(\x05\x12\x0e\n\x06values\x18\x03 \x03(\x02\x12\x0f\n\x07npbytes\x18\x04 \x01(\x0c\"Z\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x11\n\trecipient\x18\x02 \x01(\t\x12\x15\n\rfederation_id\x18\x03 \x01(\t\x12\x0f\n\x07\x63ounter\x18\x04 \x01(\x05\"*\n\x0bModelHeader\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\x05\"\x96\x01\n\nModelProto\x12*\n\x06header\x18\x01 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12+\n\x07tensors\x18\x02 \x03(\x0b\x32\x1a.tfedlrn_proto.TensorProto\x12/\n\x0estage_metadata\x18\x03 \x03(\x0b\x32\x17.tfedlrn_proto.MetaData\"\x8b\x01\n\x10LocalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\x12\x11\n\tdata_size\x18\x03 \x01(\x05\x12\x0c\n\x04loss\x18\x04 \x01(\x02\"\x9c\x01\n\x16LocalValidationResults\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12\x0f\n\x07results\x18\x03 \x01(\x02\x12\x11\n\tdata_size\x18\x04 \x01(\x05\"l\n\nJobRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"v\n\x14ModelDownloadRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"\xd2\x01\n\x0eRoundTaskQuery\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12V\n\x16task_results_last_sync\x18\x02 \x03(\x0b\x32\x36.tfedlrn_proto.RoundTaskQuery.TaskResultsLastSyncEntry\x1a:\n\x18TaskResultsLastSyncEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"k\n\x11GlobalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\"Y\n\x08JobReply\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x1f\n\x03job\x18\x02 \x01(\x0e\x32\x12.tfedlrn_proto.Job\"C\n\x13LocalModelUpdateAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"I\n\x19LocalValidationResultsAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader*[\n\x03Job\x12\r\n\tJOB_TRAIN\x10\x00\x12\x10\n\x0cJOB_VALIDATE\x10\x01\x12\r\n\tJOB_YIELD\x10\x02\x12\x0c\n\x08JOB_QUIT\x10\x03\x12\x16\n\x12JOB_DOWNLOAD_MODEL\x10\x04\x32\xfa\x02\n\nAggregator\x12\x42\n\nRequestJob\x12\x19.tfedlrn_proto.JobRequest\x1a\x17.tfedlrn_proto.JobReply\"\x00\x12X\n\rDownloadModel\x12#.tfedlrn_proto.ModelDownloadRequest\x1a .tfedlrn_proto.GlobalModelUpdate\"\x00\x12_\n\x16UploadLocalModelUpdate\x12\x1f.tfedlrn_proto.LocalModelUpdate\x1a\".tfedlrn_proto.LocalModelUpdateAck\"\x00\x12m\n\x18UploadLocalMetricsUpdate\x12%.tfedlrn_proto.LocalValidationResults\x1a(.tfedlrn_proto.LocalValidationResultsAck\"\x00\x62\x06proto3')
 )
 
 _JOB = _descriptor.EnumDescriptor(
@@ -52,8 +52,8 @@ _JOB = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1635,
-  serialized_end=1726,
+  serialized_start=1857,
+  serialized_end=1948,
 )
 _sym_db.RegisterEnumDescriptor(_JOB)
 
@@ -66,45 +66,24 @@ JOB_DOWNLOAD_MODEL = 4
 
 
 
-_STAGEMETADATA = _descriptor.Descriptor(
-  name='StageMetaData',
-  full_name='tfedlrn_proto.StageMetaData',
+_METADATA_STRINGMAPENTRY = _descriptor.Descriptor(
+  name='StringMapEntry',
+  full_name='tfedlrn_proto.MetaData.StringMapEntry',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='name', full_name='tfedlrn_proto.StageMetaData.name', index=0,
+      name='key', full_name='tfedlrn_proto.MetaData.StringMapEntry.key', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='num_integers', full_name='tfedlrn_proto.StageMetaData.num_integers', index=1,
-      number=2, type=5, cpp_type=1, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='num_floats', full_name='tfedlrn_proto.StageMetaData.num_floats', index=2,
-      number=3, type=5, cpp_type=1, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='integer_bytes', full_name='tfedlrn_proto.StageMetaData.integer_bytes', index=3,
-      number=4, type=12, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='float_bytes', full_name='tfedlrn_proto.StageMetaData.float_bytes', index=4,
-      number=5, type=12, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
+      name='value', full_name='tfedlrn_proto.MetaData.StringMapEntry.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -114,14 +93,139 @@ _STAGEMETADATA = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
+  serialized_options=_b('8\001'),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=257,
+  serialized_end=305,
+)
+
+_METADATA_INTMAPENTRY = _descriptor.Descriptor(
+  name='IntMapEntry',
+  full_name='tfedlrn_proto.MetaData.IntMapEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='tfedlrn_proto.MetaData.IntMapEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='tfedlrn_proto.MetaData.IntMapEntry.value', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=_b('8\001'),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=307,
+  serialized_end=352,
+)
+
+_METADATA_FLOATMAPENTRY = _descriptor.Descriptor(
+  name='FloatMapEntry',
+  full_name='tfedlrn_proto.MetaData.FloatMapEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='tfedlrn_proto.MetaData.FloatMapEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='tfedlrn_proto.MetaData.FloatMapEntry.value', index=1,
+      number=2, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=_b('8\001'),
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=354,
+  serialized_end=401,
+)
+
+_METADATA = _descriptor.Descriptor(
+  name='MetaData',
+  full_name='tfedlrn_proto.MetaData',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='tfedlrn_proto.MetaData.name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='string_map', full_name='tfedlrn_proto.MetaData.string_map', index=1,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='int_map', full_name='tfedlrn_proto.MetaData.int_map', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='float_map', full_name='tfedlrn_proto.MetaData.float_map', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[_METADATA_STRINGMAPENTRY, _METADATA_INTMAPENTRY, _METADATA_FLOATMAPENTRY, ],
+  enum_types=[
+  ],
   serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=58,
-  serialized_end=173,
+  serialized_start=59,
+  serialized_end=401,
 )
 
 
@@ -160,13 +264,6 @@ _TENSORPROTO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='staged_metadata', full_name='tfedlrn_proto.TensorProto.staged_metadata', index=4,
-      number=5, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -179,8 +276,8 @@ _TENSORPROTO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=176,
-  serialized_end=306,
+  serialized_start=403,
+  serialized_end=478,
 )
 
 
@@ -231,8 +328,8 @@ _MESSAGEHEADER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=308,
-  serialized_end=398,
+  serialized_start=480,
+  serialized_end=570,
 )
 
 
@@ -269,8 +366,8 @@ _MODELHEADER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=400,
-  serialized_end=442,
+  serialized_start=572,
+  serialized_end=614,
 )
 
 
@@ -295,6 +392,13 @@ _MODELPROTO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='stage_metadata', full_name='tfedlrn_proto.ModelProto.stage_metadata', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -307,8 +411,8 @@ _MODELPROTO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=444,
-  serialized_end=545,
+  serialized_start=617,
+  serialized_end=767,
 )
 
 
@@ -359,8 +463,8 @@ _LOCALMODELUPDATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=548,
-  serialized_end=687,
+  serialized_start=770,
+  serialized_end=909,
 )
 
 
@@ -411,8 +515,8 @@ _LOCALVALIDATIONRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=690,
-  serialized_end=846,
+  serialized_start=912,
+  serialized_end=1068,
 )
 
 
@@ -449,8 +553,8 @@ _JOBREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=848,
-  serialized_end=956,
+  serialized_start=1070,
+  serialized_end=1178,
 )
 
 
@@ -487,8 +591,8 @@ _MODELDOWNLOADREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=958,
-  serialized_end=1076,
+  serialized_start=1180,
+  serialized_end=1298,
 )
 
 
@@ -525,8 +629,8 @@ _ROUNDTASKQUERY_TASKRESULTSLASTSYNCENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1231,
-  serialized_end=1289,
+  serialized_start=1453,
+  serialized_end=1511,
 )
 
 _ROUNDTASKQUERY = _descriptor.Descriptor(
@@ -562,8 +666,8 @@ _ROUNDTASKQUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1079,
-  serialized_end=1289,
+  serialized_start=1301,
+  serialized_end=1511,
 )
 
 
@@ -600,8 +704,8 @@ _GLOBALMODELUPDATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1291,
-  serialized_end=1398,
+  serialized_start=1513,
+  serialized_end=1620,
 )
 
 
@@ -638,8 +742,8 @@ _JOBREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1400,
-  serialized_end=1489,
+  serialized_start=1622,
+  serialized_end=1711,
 )
 
 
@@ -669,8 +773,8 @@ _LOCALMODELUPDATEACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1491,
-  serialized_end=1558,
+  serialized_start=1713,
+  serialized_end=1780,
 )
 
 
@@ -700,13 +804,19 @@ _LOCALVALIDATIONRESULTSACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1560,
-  serialized_end=1633,
+  serialized_start=1782,
+  serialized_end=1855,
 )
 
-_TENSORPROTO.fields_by_name['staged_metadata'].message_type = _STAGEMETADATA
+_METADATA_STRINGMAPENTRY.containing_type = _METADATA
+_METADATA_INTMAPENTRY.containing_type = _METADATA
+_METADATA_FLOATMAPENTRY.containing_type = _METADATA
+_METADATA.fields_by_name['string_map'].message_type = _METADATA_STRINGMAPENTRY
+_METADATA.fields_by_name['int_map'].message_type = _METADATA_INTMAPENTRY
+_METADATA.fields_by_name['float_map'].message_type = _METADATA_FLOATMAPENTRY
 _MODELPROTO.fields_by_name['header'].message_type = _MODELHEADER
 _MODELPROTO.fields_by_name['tensors'].message_type = _TENSORPROTO
+_MODELPROTO.fields_by_name['stage_metadata'].message_type = _METADATA
 _LOCALMODELUPDATE.fields_by_name['header'].message_type = _MESSAGEHEADER
 _LOCALMODELUPDATE.fields_by_name['model'].message_type = _MODELPROTO
 _LOCALVALIDATIONRESULTS.fields_by_name['header'].message_type = _MESSAGEHEADER
@@ -724,7 +834,7 @@ _JOBREPLY.fields_by_name['header'].message_type = _MESSAGEHEADER
 _JOBREPLY.fields_by_name['job'].enum_type = _JOB
 _LOCALMODELUPDATEACK.fields_by_name['header'].message_type = _MESSAGEHEADER
 _LOCALVALIDATIONRESULTSACK.fields_by_name['header'].message_type = _MESSAGEHEADER
-DESCRIPTOR.message_types_by_name['StageMetaData'] = _STAGEMETADATA
+DESCRIPTOR.message_types_by_name['MetaData'] = _METADATA
 DESCRIPTOR.message_types_by_name['TensorProto'] = _TENSORPROTO
 DESCRIPTOR.message_types_by_name['MessageHeader'] = _MESSAGEHEADER
 DESCRIPTOR.message_types_by_name['ModelHeader'] = _MODELHEADER
@@ -741,12 +851,36 @@ DESCRIPTOR.message_types_by_name['LocalValidationResultsAck'] = _LOCALVALIDATION
 DESCRIPTOR.enum_types_by_name['Job'] = _JOB
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-StageMetaData = _reflection.GeneratedProtocolMessageType('StageMetaData', (_message.Message,), dict(
-  DESCRIPTOR = _STAGEMETADATA,
+MetaData = _reflection.GeneratedProtocolMessageType('MetaData', (_message.Message,), dict(
+
+  StringMapEntry = _reflection.GeneratedProtocolMessageType('StringMapEntry', (_message.Message,), dict(
+    DESCRIPTOR = _METADATA_STRINGMAPENTRY,
+    __module__ = 'collaborator_aggregator_interface_pb2'
+    # @@protoc_insertion_point(class_scope:tfedlrn_proto.MetaData.StringMapEntry)
+    ))
+  ,
+
+  IntMapEntry = _reflection.GeneratedProtocolMessageType('IntMapEntry', (_message.Message,), dict(
+    DESCRIPTOR = _METADATA_INTMAPENTRY,
+    __module__ = 'collaborator_aggregator_interface_pb2'
+    # @@protoc_insertion_point(class_scope:tfedlrn_proto.MetaData.IntMapEntry)
+    ))
+  ,
+
+  FloatMapEntry = _reflection.GeneratedProtocolMessageType('FloatMapEntry', (_message.Message,), dict(
+    DESCRIPTOR = _METADATA_FLOATMAPENTRY,
+    __module__ = 'collaborator_aggregator_interface_pb2'
+    # @@protoc_insertion_point(class_scope:tfedlrn_proto.MetaData.FloatMapEntry)
+    ))
+  ,
+  DESCRIPTOR = _METADATA,
   __module__ = 'collaborator_aggregator_interface_pb2'
-  # @@protoc_insertion_point(class_scope:tfedlrn_proto.StageMetaData)
+  # @@protoc_insertion_point(class_scope:tfedlrn_proto.MetaData)
   ))
-_sym_db.RegisterMessage(StageMetaData)
+_sym_db.RegisterMessage(MetaData)
+_sym_db.RegisterMessage(MetaData.StringMapEntry)
+_sym_db.RegisterMessage(MetaData.IntMapEntry)
+_sym_db.RegisterMessage(MetaData.FloatMapEntry)
 
 TensorProto = _reflection.GeneratedProtocolMessageType('TensorProto', (_message.Message,), dict(
   DESCRIPTOR = _TENSORPROTO,
@@ -848,6 +982,9 @@ LocalValidationResultsAck = _reflection.GeneratedProtocolMessageType('LocalValid
 _sym_db.RegisterMessage(LocalValidationResultsAck)
 
 
+_METADATA_STRINGMAPENTRY._options = None
+_METADATA_INTMAPENTRY._options = None
+_METADATA_FLOATMAPENTRY._options = None
 _ROUNDTASKQUERY_TASKRESULTSLASTSYNCENTRY._options = None
 
 _AGGREGATOR = _descriptor.ServiceDescriptor(
@@ -856,8 +993,8 @@ _AGGREGATOR = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1729,
-  serialized_end=2107,
+  serialized_start=1951,
+  serialized_end=2329,
   methods=[
   _descriptor.MethodDescriptor(
     name='RequestJob',

@@ -13,7 +13,7 @@ def model_proto_to_float32_tensor_dict(model_proto):
         tensor_dict[tensor_proto.name] = tensor_proto_to_float32_array(tensor_proto)
     return tensor_dict
 
-def tensor_dict_to_model_proto(model_name, model_version, tensor_dict):
+def construct_model_proto(tensor_dict, model_name, model_version, stage_metadata=[]):
     tensor_protos = []
     for k, v in tensor_dict.items():
         tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))

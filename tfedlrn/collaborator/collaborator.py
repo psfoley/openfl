@@ -146,14 +146,10 @@ class Collaborator(object):
         # get the trained tensor dict and store any desginated to be held out from aggregation
         tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
-        # convert to a delta
-        # for k in tensor_dict.keys():
-        #     tensor_dict[k] -= initial_tensor_dict[k]
-
         # create the model proto
         if self.custom_update_pipeline is not None:
-            tensor_protos = self.custom_update_pipeline.tensors_to_protos(tensor_dict=tensor_dict)
-            model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
+            tensor_protos, stage_metadata_protos = self.custom_update_pipeline.forward(data=tensor_dict)
+            model_proto = ModelProto(header=self.model_header, tensors=tensor_protos, stage_metadata = stage_metadata_protos)
         else:
             tensor_protos = []
             for k, v in tensor_dict.items():
@@ -200,8 +196,8 @@ class Collaborator(object):
 
         # create the aggregated tensors dict
         if self.custom_update_pipeline is not None:
-            agg_tensor_dict = self.custom_update_pipeline.protos_to_tensors(compressed_tensor_protos=reply.model.compressed_tensors, 
-                                                                            meta_data=reply.model.metadata)
+            agg_tensor_dict = self.custom_update_pipeline.backward(data=reply.model.compressed_tensors, 
+                                                            meta_data=reply.model.metadata)
         else:
             agg_tensor_dict = {}
             # Note: Tensor components of non-float type will not reconstruct correctly below,

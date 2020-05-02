@@ -17,8 +17,8 @@ from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, 
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalValidationResults, LocalModelUpdateAck, LocalValidationResultsAck
 
 
-from tfedlrn.proto.protoutils import import_weights, export_weights, dump_proto, load_proto
-from tfedlearn.tensordict_to_proto_pipelines import TensorDictToModelProto
+from tfedlrn.proto.protoutils import dump_proto, load_proto
+from tfedlrn.tensordict_to_proto_pipelines import NoCompressionPipeline
 
 # FIXME: simpler "stats" collection/handling
 # FIXME: remove the round tracking/job-result tracking stuff from this?
@@ -79,7 +79,7 @@ class Aggregator(object):
         self.best_model_score = None
         self.mutex = Lock()
 
-        self.update_pipeline = custom_update_pipeline or TensorDictToModelProto()
+        self.update_pipeline = custom_update_pipeline or NoCompressionPipeline()
 
     def all_quit_jobs_sent(self):
         return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
@@ -150,9 +150,9 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
         # convert model update in progress to proto and make the new model (with incremented version)
-        self.model = self.update_pipeline.forward(data=self.model_update_in_progress_tensors, 
-                                                  stage_metadata = [{model_name: self.model.header.name, 
-                                                                     model_version: self.model.header.version + 1})
+        self.model = self.update_pipeline.forward(tensordict=self.model_update_in_progress_tensors, 
+                                                  model_id=self.model.header.id, 
+                                                  model_version=self.model.header.version + 1)
         
         # Save the new model as latest model.
         dump_proto(self.model, self.latest_model_fpath)

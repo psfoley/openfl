@@ -1,4 +1,4 @@
-from tfedlrn.proto.protoutils import model_proto_to_float32_tensor_dict, tensor_dict_to_model_proto
+from tfedlrn.proto.protoutils import model_proto_to_float32_tensor_dict, construct_model_proto
 
 class Transformer(object):
     
@@ -9,7 +9,7 @@ class Transformer(object):
     def forward(self, data, **kwargs):
         """
         Implement the data transformation.
-        returns: transformed_data, metadata_for_backward
+        returns: transformed_data, metadata
         """
         raise NotImplementedError
 
@@ -33,20 +33,23 @@ class TensorDictToModelProtoPipeline(object):
     def __init__(self, transformers, **kwargs):
         self.transformers = transformers
 
-    def forward(self, tensor_dict, model_name, model_version, **kwargs):
+    def forward(self, tensor_dict, model_id, model_version, **kwargs):
         stage_metadata = []
         data = tensor_dict.copy()
         for transformer in self.transformers:
-            data = transformer.forward(data=data, **kwargs)
+            data, metadata = transformer.forward(data=data, **kwargs)
             stage_metadata.append(metadata)
         return construct_model_proto(tensor_dict=data, 
-                                     model_name=model_name, 
+                                     model_id=model_id, 
                                      model_version=model_version, 
                                      stage_metadata=stage_metadata)
 
     def backward(self, model_proto, **kwargs):
         data = model_proto_to_float32_tensor_dict(model_proto)
         stage_metadata = model_proto.stage_metadata
+        print('TESTING')
+        print(type(stage_metadata))
+        print('TESTING')
         for transformer in self.transformers[::-1]:
             data = transformer.backward(data=data, metadata=stage_metadata.pop(), **kwargs)
         return data

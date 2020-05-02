@@ -1,3 +1,3 @@
-from pipeline import Transformer, Pipeline
+from .pipeline import Transformer, TensorDictToModelProtoPipeline
 
-from default_pipeline import TensorDictToModelProto
+from .no_compression_pipeline import NoCompressionPipeline

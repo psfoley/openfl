@@ -9,7 +9,7 @@ import logging
 import importlib
 
 from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
-from tfedlrn.proto import export_weights
+from tfedlrn.proto import dump_proto
 from setup_logging import setup_logging
 
 def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
@@ -57,8 +57,8 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
                                                                  **tensor_dict_split_fn_kwargs)
     logger.warn('Following paramters omitted from global initial model, '\
                 'local initialization will determine values: {}'.format(list(holdout_params.keys())))       
-
-    export_weights(model_name=wrapped_model.__class__.__name__, 
+def construct_model_proto(tensor_dict, model_id, model_version, stage_metadata=[])
+    dump_proto(model_name=wrapped_model.__class__.__name__, 
                    version=0, 
                    tensor_dict=tensor_dict,
                    fpath=fpath)

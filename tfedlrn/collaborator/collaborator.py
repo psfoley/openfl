@@ -148,8 +148,9 @@ class Collaborator(object):
 
         # create the model proto
         if self.custom_update_pipeline is not None:
-            tensor_protos, stage_metadata_protos = self.custom_update_pipeline.forward(data=tensor_dict)
-            model_proto = ModelProto(header=self.model_header, tensors=tensor_protos, stage_metadata = stage_metadata_protos)
+            model_proto = self.custom_update_pipeline.forward(tensor_dict=tensor_dict, 
+                                                              model_id=self.model_header.id, 
+                                                              model_version=self.model_header.version)
         else:
             tensor_protos = []
             for k, v in tensor_dict.items():
@@ -196,8 +197,7 @@ class Collaborator(object):
 
         # create the aggregated tensors dict
         if self.custom_update_pipeline is not None:
-            agg_tensor_dict = self.custom_update_pipeline.backward(data=reply.model.compressed_tensors, 
-                                                            meta_data=reply.model.metadata)
+            agg_tensor_dict = self.custom_update_pipeline.backward(model_proto=reply.model)
         else:
             agg_tensor_dict = {}
             # Note: Tensor components of non-float type will not reconstruct correctly below,

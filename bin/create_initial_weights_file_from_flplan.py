@@ -8,6 +8,7 @@ import os
 import logging
 import importlib
 
+from tfedlrn.tensor_dict_to_proto_pipelines import NoCompressionPipeline
 from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
 from tfedlrn.proto import dump_proto
 from setup_logging import setup_logging
@@ -15,12 +16,6 @@ from setup_logging import setup_logging
 def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
     return get_object(module_name, class_name, data_path=data_path, **kwargs)
-
-def load_model(module_name, **kwargs):
-    module = importlib.import_module(module_name)
-    model = module.get_model(**kwargs)
-    return model
-
 
 def main(plan, data_config_fname, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
@@ -39,6 +34,9 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     fed_config = plan['federation']
     data_config = plan['data']
 
+    # For now we are compressing initial models if a compression pipeline exists
+    update_pipeline = fed_config.get('custom_update_pipeline') or NoCompressionPipeline()
+
     # FIXME: this will ultimately run in a governor environment and should not require any data to work
     # pick the first collaborator to create the data and model (could be any)
     col_id = fed_config['col_ids'][0]
@@ -56,12 +54,13 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
                                                                  wrapped_model.get_tensor_dict(False), 
                                                                  **tensor_dict_split_fn_kwargs)
     logger.warn('Following paramters omitted from global initial model, '\
-                'local initialization will determine values: {}'.format(list(holdout_params.keys())))       
-def construct_model_proto(tensor_dict, model_id, model_version, stage_metadata=[])
-    dump_proto(model_name=wrapped_model.__class__.__name__, 
-                   version=0, 
-                   tensor_dict=tensor_dict,
-                   fpath=fpath)
+                'local initialization will determine values: {}'.format(list(holdout_params.keys())))
+
+    model_proto = update_pipeline.forward(tensor_dict=tensor_dict, 
+                                          model_id=wrapped_model.__class__.__name__, 
+                                          model_version=0)       
+    dump_proto(model_proto=model_proto, fpath=fpath)
+    logger.info("Created initial weights file: {}".format(fpath))
 
 
 if __name__ == '__main__':

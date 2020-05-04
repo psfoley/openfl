@@ -18,7 +18,7 @@ from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, Loca
 
 
 from tfedlrn.proto.protoutils import dump_proto, load_proto
-from tfedlrn.tensordict_to_proto_pipelines import NoCompressionPipeline
+from tfedlrn.tensor_dict_to_proto_pipelines import NoCompressionPipeline
 
 # FIXME: simpler "stats" collection/handling
 # FIXME: remove the round tracking/job-result tracking stuff from this?
@@ -150,7 +150,7 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
         # convert model update in progress to proto and make the new model (with incremented version)
-        self.model = self.update_pipeline.forward(tensordict=self.model_update_in_progress_tensors, 
+        self.model = self.update_pipeline.forward(tensor_dict=self.model_update_in_progress_tensors, 
                                                   model_id=self.model.header.id, 
                                                   model_version=self.model.header.version + 1)
         
@@ -176,7 +176,7 @@ class Aggregator(object):
             self.validate_header(message)
 
             self.logger.info("Receive model update from %s " % message.header.sender)
-            model_tensors = self.update_pipeline.backward(data=message.model)
+            model_tensors = self.update_pipeline.backward(model_proto=message.model)
             
             # validate this model header
             check_equal(message.model.header.id, self.model.header.id, self.logger)

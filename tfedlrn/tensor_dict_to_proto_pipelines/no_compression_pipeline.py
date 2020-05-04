@@ -1,4 +1,4 @@
-from tfedlrn.tensordict_to_proto_pipelines import TensorDictToModelProtoPipeline
+from tfedlrn.tensor_dict_to_proto_pipelines import TensorDictToModelProtoPipeline
 
 
 

@@ -2,9 +2,6 @@ from data import load_from_NIfTY
 from data.tensorflow.tffldata_inmemory import TensorFlowFLDataInMemory
 
 
-
-
-
 class TensorFlowBratsInMemory(TensorFlowFLDataInMemory):
 
     def __init__(self, data_path, batch_size, percent_train=0.8, pre_split_shuffle=True, **kwargs):

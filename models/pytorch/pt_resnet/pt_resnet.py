@@ -78,7 +78,8 @@ class PyTorchResnet(PyTorchFLModel):
         self.inplanes = 64
         self.groups = 1
         self.base_width = 64 #width_per_group
-        self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3,
+        channel = self.data.get_feature_shape()[0]
+        self.conv1 = nn.Conv2d(channel, self.inplanes, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = self._norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)

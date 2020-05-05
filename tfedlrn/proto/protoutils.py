@@ -2,7 +2,7 @@
 
 import numpy as np
 from tfedlrn.proto.collaborator_aggregator_interface_pb2 import \
-    ModelProto, TensorProto, ModelHeader, MetaDataProto
+    ModelProto, TensorProto, ModelHeader, MetaDataProto, MetaDatumProto
 
 def tensor_proto_to_float32_array(tensor_proto):
     # NOTE: The assumption here is that the bytes in the proto describe a float32 array
@@ -15,6 +15,9 @@ def model_proto_to_float32_tensor_dict(model_proto):
     return tensor_dict
 
 def construct_model_proto(tensor_dict, model_id, model_version, stage_metadata=[]):
+    # currently stage_metadata is assumed to be a list of metadata protos, 
+    # each entry in this list a list of 'metadatum' objects,
+    # each of which has a name field and a map<int32, float> field
 
     model_header = ModelHeader(id=model_id, version=model_version)
     
@@ -22,14 +25,9 @@ def construct_model_proto(tensor_dict, model_id, model_version, stage_metadata=[
     for k, v in tensor_dict.items():
         tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
     
-    metadata_protos = []
-    for metadata in stage_metadata:
-        string_dict = metadata['strings']
-        int_dict = metadata['ints']
-        float_dict = metadata['floats']
-        metadata_protos.append(MetaDataProto(string_map=string_dict, int_map=int_dict, float_map=float_dict))
-     
-    return ModelProto(header=model_header, tensors=tensor_protos, stage_metadata=metadata_protos)
+    # the stage_metadata is already assumed to be constructed as a list of metadata protos
+            
+    return ModelProto(header=model_header, tensors=tensor_protos, stage_metadata=stage_metadata)
 
 
 def load_proto(fpath):

@@ -8,7 +8,8 @@ import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.aggregator.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import load_yaml 
+from tfedlrn import load_yaml
+from tfedlrn.tensor_dict_to_proto_pipelines import get_custom_update_pipeline 
 
 from setup_logging import setup_logging
 
@@ -30,10 +31,16 @@ def main(plan, logging_config_path, logging_default_level):
     init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
     latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
     best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+
+    if flplan.get('custom_update_pipeline') is not None:
+        custom_update_pipeline = get_custom_update_pipeline(**flplan.get('custom_update_pipeline'))
+    else:
+        custom_update_pipeline = None
     
     agg = Aggregator(init_model_fpath=init_model_fpath,
                      latest_model_fpath=latest_model_fpath,
-                     best_model_fpath=best_model_fpath, 
+                     best_model_fpath=best_model_fpath,
+                     custom_update_pipeline=custom_update_pipeline, 
                      **agg_config)
 
     cert_dir = os.path.join(base_dir, 'certs', grpc_server_config['cert_folder'])

@@ -15,7 +15,7 @@ class Transformer(object):
 
     def backward(self, data, metadata, **kwargs):
         """
-        Implement the data transformation needed when going the oppposite
+        Implement the data transformation needed when going the opposite
         direction to the forward method.
         returns: transformed_data
         """
@@ -47,9 +47,6 @@ class TensorDictToModelProtoPipeline(object):
     def backward(self, model_proto, **kwargs):
         data = model_proto_to_float32_tensor_dict(model_proto)
         stage_metadata = model_proto.stage_metadata
-        print('TESTING')
-        print(type(stage_metadata))
-        print('TESTING')
         for transformer in self.transformers[::-1]:
             data = transformer.backward(data=data, metadata=stage_metadata.pop(), **kwargs)
         return data

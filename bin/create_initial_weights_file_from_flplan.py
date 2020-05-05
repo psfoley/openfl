@@ -8,7 +8,7 @@ import os
 import logging
 import importlib
 
-from tfedlrn.tensor_dict_to_proto_pipelines import NoCompressionPipeline
+from tfedlrn.tensor_dict_to_proto_pipelines import get_custom_update_pipeline, NoCompressionPipeline
 from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
 from tfedlrn.proto import dump_proto
 from setup_logging import setup_logging
@@ -35,7 +35,10 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     data_config = plan['data']
 
     # For now we are compressing initial models if a compression pipeline exists
-    update_pipeline = fed_config.get('custom_update_pipeline') or NoCompressionPipeline()
+    if plan.get('custom_update_pipeline') is not None:
+        update_pipeline = get_custom_update_pipeline(**plan.get('custom_update_pipeline'))
+    else:
+        update_pipeline = NoCompressionPipeline()
 
     # FIXME: this will ultimately run in a governor environment and should not require any data to work
     # pick the first collaborator to create the data and model (could be any)

@@ -70,8 +70,8 @@ class PyTorchResnet(PyTorchFLModel):
         self.loss_fn = cross_entropy
     
     def _init_optimizer(self):
-        #self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
-        self.optimizer = optim.SGD(self.parameters(), lr=1e-3, momentum=0.9)
+        self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
+        #self.optimizer = optim.SGD(self.parameters(), lr=1e-3, momentum=0.9)
 
     def init_network(self, device, block, num_blocks, num_classes=10, **kwargs):
         self._norm_layer = nn.BatchNorm2d

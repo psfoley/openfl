@@ -14,11 +14,13 @@ import torch.optim as optim
 
 from models.pytorch import PyTorchFLModel
 
+def cross_entropy(output, target):                                                                                                                          
+    return F.binary_cross_entropy_with_logits(input=output, target=target)
+
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=dilation, groups=groups, bias=False, dilation=dilation)
-
 
 def conv1x1(in_planes, out_planes, stride=1):
     """1x1 convolution"""
@@ -64,7 +66,7 @@ class PyTorchResnet(PyTorchFLModel):
         
         self.num_classes = self.data.num_classes
         self.init_network(self.device, BasicBlock, [2,2,2,2], **kwargs)# Resnet 18
-        self.__init_optimizer()
+        self._init_optimizer()
         self.loss_fn = cross_entropy
     
     def _init_optimizer(self):
@@ -72,19 +74,19 @@ class PyTorchResnet(PyTorchFLModel):
         self.optimizer = optim.SGD(self.parameters(), lr=1e-3, momentum=0.9)
 
     def init_network(self, device, block, num_blocks, num_classes=10, **kwargs):
-        iself.norm_layer = nn.BatchNorm2d
+        self._norm_layer = nn.BatchNorm2d
         self.inplanes = 64
         self.groups = 1
         self.base_width = 64 #width_per_group
         self.conv1 = nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3,
                                bias=False)
-        self.bn1 = norm_layer(self.inplanes)
+        self.bn1 = self._norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+        self.layer1 = self._make_layer(block, 64, num_blocks[0])
+        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
@@ -107,7 +109,7 @@ class PyTorchResnet(PyTorchFLModel):
 
         layers = []
         layers.append(block(self.inplanes, planes, stride, downsample, self.groups,
-                            self.base_width, previous_dilation, norm_layer))
+                            self.base_width, norm_layer))
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
             layers.append(block(self.inplanes, planes, groups=self.groups,

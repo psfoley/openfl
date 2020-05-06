@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
+
 import argparse
 import os
 import json

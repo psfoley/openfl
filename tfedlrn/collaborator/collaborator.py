@@ -13,6 +13,7 @@ from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, 
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalModelUpdateAck
 from ..proto.collaborator_aggregator_interface_pb2 import LocalValidationResults, LocalValidationResultsAck
 
+from tfedlrn.tensor_transformation_pipelines import NoOpPipeline
 
 from enum import Enum
 
@@ -35,7 +36,7 @@ class Collaborator(object):
                  channel, 
                  polling_interval=4, 
                  opt_treatment="AGG",
-                 custom_update_pipeline=None, 
+                 compression_pipeline=None, 
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
@@ -53,7 +54,7 @@ class Collaborator(object):
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
 
         # pipeline translating tensor_dict to and from a list of tensor protos
-        self.custom_update_pipeline = custom_update_pipeline
+        self.compression_pipeline = compression_pipeline
 
         # AGG/EDGE/RESET
         if hasattr(OptTreatment, opt_treatment):
@@ -147,8 +148,8 @@ class Collaborator(object):
         tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
         # create the model proto
-        if self.custom_update_pipeline is not None:
-            model_proto = self.custom_update_pipeline.forward(tensor_dict=tensor_dict, 
+        if self.compression_pipeline is not None:
+            model_proto = self.compression_pipeline.forward(tensor_dict=tensor_dict, 
                                                               model_id=self.model_header.id, 
                                                               model_version=self.model_header.version)
         else:
@@ -196,8 +197,8 @@ class Collaborator(object):
         self.model_header = reply.model.header
 
         # create the aggregated tensors dict
-        if self.custom_update_pipeline is not None:
-            agg_tensor_dict = self.custom_update_pipeline.backward(model_proto=reply.model)
+        if self.compression_pipeline is not None:
+            agg_tensor_dict = self.compression_pipeline.backward(model_proto=reply.model)
         else:
             agg_tensor_dict = {}
             # Note: Tensor components of non-float type will not reconstruct correctly below,

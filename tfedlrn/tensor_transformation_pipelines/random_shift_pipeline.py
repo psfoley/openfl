@@ -1,6 +1,6 @@
 import numpy as np
 
-from tfedlrn.array_transformation_pipelines import TransformationPipeline
+from tfedlrn.tensor_transformation_pipelines import TransformationPipeline
 
 class RandomShiftTransformer(object):
     
@@ -36,10 +36,12 @@ class RandomShiftTransformer(object):
         """
         
         shape = data.shape
+        # this is an awkward use of the metadata into to float dict, usually it will
+        # trully be treated as a dict. Here (and in 'forward' above) we use it essentially as an array.
         shift = np.reshape(np.array([metadata[idx] for idx in range(len(metadata))]), 
                                     newshape=shape, 
                                     order='C')
-        return param - shift 
+        return data - shift 
 
 
 class RandomShiftPipeline(TransformationPipeline):

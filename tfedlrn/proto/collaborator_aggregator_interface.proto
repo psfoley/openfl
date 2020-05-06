@@ -31,7 +31,7 @@ message TensorProto {
     string name = 1;
     repeated int32 shape = 2;
     bytes npbytes = 3; 
-    repeated MetadataProto metadata_list = 4;
+    repeated MetadataProto transformer_metadata = 4;
 }
 
 // Everything but 'sender' is effectively just for sanity checking during testing

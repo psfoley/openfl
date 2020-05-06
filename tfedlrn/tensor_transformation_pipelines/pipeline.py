@@ -1,4 +1,3 @@
-from tfedlrn.proto.protoutils import model_proto_to_float32_tensor_dict, construct_model_proto
 
 class Transformer(object):
     
@@ -39,9 +38,9 @@ class TransformationPipeline(object):
             metadata_list.append(metadata)
         return data, metadata_list
 
-    def backward(self, data, metadata_list, **kwargs):
+    def backward(self, data, transformer_metadata, **kwargs):
         data = data.copy()
         for transformer in self.transformers[::-1]:
-            data = transformer.backward(data=data, metadata=metadata_list.pop(), **kwargs)
+            data = transformer.backward(data=data, metadata=transformer_metadata.pop(), **kwargs)
         return data
             

@@ -4,6 +4,7 @@ import torch
 import argparse
 from logging_utils import logger
 import logging
+from models import PyTorchCNN
 
 
 
@@ -15,6 +16,9 @@ def main():
     
     #trainer = Trainer(config, dataset_train, dataset_test)
     logger.warning('compression method:: %s, dataset:: %s', config.compression_method, config.dataset)
+
+    net = PyTorchCNN
+    print(net)
     
 
 if __name__=="__main__":

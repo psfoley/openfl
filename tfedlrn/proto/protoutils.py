@@ -14,10 +14,12 @@ def model_proto_to_float32_tensor_dict(model_proto):
         tensor_dict[tensor_proto.name] = tensor_proto_to_float32_array(tensor_proto)
     return tensor_dict
 
-def construct_model_proto(tensor_dict, model_id, model_version, stage_metadata=[]):
-    # currently stage_metadata is assumed to be a list of metadata protos, 
-    # each entry in this list a list of 'metadatum' objects,
-    # each of which has a name field and a map<int32, float> field
+def construct_model_proto(tensor_dict, model_id, model_version, stage_metadata_dict=[]):
+    # stage_metadata_dict keys are a subset of the tensor_dict keys, the values are 
+    # a list of metadata entries, each entry meant to apply in the backward method call
+    # for a particular transform stage of the custom tensor to tensorproto pipeline
+    # (if specified in the flplan). A single metadata entry is a dictionary with integer
+    # keys and float values.
 
     model_header = ModelHeader(id=model_id, version=model_version)
     

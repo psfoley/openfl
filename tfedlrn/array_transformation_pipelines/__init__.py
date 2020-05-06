@@ -1,6 +1,6 @@
-from .pipeline import Transformer, TensorDictToModelProtoPipeline
+from .pipeline import Transformer, TransformationPipeline
 
-from .no_compression_pipeline import NoCompressionPipeline
+from .no_op_pipeline import NoOpPipeline
 
 from .random_shift_pipeline import RandomShiftPipeline
 

@@ -14,6 +14,7 @@ from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, Loca
 from ..proto.collaborator_aggregator_interface_pb2 import LocalValidationResults, LocalValidationResultsAck
 
 from tfedlrn.tensor_transformation_pipelines import NoOpPipeline
+from tfedlrn.proto.protoutils import construct_proto, deconstruct_proto
 
 from enum import Enum
 
@@ -54,7 +55,7 @@ class Collaborator(object):
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
 
         # pipeline translating tensor_dict to and from a list of tensor protos
-        self.compression_pipeline = compression_pipeline
+        self.compression_pipeline = compression_pipeline or NoOpPipeline()
 
         # AGG/EDGE/RESET
         if hasattr(OptTreatment, opt_treatment):
@@ -148,16 +149,10 @@ class Collaborator(object):
         tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
 
         # create the model proto
-        if self.compression_pipeline is not None:
-            model_proto = self.compression_pipeline.forward(tensor_dict=tensor_dict, 
-                                                              model_id=self.model_header.id, 
-                                                              model_version=self.model_header.version)
-        else:
-            tensor_protos = []
-            for k, v in tensor_dict.items():
-                tensor_protos.append(TensorProto(name=k, shape=v.shape, npbytes=v.tobytes('C')))
-            model_proto = ModelProto(header=self.model_header, tensors=tensor_protos)
-
+        model_proto = construct_proto(tensor_dict=tensor_dict, 
+                                      model_id=self.model_header.id, 
+                                      model_version=self.model_header.version, 
+                                      compression_pipeline=self.compression_pipeline)
 
         self.logger.debug("{} - Sending the model to the aggeregator.".format(self))
 
@@ -196,20 +191,10 @@ class Collaborator(object):
         # set our model header
         self.model_header = reply.model.header
 
-        # create the aggregated tensors dict
-        if self.compression_pipeline is not None:
-            agg_tensor_dict = self.compression_pipeline.backward(model_proto=reply.model)
-        else:
-            agg_tensor_dict = {}
-            # Note: Tensor components of non-float type will not reconstruct correctly below,
-            # which is why default behaviour is to hold out all non-float parameters from aggregation. 
-            for tensor_proto in reply.model.tensors:
-                try:
-                    agg_tensor_dict[tensor_proto.name] = np.frombuffer(tensor_proto.npbytes, dtype=np.float32).reshape(tensor_proto.shape)
-                except ValueError as e:
-                    self.logger.debug("ValueError for proto {}".format(tensor_proto.name))
-                    raise e
+        # compute the aggregated tensors dict from the model proto
+        agg_tensor_dict = deconstruct_proto(model_proto=reply.model, compression_pipeline=self.compression_pipeline)
 
+        # restore any tensors held out from aggregation
         tensor_dict = {**agg_tensor_dict, **self.holdout_params}
         
 

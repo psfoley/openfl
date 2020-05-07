@@ -25,8 +25,7 @@ def tensors_and_metadata_to_model_proto(tensor_dict, model_id, model_version, me
     model_header = ModelHeader(id=model_id, version=model_version)
     
     tensor_protos = []
-    for key in tensor_dict.items():
-        array = tensor_dict[key]
+    for key, array in tensor_dict.items():
         metadata_protos = [MetadataProto(int_to_float=entry) for entry in metadata_dict[key]]
         tensor_protos.append(TensorProto(name=key, 
                                          shape=array.shape, 
@@ -36,13 +35,13 @@ def tensors_and_metadata_to_model_proto(tensor_dict, model_id, model_version, me
     return ModelProto(header=model_header, tensors=tensor_protos)
 
 
-def construct_proto(tensor_dict, model_id, model_version, compression_pipeline)
+def construct_proto(tensor_dict, model_id, model_version, compression_pipeline):
     # compress the arrays in the tensor_dict, and collect metadata for decompression
     # TODO: Hold-out tensors from the compression pipeline.
     compressed_tensor_dict = {}
     transformer_metadata_dict = {}
     for key, array in tensor_dict.items():
-        transformer_metadata_dict[key], compressed_tensor_dict[key] = self.compression_pipeline.forward(data=array)
+        compressed_tensor_dict[key], transformer_metadata_dict[key] = compression_pipeline.forward(data=array)
     
     # convert the compressed_tensor_dict and metadata to protobuf, and make the new model proto
     model_proto = tensors_and_metadata_to_model_proto(tensor_dict= compressed_tensor_dict, 
@@ -52,8 +51,16 @@ def construct_proto(tensor_dict, model_id, model_version, compression_pipeline)
     return model_proto
 
 
-def deconstruct_proto()
-WORKING HERE
+def deconstruct_proto(model_proto, compression_pipeline):
+    # extract the tensor_dict and metadata
+    tensor_dict, metadata_dict = model_proto_to_tensors_and_metadata(model_proto)
+            
+    # decompress the tensors
+    # TODO: Handle tensors meant to be held-out from the compression pipeline (currently none are held out).
+    tensor_dict = {key: compression_pipeline.backward(data=tensor_dict[key], 
+                                                      transformer_metadata=metadata_dict[key])
+                   for key in tensor_dict}
+    return tensor_dict
 
 def load_proto(fpath):
     with open(fpath, "rb") as f:

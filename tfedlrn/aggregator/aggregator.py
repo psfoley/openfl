@@ -17,7 +17,7 @@ from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, 
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalValidationResults, LocalModelUpdateAck, LocalValidationResultsAck
 
 
-from tfedlrn.proto.protoutils import dump_proto, load_proto, model_proto_to_tensors_and_metadata, tensors_and_metadata_to_model_proto
+from tfedlrn.proto.protoutils import dump_proto, load_proto, construct_proto, deconstruct_proto
 from tfedlrn.tensor_transformation_pipelines import NoOpPipeline
 
 # FIXME: simpler "stats" collection/handling
@@ -149,18 +149,11 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num-1)
         self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
-        # compress the model update in progress arrays and collect metadata for decompression
-        # TODO: Hold-out tensors from the compression pipeline.
-        tensor_dict = {}
-        transformer_metadata_dict = {}
-        for key, array in self.model_update_in_progress_tensors.items():
-            transformer_metadata_dict[key], tensor_dict[key] = self.compression_pipeline.forward(data=array)
-        
-        # convert the tensor_dict and metadata to protobuf, and make the new model proto (with incremented version)
-        self.model = tensors_and_metadata_to_model_proto(tensor_dict=tensor_dict, 
-                                                         model_id=self.model.header.id, 
-                                                         model_version=self.model.header.version + 1, 
-                                                         metadata_dict=transformer_metadata_dict)
+        # construct the model protobuf from in progress tensors (with incremented version number)
+        self.model = construct_proto(tensor_dict=self.model_update_in_progress_tensors, 
+                                     model_id=self.model.header.id, 
+                                     model_version=self.model.header.version + 1, 
+                                     compression_pipeline=self.compression_pipeline)
         
         # Save the new model as latest model.
         dump_proto(self.model, self.latest_model_fpath)
@@ -185,14 +178,8 @@ class Aggregator(object):
 
             self.logger.info("Receive model update from %s " % message.header.sender)
 
-            # Get the model parameters associated to the update
-            model_tensors, metadata_dict = model_proto_to_tensors_and_metadata(message.model)
-            
-            # decompress the tensors
-            # TODO: Handle tensors meant to be held-out from the compression pipeline.
-            model_tensors = {key: self.compression_pipeline.backward(data=model_tensors[key], 
-                                                                     transformer_metadata=metadata_dict[key])
-                             for key in model_tensors}
+            # Get the model parameters from the model proto
+            model_tensors = deconstruct_proto(model_proto=message.model, compression_pipeline=self.compression_pipeline)
 
             # validate this model header
             check_equal(message.model.header.id, self.model.header.id, self.logger)

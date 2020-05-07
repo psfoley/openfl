@@ -49,8 +49,8 @@ federation:
   latest_model_fname: keras_cnn_mnist_latest.pbuf
   best_model_fname: keras_cnn_mnist_best.pbuf
 
-custom_update_pipeline:
-    module_name: tfedlrn.tensor_dict_to_proto_pipelines
+compression_pipeline:
+    module_name: tfedlrn.tensor_transformation_pipelines
     class_name: RandomShiftPipeline
 
 hostnames:

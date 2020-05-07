@@ -10,7 +10,7 @@ import importlib
 from tfedlrn.collaborator.collaborator import Collaborator
 from tfedlrn.collaborator.collaboratorgpcclient import CollaboratorGRPCClient
 from tfedlrn import load_yaml, get_object
-from tfedlrn.tensor_dict_to_proto_pipelines import get_custom_update_pipeline
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 
 from setup_logging import setup_logging
 
@@ -40,10 +40,10 @@ def main(plan, col_id, data_config_fname, logging_config_fname, logging_default_
     data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
 
 
-    if flplan.get('custom_update_pipeline') is not None:
-        custom_update_pipeline = get_custom_update_pipeline(**flplan.get('custom_update_pipeline'))
+    if flplan.get('compression_pipeline') is not None:
+        compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
     else:
-        custom_update_pipeline = None
+        compression_pipeline = None
 
     col_grpc_client_config = flplan['grpc']
     
@@ -58,7 +58,7 @@ def main(plan, col_id, data_config_fname, logging_config_fname, logging_default_
     collaborator = Collaborator(col_id=col_id,
                                 wrapped_model=wrapped_model, 
                                 channel=channel,
-                                custom_update_pipeline = custom_update_pipeline, 
+                                cumpression_pipeline = compression_pipeline, 
                                 **col_config)
 
 

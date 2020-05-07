@@ -1,5 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 ARG whoami
 FROM tfl_agg_mnist_cnn_keras_$whoami:0.1

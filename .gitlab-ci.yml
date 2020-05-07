@@ -53,8 +53,8 @@ before_test:
     #  paths:                                                                                                                                   
     #  - venv                                                                                                                                   
     only:                                                                                                                                       
-    - Siemens_20200506
-    #- 101-Build-GitLab-CI-testing-tool-fundamentals 
+    - 101-Build-GitLab-CI-testing-tool-fundamentals 
+    #- Siemens_20200506
 
 test_scripts:
     stage: test
@@ -74,8 +74,8 @@ test_scripts:
     - cd bin
     - ./test_scripts.sh
     only:
-    - Siemens_20200506
-    #- 101-Build-GitLab-CI-testing-tool-fundamentals
+    - 101-Build-GitLab-CI-testing-tool-fundamentals
+    #- Siemens_20200506
 
 test_tf_resnet_mnist:
     stage: test
@@ -93,8 +93,8 @@ test_tf_resnet_mnist:
     - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withcifar10.yaml
     - CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withcifar10.yaml
     only:
-    - Siemens_20200506
-    #- 101-Build-GitLab-CI-testing-tool-fundamentals
+    - 101-Build-GitLab-CI-testing-tool-fundamentals
+    #- Siemens_20200506
 
 before_test_shell:
     stage: build
@@ -116,8 +116,8 @@ before_test_shell:
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - python3 -m pip --version
     only:
-    - Siemens_20200506
-    #- 101-Build-GitLab-CI-testing-tool-fundamentals
+    - 101-Build-GitLab-CI-testing-tool-fundamentals
+    #- Siemens_20200506
 
 test_pt_cnn_mnist_shell:
     stage: test
@@ -131,6 +131,6 @@ test_pt_cnn_mnist_shell:
     - make run_agg_container &
     - make run_col_container &
     only:
-    - Siemens_20200506
-    #- 101-Build-GitLab-CI-testing-tool-fundamentals
+    - 101-Build-GitLab-CI-testing-tool-fundamentals
+    #- Siemens_20200506
 

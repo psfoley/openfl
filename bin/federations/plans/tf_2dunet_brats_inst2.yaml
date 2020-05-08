@@ -1,5 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 # Compose an FL plan in JSON/YAML.
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
@@ -53,7 +53,7 @@ hostnames:
   __DEFAULT_HOSTNAME__: some.url
 
 model:
-  code_path: models.tensorflow
+  module_name: models.tensorflow
   class_name: TensorFlow2DUNet
     
 aggregator:
@@ -77,7 +77,7 @@ grpc:
 
 data:
   data_name: brats 
-  code_path: data.tensorflow 
+  module_name: data.tensorflow 
   class_name: TensorFlowBratsInMemory
   percent_train: 0.8
   batch_size: 64

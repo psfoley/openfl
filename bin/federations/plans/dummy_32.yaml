@@ -1,5 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 # Compose an FL plan in JSON/YAML.
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
@@ -84,7 +84,7 @@ hostnames:
   __DEFAULT_HOSTNAME__: "spr-gpu01.jf.intel.com"
 
 model:
-  code_path: models.dummy
+  module_name: models.dummy
   class_name: DummyModel
   layer_shapes:
     layer_1: [2, 1000, 1000]
@@ -117,7 +117,7 @@ grpc:
 
 data:
   data_name: brats # irrelevant 
-  code_path: data.dummy
+  module_name: data.dummy
   class_name: EmptyData
   data_size_mean: 100
   data_size_std: 20

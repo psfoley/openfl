@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import argparse
 import os
@@ -10,13 +11,13 @@ import importlib
 from tfedlrn.collaborator.collaborator import Collaborator
 from tfedlrn.collaborator.collaboratorgpcclient import CollaboratorGRPCClient
 from tfedlrn import load_yaml, get_object
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 
 from setup_logging import setup_logging
 
-
-def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
-    return get_object(code_path, class_name, data_path=data_path, **kwargs)
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def get_channel(base_dir, col_id, cert_folder, **col_grpc_client_config):
     cert_dir = os.path.join(base_dir, 'certs', cert_folder) 
@@ -39,6 +40,12 @@ def main(plan, col_id, data_config_fname, logging_config_fname, logging_default_
     data_config = flplan['data']
     data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
 
+
+    if flplan.get('compression_pipeline') is not None:
+        compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
+    else:
+        compression_pipeline = None
+
     col_grpc_client_config = flplan['grpc']
     
     channel = get_channel(base_dir=base_dir, 
@@ -49,10 +56,10 @@ def main(plan, col_id, data_config_fname, logging_config_fname, logging_default_
 
     wrapped_model = get_object(data=data, **model_config)
 
-
     collaborator = Collaborator(col_id=col_id,
                                 wrapped_model=wrapped_model, 
-                                channel=channel, 
+                                channel=channel,
+                                cumpression_pipeline = compression_pipeline, 
                                 **col_config)
 
 

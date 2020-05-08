@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import argparse
 import os
@@ -8,7 +9,8 @@ import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.aggregator.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import load_yaml 
+from tfedlrn import load_yaml
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 
 
 from setup_logging import setup_logging
 
@@ -30,10 +32,16 @@ def main(plan, logging_config_path, logging_default_level):
     init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
     latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
     best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+
+    if flplan.get('compression_pipeline') is not None:
+        compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
+    else:
+        compression_pipeline = None
     
     agg = Aggregator(init_model_fpath=init_model_fpath,
                      latest_model_fpath=latest_model_fpath,
-                     best_model_fpath=best_model_fpath, 
+                     best_model_fpath=best_model_fpath,
+                     compression_pipeline=compression_pipeline, 
                      **agg_config)
 
     cert_dir = os.path.join(base_dir, 'certs', grpc_server_config['cert_folder'])

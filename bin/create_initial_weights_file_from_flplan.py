@@ -1,26 +1,21 @@
 #!/usr/bin/env python3
 
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import argparse
 import os
 import logging
 import importlib
 
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline, NoOpPipeline
 from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
-from tfedlrn.proto import export_weights
+from tfedlrn.proto.protoutils import dump_proto, construct_proto
 from setup_logging import setup_logging
 
-def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
-    return get_object(code_path, class_name, data_path=data_path, **kwargs)
-
-def load_model(code_path, **kwargs):
-    module = importlib.import_module(code_path)
-    model = module.get_model(**kwargs)
-    return model
-
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def main(plan, data_config_fname, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
@@ -39,6 +34,12 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     fed_config = plan['federation']
     data_config = plan['data']
 
+    # For now we are compressing initial models if a compression pipeline exists
+    if plan.get('compression_pipeline') is not None:
+        compression_pipeline = get_compression_pipeline(**plan.get('compression_pipeline'))
+    else:
+        compression_pipeline = NoOpPipeline()
+
     # FIXME: this will ultimately run in a governor environment and should not require any data to work
     # pick the first collaborator to create the data and model (could be any)
     col_id = fed_config['col_ids'][0]
@@ -56,12 +57,16 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
                                                                  wrapped_model.get_tensor_dict(False), 
                                                                  **tensor_dict_split_fn_kwargs)
     logger.warn('Following paramters omitted from global initial model, '\
-                'local initialization will determine values: {}'.format(list(holdout_params.keys())))       
+                'local initialization will determine values: {}'.format(list(holdout_params.keys())))
 
-    export_weights(model_name=wrapped_model.__class__.__name__, 
-                   version=0, 
-                   tensor_dict=tensor_dict,
-                   fpath=fpath)
+    model_proto = construct_proto(tensor_dict=tensor_dict, 
+                                  model_id=wrapped_model.__class__.__name__, 
+                                  model_version=0, 
+                                  compression_pipeline=compression_pipeline)
+
+    dump_proto(model_proto=model_proto, fpath=fpath)
+    
+    logger.info("Created initial weights file: {}".format(fpath))
 
 
 if __name__ == '__main__':

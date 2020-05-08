@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import argparse
 import os
@@ -12,9 +12,9 @@ from tfedlrn import load_yaml, get_object
 from single_proc_fed import federate
 from setup_logging import setup_logging
 
-def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
-    return get_object(code_path, class_name, data_path=data_path, **kwargs)
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def main(plan, data_config_fname, logging_config_fname, logging_default_level, **kwargs):
 

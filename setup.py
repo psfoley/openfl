@@ -1,4 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 from setuptools import setup
 
@@ -7,7 +8,8 @@ setup(name='tfedlrn',
       packages=['tfedlrn',
                 'tfedlrn.aggregator',
                 'tfedlrn.collaborator',
-                'tfedlrn.proto',
+                'tfedlrn.proto', 
+                'tfedlrn.tensor_transformation_pipelines',
                 'models',
                 'models.dummy', 
                 'models.pytorch', 

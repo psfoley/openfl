@@ -19,7 +19,7 @@ from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, Loca
 
 
 from tfedlrn.proto.protoutils import dump_proto, load_proto, construct_proto, deconstruct_proto
-from tfedlrn.tensor_transformation_pipelines import NoOpPipeline
+from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
 
 # FIXME: simpler "stats" collection/handling
 # FIXME: remove the round tracking/job-result tracking stuff from this?
@@ -80,7 +80,7 @@ class Aggregator(object):
         self.best_model_score = None
         self.mutex = Lock()
 
-        self.compression_pipeline = compression_pipeline or NoOpPipeline()
+        self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
 
     def all_quit_jobs_sent(self):
         return sorted(self.quit_job_sent_to) == sorted(self.col_ids)

@@ -1,6 +1,6 @@
 from .pipeline import Transformer, TransformationPipeline
 
-from .no_op_pipeline import NoOpPipeline
+from .no_compression_pipeline import NoCompressionPipeline, Float32NumpyArrayToBytes
 
 from .random_shift_pipeline import RandomShiftPipeline
 

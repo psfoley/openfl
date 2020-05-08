@@ -23,23 +23,21 @@ class Transformer(object):
 
 class TransformationPipeline(object):
     """
-    A sequential pipeline to transform (e.x. compress) a numpy array (layer of model_weights) as well as return
-    metadata (if needed) for the (potentially lossy) reconstruction process carried out by the backward method. 
+    A sequential pipeline to transform (e.x. compress) data (e.x. layer of model_weights) as well as return
+    metadata (if needed) for the reconstruction process carried out by the backward method. 
     """
 
     def __init__(self, transformers, **kwargs):
         self.transformers = transformers
 
     def forward(self, data, **kwargs):
-        metadata_list = []
-        data = data.copy()
+        transformer_metadata = []
         for transformer in self.transformers:
             data, metadata = transformer.forward(data=data, **kwargs)
-            metadata_list.append(metadata)
-        return data, metadata_list
+            transformer_metadata.append(metadata)
+        return data, transformer_metadata
 
     def backward(self, data, transformer_metadata, **kwargs):
-        data = data.copy()
         for transformer in self.transformers[::-1]:
             data = transformer.backward(data=data, metadata=transformer_metadata.pop(), **kwargs)
         return data

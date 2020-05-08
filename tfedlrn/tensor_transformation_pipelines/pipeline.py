@@ -32,6 +32,18 @@ class TransformationPipeline(object):
 
     def forward(self, data, **kwargs):
         transformer_metadata = []
+        '''
+        # datafomat::numpy::float.32
+        # model proto:: a collection of tensor_dict proto
+        # protobuff::-> a layer of weights
+        # input::tensor_dict:{"layer1":np.array(float32, [128,3,28,28]), "layer2": np.array()}
+        # output::meta data::numpy::int array
+        # (data, transformer_metadata)::(float32, dictionary of key+float32 vlues)
+        # input:: numpy_data (float32)
+        # input:: (data(bytes), transformer_metadata_list::a list of dictionary from int to float)
+        '''
+        metadata_list = []
+        data = data.copy()
         for transformer in self.transformers:
             data, metadata = transformer.forward(data=data, **kwargs)
             transformer_metadata.append(metadata)

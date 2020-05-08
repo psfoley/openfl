@@ -14,7 +14,7 @@ from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, 
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalModelUpdateAck
 from ..proto.collaborator_aggregator_interface_pb2 import LocalValidationResults, LocalValidationResultsAck
 
-from tfedlrn.tensor_transformation_pipelines import NoOpPipeline
+from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
 from tfedlrn.proto.protoutils import construct_proto, deconstruct_proto
 
 from enum import Enum
@@ -56,7 +56,7 @@ class Collaborator(object):
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
 
         # pipeline translating tensor_dict to and from a list of tensor protos
-        self.compression_pipeline = compression_pipeline or NoOpPipeline()
+        self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
 
         # AGG/EDGE/RESET
         if hasattr(OptTreatment, opt_treatment):

@@ -1,8 +1,9 @@
 import numpy as np
 
-from tfedlrn.tensor_transformation_pipelines import TransformationPipeline
+from tfedlrn.tensor_transformation_pipelines import TransformationPipeline, Transformer
+from tfedlrn.tensor_transformation_pipelines import Float32NumpyArrayToBytes
 
-class RandomShiftTransformer(object):
+class RandomShiftTransformer(Transformer):
     
     def __init__(self):
         return
@@ -46,7 +47,7 @@ class RandomShiftTransformer(object):
 
 class RandomShiftPipeline(TransformationPipeline):
     
-    def __init__(self, transformers=[RandomShiftTransformer()], **kwargs):
+    def __init__(self, transformers=[RandomShiftTransformer(), Float32NumpyArrayToBytes()], **kwargs):
         super(RandomShiftPipeline, self).__init__(transformers=transformers)
 
     

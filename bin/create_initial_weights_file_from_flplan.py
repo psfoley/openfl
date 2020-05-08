@@ -8,7 +8,7 @@ import os
 import logging
 import importlib
 
-from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline, NoOpPipeline
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline, NoCompressionPipeline
 from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
 from tfedlrn.proto.protoutils import dump_proto, construct_proto
 from setup_logging import setup_logging
@@ -38,7 +38,7 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     if plan.get('compression_pipeline') is not None:
         compression_pipeline = get_compression_pipeline(**plan.get('compression_pipeline'))
     else:
-        compression_pipeline = NoOpPipeline()
+        compression_pipeline = NoCompressionPipeline()
 
     # FIXME: this will ultimately run in a governor environment and should not require any data to work
     # pick the first collaborator to create the data and model (could be any)

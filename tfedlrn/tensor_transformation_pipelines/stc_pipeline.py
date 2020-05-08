@@ -8,14 +8,25 @@ class SparsityTransformer(Transformer):
     def __init__(self):
         return
 
-
-    def forward(self, data, **kwargs):
+    def forward(self, data, p, **kwargs):
         """
         Implement the data transformation.
         returns: transformed_data, metadata
 
         here data is an array value from a model tensor_dict
         """
+        '''
+        w: model weights, numpy array
+        p: sparsity ratio
+        '''
+        # sparsification
+        n_elements = data.flatten().shape[0]
+        k_op = int(np.ceil(n_elements*p))
+        flatten_w = w.flatten()
+        topk, topk_indices = self._topk_func(flatten_w, k_op)
+        return topk, topk_indices
+        '''
+        #
         shape = data.shape
         random_shift = np.random.uniform(low=-20, high=20, size=shape).astype(np.float32)
         transformed_data = data + random_shift
@@ -28,8 +39,7 @@ class SparsityTransformer(Transformer):
         # input::np_array, {}
         # output::np_array, {}
         return transformed_data, metadata
-
-
+        '''
 
     def backward(self, data, metadata, **kwargs):
         """
@@ -37,7 +47,9 @@ class SparsityTransformer(Transformer):
         direction to the forward method.
         returns: transformed_data
         """
+        return data
         
+        '''
         shape = data.shape
         # this is an awkward use of the metadata into to float dict, usually it will
         # trully be treated as a dict. Here (and in 'forward' above) we use it essentially as an array.
@@ -45,12 +57,24 @@ class SparsityTransformer(Transformer):
                                     newshape=shape, 
                                     order='C')
         return data - shift 
+        '''
+
+    def _topk_func(self, x, k):
+        # quick sort as default on magnitude
+        idx = np.argsort(np.abs(x))
+        # sorted order, the right most is the largest magnitude
+        length = x.shape[0]
+        start_idx = length - k
+        # get the top k magnitude
+        result = x[idx[start_idx:]]
+        indices = idx[start_idx:]
+        return result, indices
 
 class TernaryTransformer(Transformer):
     def __init__(self):
         return
 
-    def foraward(self, data, kwargs**):
+    def foraward(self, data, topk, kwargs**):
         '''
         ...............................
         Quantization:
@@ -72,10 +96,50 @@ class TernaryTransformer(Transformer):
             table: {1:0.234, 0:0, -1:-0.23}
             table : {1, [(id1, id2,id2)]}
         '''
-        pass
+        results = self.ternary_quant(data, topk)
+        return
 
     def backward(self, data, metadata, kwargs**):
-        pass
+        return data
+
+    def ternary_quant(self, w, topk, plot_flag=False):
+        # equation: mean * sign(w_masked)
+        threshold = min(np.abs(topk))
+        mean_topk = np.mean(abs(topk))
+        print('threshold: ', threshold)
+        print('mean_topk:', mean_topk)
+        out_ = np.where(w >= threshold, mean_topk, 0.0)
+        out = np.where(w <= -threshold, -mean_topk, out_)
+        int_array, int2float_map = self._float_to_int(out)
+        return int_array, int2float_map
+
+    def _float_to_int(self, np_array):
+        flatten_array = np_array.reshape(-1)
+        unique_value_array = np.unique(flatten_array)
+        int_array = np.zeros(flatten_array.shape, dtype=np.int)
+        int_to_float_map = {}
+        float_to_int_map = {}
+        # create table
+        for idx, u_value in enumerate(unique_value_array):
+            int_to_float_map.update({idx: u_value})
+            float_to_int_map.update({u_value: idx})
+            # assign to the intger array
+            indices = np.where(flatten_array==u_value)
+            int_array[indices] = idx
+        int_array = int_array.reshape(np_array.shape)
+        return int_array, int_to_float_map
+            
+    def _int_to_float(self, np_array, int_to_float_map):
+        flatten_array = np_array.reshape(-1)
+        unique_value_array = np.unique(flatten_array)
+        float_array = np.zeros(flatten_array.shape, dtype=np.int)
+        # create table
+        for idx, int_value in enumerate(unique_value_array):
+            float_value = int_to_float_map(int_value)
+            indices = np.where(np_array==int_value)
+            float_array[indices] = float_value
+        float_array = float_array.reshape(np_array.shape)
+        return int_array, int_to_float_map
 
 class GZIPTransformer(Transformer):
     '''

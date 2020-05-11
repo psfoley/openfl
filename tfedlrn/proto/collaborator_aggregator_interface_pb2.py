@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='tfedlrn_proto',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\'collaborator_aggregator_interface.proto\x12\rtfedlrn_proto\"\x98\x01\n\rMetadataProto\x12\x42\n\x0cint_to_float\x18\x01 \x03(\x0b\x32,.tfedlrn_proto.MetadataProto.IntToFloatEntry\x12\x10\n\x08int_list\x18\x02 \x03(\x05\x1a\x31\n\x0fIntToFloatEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\"k\n\x0bTensorProto\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x12\n\ndata_bytes\x18\x03 \x01(\x0c\x12:\n\x14transformer_metadata\x18\x04 \x03(\x0b\x32\x1c.tfedlrn_proto.MetadataProto\"Z\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x11\n\trecipient\x18\x02 \x01(\t\x12\x15\n\rfederation_id\x18\x03 \x01(\t\x12\x0f\n\x07\x63ounter\x18\x04 \x01(\x05\"*\n\x0bModelHeader\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\x05\"e\n\nModelProto\x12*\n\x06header\x18\x01 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12+\n\x07tensors\x18\x02 \x03(\x0b\x32\x1a.tfedlrn_proto.TensorProto\"\x8b\x01\n\x10LocalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\x12\x11\n\tdata_size\x18\x03 \x01(\x05\x12\x0c\n\x04loss\x18\x04 \x01(\x02\"\x9c\x01\n\x16LocalValidationResults\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12\x0f\n\x07results\x18\x03 \x01(\x02\x12\x11\n\tdata_size\x18\x04 \x01(\x05\"l\n\nJobRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"v\n\x14ModelDownloadRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"\xd2\x01\n\x0eRoundTaskQuery\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12V\n\x16task_results_last_sync\x18\x02 \x03(\x0b\x32\x36.tfedlrn_proto.RoundTaskQuery.TaskResultsLastSyncEntry\x1a:\n\x18TaskResultsLastSyncEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"k\n\x11GlobalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\"Y\n\x08JobReply\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x1f\n\x03job\x18\x02 \x01(\x0e\x32\x12.tfedlrn_proto.Job\"C\n\x13LocalModelUpdateAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"I\n\x19LocalValidationResultsAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader*[\n\x03Job\x12\r\n\tJOB_TRAIN\x10\x00\x12\x10\n\x0cJOB_VALIDATE\x10\x01\x12\r\n\tJOB_YIELD\x10\x02\x12\x0c\n\x08JOB_QUIT\x10\x03\x12\x16\n\x12JOB_DOWNLOAD_MODEL\x10\x04\x32\xfa\x02\n\nAggregator\x12\x42\n\nRequestJob\x12\x19.tfedlrn_proto.JobRequest\x1a\x17.tfedlrn_proto.JobReply\"\x00\x12X\n\rDownloadModel\x12#.tfedlrn_proto.ModelDownloadRequest\x1a .tfedlrn_proto.GlobalModelUpdate\"\x00\x12_\n\x16UploadLocalModelUpdate\x12\x1f.tfedlrn_proto.LocalModelUpdate\x1a\".tfedlrn_proto.LocalModelUpdateAck\"\x00\x12m\n\x18UploadLocalMetricsUpdate\x12%.tfedlrn_proto.LocalValidationResults\x1a(.tfedlrn_proto.LocalValidationResultsAck\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\'collaborator_aggregator_interface.proto\x12\rtfedlrn_proto\"\xab\x01\n\rMetadataProto\x12\x42\n\x0cint_to_float\x18\x01 \x03(\x0b\x32,.tfedlrn_proto.MetadataProto.IntToFloatEntry\x12\x10\n\x08int_list\x18\x02 \x03(\x05\x12\x11\n\tbool_list\x18\x03 \x03(\x08\x1a\x31\n\x0fIntToFloatEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\"k\n\x0bTensorProto\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x12\n\ndata_bytes\x18\x03 \x01(\x0c\x12:\n\x14transformer_metadata\x18\x04 \x03(\x0b\x32\x1c.tfedlrn_proto.MetadataProto\"Z\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x01(\t\x12\x11\n\trecipient\x18\x02 \x01(\t\x12\x15\n\rfederation_id\x18\x03 \x01(\t\x12\x0f\n\x07\x63ounter\x18\x04 \x01(\x05\"*\n\x0bModelHeader\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0f\n\x07version\x18\x02 \x01(\x05\"e\n\nModelProto\x12*\n\x06header\x18\x01 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12+\n\x07tensors\x18\x02 \x03(\x0b\x32\x1a.tfedlrn_proto.TensorProto\"\x8b\x01\n\x10LocalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\x12\x11\n\tdata_size\x18\x03 \x01(\x05\x12\x0c\n\x04loss\x18\x04 \x01(\x02\"\x9c\x01\n\x16LocalValidationResults\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\x12\x0f\n\x07results\x18\x03 \x01(\x02\x12\x11\n\tdata_size\x18\x04 \x01(\x05\"l\n\nJobRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"v\n\x14ModelDownloadRequest\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x30\n\x0cmodel_header\x18\x02 \x01(\x0b\x32\x1a.tfedlrn_proto.ModelHeader\"\xd2\x01\n\x0eRoundTaskQuery\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12V\n\x16task_results_last_sync\x18\x02 \x03(\x0b\x32\x36.tfedlrn_proto.RoundTaskQuery.TaskResultsLastSyncEntry\x1a:\n\x18TaskResultsLastSyncEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x05:\x02\x38\x01\"k\n\x11GlobalModelUpdate\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12(\n\x05model\x18\x02 \x01(\x0b\x32\x19.tfedlrn_proto.ModelProto\"Y\n\x08JobReply\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\x12\x1f\n\x03job\x18\x02 \x01(\x0e\x32\x12.tfedlrn_proto.Job\"C\n\x13LocalModelUpdateAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader\"I\n\x19LocalValidationResultsAck\x12,\n\x06header\x18\x01 \x01(\x0b\x32\x1c.tfedlrn_proto.MessageHeader*[\n\x03Job\x12\r\n\tJOB_TRAIN\x10\x00\x12\x10\n\x0cJOB_VALIDATE\x10\x01\x12\r\n\tJOB_YIELD\x10\x02\x12\x0c\n\x08JOB_QUIT\x10\x03\x12\x16\n\x12JOB_DOWNLOAD_MODEL\x10\x04\x32\xfa\x02\n\nAggregator\x12\x42\n\nRequestJob\x12\x19.tfedlrn_proto.JobRequest\x1a\x17.tfedlrn_proto.JobReply\"\x00\x12X\n\rDownloadModel\x12#.tfedlrn_proto.ModelDownloadRequest\x1a .tfedlrn_proto.GlobalModelUpdate\"\x00\x12_\n\x16UploadLocalModelUpdate\x12\x1f.tfedlrn_proto.LocalModelUpdate\x1a\".tfedlrn_proto.LocalModelUpdateAck\"\x00\x12m\n\x18UploadLocalMetricsUpdate\x12%.tfedlrn_proto.LocalValidationResults\x1a(.tfedlrn_proto.LocalValidationResultsAck\"\x00\x62\x06proto3')
 )
 
 _JOB = _descriptor.EnumDescriptor(
@@ -52,8 +52,8 @@ _JOB = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1649,
-  serialized_end=1740,
+  serialized_start=1668,
+  serialized_end=1759,
 )
 _sym_db.RegisterEnumDescriptor(_JOB)
 
@@ -99,8 +99,8 @@ _METADATAPROTO_INTTOFLOATENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=162,
-  serialized_end=211,
+  serialized_start=181,
+  serialized_end=230,
 )
 
 _METADATAPROTO = _descriptor.Descriptor(
@@ -124,6 +124,13 @@ _METADATAPROTO = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='bool_list', full_name='tfedlrn_proto.MetadataProto.bool_list', index=2,
+      number=3, type=8, cpp_type=7, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -137,7 +144,7 @@ _METADATAPROTO = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=59,
-  serialized_end=211,
+  serialized_end=230,
 )
 
 
@@ -181,8 +188,8 @@ _TENSORPROTO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=213,
-  serialized_end=320,
+  serialized_start=232,
+  serialized_end=339,
 )
 
 
@@ -233,8 +240,8 @@ _MESSAGEHEADER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=322,
-  serialized_end=412,
+  serialized_start=341,
+  serialized_end=431,
 )
 
 
@@ -271,8 +278,8 @@ _MODELHEADER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=414,
-  serialized_end=456,
+  serialized_start=433,
+  serialized_end=475,
 )
 
 
@@ -309,8 +316,8 @@ _MODELPROTO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=458,
-  serialized_end=559,
+  serialized_start=477,
+  serialized_end=578,
 )
 
 
@@ -361,8 +368,8 @@ _LOCALMODELUPDATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=562,
-  serialized_end=701,
+  serialized_start=581,
+  serialized_end=720,
 )
 
 
@@ -413,8 +420,8 @@ _LOCALVALIDATIONRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=704,
-  serialized_end=860,
+  serialized_start=723,
+  serialized_end=879,
 )
 
 
@@ -451,8 +458,8 @@ _JOBREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=862,
-  serialized_end=970,
+  serialized_start=881,
+  serialized_end=989,
 )
 
 
@@ -489,8 +496,8 @@ _MODELDOWNLOADREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=972,
-  serialized_end=1090,
+  serialized_start=991,
+  serialized_end=1109,
 )
 
 
@@ -527,8 +534,8 @@ _ROUNDTASKQUERY_TASKRESULTSLASTSYNCENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1245,
-  serialized_end=1303,
+  serialized_start=1264,
+  serialized_end=1322,
 )
 
 _ROUNDTASKQUERY = _descriptor.Descriptor(
@@ -564,8 +571,8 @@ _ROUNDTASKQUERY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1093,
-  serialized_end=1303,
+  serialized_start=1112,
+  serialized_end=1322,
 )
 
 
@@ -602,8 +609,8 @@ _GLOBALMODELUPDATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1305,
-  serialized_end=1412,
+  serialized_start=1324,
+  serialized_end=1431,
 )
 
 
@@ -640,8 +647,8 @@ _JOBREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1414,
-  serialized_end=1503,
+  serialized_start=1433,
+  serialized_end=1522,
 )
 
 
@@ -671,8 +678,8 @@ _LOCALMODELUPDATEACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1505,
-  serialized_end=1572,
+  serialized_start=1524,
+  serialized_end=1591,
 )
 
 
@@ -702,8 +709,8 @@ _LOCALVALIDATIONRESULTSACK = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1574,
-  serialized_end=1647,
+  serialized_start=1593,
+  serialized_end=1666,
 )
 
 _METADATAPROTO_INTTOFLOATENTRY.containing_type = _METADATAPROTO
@@ -869,8 +876,8 @@ _AGGREGATOR = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1743,
-  serialized_end=2121,
+  serialized_start=1762,
+  serialized_end=2140,
   methods=[
   _descriptor.MethodDescriptor(
     name='RequestJob',

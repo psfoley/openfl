@@ -11,7 +11,8 @@ def model_proto_to_bytes_and_metadata(model_proto):
     for tensor_proto in model_proto.tensors:
         bytes_dict[tensor_proto.name] = tensor_proto.data_bytes
         metadata_dict[tensor_proto.name] = [{'int_to_float': proto.int_to_float, 
-                                             'int_list': proto.int_list} for proto in tensor_proto.transformer_metadata]
+                                             'int_list': proto.int_list, 
+                                             'bool_list': proto.bool_list} for proto in tensor_proto.transformer_metadata]
     return bytes_dict, metadata_dict
 
 def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, metadata_dict):
@@ -25,7 +26,8 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, metad
         for metadata in transformer_metadata:
             int_to_float = metadata.get('int_to_float') or {}
             int_list = metadata.get('int_list') or []
-            metadata_protos.append(MetadataProto(int_to_float=int_to_float, int_list=int_list))
+            bool_list = metadata.get('bool_list') or []
+            metadata_protos.append(MetadataProto(int_to_float=int_to_float, int_list=int_list, bool_list=bool_list))
         tensor_protos.append(TensorProto(name=key, 
                                          data_bytes=data_bytes, 
                                          transformer_metadata=metadata_protos))

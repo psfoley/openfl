@@ -59,7 +59,11 @@ federation:
 
 compression_pipeline:
     module_name: tfedlrn.tensor_transformation_pipelines
-    class_name: RandomShiftPipeline
+    class_name: STCPipeline
+        sparsityTransformer: 
+            p_sparsity: 0.01
+        kmeansTransformer: 
+            n_clusters: 6
 
 hostnames:
   __DEFAULT_HOSTNAME__: some.url

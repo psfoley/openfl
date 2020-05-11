@@ -3,12 +3,36 @@ import gzip
 
 from tfedlrn.tensor_transformation_pipelines import TransformationPipeline, Transformer
 
+'''
+dictionary:
+    'int_to_float': 2.23432
+    'int_list': [128,32,32,3]
+    'bool_array': [True, Flase, ...]
+
+---
+
+forward:
+        shape
+        x = flatten(x)
+    sparse(x): topk, metadata = {'int_list': [123...], 'bool_array': np.array(indices )}
+    quant(topk): int_array, metadata={'int_float':, int2float_map}
+    gzip:(int_array): compressed_bytes; 
+
+backward:
+    gzip(compressed_bytes): int_array(flattened)
+    quant(int_array, metadata): float_array
+    sparse(float_array, metadata): x_original_sparse
+
+'''
+
 class SparsityTransformer(Transformer):
     
     def __init__(self):
+        self.p = 0.01 
+        self.n_cluster = None
         return
 
-    def forward(self, data, p, **kwargs):
+    def forward(self, data, **kwargs):
         """
         Implement the data transformation.
         returns: transformed_data, metadata
@@ -20,11 +44,17 @@ class SparsityTransformer(Transformer):
         p: sparsity ratio
         '''
         # sparsification
+        meta_dict['original_shape'] = data.shape
         n_elements = data.flatten().shape[0]
         k_op = int(np.ceil(n_elements*p))
         flatten_w = w.flatten()
         topk, topk_indices = self._topk_func(flatten_w, k_op)
-        return topk, topk_indices
+        #
+        meta_dict = {}
+        meta_dict['topk'] = [topk]
+        meta_dict['topk_indices'] = [topk_dices]
+        # make a sparse data
+        return sarpse_data, meta_dict
         '''
         #
         shape = data.shape
@@ -46,7 +76,7 @@ class SparsityTransformer(Transformer):
         Implement the data transformation needed when going the oppposite
         direction to the forward method.
         returns: transformed_data
-        """
+        ""andomShiftPipeline
         return data
         
         '''
@@ -123,7 +153,7 @@ class TernaryTransformer(Transformer):
         for idx, u_value in enumerate(unique_value_array):
             int_to_float_map.update({idx: u_value})
             float_to_int_map.update({u_value: idx})
-            # assign to the intger array
+            # assign to the integer array
             indices = np.where(flatten_array==u_value)
             int_array[indices] = idx
         int_array = int_array.reshape(np_array.shape)
@@ -161,13 +191,19 @@ class GZIPTransformer(Transformer):
     def backward(self, data_bytes, metadata, kwargs**):
         decompressed_bytes_ = gzip.decompress(data_bytes)
         data = np.frombuffer(decompressed_bytes_, dtyp=np.float32)
-        data = data.reshape(meta_data['dtype'])
+        #data = data.reshape(metadata['shape'])
         return data
 
 class STCPipeline(TransformationPipeline):
     
     def __init__(self, transformers=[RandomShiftTransformer()], **kwargs):
+        # instantiate each transformer, name
+        self.p = p_sparsity
+        self.p = p_sparsity
         super(RandomShiftPipeline, self).__init__(transformers=transformers)
+        # transformers
+        #fun(**kwargs)
+        #no::self.p = kwargs['p_sparsity']
 
     def foraward(self, data, kwargs**):
         pass

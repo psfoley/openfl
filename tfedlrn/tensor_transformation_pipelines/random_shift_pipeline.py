@@ -47,7 +47,8 @@ class RandomShiftTransformer(Transformer):
 
 class RandomShiftPipeline(TransformationPipeline):
     
-    def __init__(self, transformers=[RandomShiftTransformer(), Float32NumpyArrayToBytes()], **kwargs):
+    def __init__(self, **kwargs):
+        transformers=[RandomShiftTransformer(), Float32NumpyArrayToBytes()]
         super(RandomShiftPipeline, self).__init__(transformers=transformers)
 
     

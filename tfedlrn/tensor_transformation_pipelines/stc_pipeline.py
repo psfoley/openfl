@@ -100,29 +100,8 @@ class TernaryTransformer(Transformer):
         self.n_cluster = n_cluster
         return
 
-    def foraward(self, data, kwargs**):
+    def foraward(self, data, **kwargs):
         '''
-        ...............................
-        Quantization:
-        [4.234324, 2.23432, -2.23432, -4.23432]
-
-        dict:maping 
-        [4.234324, 2.23432, -2.23432, -4.23432]
-        [0, 1, 2, 3]
-
-        matrix;
-        {1.232, ...}
-        {0, 1, 2, 2,... ...}
-        table mapping:dict{}
-        ...............................
-        quantization
-        [1, 0, -1, 1, ...]
-        representation with a table
-            value set: {1,0,-1}
-            table: {1:0.234, 0:0, -1:-0.23}
-            table : {1, [(id1, id2,id2)]}
-        #
-        quant(topk): int_array, metadata={'int_float':, int2float_map}
         '''
         # ternarization, data is sparse and flattened
         mean_topk = np.mean(np.abs(data))
@@ -136,26 +115,13 @@ class TernaryTransformer(Transformer):
         #results = self.ternary_quant(data, topk)
         return
 
-    def backward(self, data, metadata, kwargs**):
+    def backward(self, data, metadata, **kwargs):
         # convert back to float
         int2float_map = metadata['int_to_float']
         for key in int2float_map:
             indices = data == key
             data[indices] = int2float_map[key]
         return data
-
-    '''
-    def ternary_quant(self, w, topk, plot_flag=False):
-        # equation: mean * sign(w_masked)
-        threshold = min(np.abs(topk))
-        mean_topk = np.mean(abs(topk))
-        print('threshold: ', threshold)
-        print('mean_topk:', mean_topk)
-        out_ = np.where(w >= threshold, mean_topk, 0.0)
-        out = np.where(w <= -threshold, -mean_topk, out_)
-        int_array, int2float_map = self._float_to_int(out)
-        return int_array, int2float_map
-    '''
 
     def _float_to_int(self, np_array):
         flatten_array = np_array.reshape(-1)
@@ -196,13 +162,13 @@ class GZIPTransformer(Transformer):
     def __init__(self):
         return
 
-    def foraward(self, data, kwargs**):
+    def foraward(self, data, **kwargs):
         bytes_ = data.tobytes()
         compressed_bytes_ = gzip.compress(bytes_)
         #shape_info = data.shape
         return compressed_bytes_
 
-    def backward(self, data_bytes, metadata, kwargs**):
+    def backward(self, data_bytes, metadata, **kwargs):
         decompressed_bytes_ = gzip.decompress(data_bytes)
         data = np.frombuffer(decompressed_bytes_, dtyp=np.float32)
         #data = data.reshape(metadata['shape'])
@@ -213,6 +179,6 @@ class STCPipeline(TransformationPipeline):
     def __init__(self, transformers=[SparsityTransformer()], **kwargs):
         # instantiate each transformer, name
         self.p = p_sparsity
-        self.n_cluster = n_cluster
+        self.n_cluster = n_clusters
         transformers = [SparsityTransformer(self.p), TernaryTransformer(self.n_cluster), GZIPTransformer()]
         super(STCPipeline, self).__init__(transformers=transformers)

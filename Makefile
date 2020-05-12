@@ -46,7 +46,7 @@ install: $(tfl)
 venv: venv/bin/python3
 
 venv/bin/python3:
-	python3.5 -m venv venv
+	python3 -m venv venv
 	venv/bin/pip3 install --upgrade pip
 	venv/bin/pip3 install --upgrade setuptools
 	venv/bin/pip3 install --upgrade wheel

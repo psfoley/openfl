@@ -50,7 +50,8 @@ test_spsm_gpu:
     - python3 -m pip --version
     - make install
     script: 
-    - ./test_scripts.sh
+    - cd test_fl/
+    - ./test_spsm_gpu.sh
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
     - Siemens_20200506
@@ -68,8 +69,6 @@ test_spsm_cpu:
     script: 
     - cd test_fl/
     - ./test_spsm.sh
-    #- CUDA_VISIBLE_DEVICES=0 ../venv/bin/python create_initial_weights_file_from_flplan.py -p tf_resnet_withcifar10.yaml
-    #- CUDA_VISIBLE_DEVICES=0 ../venv/bin/python run_simulation_from_flplan.py -p tf_resnet_withcifar10.yaml
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
     - Siemens_20200506
@@ -94,6 +93,7 @@ test_mpsm_pt_cnn_mnist_shell:
     script:
     - cd test_fl/
     - ./test_mpsm.sh
+    timeout: 3h 30m
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
     - Siemens_20200506

@@ -41,10 +41,9 @@ class SparsityTransformer(Transformer):
         p: sparsity ratio
         '''
         # sparsification
-        meta_dict['original_shape'] = data.shape
         flatten_data = data.flatten()
         n_elements = flatten_data.shape[0]
-        k_op = int(np.ceil(n_elements*p))
+        k_op = int(np.ceil(n_elements*self.p))
         topk, topk_indices = self._topk_func(flatten_data, k_op)
         #
         sparse_data = np.zeros(flatten_data.shape)
@@ -56,7 +55,7 @@ class SparsityTransformer(Transformer):
         #meta_dict['topk'] = [topk]
         # meta_dict['topk_indices'] = [topk_dices]
         # make a sparse data
-        return sarpse_data, meta_dict
+        return sparse_data, meta_dict
         '''
         # input::np_array, {}
         # output::np_array, {}
@@ -100,20 +99,20 @@ class TernaryTransformer(Transformer):
         self.n_cluster = n_cluster
         return
 
-    def foraward(self, data, **kwargs):
+    def forward(self, data, **kwargs):
         '''
         '''
         # ternarization, data is sparse and flattened
         mean_topk = np.mean(np.abs(data))
         out_ = np.where(data > 0.0, mean_topk, 0.0)
-        out = np.where(data < 0.0 -mean_topk, out_)
+        out = np.where(data < 0.0, -mean_topk, out_)
         int_array, int2float_map = self._float_to_int(out)
         metadata = {}
         metadata['int_to_float']  = int2float_map
         return int_array, metadata
 
         #results = self.ternary_quant(data, topk)
-        return
+        #return
 
     def backward(self, data, metadata, **kwargs):
         # convert back to float
@@ -162,11 +161,12 @@ class GZIPTransformer(Transformer):
     def __init__(self):
         return
 
-    def foraward(self, data, **kwargs):
+    def forward(self, data, **kwargs):
         bytes_ = data.tobytes()
         compressed_bytes_ = gzip.compress(bytes_)
         #shape_info = data.shape
-        return compressed_bytes_
+        metadata = {}
+        return compressed_bytes_, metadata
 
     def backward(self, data_bytes, metadata, **kwargs):
         decompressed_bytes_ = gzip.decompress(data_bytes)
@@ -176,9 +176,9 @@ class GZIPTransformer(Transformer):
 
 class STCPipeline(TransformationPipeline):
     
-    def __init__(self, transformers=[SparsityTransformer()], **kwargs):
+    def __init__(self, transformers=[SparsityTransformer()], p_sparsity=0.01, n_clusters=6, **kwargs):
         # instantiate each transformer, name
         self.p = p_sparsity
         self.n_cluster = n_clusters
         transformers = [SparsityTransformer(self.p), TernaryTransformer(self.n_cluster), GZIPTransformer()]
-        super(STCPipeline, self).__init__(transformers=transformers)
+        super(STCPipeline, self).__init__(transformers=transformers, **kwargs)

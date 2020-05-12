@@ -5,12 +5,10 @@ from tfedlrn.tensor_transformation_pipelines import TransformationPipeline, Tran
 
 '''
 dictionary:
-    'int_to_float': 2.23432
+    'int_to_float': {int:float...}
     'int_list': [128,32,32,3]
     'bool_array': [True, Flase, ...]
-
 ---
-
 forward:
         shape
         x = flatten(x)
@@ -27,9 +25,8 @@ backward:
 
 class SparsityTransformer(Transformer):
     
-    def __init__(self):
-        self.p = 0.01 
-        self.n_cluster = None
+    def __init__(self, p=0.01):
+        self.p = p
         return
 
     def forward(self, data, **kwargs):
@@ -45,30 +42,24 @@ class SparsityTransformer(Transformer):
         '''
         # sparsification
         meta_dict['original_shape'] = data.shape
-        n_elements = data.flatten().shape[0]
+        flatten_data = data.flatten()
+        n_elements = flatten_data.shape[0]
         k_op = int(np.ceil(n_elements*p))
-        flatten_w = w.flatten()
-        topk, topk_indices = self._topk_func(flatten_w, k_op)
+        topk, topk_indices = self._topk_func(flatten_data, k_op)
         #
+        sparse_data = np.zeros(flatten_data.shape)
+        sparse_data[topk_indices] = topk 
+        nonzero_element_bool_indices = sparse_data != 0.0
         meta_dict = {}
-        meta_dict['topk'] = [topk]
-        meta_dict['topk_indices'] = [topk_dices]
+        meta_dict['int_list'] = list(data.shape)
+        meta_dict['bool_array'] = nonzero_element_bool_indices
+        #meta_dict['topk'] = [topk]
+        # meta_dict['topk_indices'] = [topk_dices]
         # make a sparse data
         return sarpse_data, meta_dict
         '''
-        #
-        shape = data.shape
-        random_shift = np.random.uniform(low=-20, high=20, size=shape).astype(np.float32)
-        transformed_data = data + random_shift
-        
-        # construct metadata
-        metadata = {}
-        for idx, val in enumerate(random_shift.flatten(order='C')):
-            metadata[idx] = val
-        
         # input::np_array, {}
         # output::np_array, {}
-        return transformed_data, metadata
         '''
 
     def backward(self, data, metadata, **kwargs):
@@ -76,8 +67,12 @@ class SparsityTransformer(Transformer):
         Implement the data transformation needed when going the oppposite
         direction to the forward method.
         returns: transformed_data
-        ""andomShiftPipeline
-        return data
+        """
+        data_shape = meta_dict['int_list'] = list(data.shape)
+        nonzero_element_bool_indices = meta_dict['bool_array'] 
+        recovered_data = np.zeros(data_shape)
+        recovered_data[nonzero_element_bool_indices] = data
+        return recovered_data
         
         '''
         shape = data.shape
@@ -96,15 +91,16 @@ class SparsityTransformer(Transformer):
         length = x.shape[0]
         start_idx = length - k
         # get the top k magnitude
-        result = x[idx[start_idx:]]
-        indices = idx[start_idx:]
-        return result, indices
+        topk_mag = np.asarray(x[idx[start_idx:]])
+        indices = np.asarray(idx[start_idx:])
+        return topk_mag, indices
 
 class TernaryTransformer(Transformer):
-    def __init__(self):
+    def __init__(self, n_cluster):
+        self.n_cluster = n_cluster
         return
 
-    def foraward(self, data, topk, kwargs**):
+    def foraward(self, data, kwargs**):
         '''
         ...............................
         Quantization:
@@ -125,13 +121,30 @@ class TernaryTransformer(Transformer):
             value set: {1,0,-1}
             table: {1:0.234, 0:0, -1:-0.23}
             table : {1, [(id1, id2,id2)]}
+        #
+        quant(topk): int_array, metadata={'int_float':, int2float_map}
         '''
-        results = self.ternary_quant(data, topk)
+        # ternarization, data is sparse and flattened
+        mean_topk = np.mean(np.abs(data))
+        out_ = np.where(data > 0.0, mean_topk, 0.0)
+        out = np.where(data < 0.0 -mean_topk, out_)
+        int_array, int2float_map = self._float_to_int(out)
+        metadata = {}
+        metadata['int_to_float']  = int2float_map
+        return int_array, metadata
+
+        #results = self.ternary_quant(data, topk)
         return
 
     def backward(self, data, metadata, kwargs**):
+        # convert back to float
+        int2float_map = metadata['int_to_float']
+        for key in int2float_map:
+            indices = data == key
+            data[indices] = int2float_map[key]
         return data
 
+    '''
     def ternary_quant(self, w, topk, plot_flag=False):
         # equation: mean * sign(w_masked)
         threshold = min(np.abs(topk))
@@ -142,6 +155,7 @@ class TernaryTransformer(Transformer):
         out = np.where(w <= -threshold, -mean_topk, out_)
         int_array, int2float_map = self._float_to_int(out)
         return int_array, int2float_map
+    '''
 
     def _float_to_int(self, np_array):
         flatten_array = np_array.reshape(-1)
@@ -185,7 +199,7 @@ class GZIPTransformer(Transformer):
     def foraward(self, data, kwargs**):
         bytes_ = data.tobytes()
         compressed_bytes_ = gzip.compress(bytes_)
-        shape_info = data.shape
+        #shape_info = data.shape
         return compressed_bytes_
 
     def backward(self, data_bytes, metadata, kwargs**):
@@ -196,18 +210,9 @@ class GZIPTransformer(Transformer):
 
 class STCPipeline(TransformationPipeline):
     
-    def __init__(self, transformers=[RandomShiftTransformer()], **kwargs):
+    def __init__(self, transformers=[SparsityTransformer()], **kwargs):
         # instantiate each transformer, name
         self.p = p_sparsity
-        self.p = p_sparsity
-        super(RandomShiftPipeline, self).__init__(transformers=transformers)
-        # transformers
-        #fun(**kwargs)
-        #no::self.p = kwargs['p_sparsity']
-
-    def foraward(self, data, kwargs**):
-        pass
-
-    def backward(self, data, metadata, kwargs**):
-        pass
-    
+        self.n_cluster = n_cluster
+        transformers = [SparsityTransformer(self.p), TernaryTransformer(self.n_cluster), GZIPTransformer()]
+        super(STCPipeline, self).__init__(transformers=transformers)

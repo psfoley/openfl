@@ -176,8 +176,8 @@ class GZIPTransformer(Transformer):
 
 class STCPipeline(TransformationPipeline):
     
-    def __init__(self, transformers=[SparsityTransformer()], p_sparsity=0.01, n_clusters=6, **kwargs):
-        # instantiate each transformer, name
+    def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
+        # instantiate each transformer
         self.p = p_sparsity
         self.n_cluster = n_clusters
         transformers = [SparsityTransformer(self.p), TernaryTransformer(self.n_cluster), GZIPTransformer()]

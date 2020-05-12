@@ -93,7 +93,7 @@ test_mpsm_pt_cnn_mnist_shell:
     - python3 -m pip --version
     script:
     - cd test_fl/
-    - ./test_mpsm
+    - ./test_mpsm.sh
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
     - Siemens_20200506

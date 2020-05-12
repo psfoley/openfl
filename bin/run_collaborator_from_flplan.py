@@ -59,7 +59,7 @@ def main(plan, col_id, data_config_fname, logging_config_fname, logging_default_
     collaborator = Collaborator(col_id=col_id,
                                 wrapped_model=wrapped_model, 
                                 channel=channel,
-                                cumpression_pipeline = compression_pipeline, 
+                                compression_pipeline = compression_pipeline, 
                                 **col_config)
 
 

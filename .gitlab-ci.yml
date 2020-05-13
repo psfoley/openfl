@@ -53,6 +53,7 @@ test_spsm_gpu:
     script: 
     - cd test_fl/
     - ./test_spsm_gpu.sh
+    timeout: 5h 30m
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
     - Siemens_20200506
@@ -71,6 +72,7 @@ test_spsm_cpu:
     script: 
     - cd test_fl/
     - ./test_spsm.sh
+    timeout: 5h 30m
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
     - Siemens_20200506
@@ -97,7 +99,7 @@ test_mpsm_pt_cnn_mnist_shell:
     script:
     - cd test_fl/
     - ./test_mpsm.sh
-    timeout: 3h 30m
+    timeout: 5h 30m
     only:
     - 101-Build-GitLab-CI-testing-tool-fundamentals
     - Siemens_20200506

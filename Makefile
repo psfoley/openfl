@@ -47,6 +47,7 @@ venv: venv/bin/python3
 
 venv/bin/python3:
 	python3 -m venv venv
+	venv/bin/pip3 install --upgrade pip==19.2.3
 	venv/bin/pip3 install setuptools
 	venv/bin/pip3 install wheel
 	#venv/bin/pip3 install --upgrade pip

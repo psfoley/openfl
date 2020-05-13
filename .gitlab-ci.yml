@@ -55,8 +55,13 @@ test_spsm_gpu:
     - ./test_spsm_gpu.sh
     timeout: 5h 30m
     only:
-    - 101-Build-GitLab-CI-testing-tool-fundamentals
-    - Siemens_20200506
+      changes:
+      - Makefile
+      - testfl/*.{py,sh}
+      - tfedlrn/*
+      - bin/*
+      - models/*
+      - data/*
 
 test_spsm_cpu:
     stage: test
@@ -74,8 +79,13 @@ test_spsm_cpu:
     - ./test_spsm.sh
     timeout: 5h 30m
     only:
-    - 101-Build-GitLab-CI-testing-tool-fundamentals
-    - Siemens_20200506
+      changes:
+      - Makefile
+      - testfl/*.{py,sh}
+      - tfedlrn/*
+      - bin/*
+      - models/*
+      - data/*
 
 test_mpsm_pt_cnn_mnist_shell:
     stage: test 
@@ -101,6 +111,11 @@ test_mpsm_pt_cnn_mnist_shell:
     - ./test_mpsm.sh
     timeout: 5h 30m
     only:
-    - 101-Build-GitLab-CI-testing-tool-fundamentals
-    - Siemens_20200506
+      changes:
+      - Makefile
+      - testfl/*.{py,sh}
+      - tfedlrn/*
+      - bin/*
+      - models/*
+      - data/*
 

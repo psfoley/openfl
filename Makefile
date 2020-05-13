@@ -112,6 +112,7 @@ clean:
 # ADDING TUTORIAL TARGETS
 
 build_containers:
+
 	docker build \
 	--build-arg BASE_IMAGE=$(base_image) \
 	--build-arg http_proxy \

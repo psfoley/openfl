@@ -9,3 +9,13 @@ echo "======== testing keras creating initial weights ..."
 ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p tf_cnn_withmnist.yaml
 echo "======== testing kears training ..."
 ../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p tf_cnn_withmnist.yaml
+
+echo "======== testing pytorch resnet creating initial weights ..."
+../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p pt_resnet_withmnist.yaml
+echo "======== testing pytorch resnet training ..."
+../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p pt_resnet_withmnist.yaml
+
+echo "======== testing keras resnet creating initial weights ..."
+../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml
+echo "======== testing kears resnet training ..."
+../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml

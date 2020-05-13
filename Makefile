@@ -47,9 +47,11 @@ venv: venv/bin/python3
 
 venv/bin/python3:
 	python3 -m venv venv
-	venv/bin/pip3 install --upgrade pip
-	venv/bin/pip3 install --upgrade setuptools
-	venv/bin/pip3 install --upgrade wheel
+	venv/bin/pip3 install setuptools
+	venv/bin/pip3 install wheel
+	#venv/bin/pip3 install --upgrade pip
+	#venv/bin/pip3 install --upgrade setuptools
+	#venv/bin/pip3 install --upgrade wheel
 	
 $(whl): venv/bin/python3
 	venv/bin/python3 setup.py bdist_wheel

@@ -148,7 +148,7 @@ test_mpmm_shell_1:
     only:
       changes:
       - Makefile
-      - test_fl/test_mpsm.sh
+      - test_fl/test_mpmm_gpu01.sh
       - test_fl/*.{py}
       - tfedlrn/*
       - bin/**/*
@@ -180,7 +180,7 @@ test_mpmm_shell_2:
     only:
       changes:
       - Makefile
-      - test_fl/test_mpsm.sh
+      - test_fl/test_mpmm_gpu02.sh
       - test_fl/*.{py}
       - tfedlrn/*
       - bin/**/*

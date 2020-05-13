@@ -122,3 +122,66 @@ test_mpsm_shell:
       - models/**/*
       - data/**/*
 
+test_mpmm_shell_1:
+    stage: test 
+    tags: 
+    - shell-runner-1
+    before_script:
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - python3 -m pip --version
+    - make clean
+    - make install
+    script:
+    - cd test_fl/
+    - ./test_mpmm_gpu01.sh
+    timeout: 5h 30m
+    only:
+      changes:
+      - Makefile
+      - test_fl/test_mpsm.sh
+      - test_fl/*.{py}
+      - tfedlrn/*
+      - bin/**/*
+      - models/**/*
+
+test_mpmm_shell_2:
+    stage: test 
+    tags: 
+    - shell-runner-2
+    before_script:
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - python3 -m pip --version
+    - make clean
+    - make install
+    script:
+    - cd test_fl/
+    - ./test_mpmm_gpu02.sh
+    timeout: 5h 30m
+    only:
+      changes:
+      - Makefile
+      - test_fl/test_mpsm.sh
+      - test_fl/*.{py}
+      - tfedlrn/*
+      - bin/**/*
+      - models/**/*

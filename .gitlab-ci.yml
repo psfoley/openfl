@@ -57,11 +57,12 @@ test_spsm_gpu:
     only:
       changes:
       - Makefile
-      - testfl/*.{py,sh}
+      - testfl/test_spsm_gpu.sh
+      - testfl/*.{py}
       - tfedlrn/*
-      - bin/*
-      - models/*
-      - data/*
+      - bin/**/*
+      - models/**/*
+      - data/**/*
 
 test_spsm_cpu:
     stage: test
@@ -81,13 +82,14 @@ test_spsm_cpu:
     only:
       changes:
       - Makefile
-      - testfl/*.{py,sh}
+      - testfl/test_spsm.sh
+      - testfl/*.{py}
       - tfedlrn/*
-      - bin/*
-      - models/*
-      - data/*
+      - bin/**/*
+      - models/**/*
+      - data/**/*
 
-test_mpsm_pt_cnn_mnist_shell:
+test_mpsm_shell:
     stage: test 
     tags: 
     - shell-runner-1
@@ -113,9 +115,10 @@ test_mpsm_pt_cnn_mnist_shell:
     only:
       changes:
       - Makefile
-      - testfl/*.{py,sh}
+      - testfl/test_mpsm.sh
+      - testfl/*.{py}
       - tfedlrn/*
-      - bin/*
-      - models/*
-      - data/*
+      - bin/**/*
+      - models/**/*
+      - data/**/*
 

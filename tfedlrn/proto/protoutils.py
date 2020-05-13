@@ -57,9 +57,11 @@ def deconstruct_proto(model_proto, compression_pipeline):
             
     # decompress the tensors
     # TODO: Handle tensors meant to be held-out from the compression pipeline (currently none are held out).
-    tensor_dict = {key: compression_pipeline.backward(data=bytes_dict[key], 
-                                                      transformer_metadata=metadata_dict[key])
-                   for key in bytes_dict}
+    tensor_dict = {} 
+    for key in bytes_dict:
+        print(key)
+        tensor_dict[key] = compression_pipeline.backward(data=bytes_dict[key], 
+                                                         transformer_metadata=metadata_dict[key])
     return tensor_dict
 
 def load_proto(fpath):

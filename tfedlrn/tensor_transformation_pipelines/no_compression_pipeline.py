@@ -14,6 +14,8 @@ class Float32NumpyArrayToBytes(Transformer):
 
     def backward(self, data, metadata):
         array_shape = tuple(metadata['int_list'])
+        # DEBUG
+        print(array_shape)
         flat_array = np.frombuffer(data, dtype=np.float32)
         return np.reshape(flat_array, newshape=array_shape, order='C')
 

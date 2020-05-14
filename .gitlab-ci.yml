@@ -110,7 +110,7 @@ test_mpsm_shell:
     - make install
     script:
     - cd test_fl/
-    - ./test_mpmm_gpu01.sh &
+    - ./test_mpmm_gpu01.sh
     - echo "--------------------------------"
     - echo "exit code $?"
     - echo "--------------------------------"

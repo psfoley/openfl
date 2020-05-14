@@ -18,7 +18,7 @@ from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, Loca
 
 
 from tfedlrn.proto.protoutils import load_proto, dump_proto
-
+import sklearn
 # FIXME: simpler "stats" collection/handling
 # FIXME: remove the round tracking/job-result tracking stuff from this?
 # Feels like it conflates model aggregation with round management

@@ -59,7 +59,7 @@ test_spsm_gpu:
       - Makefile
       - test_fl/test_spsm_gpu.sh
       - test_fl/*.{py}
-      - tfedlrn/*
+      - tfedlrn/**/*
       - bin/**/*
       - models/**/*
       - data/**/*
@@ -84,7 +84,7 @@ test_spsm_cpu:
       - Makefile
       - test_fl/test_spsm.sh
       - test_fl/*.{py}
-      - tfedlrn/*
+      - tfedlrn/**/*
       - bin/**/*
       - models/**/*
       - data/**/*
@@ -127,7 +127,7 @@ test_mpsm_shell:
       - test_fl/test_mpmm_gpu01.sh
       - test_fl/test_mpmm_gpu02.sh
       - test_fl/*.{py}
-      - tfedlrn/*
+      - tfedlrn/**/*
       - bin/**/*
       - models/**/*
       - data/**/*
@@ -167,6 +167,6 @@ test_mpmm_shell_2:
       - test_fl/test_mpmm_gpu01.sh
       - test_fl/test_mpmm_gpu02.sh
       - test_fl/*.{py}
-      - tfedlrn/*
+      - tfedlrn/**/*
       - bin/**/*
       - models/**/*

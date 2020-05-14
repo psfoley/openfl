@@ -1,5 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 # Compose an FL plan in JSON/YAML.
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
@@ -50,7 +50,9 @@ federation:
   best_model_fname: keras_cnn_mnist_best.pbuf
 
 hostnames:
-  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
+  __DEFAULT_HOSTNAME__: spr-gpu02.jf.intel.com
+  col_0: spr-gpu02.jf.intel.com
+  col_1: spr-gpu02.jf.intel.com
 
 model:
   code_path: models.tensorflow

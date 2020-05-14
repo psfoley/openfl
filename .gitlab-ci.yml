@@ -114,6 +114,9 @@ test_mpsm_shell:
     script:
     - cd test_fl/
     - ./test_mpsm.sh
+    - echo "--------------------------------"
+    - echo "exit code $?"
+    - echo "--------------------------------"
     timeout: 5h 30m
     only:
       changes:

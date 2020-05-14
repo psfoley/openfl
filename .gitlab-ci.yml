@@ -113,7 +113,7 @@ test_mpsm_shell:
     - make install
     script:
     - cd test_fl/
-    - ./test_mpmm_gpu01.sh
+    - ./test_mpsm.sh
     timeout: 5h 30m
     only:
       changes:
@@ -152,7 +152,7 @@ test_mpmm_shell_1:
     - make install
     script:
     - cd test_fl/
-    - ./test_mpsm.sh
+    - ./test_mpmm_gpu01.sh
     - echo "--------------------------------"
     - echo "exit code $?"
     - echo "--------------------------------"

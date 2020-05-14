@@ -115,6 +115,7 @@ test_mpsm_shell:
     timeout: 5h 30m
     only:
       changes:
+      - .gitlab-ci.yml
       - Makefile
       - test_fl/test_mpsm.sh
       - test_fl/*.{py}

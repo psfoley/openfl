@@ -124,6 +124,8 @@ test_mpsm_shell:
       - .gitlab-ci.yml
       - Makefile
       - test_fl/test_mpsm.sh
+      - test_fl/test_mpmm_gpu01.sh
+      - test_fl/test_mpmm_gpu02.sh
       - test_fl/*.{py}
       - tfedlrn/*
       - bin/**/*
@@ -162,6 +164,7 @@ test_mpmm_shell_2:
       changes:
       - .gitlab-ci.yml
       - Makefile
+      - test_fl/test_mpmm_gpu01.sh
       - test_fl/test_mpmm_gpu02.sh
       - test_fl/*.{py}
       - tfedlrn/*

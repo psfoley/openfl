@@ -50,9 +50,11 @@ federation:
   best_model_fname: keras_cnn_mnist_best.pbuf
 
 hostnames:
-  __DEFAULT_HOSTNAME__: spr-gpu02.jf.intel.com
+  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
+  agg_0: spr-gpu01.jf.intel.com
   col_0: spr-gpu02.jf.intel.com
   col_1: spr-gpu02.jf.intel.com
+
 
 model:
   code_path: models.tensorflow

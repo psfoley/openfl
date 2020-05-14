@@ -20,4 +20,4 @@ echo "-------------------------------------------------------------"
 echo "======== collaborator 1 ......"
 echo "-------------------------------------------------------------"
 time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_1
-echo "======== Done! ${0}"
+echo "======== Done! ${0} ${?}"

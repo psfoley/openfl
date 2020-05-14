@@ -112,11 +112,11 @@ test_mpsm_shell:
     - cd test_fl/
     - ./test_mpmm_gpu01.sh &
     - echo "--------------------------------"
-    - echo "exit code:: $?"
+    - echo "exit code $?"
     - echo "--------------------------------"
     - ./test_mpsm.sh
     - echo "--------------------------------"
-    - echo "exit code:: $?"
+    - echo "exit code $?"
     - echo "--------------------------------"
     timeout: 5h 30m
     only:
@@ -155,7 +155,7 @@ test_mpmm_shell_2:
     - cd test_fl/
     - ./test_mpmm_gpu02.sh
     - echo "--------------------------------"
-    - echo "exit code:: $?"
+    - echo "exit code $?"
     - echo "--------------------------------"
     timeout: 5h 30m
     only:

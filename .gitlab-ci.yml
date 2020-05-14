@@ -95,6 +95,8 @@ test_mpsm_shell:
     tags: 
     - shell-runner-1
     before_script:
+    - pwd 
+    - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
@@ -132,6 +134,8 @@ test_mpmm_shell_1:
     tags: 
     - shell-runner-1
     before_script:
+    - pwd 
+    - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning

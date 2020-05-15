@@ -16,9 +16,14 @@ echo "-------------------------------------------------------------"
 echo "======== collaborator 0 ......"
 echo "-------------------------------------------------------------"
 time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_0 &
-echo "======== exit code ${0}"
+echo "======== exit code $?"
+
+echo "sleeping for 30 sec. waiting for the aggregator"
+sleep 30
+
 echo "-------------------------------------------------------------"
 echo "======== collaborator 1 ......"
 echo "-------------------------------------------------------------"
 time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_1
+echo "======== exit code $?"
 echo "======== Done! on gpu02 ${0}"

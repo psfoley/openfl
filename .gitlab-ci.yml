@@ -89,7 +89,7 @@ test_spsm_cpu:
       - models/**/*
       - data/**/*
 
-test_mpsm_shell:
+test_mpsm_shell_1:
     stage: test 
     tags: 
     - shell-runner-1
@@ -110,6 +110,9 @@ test_mpsm_shell:
     - python3 -m pip --version
     - make clean
     - make install
+    - rm -rf ./bin/federation/certs
+    - echo "copy the certs ..."
+    - cp -r ../certs ./bin/federation/
     script:
     - cd test_fl/
     - ./test_mpsm.sh
@@ -152,9 +155,9 @@ test_mpmm_shell_1:
     - python3 -m pip --version
     - make clean
     - make install
-    - rm -rf spr_secure_intelligence-trusted_federated_learning/bin/federation/certs
+    - rm -rf ./bin/federation/certs
     - echo "copy the certs ..."
-    - cp -r certs spr_secure_intelligence-trusted_federated_learning/bin/federation/
+    - cp -r ../certs ./bin/federation/
     script:
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
@@ -196,9 +199,9 @@ test_mpmm_shell_2:
     - python3 -m pip --version
     - make clean
     - make install
-    - rm -rf spr_secure_intelligence-trusted_federated_learning/bin/federation/certs
+    - rm -rf ./bin/federation/certs
     - echo "copy the certs ..."
-    - cp -r certs spr_secure_intelligence-trusted_federated_learning/bin/federation/
+    - cp -r ../certs ./bin/federation/
     script:
     - cd test_fl/
     - ./test_mpmm_gpu02.sh

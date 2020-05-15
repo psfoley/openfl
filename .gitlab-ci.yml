@@ -110,10 +110,10 @@ test_mpsm_shell_1:
     - python3 -m pip --version
     - make clean
     - make install
+    script:
     - rm -rf ./bin/federation/certs
     - echo "copy the certs ..."
-    - cp -r ../certs ./bin/federation/
-    script:
+    - cp -r /home/gitlab-runner/workspace/certs ./bin/federation/
     - cd test_fl/
     - ./test_mpsm.sh
     - echo "--------------------------------"
@@ -155,10 +155,10 @@ test_mpmm_shell_1:
     - python3 -m pip --version
     - make clean
     - make install
+    script:
     - rm -rf ./bin/federation/certs
     - echo "copy the certs ..."
-    - cp -r ../certs ./bin/federation/
-    script:
+    - cp -r /home/gitlab-runner/workspace/certs ./bin/federation/
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
     - echo "--------------------------------"
@@ -199,10 +199,10 @@ test_mpmm_shell_2:
     - python3 -m pip --version
     - make clean
     - make install
+    script:
     - rm -rf ./bin/federation/certs
     - echo "copy the certs ..."
-    - cp -r ../certs ./bin/federation/
-    script:
+    - cp -r /home/gitlab-runner/workspace/certs ./bin/federation/
     - cd test_fl/
     - ./test_mpmm_gpu02.sh
     - echo "--------------------------------"

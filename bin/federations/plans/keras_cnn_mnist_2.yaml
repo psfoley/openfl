@@ -41,7 +41,7 @@ federation:
   rounds_to_train: &rounds_to_train 16
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 82279
+  agg_port: &agg_port 82281
   #agg_port: &agg_port 82278 
   col_ids: &col_ids
     - 'col_0'

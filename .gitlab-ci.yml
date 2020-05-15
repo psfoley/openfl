@@ -7,7 +7,6 @@ image: alpine
 stages:
     - build
     - test
-    - test_across_machine
 
 pages:
   stage: build
@@ -97,12 +96,12 @@ test_mpsm_shell:
     before_script:
     - pwd 
     - ls
-    - cd /home/gitlab-runner/workspace
+    - cd /home/gitlab-runner/workspace/tmp1
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - cd /home/gitlab-runner/workspace/tmp1/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -133,7 +132,7 @@ test_mpsm_shell:
 
 
 test_mpmm_shell_1:
-    stage: test_across_machine 
+    stage: test
     tags: 
     - shell-runner-1
     before_script:
@@ -174,7 +173,7 @@ test_mpmm_shell_1:
       - data/**/*
 
 test_mpmm_shell_2:
-    stage: test_across_machine
+    stage: test
     tags: 
     - shell-runner-2
     before_script:
@@ -185,6 +184,9 @@ test_mpmm_shell_2:
     - rm -rf spr_secure_intelligence-trusted_federated_learning
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - rm -rf spr_secure_intelligence-trusted_federated_learning/bin/federation/certs
+    - echo "copy the certs ..."
+    - cp -r certs spr_secure_intelligence-trusted_federated_learning/bin/federation/
     - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME

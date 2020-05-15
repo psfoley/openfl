@@ -113,9 +113,9 @@ test_mpsm_shell_1:
     - make clean
     - make install
     script:
-    - rm -rf ./bin/federations/certs
-    - echo "copy the certs ..."
-    - cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
+    #- rm -rf ./bin/federations/certs
+    #- echo "copy the certs ..."
+    #- cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
     - cd test_fl/
     - ./test_mpsm.sh
     - echo "--------------------------------"

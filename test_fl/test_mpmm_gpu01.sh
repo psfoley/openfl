@@ -1,4 +1,4 @@
-trap "exit" INT TERM ERR
+#trap "exit" INT TERM ERR
 trap "kill 0" EXIT
 #echo "======== pki creating certificates ......"
 #time ../venv/bin/python3 ../bin/create_pki_for_flplan.py -p keras_cnn_mnist_2_mpmm.yaml                            

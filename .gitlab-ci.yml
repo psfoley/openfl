@@ -49,6 +49,8 @@ test_spsm_gpu:
     - apt-get update -qy
     - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
     - python3 -m pip --version
+    - echo 'modifying setup.py for tensorflow-gpu'
+    - sed -i -e 's/tensorflow/tensorflow-gpu/g' setup.py
     - make clean
     - make install
     script: 

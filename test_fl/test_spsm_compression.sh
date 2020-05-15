@@ -1,4 +1,5 @@
-
+#trap "exit" INT TERM ERR
+#trap "kill 0" EXIT
 
 echo "running ... single process single machine"                                                                  
 echo "creating initial weights ..."                                                                               

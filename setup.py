@@ -2,8 +2,7 @@
 
 from setuptools import setup
 
-setup(
-      name='tfedlrn',
+setup(name='tfedlrn',
       version='0.0.0',
       packages=['tfedlrn',
                 'tfedlrn.aggregator',

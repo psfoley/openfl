@@ -143,9 +143,6 @@ test_mpmm_shell_1:
     - rm -rf spr_secure_intelligence-trusted_federated_learning
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - rm -rf spr_secure_intelligence-trusted_federated_learning/bin/federation/certs
-    - echo "copy the certs ..."
-    - cp -r certs spr_secure_intelligence-trusted_federated_learning/bin/federation/
     - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
@@ -155,6 +152,9 @@ test_mpmm_shell_1:
     - python3 -m pip --version
     - make clean
     - make install
+    - rm -rf spr_secure_intelligence-trusted_federated_learning/bin/federation/certs
+    - echo "copy the certs ..."
+    - cp -r certs spr_secure_intelligence-trusted_federated_learning/bin/federation/
     script:
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
@@ -187,9 +187,6 @@ test_mpmm_shell_2:
     - rm -rf spr_secure_intelligence-trusted_federated_learning
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - rm -rf spr_secure_intelligence-trusted_federated_learning/bin/federation/certs
-    - echo "copy the certs ..."
-    - cp -r certs spr_secure_intelligence-trusted_federated_learning/bin/federation/
     - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
@@ -199,6 +196,9 @@ test_mpmm_shell_2:
     - python3 -m pip --version
     - make clean
     - make install
+    - rm -rf spr_secure_intelligence-trusted_federated_learning/bin/federation/certs
+    - echo "copy the certs ..."
+    - cp -r certs spr_secure_intelligence-trusted_federated_learning/bin/federation/
     script:
     - cd test_fl/
     - ./test_mpmm_gpu02.sh

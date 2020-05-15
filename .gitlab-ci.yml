@@ -128,7 +128,6 @@ test_mpsm_shell_1:
     only:
       changes:
       - setup.py
-      - .gitlab-ci.yml
       - Makefile
       - test_fl/test_mpsm.sh
       - test_fl/test_mpmm_gpu01.sh
@@ -171,7 +170,6 @@ test_mpmm_shell_1:
     only:
       changes:
       - setup.py
-      - .gitlab-ci.yml
       - Makefile
       - test_fl/test_mpsm.sh
       - test_fl/test_mpmm_gpu01.sh
@@ -213,7 +211,6 @@ test_mpmm_shell_2:
     only:
       changes:
       - setup.py
-      - .gitlab-ci.yml
       - Makefile
       - test_fl/test_mpsm.sh
       - test_fl/test_mpmm_gpu01.sh

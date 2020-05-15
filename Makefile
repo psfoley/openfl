@@ -73,6 +73,18 @@ reinstall: uninstall install
 bin/federations/certs/test:
 	mkdir -p bin/federations/certs/test
 
+# start_mnist_agg_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
+#   venv/bin/python3 bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls --disable_client_auth
+
+# start_mnist_col_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
+#   venv/bin/python3 bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_num $(col_num) --disable_tls --disable_client_auth
+
+start_mnist_agg: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
+    cd bin && ../venv/bin/python3 run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml
+
+start_mnist_col: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
+    cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_$(col_num)
+
 bin/federations/weights/keras_cnn_mnist_init.pbuf:
 	echo "recipe needed!"
 

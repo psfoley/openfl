@@ -1,5 +1,4 @@
 image: alpine
-#image: ubuntu:18.04 
 
 # before_script:
 #   - mkdir -p $HOME/.docker/
@@ -7,7 +6,6 @@ image: alpine
 stages:
     - build
     - test
-    #- test_across_machines
 
 pages:
   stage: build
@@ -116,9 +114,6 @@ test_mpsm_shell_1:
     - make clean
     - make install
     script:
-    #- rm -rf ./bin/federations/certs
-    #- echo "copy the certs ..."
-    #- cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
     - cd test_fl/
     - ./test_mpsm.sh
     - echo "--------------------------------"

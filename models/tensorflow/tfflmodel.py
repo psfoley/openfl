@@ -1,3 +1,7 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
+
 import numpy as np
 import tqdm
 import tensorflow as tf

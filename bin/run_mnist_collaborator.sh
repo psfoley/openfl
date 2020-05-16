@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 col_num=$1
 

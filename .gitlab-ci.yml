@@ -31,6 +31,7 @@ pages:
     - public
   only:
   - master
+  - 101-v2-Build-GitLab-CI-testing-tool-fundamentals
 
 #image: ubuntu:18.04
 image: tensorflow/tensorflow:1.14.0-gpu-py3

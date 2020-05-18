@@ -39,8 +39,11 @@ def main(plan, logging_config_path, logging_default_level):
 
     cert_dir = os.path.join(base_dir, 'certs', grpc_server_config['cert_folder'])
 
+    # first, look for agg cert under agg_id
+    agg_cert_path = 
+
     agg_grpc_server = AggregatorGRPCServer(agg)
-    agg_grpc_server.serve(ca=os.path.join(cert_dir, 'ca.crt'),
+    agg_grpc_server.serve(ca=os.path.join(cert_dir, 'cert_chain.crt'),
                           certificate=os.path.join(cert_dir, '{}.crt'.format(agg_config['agg_id'])),
                           private_key=os.path.join(cert_dir, '{}.key'.format(agg_config['agg_id'])), 
                           **grpc_server_config)

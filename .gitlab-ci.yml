@@ -72,6 +72,8 @@ test_spsm_gpu:
 
 test_spsm_cpu:
     stage: test
+    tags: 
+    - alpine-runner-sh-1
     before_script:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912

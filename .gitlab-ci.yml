@@ -7,8 +7,8 @@ stages:
     - test
 
 pages:
-  image: alpine
   stage: build
+  image: alpine
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912

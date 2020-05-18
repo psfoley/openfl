@@ -8,6 +8,7 @@ stages:
 
 pages:
   stage: build
+  tags: docker-alpine
   image: alpine
   script:
   - export http_proxy=http://proxy-us.intel.com:911

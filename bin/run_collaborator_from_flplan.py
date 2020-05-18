@@ -20,11 +20,11 @@ def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
     return get_object(code_path, class_name, data_path=data_path, **kwargs)
 
 def get_channel(base_dir, cert_common_name, cert_folder, **col_grpc_client_config):
-    cert_dir = os.path.join(base_dir, cert_folder, 'col_{}'.format(cert_common_name))
+    cert_dir = os.path.join(base_dir, cert_folder)
 
     return CollaboratorGRPCClient(ca=os.path.join(cert_dir, 'cert_chain.crt'),
-                                  certificate=os.path.join(cert_dir, 'col_{}.crt'.format(cert_common_name)),
-                                  private_key=os.path.join(cert_dir, 'col_{}.key'.format(cert_common_name)), 
+                                  certificate=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.crt'.format(cert_common_name)),
+                                  private_key=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.key'.format(cert_common_name)), 
                                   **col_grpc_client_config)
 
 def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname, logging_default_level):

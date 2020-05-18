@@ -39,9 +39,10 @@ federation:
   opt_treatment: &opt_treatment 'EDGE'
   polling_interval: &polling_interval 4
   rounds_to_train: &rounds_to_train 16
-  agg_id: &agg_id 'agg_0'
+  agg_id: &agg_id 'agg_1'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 82278 
+  agg_port: &agg_port 82282
+  #agg_port: &agg_port 82278 
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'

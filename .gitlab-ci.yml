@@ -205,7 +205,7 @@ test_mpmm_shell_2:
     script:
     - rm -rf ./bin/federations/certs
     - echo "copy the certs ..."
-    - cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
+    - cp -r /home/gitlab-runner/workspace/pki ./bin/federations/
     - cd test_fl/
     - ./test_mpmm_gpu02.sh
     timeout: 5h 30m

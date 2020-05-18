@@ -10,8 +10,8 @@ stages:
 pages:
   stage: build
   tags: 
-  - docker-alpine
-  image: gitlab/gitlab-runner:alpine-v11.10.1
+  - alpine-runner-sh-1
+  image: alpine
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912

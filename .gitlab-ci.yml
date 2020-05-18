@@ -4,11 +4,11 @@
 #   - mkdir -p $HOME/.docker/
 #   - 'echo "{ \"proxies\": { \"default\": { \"httpProxy\": \"http://proxy-us.intel.com:911\", \"httpsProxy\": \"http://proxy-us.intel.com:912\", \"noProxy\": \"intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16\" } } }" > $HOME/.docker/config.json'
 stages:
-    #- build
+    - build
     - test
 
 pages:
-  stage: test
+  stage: build
   tags: 
   - alpine-runner-sh-1
   image: alpine

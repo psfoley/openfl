@@ -20,7 +20,7 @@ class AggregatorGRPCServer(AggregatorServicer):
             common_name = context.auth_context()['x509_common_name'][0].decode("utf-8")
             col_id = request.header.sender
             if not self.aggregator.valid_collaborator_CN_and_id(common_name, col_id):
-                raise ValueError("Invalid collaborator. CN: {} col_id: {}".format(common_name, col_id))
+                raise ValueError("Invalid collaborator. CN: |{}| col_id: |{}|".format(common_name, col_id))
 
     def RequestJob(self, request, context):
         self.validate_collaborator(request, context)

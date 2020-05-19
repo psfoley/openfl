@@ -101,7 +101,7 @@ class PyTorchResnet(PyTorchFLModel):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-        self.fc.to(device)
+        self.to(device)
 
     def _make_layer(self, block, planes, blocks, stride=1):
         norm_layer = self._norm_layer

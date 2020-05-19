@@ -125,7 +125,7 @@ test_mpsm_shell_1:
     - echo "--------------------------------"
     - echo "exit code $?"
     - echo "--------------------------------"
-    timeout: 5h 30m
+    timeout: 20m
     only:
       changes:
       - setup.py
@@ -167,7 +167,7 @@ test_mpmm_shell_1:
     - cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
-    timeout: 5h 30m
+    timeout: 20m
     only:
       changes:
       - setup.py
@@ -208,7 +208,7 @@ test_mpmm_shell_2:
     - cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
     - cd test_fl/
     - ./test_mpmm_gpu02.sh
-    timeout: 5h 30m
+    timeout: 20m
     only:
       changes:
       - setup.py

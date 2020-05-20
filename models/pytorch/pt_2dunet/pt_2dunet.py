@@ -55,7 +55,7 @@ class PyTorch2DUNet(PyTorchFLModel):
         for _ in range(epochs_per_round):
             
             for batch_num, (data, target) in enumerate(gen):
-                if batch_num > batches_per_epoch:
+                if batch_num + 1 > batches_per_epoch:
                     break
                 if isinstance(data, np.ndarray):
                         data = torch.Tensor(data)
@@ -68,6 +68,7 @@ class PyTorch2DUNet(PyTorchFLModel):
                 loss.backward()
                 self.optimizer.step()
                 losses.append(loss.detach().cpu().numpy())
+        
         return np.mean(losses)
 
     def validate(self, use_tqdm=False):       

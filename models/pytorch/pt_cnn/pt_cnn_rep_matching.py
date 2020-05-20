@@ -36,7 +36,7 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
     """
 
     def __init__(self, data, device='cpu', num_classes=10,RM_loss_coeff = 0.0001, **kwargs):
-        super().__init__(data, device=device)
+        super().__init__(data=data, device=device)
 
         self.num_classes = num_classes
         self.init_network(device, **kwargs)
@@ -130,7 +130,7 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
 
         for _ in range(epochs_per_round):
             for batch_num, (data, target) in enumerate(loader):
-                if batch_num > batches_per_epoch:
+                if batch_num + 1 > batches_per_epoch:
                     break
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
                 self.optimizer.zero_grad()

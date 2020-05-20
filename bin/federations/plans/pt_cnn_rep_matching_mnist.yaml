@@ -93,4 +93,4 @@ data:
   class_name: PyTorchMNISTInMemory
   nb_collaborators: 2
   batch_size: 256
-  data_format: 'channels_first'
+  channels_last: False

@@ -129,7 +129,7 @@ class PyTorchCNN(PyTorchFLModel):
         for _ in range(epochs_per_round):
 
             for batch_num, (data, target) in enumerate(loader):
-                if batch_num > batches_per_epoch:
+                if batch_num + 1 > batches_per_epoch:
                     break
                 data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
                 self.optimizer.zero_grad()

@@ -127,6 +127,8 @@ test_mpsm_shell_1:
     - echo "--------------------------------"
     timeout: 20m
     only:
+    - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
+    only:
       - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
       changes:
       - setup.py
@@ -169,6 +171,8 @@ test_mpmm_shell_1:
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
     timeout: 20m
+    only:
+    - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
     only:
       - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
       changes:
@@ -213,6 +217,7 @@ test_mpmm_shell_2:
     timeout: 20m
     only:
     - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
+    only:
       changes:
       - setup.py
       - Makefile

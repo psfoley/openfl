@@ -113,7 +113,7 @@ class PyTorchCNN(PyTorchFLModel):
                 
         return val_score / total_samples
 
-    def train_epoch(self, use_tqdm=False): 
+    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False): 
         # set to "training" mode
         self.train()
         
@@ -122,17 +122,23 @@ class PyTorchCNN(PyTorchFLModel):
         loader = self.data.get_train_loader()
         if use_tqdm:
             loader = tqdm.tqdm(loader, desc="train epoch")
+        
+        # FIXME: is it better to enforce this in the loader itself, for now the loader is static
+        batches_per_epoch = int(len(loader) * epoch_sample_rate)
 
-        for data, target in loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
-            self.optimizer.zero_grad()
-            output = self(data)
-            loss = self.loss_fn(output=output, target=target)
-            loss.backward()
-            self.optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
-        # DEBUG
-        print(np.mean(losses))
+        for _ in range(epochs_per_round):
+
+            for batch_num, (data, target) in enumerate(loader):
+                if batch_num > batches_per_epoch:
+                    break
+                data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
+                self.optimizer.zero_grad()
+                output = self(data)
+                loss = self.loss_fn(output=output, target=target)
+                loss.backward()
+                self.optimizer.step()
+                losses.append(loss.detach().cpu().numpy())
+
 
         return np.mean(losses)
 

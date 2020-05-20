@@ -81,9 +81,9 @@ class FLModel(object):
         """
         return self.data.get_validation_data_size()
  
-    def train_epoch(self):
+    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False):
         """
-        Train one epoch.
+        Perform the training to be incorporated into a single round of FL.
 
         Returns
         -------

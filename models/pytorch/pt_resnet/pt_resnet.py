@@ -8,6 +8,7 @@ Based on the implementation here:
 https://github.com/pytorch/vision/blob/master/torchvision/models/resnet.py
 """
 import numpy as np
+import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -157,19 +158,31 @@ class PyTorchResnet(PyTorchFLModel):
 
         return val_score / total_samples
 
-    def train_epoch(self): 
+    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False): 
         # set to "training" mode
         self.train()
+        
         losses = []
+        
         loader = self.data.get_train_loader()
-        for data, target in loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
-            self.optimizer.zero_grad()
-            output = self(data)
-            loss = self.loss_fn(output, target)
-            loss.backward()
-            self.optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
+        if use_tqdm:
+            loader = tqdm.tqdm(loader, desc="train epoch")
+
+        # FIXME: is it better to enforce this in the loader itself, for now the loader is static
+        batches_per_epoch = int(len(loader) * epoch_sample_rate)
+
+        for _ in range(epochs_per_round):
+        
+            for batch_num, (data, target) in enumerate(loader):
+                if batch_num > batches_per_epoch:
+                    break
+                data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
+                self.optimizer.zero_grad()
+                output = self(data)
+                loss = self.loss_fn(output, target)
+                loss.backward()
+                self.optimizer.step()
+                losses.append(loss.detach().cpu().numpy())
 
         return np.mean(losses)
 

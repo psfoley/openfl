@@ -100,7 +100,7 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
 
         loader = self.data.get_val_loader()
         if use_tqdm:
-            loader = tqdm(loader, desc="validate")
+            loader = tqdm.tqdm(loader, desc="validate")
 
         with torch.no_grad():
             for data, target in loader:
@@ -115,7 +115,7 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
         #print('validation val :', repr(val_score / total_samples))
         return val_score / total_samples
 
-    def train_epoch(self, use_tqdm=False): 
+    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False): 
         # set to "training" mode
         self.train()
         
@@ -123,23 +123,26 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
 
         loader = self.data.get_train_loader()
         if use_tqdm:
-            loader = tqdm(loader, desc="train epoch")
+            loader = tqdm.tqdm(loader, desc="train epoch")
 
-        for data, target in loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
-            self.optimizer.zero_grad()
-            self.matching_optimizer.zero_grad()            
-            output = self(data)
-            model_loss = self.loss_fn(output, target.argmax(1))
-            matching_loss = self.rep_matching_wrapper[0].get_matching_loss()
-            (model_loss + self.RM_loss_coeff * matching_loss).backward() 
-            self.optimizer.step()
-            self.matching_optimizer.step()            
-            losses.append(model_loss.detach().cpu().numpy())
-            #print('matching loss',matching_loss.item())
+        # FIXME: is it better to enforce this in the loader itself, for now the loader is static
+        batches_per_epoch = int(len(loader) * epoch_sample_rate)
 
-        # DEBUG
-        print(np.mean(losses))
+        for _ in range(epochs_per_round):
+            for batch_num, (data, target) in enumerate(loader):
+                if batch_num > batches_per_epoch:
+                    break
+                data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
+                self.optimizer.zero_grad()
+                self.matching_optimizer.zero_grad()            
+                output = self(data)
+                model_loss = self.loss_fn(output, target.argmax(1))
+                matching_loss = self.rep_matching_wrapper[0].get_matching_loss()
+                (model_loss + self.RM_loss_coeff * matching_loss).backward() 
+                self.optimizer.step()
+                self.matching_optimizer.step()            
+                losses.append(model_loss.detach().cpu().numpy())
+                #print('matching loss',matching_loss.item())
 
         return np.mean(losses)
 

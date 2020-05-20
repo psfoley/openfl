@@ -28,7 +28,17 @@ class OptTreatment(Enum):
 class Collaborator(object):
     """The current class is not good for local test without channel. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, col_id, agg_id, fed_id, wrapped_model, channel, polling_interval=4, opt_treatment="AGG", **kwargs):
+    def __init__(self, 
+                 col_id, 
+                 agg_id, 
+                 fed_id, 
+                 wrapped_model, 
+                 channel, 
+                 polling_interval=4, 
+                 opt_treatment="AGG", 
+                 epoch_sample_rate=1.0, 
+                 epochs_per_round=1, 
+                 **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
         self.polling_interval = polling_interval
@@ -40,6 +50,9 @@ class Collaborator(object):
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
                                         version=-1)
+
+        self.train_kwargs = {'epoch_sample_rate': epoch_sample_rate, 
+                             'epochs_per_round': epochs_per_round}
 
         self.wrapped_model = wrapped_model
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
@@ -126,7 +139,7 @@ class Collaborator(object):
 
         # train the model
         # FIXME: model header "version" needs to be changed to "rounds_trained"
-        loss = self.wrapped_model.train_epoch()
+        loss = self.wrapped_model.train_for_round(**self.train_kwargs)
         self.logger.debug("{} Completed the training job.".format(self))
 
         # get the training data size

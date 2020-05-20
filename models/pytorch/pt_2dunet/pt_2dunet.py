@@ -39,32 +39,35 @@ class PyTorch2DUNet(PyTorchFLModel):
         self.init_optimizer(optimizer)
         self.loss_fn = partial(dice_coef_loss, smoothing=1.0)
    
-    def train_epoch(self, epoch=None, use_tqdm=False):
-        # FIXME: update to proper training schedule when architected
-        if epoch == 8:
-            self.init_optimizer('RMSprop')
-
+    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False):
         # set to "training" mode
         self.train()
         
         losses = []
-        
+
         gen = self.data.get_train_loader()
         if use_tqdm:
-            gen = tqdm.tqdm(gen, desc="training epoch")
-        
-        for data, target in gen:
-            if isinstance(data, np.ndarray):
-                    data = torch.Tensor(data)
-            if isinstance(target, np.ndarray):
-                target = torch.Tensor(data)
-            data, target = data.to(self.device), target.to(self.device)
-            self.optimizer.zero_grad()
-            output = self(data)
-            loss = self.loss_fn(output, target)
-            loss.backward()
-            self.optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
+            gen = tqdm.tqdm(gen, desc="training for this round")
+
+        # FIXME: is it better to enforce this in the loader itself, for now the loader is static
+        batches_per_epoch = int(len(gen) * epoch_sample_rate)
+
+        for _ in range(epochs_per_round):
+            
+            for batch_num, (data, target) in enumerate(gen):
+                if batch_num > batches_per_epoch:
+                    break
+                if isinstance(data, np.ndarray):
+                        data = torch.Tensor(data)
+                if isinstance(target, np.ndarray):
+                    target = torch.Tensor(data)
+                data, target = data.to(self.device), target.to(self.device)
+                self.optimizer.zero_grad()
+                output = self(data)
+                loss = self.loss_fn(output, target)
+                loss.backward()
+                self.optimizer.step()
+                losses.append(loss.detach().cpu().numpy())
         return np.mean(losses)
 
     def validate(self, use_tqdm=False):       

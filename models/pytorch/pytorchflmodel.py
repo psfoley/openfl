@@ -29,28 +29,35 @@ class PyTorchFLModel(nn.Module, FLModel):
                                             'holdout_tensor_names': ['__opt_state_needed']
                                            }
 
-    # FIXME: This isn't quite general enough. For now, models should implement this
-    # def train_epoch(self, use_tqdm):
-    #     batch_generator = self.data.get_batch_generator(train_or_val='train')
+    # def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False):
     #     # set to "training" mode
     #     self.train()
-       
+        
     #     losses = []
+
+    #     gen = self.data.get_train_loader()
     #     if use_tqdm:
-    #         batch_generator = tqdm(batch_generator, desc="training epoch")
-    #     for data, target in batch_generator:
-    #         if isinstance(data, np.ndarray):
-    #             data = torch.Tensor(data)
-    #         if isinstance(target, np.ndarray):
-    #             target = torch.Tensor(data)
-    #         data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
-    #         self.optimizer.zero_grad()
-    #         output = self(data)
-    #         loss = self.loss_fn(output, target)
-    #         loss.backward()
-    #         self.optimizer.step()
-    #         losses.append(loss.detach().cpu().numpy())
-    
+    #         gen = tqdm.tqdm(gen, desc="training for this round")
+
+    #     # FIXME: is it better to enforce this in the loader itself, for now the loader is static
+    #     batches_per_epoch = int(len(gen) * epoch_sample_rate)
+
+    #     for _ in range(epochs_per_round):
+            
+    #         for batch_num, (data, target) in enumerate(gen):
+    #             if batch_num > batches_per_epoch:
+    #                 break
+    #             if isinstance(data, np.ndarray):
+    #                     data = torch.Tensor(data)
+    #             if isinstance(target, np.ndarray):
+    #                 target = torch.Tensor(data)
+    #             data, target = data.to(self.device), target.to(self.device)
+    #             self.optimizer.zero_grad()
+    #             output = self(data)
+    #             loss = self.loss_fn(output, target)
+    #             loss.backward()
+    #             self.optimizer.step()
+    #             losses.append(loss.detach().cpu().numpy())
     #     return np.mean(losses)
 
 

@@ -129,7 +129,6 @@ test_mpsm_shell_1:
     only:
     - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
     only:
-      - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
       changes:
       - setup.py
       - Makefile
@@ -174,7 +173,6 @@ test_mpmm_shell_1:
     only:
     - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
     only:
-      - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
       changes:
       - setup.py
       - Makefile

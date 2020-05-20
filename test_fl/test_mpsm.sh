@@ -1,3 +1,23 @@
+set -e
+
+function KillJobs(){
+    echo "jobs to kill::"
+    echo "==================="
+    jobs -p
+    echo "==================="
+    for job in $(jos -p); do
+        kill -s SIGTERM $job || (sleep 3 && kill -9 $job)
+    done
+}
+
+function cleanup(){
+    echo "cleaning the processes ...... exit code::$?"
+    KillJobs
+    echo "after cleaning the processes ...... exit code::$?"
+    exit $?
+}
+
+trap cleanup SIGINT SIGTERM SIGQUIT
 
 time ../venv/bin/python3 ../bin/create_pki_for_flplan.py -p keras_cnn_mnist_2.yaml
 echo "-------------------------------------------------------------"

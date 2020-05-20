@@ -125,8 +125,9 @@ test_mpsm_shell_1:
     - echo "--------------------------------"
     - echo "exit code $?"
     - echo "--------------------------------"
-    timeout: 5h 30m
+    timeout: 20m
     only:
+      - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
       changes:
       - setup.py
       - Makefile
@@ -167,8 +168,9 @@ test_mpmm_shell_1:
     - cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
-    timeout: 5h 30m
+    timeout: 20m
     only:
+      - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
       changes:
       - setup.py
       - Makefile
@@ -208,8 +210,9 @@ test_mpmm_shell_2:
     - cp -r /home/gitlab-runner/workspace/certs ./bin/federations/
     - cd test_fl/
     - ./test_mpmm_gpu02.sh
-    timeout: 5h 30m
+    timeout: 20m
     only:
+    - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
       changes:
       - setup.py
       - Makefile

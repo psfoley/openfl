@@ -47,9 +47,9 @@ class TensorFlowFLModel(FLModel):
         # self.tvars + self.opt_vars 
         self.fl_vars = None
 
-    def train_epoch(self, batch_size=None, use_tqdm=False):
+    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False):
         """
-        Train one epoch.
+        Perform training for this round of FL.
 
         Returns
         -------
@@ -60,12 +60,19 @@ class TensorFlowFLModel(FLModel):
 
         losses = []
 
-        gen = self.data.get_train_loader(batch_size)
+        gen = self.data.get_train_loader()
         if use_tqdm:
-            gen = tqdm(gen, desc="training epoch")
+            gen = tqdm.tqdm(gen, desc="training epoch")
 
-        for X, y in gen:
-            losses.append(self.train_batch(X, y))
+        # FIXME: is it better to enforce this in the generator itself?
+        batches_per_epoch = int(len(gen) * epoch_sample_rate)
+
+        for _ in range(epochs_per_round):
+
+            for batch_num, (X, y) in enumerate(gen):
+                if batch_num + 1 > batches_per_epoch:
+                    break
+                losses.append(self.train_batch(X, y))
 
         return np.mean(losses)
 
@@ -89,9 +96,9 @@ class TensorFlowFLModel(FLModel):
 
         score = 0
 
-        gen = self.data.get_val_loader(batch_size)
+        gen = self.data.get_val_loader()
         if use_tqdm:
-            gen = tqdm(gen, desc="validating")
+            gen = tqdm.tqdm(gen, desc="validating")
 
         for X, y in gen:
             weight = X.shape[0] / self.data.get_validation_data_size()  

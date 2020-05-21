@@ -7,6 +7,7 @@ You may copy this file as the starting point of your own keras model.
 """
 import logging
 import numpy as np
+import tqdm
 import tensorflow as tf
 
 from models import FLModel
@@ -33,16 +34,24 @@ class KerasFLModel(FLModel):
         # child class should have an __init__ function with signature: (self, data, **kwargs)
         # and should overwrite self.model with a child of keras.Model
 
-    def train_epoch(self):
-        history = self.model.fit(self.data.X_train, 
-                                 self.data.y_train,
+    def train_for_round(self, epoch_sample_rate, epochs_per_round):
+
+        # establish data subselection to enforce partial epochs
+        num_samples = len(self.data.X_train)
+        shuffled_idxs = np.random.permutation(num_samples)
+
+        # we will enforce no partial batches at this level
+        num_idxs = int(num_samples * epoch_sample_rate - (num_samples * epoch_sample_rate) % self.data.batch_size)
+        sample_idxs = shuffled_idxs[:num_idxs]
+
+        history = self.model.fit(self.data.X_train[sample_idxs], 
+                                 self.data.y_train[sample_idxs],
                                  batch_size=self.data.batch_size,
-                                 epochs=1,
+                                 epochs=epochs_per_round,
                                  verbose=0,)
 
-        # As we are training for one epoch, we only need the first element in each list.
-        ret_dict = {name:values[0] for name, values in history.history.items()}
-        return ret_dict['loss']
+        loss = np.mean([history.history['loss']])
+        return loss
 
     def validate(self):
         vals = self.model.evaluate(self.data.X_val, self.data.y_val, verbose=0)

@@ -36,7 +36,7 @@ class TensorFlowFLDataInMemory(FLData):
         """
         return self.X_train[0].shape
     
-    def get_train_loader(self, batch_size=None):
+    def get_train_loader(self):
         """
         Get training data loader 
 
@@ -44,9 +44,9 @@ class TensorFlowFLDataInMemory(FLData):
         -------
         loader object
         """      
-        return self._get_batch_generator(X=self.X_train, y=self.y_train, batch_size=batch_size)
+        return self._get_batch_generator(X=self.X_train, y=self.y_train, batch_size=self.batch_size)
     
-    def get_val_loader(self, batch_size=None):
+    def get_val_loader(self):
         """
         Get validation data loader 
 
@@ -54,7 +54,7 @@ class TensorFlowFLDataInMemory(FLData):
         -------
         loader object
         """
-        return self._get_batch_generator(X=self.X_val, y=self.y_val, batch_size=batch_size)
+        return self._get_batch_generator(X=self.X_val, y=self.y_val, batch_size=self.batch_size)
 
     def get_training_data_size(self):
         """

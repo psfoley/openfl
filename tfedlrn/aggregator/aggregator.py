@@ -81,13 +81,11 @@ class Aggregator(object):
 
     def valid_collaborator_CN_and_id(self, common_name, col_id):
         # if self.test_mode_whitelist is None, then the common_name must match col_id and be in col_ids
-        if self.test_mode_whitelist is None and \
-           common_name == col_id and \
-           col_id in self.col_ids:
-            return True
+        if self.test_mode_whitelist is None:
+            return common_name == col_id and col_id in self.col_ids
         # otherwise, common_name must be in whitelist and col_id must be in col_ids
         else:
-            return common_name in self.test_mode_whitelist and col_id in self.col_ids            
+            return common_name in self.test_mode_whitelist and col_id in self.col_ids
 
     def all_quit_jobs_sent(self):
         return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
@@ -101,7 +99,6 @@ class Aggregator(object):
         
         # validate that the sender is one of my collaborators
         check_is_in(message.header.sender, self.col_ids, self.logger)
-
 
     def init_per_col_round_stats(self):
         """Initalize the metrics from collaborators for each round of aggregation. """

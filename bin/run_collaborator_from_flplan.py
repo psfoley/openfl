@@ -19,12 +19,8 @@ def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
     return get_object(code_path, class_name, data_path=data_path, **kwargs)
 
-def get_channel(base_dir, cert_common_name, cert_folder, **col_grpc_client_config):
-        # default cert folder to pki
-    if 'cert_folder' in col_grpc_client_config:
-        cert_dir = os.path.join(base_dir, col_grpc_client_config['cert_folder'])
-    else:
-        cert_dir = os.path.join(base_dir, 'pki')
+def get_channel(base_dir, cert_common_name, **col_grpc_client_config):
+    cert_dir = os.path.join(base_dir, col_grpc_client_config.pop('cert_folder', 'pki')) # default to 'pki
 
     return CollaboratorGRPCClient(ca=os.path.join(cert_dir, 'cert_chain.crt'),
                                   certificate=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.crt'.format(cert_common_name)),

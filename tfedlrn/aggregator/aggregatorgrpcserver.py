@@ -15,20 +15,27 @@ class AggregatorGRPCServer(AggregatorServicer):
     def __init__(self, aggregator):
         self.aggregator = aggregator
 
+    def validate_collaborator(self, request, context):
+        if not self.disable_tls:
+            common_name = context.auth_context()['x509_common_name'][0].decode("utf-8")
+            col_id = request.header.sender
+            if not self.aggregator.valid_collaborator_CN_and_id(common_name, col_id):
+                raise ValueError("Invalid collaborator. CN: |{}| col_id: |{}|".format(common_name, col_id))
+
     def RequestJob(self, request, context):
-        """Pass through to wrapped aggregator. Pulls nothing from context."""
+        self.validate_collaborator(request, context)
         return self.aggregator.RequestJob(request)
 
     def DownloadModel(self, request, context):
-        """Pass through to wrapped aggregator. Pulls nothing from context."""
+        self.validate_collaborator(request, context)
         return self.aggregator.DownloadModel(request)
 
     def UploadLocalModelUpdate(self, request, context):
-        """Pass through to wrapped aggregator. Pulls nothing from context."""
+        self.validate_collaborator(request, context)
         return self.aggregator.UploadLocalModelUpdate(request)
 
     def UploadLocalMetricsUpdate(self, request, context):
-        """Pass through to wrapped aggregator. Pulls nothing from context."""
+        self.validate_collaborator(request, context)
         return self.aggregator.UploadLocalMetricsUpdate(request)
 
     def serve(self, 
@@ -65,7 +72,9 @@ class AggregatorGRPCServer(AggregatorServicer):
                                       ('grpc.max_send_message_length', 128 * 1024 * 1024),
                                       ('grpc.max_receive_message_length', 128 * 1024 * 1024)])
         add_AggregatorServicer_to_server(self, server)
-        uri = "{addr:s}:{port:d}".format(addr=addr, port=port)
+        uri = "[::]:{port:d}".format(port=port)
+        self.disable_tls = disable_tls
+        self.logger = logger
 
         if disable_tls:
             logger.warn('gRPC is running on insecure channel with TLS disabled.')

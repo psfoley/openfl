@@ -44,6 +44,8 @@ test_spsm_gpu:
     tags: 
     - docker-gpu
     before_script:
+    - whoami
+    - pwd
     - nvidia-smi
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
@@ -75,6 +77,8 @@ test_spsm_cpu:
     tags: 
     - alpine-runner-sh-1
     before_script:
+    - whoami
+    - pwd
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
@@ -103,8 +107,10 @@ test_mpsm_shell_1:
     tags: 
     - shell-runner-1
     before_script:
+    - whoami
     - pwd 
     - ls
+    - nvidia-smi
     - cd /home/gitlab-runner/workspace/tmp1
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
@@ -147,6 +153,7 @@ test_mpmm_shell_1:
     tags: 
     - shell-runner-1
     before_script:
+    - whoami
     - pwd 
     - ls
     - cd /home/gitlab-runner/workspace
@@ -190,6 +197,7 @@ test_mpmm_shell_2:
     tags: 
     - shell-runner-2
     before_script:
+    - whoami
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace

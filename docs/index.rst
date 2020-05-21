@@ -1,3 +1,7 @@
+.. # Copyright (C) 2020 Intel Corporation
+.. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
+
 .. tfedlrn documentation master file, created by
    sphinx-quickstart on Thu Oct 24 15:07:19 2019.
    You can adapt this file completely to your liking, but it should at least

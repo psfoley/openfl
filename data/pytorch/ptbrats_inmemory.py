@@ -1,8 +1,8 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
 from data import load_from_NIfTY 
 from data.pytorch.ptfldata_inmemory import PyTorchFLDataInMemory
-
-
-
 
 
 class PyTorchBratsInMemory(PyTorchFLDataInMemory):

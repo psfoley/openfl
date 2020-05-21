@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 # This file takes in a plan and builds the ca, agg_cert and all col_certs for the plan (if needed)
 import argparse

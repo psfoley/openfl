@@ -1,4 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import time
 import os
@@ -52,9 +53,10 @@ class Aggregator(object):
                  latest_model_fpath,
                  best_model_fpath,
                  rounds_to_train=256,
-                 disable_equality_check=False,
                  minimum_reporting=-1,
                  straggler_cutoff_time=np.inf,
+                 disable_equality_check=True,
+                 test_mode_whitelist=None,
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.id = agg_id
@@ -70,6 +72,7 @@ class Aggregator(object):
         self.minimum_reporting = minimum_reporting
         self.straggler_cutoff_time = straggler_cutoff_time
         self.round_start_time = None
+        self.test_mode_whitelist = test_mode_whitelist
 
         #FIXME: close the handler before termination.
         log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
@@ -80,6 +83,14 @@ class Aggregator(object):
         self.init_per_col_round_stats()
         self.best_model_score = None
         self.mutex = Lock()
+
+    def valid_collaborator_CN_and_id(self, common_name, col_id):
+        # if self.test_mode_whitelist is None, then the common_name must match col_id and be in col_ids
+        if self.test_mode_whitelist is None:
+            return common_name == col_id and col_id in self.col_ids
+        # otherwise, common_name must be in whitelist and col_id must be in col_ids
+        else:
+            return common_name in self.test_mode_whitelist and col_id in self.col_ids
 
     def all_quit_jobs_sent(self):
         return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
@@ -93,7 +104,6 @@ class Aggregator(object):
         
         # validate that the sender is one of my collaborators
         check_is_in(message.header.sender, self.col_ids, self.logger)
-
 
     def init_per_col_round_stats(self):
         """Initalize the metrics from collaborators for each round of aggregation. """

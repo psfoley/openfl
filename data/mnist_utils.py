@@ -1,3 +1,7 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
+
 import numpy as np
 # FIXME: we should remove the keras dependency since it is only really for file downloading
 import tensorflow.keras as keras

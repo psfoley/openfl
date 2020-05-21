@@ -1,5 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 # Compose an FL plan in JSON/YAML.
 # The plan is consumed by bin/run_simulation_from_flplan.py, 
@@ -49,9 +49,7 @@ federation:
   latest_model_fname: pt_2dunet_brats_latest.pbuf
   best_model_fname: pt_2dunet_brats_best.pbuf
 
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
-
+  
 model:
   code_path: models.pytorch
   class_name: PyTorch2DUNet
@@ -63,6 +61,9 @@ aggregator:
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
+  test_mode_whitelist:
+    - spr-gpu01.jf.intel.com
+    - spr-gpu02.jf.intel.com
 
 collaborator:
   agg_id: *agg_id
@@ -75,7 +76,6 @@ grpc:
   port: *agg_port
   disable_tls: False
   disable_client_auth: False
-  cert_folder: test
 
 data:
   data_name: brats 

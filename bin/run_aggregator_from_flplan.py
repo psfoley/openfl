@@ -37,7 +37,11 @@ def main(plan, cert_common_name, logging_config_path, logging_default_level):
                      best_model_fpath=best_model_fpath, 
                      **agg_config)
 
-    cert_dir = os.path.join(base_dir, grpc_server_config['cert_folder'])
+    # default cert folder to pki
+    if 'cert_folder' in grpc_server_config:
+        cert_dir = os.path.join(base_dir, grpc_server_config['cert_folder'])
+    else:
+        cert_dir = os.path.join(base_dir, 'pki')
 
     if cert_common_name is None:
         cert_common_name = fed_config['agg_addr']

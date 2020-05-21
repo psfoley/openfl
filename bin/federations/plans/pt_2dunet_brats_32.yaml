@@ -90,6 +90,9 @@ aggregator:
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
+  test_mode_whitelist:
+    - spr-gpu01.jf.intel.com
+    - spr-gpu02.jf.intel.com
 
 collaborator:
   agg_id: *agg_id
@@ -102,8 +105,7 @@ grpc:
   port: *agg_port
   disable_tls: True
   disable_client_auth: True
-  cert_folder: test
-
+  
 data:
   data_name: brats 
   code_path: data.pytorch 
@@ -112,5 +114,4 @@ data:
   batch_size: 64
   channels_last: False
 
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
+  

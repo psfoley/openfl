@@ -42,20 +42,13 @@ federation:
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
   #agg_port: &agg_port 82278 
-  agg_port: &agg_port 82281
+  agg_port: &agg_port 76543
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'
   init_model_fname: keras_cnn_mnist_init.pbuf
   latest_model_fname: keras_cnn_mnist_latest.pbuf
   best_model_fname: keras_cnn_mnist_best.pbuf
-
-hostnames:
-  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
-  agg_0: spr-gpu01.jf.intel.com
-  col_0: spr-gpu02.jf.intel.com
-  col_1: spr-gpu02.jf.intel.com
-
 
 model:
   code_path: models.tensorflow
@@ -81,7 +74,6 @@ grpc:
   port: *agg_port
   disable_tls: False
   disable_client_auth: False
-  cert_folder: pki
 
 data:
   data_name: mnist_shard 

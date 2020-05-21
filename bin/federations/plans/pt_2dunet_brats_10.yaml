@@ -69,7 +69,6 @@ aggregator:
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
-  disable_equality_check: True
   test_mode_whitelist:
     - spr-gpu01.jf.intel.com
     - spr-gpu02.jf.intel.com

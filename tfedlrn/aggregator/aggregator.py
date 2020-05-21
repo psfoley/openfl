@@ -53,7 +53,7 @@ class Aggregator(object):
                  latest_model_fpath,
                  best_model_fpath,
                  rounds_to_train=256,
-                 disable_equality_check=False,
+                 disable_equality_check=True,
                  test_mode_whitelist=None,
                  **kwargs):
         self.logger = logging.getLogger(__name__)

@@ -181,3 +181,7 @@ test_mpmm_shell_2:
     timeout: 20m
     only:
       - master
+
+after_script:
+    - echo "cleaning ......"
+    - pkill -u gitlab-runner

@@ -34,7 +34,6 @@ pages:
     - public
   only:
   - master
-  - 101-v2-Build-GitLab-CI-testing-tool-fundamentals
 
 #image: ubuntu:18.04
 image: tensorflow/tensorflow:1.14.0-gpu-py3
@@ -62,15 +61,7 @@ test_spsm_gpu:
     - ./test_spsm_gpu.sh
     timeout: 5h 30m
     only:
-      changes:
-      - setup.py
-      - Makefile
-      - test_fl/test_spsm_gpu.sh
-      - test_fl/*.{py}
-      - tfedlrn/**/*
-      - bin/**/*
-      - models/**/*
-      - data/**/*
+    - master
 
 test_spsm_cpu:
     stage: test
@@ -92,15 +83,7 @@ test_spsm_cpu:
     - ./test_spsm.sh
     timeout: 5h 30m
     only:
-      changes:
-      - setup.py
-      - Makefile
-      - test_fl/test_spsm.sh
-      - test_fl/*.{py}
-      - tfedlrn/**/*
-      - bin/**/*
-      - models/**/*
-      - data/**/*
+    - master
 
 test_mpsm_shell_1:
     stage: test 
@@ -133,20 +116,7 @@ test_mpsm_shell_1:
     - echo "--------------------------------"
     timeout: 20m
     only:
-    - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
-    only:
-      changes:
-      - setup.py
-      - Makefile
-      - test_fl/test_mpsm.sh
-      - test_fl/test_mpmm_gpu01.sh
-      - test_fl/test_mpmm_gpu02.sh
-      - test_fl/*.{py}
-      - tfedlrn/**/*
-      - bin/**/*
-      - models/**/*
-      - data/**/*
-
+    - master
 
 test_mpmm_shell_1:
     stage: test
@@ -178,19 +148,7 @@ test_mpmm_shell_1:
     - ./test_mpmm_gpu01.sh
     timeout: 20m
     only:
-    - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
-    only:
-      changes:
-      - setup.py
-      - Makefile
-      - test_fl/test_mpsm.sh
-      - test_fl/test_mpmm_gpu01.sh
-      - test_fl/test_mpmm_gpu02.sh
-      - test_fl/*.{py}
-      - tfedlrn/**/*
-      - bin/**/*
-      - models/**/*
-      - data/**/*
+    - master
 
 test_mpmm_shell_2:
     stage: test
@@ -222,15 +180,4 @@ test_mpmm_shell_2:
     - ./test_mpmm_gpu02.sh
     timeout: 20m
     only:
-    - 120-ensure-to-kill-all-background-processes-when-the-script-is-cancelled-or-terminated
-    only:
-      changes:
-      - setup.py
-      - Makefile
-      - test_fl/test_mpsm.sh
-      - test_fl/test_mpmm_gpu01.sh
-      - test_fl/test_mpmm_gpu02.sh
-      - test_fl/*.{py}
-      - tfedlrn/**/*
-      - bin/**/*
-      - models/**/*
+      - master

@@ -32,8 +32,6 @@ pages:
   artifacts:
     paths:
     - public
-  only:
-  - master
 
 #image: ubuntu:18.04
 image: tensorflow/tensorflow:1.14.0-gpu-py3
@@ -60,8 +58,6 @@ test_spsm_gpu:
     - cd test_fl/
     - ./test_spsm_gpu.sh
     timeout: 5h 30m
-    only:
-    - master
 
 test_spsm_cpu:
     stage: test
@@ -82,8 +78,6 @@ test_spsm_cpu:
     - cd test_fl/
     - ./test_spsm.sh
     timeout: 5h 30m
-    only:
-    - master
 
 test_mpsm_shell_1:
     stage: test 
@@ -115,8 +109,6 @@ test_mpsm_shell_1:
     - echo "exit code $?"
     - echo "--------------------------------"
     timeout: 20m
-    only:
-    - master
 
 test_mpmm_shell_1:
     stage: test
@@ -147,8 +139,6 @@ test_mpmm_shell_1:
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
     timeout: 20m
-    only:
-    - master
 
 test_mpmm_shell_2:
     stage: test
@@ -179,8 +169,6 @@ test_mpmm_shell_2:
     - cd test_fl/
     - ./test_mpmm_gpu02.sh
     timeout: 20m
-    only:
-      - master
 
 after_script:
     - echo "cleaning ......"

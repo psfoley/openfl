@@ -72,7 +72,7 @@ class AggregatorGRPCServer(AggregatorServicer):
                                       ('grpc.max_send_message_length', 128 * 1024 * 1024),
                                       ('grpc.max_receive_message_length', 128 * 1024 * 1024)])
         add_AggregatorServicer_to_server(self, server)
-        uri = "[::]:{port:d}".format(addr=addr, port=port)
+        uri = "[::]:{port:d}".format(port=port)
         self.disable_tls = disable_tls
         self.logger = logger
 

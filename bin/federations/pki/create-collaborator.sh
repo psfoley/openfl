@@ -1,7 +1,8 @@
 # ensure we are in the pki directory
 cd $(dirname $0)
 
-# default common_name to hostname.domainnamecommon_name=$(hostname).$(hostname -d)
+# default common_name to hostname.domainname
+common_name=$(hostname).$(hostname -d)
 subject_alt_name=DNS:$common_name
 
 while getopts ":c:s:i:" opt; do
@@ -19,7 +20,7 @@ done
 
 echo $subject_alt_name
 
-SAN=$subject_alt_name openssl req -new -config config/client.conf -out $common_name.csr -keyout $common_name.key -subj "/CN=$common_name /WD=123456"
+SAN=$subject_alt_name openssl req -new -config config/client.conf -out $common_name.csr -keyout $common_name.key -subj "/CN=$common_name/WD=123456"
 openssl ca -config config/signing-ca.conf -batch -in $common_name.csr -out $common_name.crt
 
 filename_base=col_$common_name

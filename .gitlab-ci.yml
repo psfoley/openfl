@@ -61,8 +61,6 @@ test_spsm_gpu:
     - ./test_spsm_gpu.sh
     timeout: 10m
     when: manual
-    only:
-    - master
 
 test_spsm_cpu:
     stage: test
@@ -84,8 +82,6 @@ test_spsm_cpu:
     - ./test_spsm.sh
     timeout: 5h 30m
     when: manual
-    only:
-    - master
 
 test_mpsm_shell_1:
     stage: test 
@@ -118,8 +114,6 @@ test_mpsm_shell_1:
     - echo "--------------------------------"
     timeout: 20m
     when: manual
-    only:
-    - master
     after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -155,8 +149,6 @@ test_mpmm_shell_1:
     - ./test_mpmm_gpu01.sh
     timeout: 20m
     when: manual
-    only:
-    - master
     after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -192,8 +184,6 @@ test_mpmm_shell_2:
     - ./test_mpmm_gpu02.sh
     timeout: 20m
     when: manual
-    only:
-    - master
     after_script:
     - jobs
     - echo "cleaning ...... $$"

@@ -40,9 +40,9 @@ pages:
 test_spsm_gpu:
     stage: test
     tags: 
-    - docker-gpu
-    #image: tensorflow/tensorflow:1.14.0-gpu-py3
-    #image: docker-gpu
+    - shell-runner-1
+    #- docker-gpu
+    image: tensorflow/tensorflow:1.14.0-gpu-py3
     before_script:
     - whoami
     - pwd

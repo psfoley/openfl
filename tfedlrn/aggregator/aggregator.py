@@ -131,7 +131,11 @@ class Aggregator(object):
         return self.num_collaborators_done() >= self.minimum_reporting
 
     def straggler_cutoff_check(self):
-        return self.straggler_time_expired() and self.minimum_collaborators_reported()
+        cutoff = self.straggler_time_expired() and self.minimum_collaborators_reported()
+        if cutoff:
+            collaborators_done = [c for c in self.col_ids if self.collaborator_is_done(c)]
+            self.logger.info('\tEnding round early due to straggler cutoff. Collaborators done: {}'.format(collaborators_done))
+        return cutoff
     
     def end_of_round_check(self):
         # FIXME: find a nice, clean way to manage these values without having to manually ensure
@@ -145,16 +149,20 @@ class Aggregator(object):
         if self.num_collaborators_done() == len(self.col_ids) or self.straggler_cutoff_check():
             self.end_of_round()
 
+    def get_weighted_average_of_collaborators(self, value_dict, weight_dict):
+        cols = [k for k in value_dict.keys() if k in self.col_ids]
+        return np.average([value_dict[c] for c in cols], weights=[weight_dict[c] for c in cols])        
+
     def end_of_round(self):
         # FIXME: what all should we do to track results/metrics? It should really be an easy, extensible solution
 
         # compute the weighted loss average
-        round_loss = np.averag#EXPLODE!!!e([self.per_col_round_stats["loss_results"][c] for c in self.col_ids],
-                                weights=[self.per_col_round_stats["collaborator_training_sizes"][c] for c in self.col_ids])
+        round_loss = self.get_weighted_average_of_collaborators(self.per_col_round_stats["loss_results"],
+                                                                self.per_col_round_stats["collaborator_training_sizes"])
 
         # compute the weighted validation average
-        round_val = np.average([self.per_col_round_stats["agg_validation_results"][c] for c in self.col_ids],
-                               weights=[self.per_col_round_stats["collaborator_validation_sizes"][c] for c in self.col_ids])
+        round_val = self.get_weighted_average_of_collaborators(self.per_col_round_stats["agg_validation_results"],
+                                                                self.per_col_round_stats["collaborator_validation_sizes"])
 
         # FIXME: proper logging
         self.logger.info('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))

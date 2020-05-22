@@ -117,7 +117,7 @@ test_mpsm_shell_1:
     - echo "exit code $?"
     - echo "--------------------------------"
     timeout: 20m
-    - when: manual
+    when: manual
     only:
     - master
     after_script:
@@ -154,7 +154,7 @@ test_mpmm_shell_1:
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
     timeout: 20m
-    - when: manual
+    when: manual
     only:
     - master
     after_script:
@@ -191,7 +191,7 @@ test_mpmm_shell_2:
     - cd test_fl/
     - ./test_mpmm_gpu02.sh
     timeout: 20m
-    - when: manual
+    when: manual
     only:
     - master
     after_script:

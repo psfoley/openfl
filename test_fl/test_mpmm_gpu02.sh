@@ -44,6 +44,7 @@ echo "======== exit code $?"
 echo "-------------------------------------------------------------"
 echo "======== collaborator 1 ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_1
+time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_1 &
+wait
 echo "======== Exit code $?"
 echo "======== Done! on gpu02 ${0}"

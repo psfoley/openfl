@@ -3,9 +3,9 @@ set -e
 function KillJobs(){
     echo "jobs to kill::"
     echo "==================="
-    jobs -p
+    jobs
     echo "==================="
-    for job in $(jos -p); do
+    for job in $(jobs -p); do
         kill -s SIGTERM $job || (sleep 3 && kill -9 $job)
     done
 }

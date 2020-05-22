@@ -60,7 +60,7 @@ test_spsm_gpu:
     - cd test_fl/
     - ./test_spsm_gpu.sh
     timeout: 10m
-    - when: manual
+    when: manual
     only:
     - master
 
@@ -83,7 +83,7 @@ test_spsm_cpu:
     - cd test_fl/
     - ./test_spsm.sh
     timeout: 5h 30m
-    - when: manual
+    when: manual
     only:
     - master
 

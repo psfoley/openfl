@@ -42,6 +42,7 @@ test_spsm_gpu:
     tags: 
     - docker-gpu
     #- shell-runner-1
+    image: b3ad606906d3
     #image: tensorflow/tensorflow:1.14.0-gpu-py3
     before_script:
     - whoami

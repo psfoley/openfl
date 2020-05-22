@@ -42,7 +42,7 @@ test_spsm_gpu:
     tags: 
     - docker-gpu
     #image: tensorflow/tensorflow:1.14.0-gpu-py3
-    image: docker-gpu
+    #image: docker-gpu
     before_script:
     - whoami
     - pwd

@@ -19,7 +19,7 @@ function cleanup(){
 
 trap cleanup SIGINT SIGTERM SIGQUIT
 
-time ../venv/bin/python3 ../bin/create_pki_for_flplan.py -p keras_cnn_mnist_2.yaml
+#time ../venv/bin/python3 ../bin/create_pki_for_flplan.py -p keras_cnn_mnist_2.yaml
 echo "-------------------------------------------------------------"
 echo "======== creating init weights ......"
 echo "-------------------------------------------------------------"

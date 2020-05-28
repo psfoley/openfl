@@ -31,35 +31,28 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-description     : Train a model to perform classification on MNIST images.
+description     : Train a model to perform semantic segmentation on brain fMRI images.
 status          : active
 
 federation:
   fed_id: &fed_id 'fed_0'
-  opt_treatment: &opt_treatment 'RESET'
+  opt_treatment: &opt_treatment 'EDGE'
   polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 10
+  rounds_to_train: &rounds_to_train 16
   agg_id: &agg_id 'agg_0'
   agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 8878 
+  #agg_port: &agg_port 82278 
+  agg_port: &agg_port 76543
   col_ids: &col_ids
     - 'col_0'
     - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
-  init_model_fname: pt_cnn_init.pbuf
-  latest_model_fname: pt_cnn_latest.pbuf
-  best_model_fname: pt_cnn_best.pbuf
+  init_model_fname: keras_cnn_mnist_init.pbuf
+  latest_model_fname: keras_cnn_mnist_latest.pbuf
+  best_model_fname: keras_cnn_mnist_best.pbuf
 
 model:
-  module_name: models.pytorch
-  class_name: PyTorchCNN
+  code_path: models.tensorflow
+  class_name: KerasCNN
     
 aggregator:
   agg_id: *agg_id
@@ -81,10 +74,10 @@ grpc:
   port: *agg_port
   disable_tls: False
   disable_client_auth: False
-  
+
 data:
   data_name: mnist_shard 
-  module_name: data.pytorch 
-  class_name: PyTorchMNISTInMemory
+  code_path: data.tensorflow 
+  class_name: TensorFlowMNISTInMemory
   nb_collaborators: 10
   batch_size: 256

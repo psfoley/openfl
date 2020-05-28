@@ -50,10 +50,6 @@ federation:
   latest_model_fname: tf_2dunet_brats_latest.pbuf
   best_model_fname: tf_2dunet_brats_best.pbuf
 
-hostnames:
-  col_2: spr-gpu01.jf.intel.com
-  col_3: spr-gpu02.jf.intel.com
-
 model:
   module_name: models.tensorflow
   class_name: TensorFlow2DUNet
@@ -63,6 +59,9 @@ aggregator:
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
+  test_mode_whitelist:
+    - spr-gpu01.jf.intel.com
+    - spr-gpu02.jf.intel.com
 
 collaborator:
   agg_id: *agg_id
@@ -75,8 +74,7 @@ grpc:
   port: *agg_port
   disable_tls: False
   disable_client_auth: False
-  cert_folder: test
-
+  
 data:
   data_name: brats 
   module_name: data.tensorflow 

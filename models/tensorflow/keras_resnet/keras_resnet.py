@@ -147,7 +147,7 @@ class KerasResnet(KerasFLModel):
         #mode = 'eval'
         self.mode = mode
         self.logger = logging.getLogger(__name__)                                                                                                        
-        self.model = self.build_model(data.get_feature_shape(), data.num_classes)                                                                        
+        self.model = self.build_model(self.data.get_feature_shape(), self.data.num_classes)                                                                        
         print(self.model.summary())
         if self.data.y_train is not None and self.data.y_val is not None:                                                                                
             print("Training set size: %d; Validation set size: %d" % (len(self.data.y_train), len(self.data.y_val)))                                     

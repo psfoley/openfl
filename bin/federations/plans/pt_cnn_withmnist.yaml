@@ -58,18 +58,19 @@ federation:
   best_model_fname: pytorch_cnn_best.pbuf
   model_version: &model_version 1
 
-hostnames:
-  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
-
 model:
   module_name: models.pytorch
   class_name: PyTorchCNN
+  device: cpu
     
 aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
+  test_mode_whitelist:
+    - spr-gpu01.jf.intel.com
+    - spr-gpu02.jf.intel.com
 
 collaborator:
   agg_id: *agg_id
@@ -83,8 +84,7 @@ grpc:
   port: *agg_port
   disable_tls: False
   disable_client_auth: False
-  cert_folder: test
-
+  
 data:
   data_name: mnist_shard 
   module_name: data.pytorch 

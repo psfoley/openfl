@@ -54,7 +54,8 @@ class Aggregator(object):
                  latest_model_fpath, 
                  best_model_fpath, 
                  rounds_to_train=256, 
-                 disable_equality_check=False,
+                 disable_equality_check=True,
+                 test_mode_whitelist=None,
                  compression_pipeline=None, 
                  **kwargs):
         self.logger = logging.getLogger(__name__)
@@ -69,6 +70,7 @@ class Aggregator(object):
         self.rounds_to_train = rounds_to_train
         self.quit_job_sent_to = []
         self.disable_equality_check = disable_equality_check
+        self.test_mode_whitelist = test_mode_whitelist
 
         #FIXME: close the handler before termination.
         log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
@@ -82,6 +84,14 @@ class Aggregator(object):
 
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
 
+    def valid_collaborator_CN_and_id(self, common_name, col_id):
+        # if self.test_mode_whitelist is None, then the common_name must match col_id and be in col_ids
+        if self.test_mode_whitelist is None:
+            return common_name == col_id and col_id in self.col_ids
+        # otherwise, common_name must be in whitelist and col_id must be in col_ids
+        else:
+            return common_name in self.test_mode_whitelist and col_id in self.col_ids
+
     def all_quit_jobs_sent(self):
         return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
 
@@ -94,7 +104,6 @@ class Aggregator(object):
         
         # validate that the sender is one of my collaborators
         check_is_in(message.header.sender, self.col_ids, self.logger)
-
 
     def init_per_col_round_stats(self):
         """Initalize the metrics from collaborators for each round of aggregation. """

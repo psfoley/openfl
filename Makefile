@@ -23,7 +23,7 @@ endif
 
 ifeq ($(dataset),brats)
     additional_brats_container_lines = \
-	-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
+		-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
     -v '/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG':/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro
 endif
 
@@ -47,10 +47,13 @@ install: $(tfl)
 venv: venv/bin/python3
 
 venv/bin/python3:
-	python3.5 -m venv venv
-	venv/bin/pip3 install --upgrade pip
-	venv/bin/pip3 install --upgrade setuptools
-	venv/bin/pip3 install --upgrade wheel
+	python3 -m venv venv
+	venv/bin/pip3 install --upgrade pip==19.2.3
+	venv/bin/pip3 install --upgrade setuptools==41.0.0
+	venv/bin/pip3 install  wheel
+	#venv/bin/pip3 install --upgrade pip
+	#venv/bin/pip3 install --upgrade setuptools
+	#venv/bin/pip3 install --upgrade wheel
 	
 $(whl): venv/bin/python3
 	venv/bin/python3 setup.py bdist_wheel
@@ -73,6 +76,18 @@ bin/federations/certs/test:
 
 bin/federations/weights/keras_cnn_mnist_init.pbuf:
 	echo "recipe needed!"
+
+# start_mnist_agg_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
+# 	venv/bin/python3 bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls --disable_client_auth
+
+# start_mnist_col_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
+# 	venv/bin/python3 bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_num $(col_num) --disable_tls --disable_client_auth
+
+start_mnist_agg: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
+	cd bin && ../venv/bin/python3 run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml
+
+start_mnist_col: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
+	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_$(col_num)
 
 # start_mnist_agg_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
 # 	venv/bin/python3 bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls --disable_client_auth

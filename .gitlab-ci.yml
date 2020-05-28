@@ -1,11 +1,17 @@
-image: alpine
 
+#image: alpine
 # before_script:
 #   - mkdir -p $HOME/.docker/
 #   - 'echo "{ \"proxies\": { \"default\": { \"httpProxy\": \"http://proxy-us.intel.com:911\", \"httpsProxy\": \"http://proxy-us.intel.com:912\", \"noProxy\": \"intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16\" } } }" > $HOME/.docker/config.json'
+stages:
+    - build
+    - test
 
 pages:
-
+  stage: build
+  tags: 
+  - alpine-runner-sh-1
+  image: alpine
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912
@@ -28,3 +34,189 @@ pages:
     - public
   only:
   - master
+  - 101-v2-Build-GitLab-CI-testing-tool-fundamentals
+
+#image: ubuntu:18.04
+image: tensorflow/tensorflow:1.14.0-gpu-py3
+
+test_spsm_gpu:
+    stage: test
+    tags: 
+    - docker-gpu
+    before_script:
+    - nvidia-smi
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - apt-get update -qy
+    - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
+    - python3 -m pip --version
+    - echo 'modifying setup.py for tensorflow-gpu'
+    - sed -i -e 's/tensorflow==/tensorflow-gpu==/g' setup.py
+    - make clean
+    - make install
+    script: 
+    - cd test_fl/
+    - ./test_spsm_gpu.sh
+    timeout: 5h 30m
+    only:
+      changes:
+      - setup.py
+      - Makefile
+      - test_fl/test_spsm_gpu.sh
+      - test_fl/*.{py}
+      - tfedlrn/**/*
+      - bin/**/*
+      - models/**/*
+      - data/**/*
+
+test_spsm_cpu:
+    stage: test
+    tags: 
+    - alpine-runner-sh-1
+    before_script:
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - apt-get update -qy
+    - apt-get install -y python3-venv python3-pip build-essential musl-dev g++
+    - python3 -m pip --version
+    - make clean
+    - make install
+    script: 
+    - cd test_fl/
+    - ./test_spsm.sh
+    timeout: 5h 30m
+    only:
+      changes:
+      - setup.py
+      - Makefile
+      - test_fl/test_spsm.sh
+      - test_fl/*.{py}
+      - tfedlrn/**/*
+      - bin/**/*
+      - models/**/*
+      - data/**/*
+
+test_mpsm_shell_1:
+    stage: test 
+    tags: 
+    - shell-runner-1
+    before_script:
+    - pwd 
+    - ls
+    - cd /home/gitlab-runner/workspace/tmp1
+    - echo "remove the directory ..."
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - cd /home/gitlab-runner/workspace/tmp1/spr_secure_intelligence-trusted_federated_learning
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - python3 -m pip --version
+    - make clean
+    - make install
+    script:
+    - cd test_fl/
+    - ./test_mpsm.sh
+    - echo "--------------------------------"
+    - echo "exit code $?"
+    - echo "--------------------------------"
+    timeout: 20m
+    only:
+      changes:
+      - setup.py
+      - Makefile
+      - test_fl/test_mpsm.sh
+      - test_fl/test_mpmm_gpu01.sh
+      - test_fl/test_mpmm_gpu02.sh
+      - test_fl/*.{py}
+      - tfedlrn/**/*
+      - bin/**/*
+      - models/**/*
+      - data/**/*
+
+
+test_mpmm_shell_1:
+    stage: test
+    tags: 
+    - shell-runner-1
+    before_script:
+    - pwd 
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - python3 -m pip --version
+    - make clean
+    - make install
+    script:
+    - rm -rf ./bin/federations/pki
+    - echo "copy the certs ..."
+    - cp -r /home/gitlab-runner/workspace/pki ./bin/federations/
+    - cd test_fl/
+    - ./test_mpmm_gpu01.sh
+    timeout: 20m
+    only:
+      changes:
+      - setup.py
+      - Makefile
+      - test_fl/test_mpsm.sh
+      - test_fl/test_mpmm_gpu01.sh
+      - test_fl/test_mpmm_gpu02.sh
+      - test_fl/*.{py}
+      - tfedlrn/**/*
+      - bin/**/*
+      - models/**/*
+      - data/**/*
+
+test_mpmm_shell_2:
+    stage: test
+    tags: 
+    - shell-runner-2
+    before_script:
+    - pwd
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
+    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - python3 -m pip --version
+    - make clean
+    - make install
+    script:
+    - rm -rf ./bin/federations/certs
+    - echo "copy the certs ..."
+    - cp -r /home/gitlab-runner/workspace/pki ./bin/federations/
+    - cd test_fl/
+    - ./test_mpmm_gpu02.sh
+    timeout: 20m
+    only:
+      changes:
+      - setup.py
+      - Makefile
+      - test_fl/test_mpsm.sh
+      - test_fl/test_mpmm_gpu01.sh
+      - test_fl/test_mpmm_gpu02.sh
+      - test_fl/*.{py}
+      - tfedlrn/**/*
+      - bin/**/*
+      - models/**/*

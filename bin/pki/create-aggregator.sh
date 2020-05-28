@@ -1,24 +1,20 @@
-common_name=$(hostname).$(hostname -d)
-subject_alt_name=DNS:$common_name
+#!/bin/bash
 
-while getopts ":c:s:i:" opt; do
-  case $opt in
-    c) common_name="$OPTARG"
-    ;;
-    s) subject_alt_name=DNS:"$OPTARG"
-    ;;
-    i) subject_alt_name=$subject_alt_name,IP:$OPTARG
-    ;;
-    \?) echo "Invalid option -$OPTARG" >&2
-    ;;
-  esac
-done
+if [ "$#" -ne 2 ];
+then
+    echo "Usage: create-aggregator FQDN IP_ADDRESS"
+    exit 1;
+fi
 
-echo $subject_alt_name
+FQDN=$1
+IP_ADDRESS=$2
+subject_alt_name="DNS:$FQDN,IP:$IP_ADDRESS"
 
-SAN=$subject_alt_name openssl req -new -config config/server.conf -subj "/CN=$common_name" -out $common_name.csr -keyout $common_name.key
-openssl ca -config config/signing-ca.conf -batch -extensions server_ext -in $common_name.csr -out $common_name.crt
+echo "Creating debug client key pair with following settings: CN=$FQDN SAN=$subject_alt_name"
 
-mkdir -p $common_name
-mv $common_name.crt $common_name.key $common_name
-rm $common_name.csr
+SAN=$subject_alt_name openssl req -new -config config/server.conf -subj "/CN=$FQDN" -out $FQDN.csr -keyout $FQDN.key
+openssl ca -config config/signing-ca.conf -batch -extensions server_ext -in $FQDN.csr -out $FQDN.crt
+
+mkdir -p $FQDN
+mv $FQDN.crt $FQDN.key $FQDN
+rm $FQDN.csr

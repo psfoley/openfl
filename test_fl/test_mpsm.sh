@@ -32,10 +32,10 @@ time ../venv/bin/python3 ../bin/run_aggregator_from_flplan.py -p keras_cnn_mnist
 echo "-------------------------------------------------------------"
 echo "======== collaborator 0 ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_0 &
+time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_0 -ccn spr-gpu01.jf.intel.com &
 echo "-------------------------------------------------------------"
 echo "======== collaborator 1 ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_1 &
+time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_1 -ccn spr-gpu01.jf.intel.com &
 wait
 echo "======== Done! ${0} ${?}"

@@ -7,6 +7,9 @@ class Float32NumpyArrayToBytes(Transformer):
         pass
 
     def forward(self, data, **kwargs):
+        # TODO: Warn when this casting is being performed.
+        if data.dtype != np.float32:
+            data = data.astype(np.float32)
         array_shape = data.shape
         metadata = {'int_list': list(array_shape)}
         data_bytes = data.tobytes(order='C')

@@ -49,13 +49,14 @@ class SparsityTransformer(Transformer):
         sparse_data = np.zeros(flatten_data.shape)
         sparse_data[topk_indices] = topk 
         nonzero_element_bool_indices = sparse_data != 0.0
-        meta_dict = {}
-        meta_dict['int_list'] = list(data.shape)
-        meta_dict['bool_array'] = nonzero_element_bool_indices
-        #meta_dict['topk'] = [topk]
-        # meta_dict['topk_indices'] = [topk_dices]
+        metadata = {}
+        metadata['int_list'] = list(data.shape)
+        metadata['bool_list'] = nonzero_element_bool_indices
+        #print('metadata::', metadata['bool_list'])
+        #metadata['topk'] = [topk]
+        # metadata['topk_indices'] = [topk_dices]
         # make a sparse data
-        return sparse_data, meta_dict
+        return sparse_data, metadata
         '''
         # input::np_array, {}
         # output::np_array, {}
@@ -67,8 +68,11 @@ class SparsityTransformer(Transformer):
         direction to the forward method.
         returns: transformed_data
         """
-        data_shape = meta_dict['int_list'] = list(data.shape)
-        nonzero_element_bool_indices = meta_dict['bool_array'] 
+        data_shape = metadata['int_list'] = list(data.shape)
+        print('=================================')
+        print(metadata.keys())
+        print('=================================')
+        nonzero_element_bool_indices = metadata['bool_list'] 
         recovered_data = np.zeros(data_shape)
         recovered_data[nonzero_element_bool_indices] = data
         return recovered_data
@@ -116,6 +120,9 @@ class TernaryTransformer(Transformer):
 
     def backward(self, data, metadata, **kwargs):
         # convert back to float
+        # TODO
+        import copy
+        data = copy.deepcopy(data)
         int2float_map = metadata['int_to_float']
         for key in int2float_map:
             indices = data == key
@@ -168,9 +175,9 @@ class GZIPTransformer(Transformer):
         metadata = {}
         return compressed_bytes_, metadata
 
-    def backward(self, data_bytes, metadata, **kwargs):
-        decompressed_bytes_ = gzip.decompress(data_bytes)
-        data = np.frombuffer(decompressed_bytes_, dtyp=np.float32)
+    def backward(self, data, metadata, **kwargs):
+        decompressed_bytes_ = gzip.decompress(data)
+        data = np.frombuffer(decompressed_bytes_, dtype=np.float32)
         #data = data.reshape(metadata['shape'])
         return data
 

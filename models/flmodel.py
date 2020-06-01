@@ -81,9 +81,10 @@ class FLModel(object):
         """
         return self.data.get_validation_data_size()
  
-    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False):
+    def train_batches(self, num_batches, use_tqdm=False):
         """
-        Perform the training to be incorporated into a single round of FL.
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
         Returns
         -------

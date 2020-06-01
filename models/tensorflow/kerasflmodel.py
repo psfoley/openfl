@@ -31,10 +31,16 @@ class KerasFLModel(FLModel):
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
-        # child class should have an __init__ function with signature: (self, data, **kwargs)
-        # and should overwrite self.model with a child of keras.Model
+    def train_batches(self):
+        """
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
-    def train_for_round(self, epoch_sample_rate, epochs_per_round):
+        Returns
+        -------
+        float
+            loss
+        """
 
         # establish data subselection to enforce partial epochs
         num_samples = len(self.data.X_train)

@@ -47,32 +47,33 @@ class TensorFlowFLModel(FLModel):
         # self.tvars + self.opt_vars 
         self.fl_vars = None
 
-    def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False):
+    def train_batches(self, num_batches, use_tqdm=False):
         """
-        Perform training for this round of FL.
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
         Returns
         -------
-        dict
-            {<metric>: <value>}
+        float
+            loss
         """
         tf.keras.backend.set_learning_phase(True)
 
         losses = []
+        batch_num = 0
 
-        gen = self.data.get_train_loader()
-        if use_tqdm:
-            gen = tqdm.tqdm(gen, desc="training epoch")
+        while batch_num < num_batches:
+            # get iterator for batch draws (shuffling happens here)
+            gen = self.data.get_train_loader()
+            if use_tqdm:
+                gen = tqdm.tqdm(gen, desc="training epoch")
 
-        # FIXME: is it better to enforce this in the generator itself?
-        batches_per_epoch = int(len(gen) * epoch_sample_rate)
-
-        for _ in range(epochs_per_round):
-
-            for batch_num, (X, y) in enumerate(gen):
-                if batch_num + 1 > batches_per_epoch:
+            for (X, y) in gen:
+                if batch_num >= batches_per_epoch:
                     break
-                losses.append(self.train_batch(X, y))
+                else: 
+                    losses.append(self.train_batch(X, y))
+                    batch_num += 1
 
         return np.mean(losses)
 

@@ -24,9 +24,20 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, metad
         transformer_metadata = metadata_dict[key]
         metadata_protos = []
         for metadata in transformer_metadata:
-            int_to_float = metadata.get('int_to_float') or {}
-            int_list = metadata.get('int_list') or []
-            bool_list = metadata.get('bool_list') or []
+            if metadata.get('int_to_float') is not None:
+                int_to_float = metadata.get('int_to_float')
+            else:
+                int_to_float = {}
+
+            if metadata.get('int_list') is not None:
+                int_list = metadata.get('int_list')
+            else:
+                int_list = []
+
+            if metadata.get('bool_list') is not None:
+                bool_list = metadata.get('bool_list')
+            else:
+                bool_list = []
             metadata_protos.append(MetadataProto(int_to_float=int_to_float, int_list=int_list, bool_list=bool_list))
         tensor_protos.append(TensorProto(name=key, 
                                          data_bytes=data_bytes, 

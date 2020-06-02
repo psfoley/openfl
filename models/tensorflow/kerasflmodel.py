@@ -31,7 +31,7 @@ class KerasFLModel(FLModel):
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
-    def train_batches(self):
+    def train_batches(self, num_batches):
         """
         Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
         replacement until data is exausted. Then data is replaced and shuffled and draws continue.
@@ -41,19 +41,19 @@ class KerasFLModel(FLModel):
         float
             loss
         """
+        
+        # keras model fit method allows for partial batches
+        batches_per_epoch = int(np.ceil(self.data.get_training_data_size()/self.data.batch_size))
 
-        # establish data subselection to enforce partial epochs
-        num_samples = len(self.data.X_train)
-        shuffled_idxs = np.random.permutation(num_samples)
+        if num_batches % batches_per_epoch != 0:
+            raise ValueError('KerasFLModel does not support specifying a num_batches corresponding to partial epochs.')
+        else:
+            num_epochs = num_batches // batches_per_epoch
 
-        # we will enforce no partial batches at this level
-        num_idxs = int(num_samples * epoch_sample_rate - (num_samples * epoch_sample_rate) % self.data.batch_size)
-        sample_idxs = shuffled_idxs[:num_idxs]
-
-        history = self.model.fit(self.data.X_train[sample_idxs], 
-                                 self.data.y_train[sample_idxs],
+        history = self.model.fit(self.data.X_train, 
+                                 self.data.y_train,
                                  batch_size=self.data.batch_size,
-                                 epochs=epochs_per_round,
+                                 epochs=num_epochs,
                                  verbose=0,)
 
         loss = np.mean([history.history['loss']])

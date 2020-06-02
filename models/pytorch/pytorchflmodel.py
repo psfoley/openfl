@@ -29,7 +29,8 @@ class PyTorchFLModel(nn.Module, FLModel):
                                             'holdout_tensor_names': ['__opt_state_needed']
                                            }
 
-    # def train_for_round(self, epoch_sample_rate, epochs_per_round, use_tqdm=False):
+    # models should implement something like this--
+    # def train_batches(self, num_batches, use_tqdm=False):
     #     # set to "training" mode
     #     self.train()
         
@@ -38,26 +39,29 @@ class PyTorchFLModel(nn.Module, FLModel):
     #     gen = self.data.get_train_loader()
     #     if use_tqdm:
     #         gen = tqdm.tqdm(gen, desc="training for this round")
+        
+    #     batch_num = 0
 
-    #     # FIXME: is it better to enforce this in the loader itself, for now the loader is static
-    #     batches_per_epoch = int(len(gen) * epoch_sample_rate)
-
-    #     for _ in range(epochs_per_round):
-            
-    #         for batch_num, (data, target) in enumerate(gen):
-    #             if batch_num > batches_per_epoch:
+    #     while batch_num < num_batches:
+    #         # shuffling happens every time gen is used as an iterator            
+    #         for (data, target) in gen:
+    #             if batch_num >= num_batches:
     #                 break
-    #             if isinstance(data, np.ndarray):
-    #                     data = torch.Tensor(data)
-    #             if isinstance(target, np.ndarray):
-    #                 target = torch.Tensor(data)
-    #             data, target = data.to(self.device), target.to(self.device)
-    #             self.optimizer.zero_grad()
-    #             output = self(data)
-    #             loss = self.loss_fn(output, target)
-    #             loss.backward()
-    #             self.optimizer.step()
-    #             losses.append(loss.detach().cpu().numpy())
+    #             else:
+    #                 if isinstance(data, np.ndarray):
+    #                         data = torch.Tensor(data)
+    #                 if isinstance(target, np.ndarray):
+    #                     target = torch.Tensor(data)
+    #                 data, target = data.to(self.device), target.to(self.device)
+    #                 self.optimizer.zero_grad()
+    #                 output = self(data)
+    #                 loss = self.loss_fn(output, target)
+    #                 loss.backward()
+    #                 self.optimizer.step()
+    #                 losses.append(loss.detach().cpu().numpy())
+
+    #                 batch_num += 1
+        
     #     return np.mean(losses)
 
 

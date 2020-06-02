@@ -69,7 +69,7 @@ class TensorFlowFLModel(FLModel):
                 gen = tqdm.tqdm(gen, desc="training epoch")
 
             for (X, y) in gen:
-                if batch_num >= batches_per_epoch:
+                if batch_num >= num_batches:
                     break
                 else: 
                     losses.append(self.train_batch(X, y))

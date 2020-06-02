@@ -1,5 +1,4 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 ARG BASE_IMAGE=ubuntu:18.04
 FROM $BASE_IMAGE
@@ -7,7 +6,7 @@ FROM $BASE_IMAGE
 LABEL maintainer "Weilin Xu <weilin.xu@intel.com>"
 
 # Set up the proxy servers before building the Docker image.
-# Credit goes to Cory Cornelius. 
+# Credit goes to Cory Cornelius.
 ARG http_proxy
 ARG https_proxy
 ARG socks_proxy

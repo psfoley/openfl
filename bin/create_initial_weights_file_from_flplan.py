@@ -28,6 +28,9 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
+    if not os.path.exists(weights_dir):
+        print('creating folder:', weights_dir)
+        os.makedirs(weights_dir)
 
     plan = load_yaml(os.path.join(plan_dir, plan))
     model_config = plan['model']

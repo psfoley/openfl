@@ -3,14 +3,16 @@
 
 # WIP for transfering tutorial steps to makefile
 
-whl = dist/tfedlrn-0.0.0-py3-none-any.whl
-tfl = venv/lib/python3.5/site-packages/tfedlrn
-
 col_num ?= 0
 framework_name ?= tensorflow
 model_name ?= keras_cnn
 use_gpu ?= false
 dataset ?= mnist
+python_version ?= python3.6
+mount_type ?= rw
+
+whl = dist/tfedlrn-0.0.0-py3-none-any.whl
+tfl = venv/lib/$(python_version)/site-packages/tfedlrn
 
 ifeq ($(use_gpu), true)
 	base_image = tensorflow/tensorflow:1.14.0-gpu-py3
@@ -23,7 +25,7 @@ endif
 
 ifeq ($(dataset),brats)
     additional_brats_container_lines = \
-		-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
+	-v '/raid/datasets/BraTS17/symlinks/$(col_num)':/home/$(shell whoami)/tfl/datasets/brats:ro \
     -v '/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG':/raid/datasets/BraTS17/MICCAI_BraTS17_Data_Training/HGG:ro
 endif
 
@@ -47,14 +49,11 @@ install: $(tfl)
 venv: venv/bin/python3
 
 venv/bin/python3:
-	python3 -m venv venv
-	venv/bin/pip3 install --upgrade pip==19.2.3
-	venv/bin/pip3 install --upgrade setuptools==41.0.0
-	venv/bin/pip3 install  wheel
-	#venv/bin/pip3 install --upgrade pip
-	#venv/bin/pip3 install --upgrade setuptools
-	#venv/bin/pip3 install --upgrade wheel
-	
+	$(python_version) -m venv venv
+	venv/bin/pip3 install --upgrade pip
+	venv/bin/pip3 install --upgrade setuptools
+	venv/bin/pip3 install --upgrade wheel
+
 $(whl): venv/bin/python3
 	venv/bin/python3 setup.py bdist_wheel
 	# we will use the wheel, and do not want the egg info
@@ -62,7 +61,7 @@ $(whl): venv/bin/python3
 
 $(tfl): $(whl)
 	venv/bin/pip3 install $(whl)
-	
+
 uninstall:
 	venv/bin/pip3 uninstall -y tfedlrn
 	rm -rf dist
@@ -76,18 +75,6 @@ bin/federations/certs/test:
 
 bin/federations/weights/keras_cnn_mnist_init.pbuf:
 	echo "recipe needed!"
-
-# start_mnist_agg_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
-# 	venv/bin/python3 bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls --disable_client_auth
-
-# start_mnist_col_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
-# 	venv/bin/python3 bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_num $(col_num) --disable_tls --disable_client_auth
-
-start_mnist_agg: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
-	cd bin && ../venv/bin/python3 run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml
-
-start_mnist_col: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
-	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_$(col_num)
 
 # start_mnist_agg_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
 # 	venv/bin/python3 bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls --disable_client_auth
@@ -148,19 +135,24 @@ build_containers:
 
 run_agg_container:
 
-	docker run \
+	@echo "Aggregator Container started."
+	@echo "Run the command: ./run_mnist_aggregator.sh"
+	@docker run \
 	--net=host \
 	-it --name=tfl_agg_$(model_name)_$(shell whoami) \
 	--rm \
 	-w /home/$(shell whoami)/tfl/bin \
-	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:rw \
+	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:$(mount_type) \
 	$(additional_brats_container_lines) \
 	tfl_agg_$(model_name)_$(shell whoami):0.1 \
-	bash 
+	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mAggregator\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
+
 
 run_col_container:
 
-	docker run \
+	@echo "Collaborator $(col_num) started. You are in the Docker container"
+	@echo "Run the command: ./run_mnist_collaborator.sh $(col_num)"
+	@docker run \
 	$(runtime_line) \
 	--net=host \
 	-it --name=tfl_col_$(device)_$(model_name)_$(shell whoami)_$(col_num) \
@@ -169,17 +161,4 @@ run_col_container:
 	$(additional_brats_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
 	tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
-	bash 
-
-
-
-
-	
-
-
-
-
-
-
-
-
+	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mCollaborator $(col_num)\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"

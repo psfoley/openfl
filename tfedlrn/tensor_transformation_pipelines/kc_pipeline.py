@@ -15,6 +15,7 @@ class KmeansTransformer(Transformer):
         '''
         # clustering
         k_means = cluster.KMeans(n_clusters=self.n_cluster, n_init=self.n_cluster)
+        data = data.reshape((-1, 1))
         k_means.fit(data)
         quantized_values = k_means.cluster_centers_.squeeze()
         indices = k_means.labels_ 

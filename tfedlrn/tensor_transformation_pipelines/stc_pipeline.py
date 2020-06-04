@@ -7,7 +7,7 @@ from tfedlrn.tensor_transformation_pipelines import TransformationPipeline, Tran
 dictionary:
     'int_to_float': {int:float...}
     'int_list': [128,32,32,3]
-    'bool_array': [True, Flase, ...]
+    'bool_list': [True, Flase, ...]
 ---
 forward:
         shape
@@ -36,31 +36,32 @@ class SparsityTransformer(Transformer):
 
         here data is an array value from a model tensor_dict
         """
-        '''
-        w: model weights, numpy array
-        p: sparsity ratio
-        '''
+        print('======================================')
+        self.p = 1
+        print('sparsity::', self.p)
+        print('raw data::', data)
+        print('raw data::', data.shape)
+        print('======================================')
+        metadata = {}
+        metadata['int_list'] = list(data.shape)
         # sparsification
+        data = data.astype(np.float32)
         flatten_data = data.flatten()
         n_elements = flatten_data.shape[0]
         k_op = int(np.ceil(n_elements*self.p))
         topk, topk_indices = self._topk_func(flatten_data, k_op)
         #
+        condensed_data = topk
         sparse_data = np.zeros(flatten_data.shape)
         sparse_data[topk_indices] = topk 
         nonzero_element_bool_indices = sparse_data != 0.0
-        metadata = {}
-        metadata['int_list'] = list(data.shape)
-        metadata['bool_list'] = nonzero_element_bool_indices
-        #print('metadata::', metadata['bool_list'])
-        #metadata['topk'] = [topk]
-        # metadata['topk_indices'] = [topk_dices]
-        # make a sparse data
-        return sparse_data, metadata
-        '''
-        # input::np_array, {}
-        # output::np_array, {}
-        '''
+        metadata['bool_list'] = list(nonzero_element_bool_indices)
+        print('======================================')
+        print('forward::')
+        print('condensed_data::', condensed_data)
+        print('======================================')
+        return condensed_data, metadata
+        #return sparse_data, metadata
 
     def backward(self, data, metadata, **kwargs):
         """
@@ -68,24 +69,18 @@ class SparsityTransformer(Transformer):
         direction to the forward method.
         returns: transformed_data
         """
-        data_shape = metadata['int_list'] = list(data.shape)
-        print('=================================')
-        print(metadata.keys())
-        print('=================================')
-        nonzero_element_bool_indices = metadata['bool_list'] 
-        recovered_data = np.zeros(data_shape)
+        print('======================================')
+        print('backward::')
+        print('condensed_data::', data)
+        print('======================================')
+        data = data.astype(np.float32)
+        data_shape = metadata['int_list']
+        nonzero_element_bool_indices = list(metadata['bool_list'])
+        recovered_data = np.zeros(data_shape).reshape(-1).astype(np.float32)
         recovered_data[nonzero_element_bool_indices] = data
+        recovered_data = recovered_data.reshape(data_shape) 
         return recovered_data
         
-        '''
-        shape = data.shape
-        # this is an awkward use of the metadata into to float dict, usually it will
-        # trully be treated as a dict. Here (and in 'forward' above) we use it essentially as an array.
-        shift = np.reshape(np.array([metadata[idx] for idx in range(len(metadata))]), 
-                                    newshape=shape, 
-                                    order='C')
-        return data - shift 
-        '''
 
     def _topk_func(self, x, k):
         # quick sort as default on magnitude
@@ -96,6 +91,8 @@ class SparsityTransformer(Transformer):
         # get the top k magnitude
         topk_mag = np.asarray(x[idx[start_idx:]])
         indices = np.asarray(idx[start_idx:])
+        if min(topk_mag)-0 < 10e-8:# avoid zeros
+            topk_mag = topk_mag + 10e-8
         return topk_mag, indices
 
 class TernaryTransformer(Transformer):
@@ -114,9 +111,6 @@ class TernaryTransformer(Transformer):
         metadata = {}
         metadata['int_to_float']  = int2float_map
         return int_array, metadata
-
-        #results = self.ternary_quant(data, topk)
-        #return
 
     def backward(self, data, metadata, **kwargs):
         # convert back to float
@@ -159,17 +153,12 @@ class TernaryTransformer(Transformer):
 
 class GZIPTransformer(Transformer):
     '''
-    How to reshape the integer value np_array?
-    np_array -> bytes
-    using object compression?
-    input::
-    output::
     '''
     def __init__(self):
         return
 
     def forward(self, data, **kwargs):
-        bytes_ = data.tobytes()
+        bytes_ = data.astype(np.float32).tobytes()
         compressed_bytes_ = gzip.compress(bytes_)
         #shape_info = data.shape
         metadata = {}
@@ -178,7 +167,6 @@ class GZIPTransformer(Transformer):
     def backward(self, data, metadata, **kwargs):
         decompressed_bytes_ = gzip.decompress(data)
         data = np.frombuffer(decompressed_bytes_, dtype=np.float32)
-        #data = data.reshape(metadata['shape'])
         return data
 
 class STCPipeline(TransformationPipeline):

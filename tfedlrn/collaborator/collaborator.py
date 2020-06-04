@@ -136,15 +136,16 @@ class Collaborator(object):
         # get the initial tensor dict
         # initial_tensor_dict = self.wrapped_model.get_tensor_dict()
 
-        # train the model
-        # FIXME: model header "version" needs to be changed to "rounds_trained"
-        # FIXME: We are assuming that models train on partial batches.
-        num_batches = int(np.ceil(self.wrapped_model.data.get_training_data_size()/self.wrapped_model.data.batch_size))
-        loss = self.wrapped_model.train_batches(num_batches=num_batches)
-        self.logger.debug("{} Completed the training job.".format(self))
-
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
+
+        # train the model
+        # FIXME: model header "version" needs to be changed to "rounds_trained"
+        # FIXME: We assume the models allow training on partial batches.
+        batches_per_epoch = int(np.ceil(data_size/self.wrapped_model.data.batch_size))
+        num_batches = int(np.floor(batches_per_epoch * self.epochs_per_round)) 
+        loss = self.wrapped_model.train_batches(num_batches=num_batches)
+        self.logger.debug("{} Completed the training job.".format(self))
 
         # get the trained tensor dict and store any desginated to be held out from aggregation
         tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))

@@ -86,13 +86,20 @@ class KmeansTransformer(Transformer):
         '''
         '''
         # clustering
-        k_means = cluster.KMeans(n_clusters=n_clusters, n_init=self.n_cluster)
+        print('1data::', data.shape)
+        data = data.reshape((-1,1))
+        print('2data::', data.shape)
+        k_means = cluster.KMeans(n_clusters=self.n_cluster, n_init=self.n_cluster)
         k_means.fit(data)
         quantized_values = k_means.cluster_centers_.squeeze()
-        #indices = k_means.labels_ 
-        int_array, int2float_map = self._float_to_int(quantized_values)
+        indices = k_means.labels_ 
+        quant_array = np.choose(indices, quantized_values)
+        int_array, int2float_map = self._float_to_int(quant_array)
         metadata = {}
         metadata['int_to_float']  = int2float_map
+        print('3int_array::', int_array.shape)
+        int_array = int_array.reshape(-1)
+        print('4int_array::', int_array.shape)
         return int_array, metadata
         '''
         # ternarization, data is sparse and flattened
@@ -161,11 +168,11 @@ class GZIPTransformer(Transformer):
         data = np.frombuffer(decompressed_bytes_, dtype=np.float32)
         return data
 
-class STCPipeline(TransformationPipeline):
+class SKCPipeline(TransformationPipeline):
     
     def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
         # instantiate each transformer
         self.p = p_sparsity
         self.n_cluster = n_clusters
         transformers = [SparsityTransformer(self.p), KmeansTransformer(self.n_cluster), GZIPTransformer()]
-        super(STCPipeline, self).__init__(transformers=transformers, **kwargs)
+        super(SKCPipeline, self).__init__(transformers=transformers, **kwargs)

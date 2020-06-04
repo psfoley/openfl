@@ -5,6 +5,7 @@ from .no_compression_pipeline import NoCompressionPipeline, Float32NumpyArrayToB
 from .random_shift_pipeline import RandomShiftPipeline
 
 from .stc_pipeline import STCPipeline
+from .skc_pipeline import SKCPipeline
 
 from tfedlrn import get_object
 

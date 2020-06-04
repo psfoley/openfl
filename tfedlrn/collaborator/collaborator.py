@@ -36,8 +36,7 @@ class Collaborator(object):
                  channel, 
                  polling_interval=4, 
                  opt_treatment="AGG", 
-                 epoch_sample_rate=1.0, 
-                 epochs_per_round=1, 
+                 epochs_per_round=1.0, 
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
@@ -50,9 +49,9 @@ class Collaborator(object):
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
                                         version=-1)
-
-        self.train_kwargs = {'epoch_sample_rate': epoch_sample_rate, 
-                             'epochs_per_round': epochs_per_round}
+        # number of epochs to perform per round of FL (is a float that is converted 
+        # to num_batches before calling the wrapped model train_batches method).
+        self.epochs_per_round = epochs_per_round
 
         self.wrapped_model = wrapped_model
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
@@ -139,7 +138,9 @@ class Collaborator(object):
 
         # train the model
         # FIXME: model header "version" needs to be changed to "rounds_trained"
-        loss = self.wrapped_model.train_for_round(**self.train_kwargs)
+        # FIXME: We are assuming that models train on partial batches.
+        num_batches = int(np.ceil(wrapped_model.data.get_training_data_size()/wrapped_model.data.batch_size))
+        loss = self.wrapped_model.train_batches(num_batches=num_batches)
         self.logger.debug("{} Completed the training job.".format(self))
 
         # get the training data size

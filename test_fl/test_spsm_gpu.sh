@@ -1,3 +1,4 @@
+set -e
 echo "running ... single process single machine"
 
 echo "-------------------------------------------------------------"

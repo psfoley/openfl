@@ -58,9 +58,6 @@ federation:
   best_model_fname: keras_resnet_best.pbuf
   model_version: &model_version 1
 
-hostnames:
-  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
-
 model:
   code_path: models.tensorflow
   class_name: KerasResnet
@@ -70,6 +67,9 @@ aggregator:
   fed_id: *fed_id
   col_ids: *col_ids
   rounds_to_train: *rounds_to_train
+  test_mode_whitelist:
+    - spr-gpu01.jf.intel.com
+    - spr-gpu02.jf.intel.com
 
 collaborator:
   agg_id: *agg_id
@@ -83,7 +83,6 @@ grpc:
   port: *agg_port
   disable_tls: False
   disable_client_auth: False
-  cert_folder: test
 
 data:
   data_name: mnist_shard 

@@ -139,7 +139,7 @@ class Collaborator(object):
         # train the model
         # FIXME: model header "version" needs to be changed to "rounds_trained"
         # FIXME: We are assuming that models train on partial batches.
-        num_batches = int(np.ceil(wrapped_model.data.get_training_data_size()/wrapped_model.data.batch_size))
+        num_batches = int(np.ceil(self.wrapped_model.data.get_training_data_size()/self.wrapped_model.data.batch_size))
         loss = self.wrapped_model.train_batches(num_batches=num_batches)
         self.logger.debug("{} Completed the training job.".format(self))
 

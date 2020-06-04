@@ -13,6 +13,8 @@ class KmeansTransformer(Transformer):
     def forward(self, data, **kwargs):
         '''
         '''
+        metadata = {}
+        metadata['int_list'] = list(data.shape)
         # clustering
         k_means = cluster.KMeans(n_clusters=self.n_cluster, n_init=self.n_cluster)
         data = data.reshape((-1, 1))
@@ -21,7 +23,6 @@ class KmeansTransformer(Transformer):
         indices = k_means.labels_ 
         quant_array = np.choose(indices, quantized_values)
         int_array, int2float_map = self._float_to_int(quant_array)
-        metadata = {}
         metadata['int_to_float']  = int2float_map
         return int_array, metadata
         '''
@@ -43,6 +44,8 @@ class KmeansTransformer(Transformer):
         for key in int2float_map:
             indices = data == key
             data[indices] = int2float_map[key]
+        data_shape = list(metadata['int_list'])
+        data = data.reshape(data_shape)
         return data
 
     def _float_to_int(self, np_array):

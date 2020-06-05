@@ -21,6 +21,8 @@ class PyTorchFLDataInMemory(FLData):
         self.batch_size = batch_size
         self.train_loader = None
         self.val_loader = None
+        self.training_data_size = None
+        self.validation_data_size = None
 
         # Child classes should have init signature:
         # (self, data_path, batch_size, **kwargs), should call this __init__ and then
@@ -67,9 +69,7 @@ class PyTorchFLDataInMemory(FLData):
         -------
         int - number of training samples
         """
-        # TODO: Do we want to be able to modify batch size here?
-        # If so will have to decide whether to replace the loader.
-        return len(self.train_loader)
+        return self.training_data_size
 
     def get_validation_data_size(self):
         """
@@ -79,10 +79,12 @@ class PyTorchFLDataInMemory(FLData):
         -------
         int - number of validation samples
         """
-        return len(self.val_loader)
+        return self.validation_data_size
 
 
     def create_loader(self, X, y):
+        # DEBUG
+        print('\nlength of data: ', len(X))
         if isinstance(X[0], np.ndarray):
             tX = torch.stack([torch.Tensor(i) for i in X])
         else:

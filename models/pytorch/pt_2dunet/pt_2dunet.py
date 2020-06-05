@@ -39,32 +39,38 @@ class PyTorch2DUNet(PyTorchFLModel):
         self.init_optimizer(optimizer)
         self.loss_fn = partial(dice_coef_loss, smoothing=1.0)
    
-    def train_epoch(self, epoch=None, use_tqdm=False):
-        # FIXME: update to proper training schedule when architected
-        if epoch == 8:
-            self.init_optimizer('RMSprop')
-
+    def train_batches(self, num_batches, use_tqdm=False):
         # set to "training" mode
         self.train()
         
         losses = []
-        
+
         gen = self.data.get_train_loader()
         if use_tqdm:
-            gen = tqdm.tqdm(gen, desc="training epoch")
+            gen = tqdm.tqdm(gen, desc="training for this round")
         
-        for data, target in gen:
-            if isinstance(data, np.ndarray):
-                    data = torch.Tensor(data)
-            if isinstance(target, np.ndarray):
-                target = torch.Tensor(data)
-            data, target = data.to(self.device), target.to(self.device)
-            self.optimizer.zero_grad()
-            output = self(data)
-            loss = self.loss_fn(output, target)
-            loss.backward()
-            self.optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
+        batch_num = 0
+
+        while batch_num < num_batches:
+            # shuffling happens every time gen is used as an iterator            
+            for (data, target) in gen:
+                if batch_num >= num_batches:
+                    break
+                else:
+                    if isinstance(data, np.ndarray):
+                            data = torch.Tensor(data)
+                    if isinstance(target, np.ndarray):
+                        target = torch.Tensor(data)
+                    data, target = data.to(self.device), target.to(self.device)
+                    self.optimizer.zero_grad()
+                    output = self(data)
+                    loss = self.loss_fn(output, target)
+                    loss.backward()
+                    self.optimizer.step()
+                    losses.append(loss.detach().cpu().numpy())
+
+                    batch_num += 1
+        
         return np.mean(losses)
 
     def validate(self, use_tqdm=False):       

@@ -47,25 +47,33 @@ class TensorFlowFLModel(FLModel):
         # self.tvars + self.opt_vars 
         self.fl_vars = None
 
-    def train_epoch(self, batch_size=None, use_tqdm=False):
+    def train_batches(self, num_batches, use_tqdm=False):
         """
-        Train one epoch.
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
         Returns
         -------
-        dict
-            {<metric>: <value>}
+        float
+            loss
         """
         tf.keras.backend.set_learning_phase(True)
 
         losses = []
+        batch_num = 0
 
-        gen = self.data.get_train_loader(batch_size)
-        if use_tqdm:
-            gen = tqdm(gen, desc="training epoch")
+        while batch_num < num_batches:
+            # get iterator for batch draws (shuffling happens here)
+            gen = self.data.get_train_loader()
+            if use_tqdm:
+                gen = tqdm.tqdm(gen, desc="training epoch")
 
-        for X, y in gen:
-            losses.append(self.train_batch(X, y))
+            for (X, y) in gen:
+                if batch_num >= num_batches:
+                    break
+                else: 
+                    losses.append(self.train_batch(X, y))
+                    batch_num += 1
 
         return np.mean(losses)
 
@@ -89,9 +97,9 @@ class TensorFlowFLModel(FLModel):
 
         score = 0
 
-        gen = self.data.get_val_loader(batch_size)
+        gen = self.data.get_val_loader()
         if use_tqdm:
-            gen = tqdm(gen, desc="validating")
+            gen = tqdm.tqdm(gen, desc="validating")
 
         for X, y in gen:
             weight = X.shape[0] / self.data.get_validation_data_size()  

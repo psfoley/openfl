@@ -81,9 +81,10 @@ class FLModel(object):
         """
         return self.data.get_validation_data_size()
  
-    def train_epoch(self):
+    def train_batches(self, num_batches, use_tqdm=False):
         """
-        Train one epoch.
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
         Returns
         -------

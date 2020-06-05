@@ -7,6 +7,7 @@ You may copy this file as the starting point of your own keras model.
 """
 import logging
 import numpy as np
+import tqdm
 import tensorflow as tf
 
 from models import FLModel
@@ -30,19 +31,33 @@ class KerasFLModel(FLModel):
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
-        # child class should have an __init__ function with signature: (self, data, **kwargs)
-        # and should overwrite self.model with a child of keras.Model
+    def train_batches(self, num_batches):
+        """
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
-    def train_epoch(self):
+        Returns
+        -------
+        float
+            loss
+        """
+        
+        # keras model fit method allows for partial batches
+        batches_per_epoch = int(np.ceil(self.data.get_training_data_size()/self.data.batch_size))
+
+        if num_batches % batches_per_epoch != 0:
+            raise ValueError('KerasFLModel does not support specifying a num_batches corresponding to partial epochs.')
+        else:
+            num_epochs = num_batches // batches_per_epoch
+
         history = self.model.fit(self.data.X_train, 
                                  self.data.y_train,
                                  batch_size=self.data.batch_size,
-                                 epochs=1,
+                                 epochs=num_epochs,
                                  verbose=0,)
 
-        # As we are training for one epoch, we only need the first element in each list.
-        ret_dict = {name:values[0] for name, values in history.history.items()}
-        return ret_dict['loss']
+        loss = np.mean([history.history['loss']])
+        return loss
 
     def validate(self):
         vals = self.model.evaluate(self.data.X_val, self.data.y_val, verbose=0)

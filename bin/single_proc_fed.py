@@ -29,9 +29,8 @@ def federate(col_config,
              best_model_fpath, 
              **kwargs):
 
-    # get the number of collaborators and opt_treatment
+    # get the number of collaborators
     col_ids = fed_config['col_ids']
-    opt_treatment = fed_config['opt_treatment']
     
     # instantiate the model (using the first collaborator dataset for now)
     model = get_object(data=col_data[col_ids[0]], **model_config)

@@ -9,7 +9,8 @@ import os
 import logging
 import time
 
-from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
+from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server, LocalModelUpdate
+from ..proto import datastream_to_proto, proto_to_datastream
 
 class AggregatorGRPCServer(AggregatorServicer):
     def __init__(self, aggregator):
@@ -28,11 +29,14 @@ class AggregatorGRPCServer(AggregatorServicer):
 
     def DownloadModel(self, request, context):
         self.validate_collaborator(request, context)
-        return self.aggregator.DownloadModel(request)
+        # turn global model update into data stream
+        proto = self.aggregator.DownloadModel(request) 
+        return proto_to_datastream(proto, self.logger)
 
     def UploadLocalModelUpdate(self, request, context):
         self.validate_collaborator(request, context)
-        return self.aggregator.UploadLocalModelUpdate(request)
+        # turn data stream into local model update
+        return self.aggregator.UploadLocalModelUpdate(datastream_to_proto(LocalModelUpdate(), request))
 
     def UploadLocalMetricsUpdate(self, request, context):
         self.validate_collaborator(request, context)

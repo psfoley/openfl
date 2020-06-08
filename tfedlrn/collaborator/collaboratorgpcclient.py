@@ -4,7 +4,8 @@
 import grpc
 import logging
 
-from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub
+from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub, GlobalModelUpdate
+from ..proto import datastream_to_proto, proto_to_datastream
 
 class CollaboratorGRPCClient():
     """Collaboration over gRPC-TLS."""
@@ -53,10 +54,14 @@ class CollaboratorGRPCClient():
         return self.stub.RequestJob(message)
 
     def DownloadModel(self, message):
-        return self.stub.DownloadModel(message)
+        stream = self.stub.DownloadModel(message)
+        # turn datastream into global model update
+        return datastream_to_proto(GlobalModelUpdate(), stream))
 
     def UploadLocalModelUpdate(self, message):
-        return self.stub.UploadLocalModelUpdate(message)
+        # turn local model update into datastream
+        stream = proto_to_datastream(message, self.logger)
+        return self.stub.UploadLocalModelUpdate(stream)
 
     def UploadLocalMetricsUpdate(self, message):
         return self.stub.UploadLocalMetricsUpdate(message)

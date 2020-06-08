@@ -39,7 +39,7 @@ test_spsm_gpu:
     stage: test
     tags: 
     - docker-gpu
-    image: docker-gpu:v2
+    image: docker-gpu:v3
     before_script:
     #- cd /home/testuser/tfl
     - whoami

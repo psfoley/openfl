@@ -28,7 +28,16 @@ class OptTreatment(Enum):
 class Collaborator(object):
     """The current class is not good for local test without channel. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
-    def __init__(self, col_id, agg_id, fed_id, wrapped_model, channel, polling_interval=4, opt_treatment="AGG", **kwargs):
+    def __init__(self, 
+                 col_id, 
+                 agg_id, 
+                 fed_id, 
+                 wrapped_model, 
+                 channel, 
+                 polling_interval=4, 
+                 opt_treatment="AGG", 
+                 epochs_per_round=1.0, 
+                 **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
         self.polling_interval = polling_interval
@@ -40,6 +49,9 @@ class Collaborator(object):
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
                                         version=-1)
+        # number of epochs to perform per round of FL (is a float that is converted 
+        # to num_batches before calling the wrapped model train_batches method).
+        self.epochs_per_round = epochs_per_round
 
         self.wrapped_model = wrapped_model
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
@@ -124,13 +136,16 @@ class Collaborator(object):
         # get the initial tensor dict
         # initial_tensor_dict = self.wrapped_model.get_tensor_dict()
 
-        # train the model
-        # FIXME: model header "version" needs to be changed to "rounds_trained"
-        loss = self.wrapped_model.train_epoch()
-        self.logger.debug("{} Completed the training job.".format(self))
-
         # get the training data size
         data_size = self.wrapped_model.get_training_data_size()
+
+        # train the model
+        # FIXME: model header "version" needs to be changed to "rounds_trained"
+        # FIXME: We assume the models allow training on partial batches.
+        batches_per_epoch = int(np.ceil(data_size/self.wrapped_model.data.batch_size))
+        num_batches = int(np.floor(batches_per_epoch * self.epochs_per_round)) 
+        loss = self.wrapped_model.train_batches(num_batches=num_batches)
+        self.logger.debug("{} Completed the training job.".format(self))
 
         # get the trained tensor dict and store any desginated to be held out from aggregation
         tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))

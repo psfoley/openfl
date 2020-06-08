@@ -9,7 +9,7 @@ import logging
 import importlib
 
 from tfedlrn.collaborator.collaborator import Collaborator
-from tfedlrn.collaborator.collaboratorgpcclient import CollaboratorGRPCClient
+from tfedlrn.comms.collaboratorgrpcclient import CollaboratorGRPCClient
 from tfedlrn import load_yaml, get_object
 
 from setup_logging import setup_logging

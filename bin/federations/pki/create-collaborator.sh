@@ -31,11 +31,13 @@ fi
 
 FQDN=$1
 
+fname="col_$FQDN"
+
 echo "Creating collaborator key pair with following settings: CN=$FQDN SAN=$subject_alt_name"
 
-SAN=$subject_alt_name openssl req -new -config config/client.conf -out $FQDN.csr -keyout $FQDN.key -subj "/CN=$FQDN" -reqexts $extensions
-openssl ca -config config/signing-ca.conf -batch -in $FQDN.csr -out $FQDN.crt
+SAN=$subject_alt_name openssl req -new -config config/client.conf -out $fname.csr -keyout $fname.key -subj "/CN=$FQDN" -reqexts $extensions
+openssl ca -config config/signing-ca.conf -batch -in $fname.csr -out $fname.crt
 
-mkdir -p $FQDN
-mv $FQDN.crt $FQDN.key $FQDN
-rm $FQDN.csr
+mkdir -p $fname
+mv $fname.crt $fname.key $fname
+rm $fname.csr

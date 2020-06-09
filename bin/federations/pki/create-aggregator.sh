@@ -65,9 +65,11 @@ fi
 
 echo "Creating debug client key pair with following settings: CN=$FQDN SAN=$subject_alt_name"
 
-SAN=$subject_alt_name openssl req -new -config config/server.conf -subj "/CN=$FQDN" -out $FQDN.csr -keyout $FQDN.key
-openssl ca -config config/signing-ca.conf -batch -extensions server_ext -in $FQDN.csr -out $FQDN.crt
+fname="agg_$FQDN"
 
-mkdir -p $FQDN
-mv $FQDN.crt $FQDN.key $FQDN
-rm $FQDN.csr
+SAN=$subject_alt_name openssl req -new -config config/server.conf -subj "/CN=$FQDN" -out $fname.csr -keyout $fname.key
+openssl ca -config config/signing-ca.conf -batch -extensions server_ext -in $fname.csr -out $fname.crt
+
+mkdir -p $fname
+mv $fname.crt $fname.key $fname
+rm $fname.csr

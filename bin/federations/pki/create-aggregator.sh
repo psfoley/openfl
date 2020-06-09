@@ -30,9 +30,10 @@ function valid_fqdn()
     return $stat
 }
 
-if [ "$#" -ne 2 ];
+if [ -z $1 ];
 then
-    echo "Usage: create-aggregator FQDN IP_ADDRESS"
+    echo "Usage: create-aggregator FQDN [IP_ADDRESS]"
+    echo "IP address is optional."
     exit 1;
 fi
 
@@ -45,17 +46,22 @@ else
 fi
 
 
-if valid_ip $2; 
-then 
-    echo "Valid IP address";
-else 
-    echo "Invalid IP address.";
-    exit 1;
-fi
-
 FQDN=$1
-IP_ADDRESS=$2
-subject_alt_name="DNS:$FQDN,IP:$IP_ADDRESS"
+subject_alt_name="DNS:$FQDN"
+
+if [ -z $2 ];
+then
+    echo "No IP specified. IP address will not be included in subject alt name."
+else
+    if valid_ip $2; 
+    then 
+        echo "Valid IP address";
+    else 
+        echo "Invalid IP address.";
+        exit 1;
+    fi
+    subject_alt_name="$subject_alt_name,IP:$2"
+fi
 
 echo "Creating debug client key pair with following settings: CN=$FQDN SAN=$subject_alt_name"
 

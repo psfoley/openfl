@@ -57,7 +57,7 @@ class CollaboratorGRPCClient():
     def DownloadModel(self, message):
         stream = self.stub.DownloadModel(message)
         # turn datastream into global model update
-        return datastream_to_proto(GlobalModelUpdate(), stream))
+        return datastream_to_proto(GlobalModelUpdate(), stream)
 
     def UploadLocalModelUpdate(self, message):
         # turn local model update into datastream

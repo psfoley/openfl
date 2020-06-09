@@ -4,8 +4,8 @@
 import grpc
 import logging
 
-from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub, GlobalModelUpdate
-from ..proto import datastream_to_proto, proto_to_datastream
+from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub
+from ..proto import datastream_to_proto, proto_to_datastream, GlobalModelUpdate
 
 class CollaboratorGRPCClient():
     """Collaboration over gRPC-TLS."""

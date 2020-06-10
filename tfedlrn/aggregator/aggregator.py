@@ -46,14 +46,16 @@ class Aggregator(object):
         The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
-    def __init__(self, 
-                 agg_id, 
-                 fed_id, 
-                 col_ids, 
-                 init_model_fpath, 
-                 latest_model_fpath, 
-                 best_model_fpath, 
-                 rounds_to_train=256, 
+    def __init__(self,
+                 agg_id,
+                 fed_id,
+                 col_ids,
+                 init_model_fpath,
+                 latest_model_fpath,
+                 best_model_fpath,
+                 rounds_to_train=256,
+                 minimum_reporting=-1,
+                 straggler_cutoff_time=np.inf,
                  disable_equality_check=True,
                  test_mode_whitelist=None,
                  compression_pipeline=None, 
@@ -70,6 +72,9 @@ class Aggregator(object):
         self.rounds_to_train = rounds_to_train
         self.quit_job_sent_to = []
         self.disable_equality_check = disable_equality_check
+        self.minimum_reporting = minimum_reporting
+        self.straggler_cutoff_time = straggler_cutoff_time
+        self.round_start_time = None
         self.test_mode_whitelist = test_mode_whitelist
 
         #FIXME: close the handler before termination.
@@ -111,6 +116,32 @@ class Aggregator(object):
         values = [{} for i in range(len(keys))]
         self.per_col_round_stats = dict(zip(keys, values))
 
+    def collaborator_is_done(self, c):
+        assert c in self.col_ids
+
+        # FIXME: this only works because we have fixed roles each round
+        return (c in self.per_col_round_stats["loss_results"] and
+                c in self.per_col_round_stats["collaborator_training_sizes"] and
+                c in self.per_col_round_stats["agg_validation_results"] and
+                c in self.per_col_round_stats["preagg_validation_results"] and
+                c in self.per_col_round_stats["collaborator_validation_sizes"])
+
+    def num_collaborators_done(self):
+        return sum([self.collaborator_is_done(c) for c in self.col_ids])
+
+    def straggler_time_expired(self):
+        return self.round_start_time is not None and ((time.time() - self.round_start_time) > self.straggler_cutoff_time)
+
+    def minimum_collaborators_reported(self):
+        return self.num_collaborators_done() >= self.minimum_reporting
+
+    def straggler_cutoff_check(self):
+        cutoff = self.straggler_time_expired() and self.minimum_collaborators_reported()
+        if cutoff:
+            collaborators_done = [c for c in self.col_ids if self.collaborator_is_done(c)]
+            self.logger.info('\tEnding round early due to straggler cutoff. Collaborators done: {}'.format(collaborators_done))
+        return cutoff
+    
     def end_of_round_check(self):
         # FIXME: find a nice, clean way to manage these values without having to manually ensure
         # the keys are in sync
@@ -119,34 +150,24 @@ class Aggregator(object):
         check_equal(self.per_col_round_stats["loss_results"].keys(), self.per_col_round_stats["collaborator_training_sizes"].keys(), self.logger)
         check_equal(self.per_col_round_stats["agg_validation_results"].keys(), self.per_col_round_stats["collaborator_validation_sizes"].keys(), self.logger)
 
-        done = True
-
-        # ensure we have results from all collaborators
-        # this only works this way because all collaborators have the same jobs every round
-        for c in self.col_ids:
-            if (c not in self.per_col_round_stats["loss_results"] or 
-                c not in self.per_col_round_stats["collaborator_training_sizes"] or 
-                c not in self.per_col_round_stats["agg_validation_results"] or
-                c not in self.per_col_round_stats["preagg_validation_results"] or
-                c not in self.per_col_round_stats["collaborator_validation_sizes"]):
-                done = False
-                break
-
-        if done:
+        # if everyone is done OR our straggler policy calls for an early round end
+        if self.num_collaborators_done() == len(self.col_ids) or self.straggler_cutoff_check():
             self.end_of_round()
-            self.round_num += 1
-            self.logger.debug("Start a new round %d." % self.round_num)
+
+    def get_weighted_average_of_collaborators(self, value_dict, weight_dict):
+        cols = [k for k in value_dict.keys() if k in self.col_ids]
+        return np.average([value_dict[c] for c in cols], weights=[weight_dict[c] for c in cols])        
 
     def end_of_round(self):
         # FIXME: what all should we do to track results/metrics? It should really be an easy, extensible solution
 
         # compute the weighted loss average
-        round_loss = np.average([self.per_col_round_stats["loss_results"][c] for c in self.col_ids],
-                                weights=[self.per_col_round_stats["collaborator_training_sizes"][c] for c in self.col_ids])
+        round_loss = self.get_weighted_average_of_collaborators(self.per_col_round_stats["loss_results"],
+                                                                self.per_col_round_stats["collaborator_training_sizes"])
 
         # compute the weighted validation average
-        round_val = np.average([self.per_col_round_stats["agg_validation_results"][c] for c in self.col_ids],
-                               weights=[self.per_col_round_stats["collaborator_validation_sizes"][c] for c in self.col_ids])
+        round_val = self.get_weighted_average_of_collaborators(self.per_col_round_stats["agg_validation_results"],
+                                                                self.per_col_round_stats["collaborator_validation_sizes"])
 
         # FIXME: proper logging
         self.logger.info('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
@@ -179,6 +200,10 @@ class Aggregator(object):
         self.model_update_in_progress_tensors = None
 
         self.init_per_col_round_stats()
+
+        self.round_num += 1
+        self.logger.debug("Start a new round %d." % self.round_num)
+        self.round_start_time = None
 
     def UploadLocalModelUpdate(self, message):
         self.mutex.acquire(blocking=True)
@@ -332,9 +357,24 @@ class Aggregator(object):
         reply = JobReply(header=self.create_reply_header(message), job=job)
 
         if reply.job is not JOB_YIELD:
+            # check to see if we need to set our round start time
+            self.mutex.acquire(blocking=True)
+            try:
+                if self.round_start_time is None:
+                    self.round_start_time = time.time()
+            finally:
+                self.mutex.release()
+
             self.logger.debug('aggregator handled RequestJob in time {}'.format(time.time() - t))
+        elif self.straggler_cutoff_time != np.inf:
+            # we have an idle collaborator and a straggler cutoff time, so we should check for early round end
+            self.mutex.acquire(blocking=True)
+            try:
+                self.end_of_round_check()
+            finally:
+                self.mutex.release()
         
-        return reply       
+        return reply      
 
     def DownloadModel(self, message):
         t = time.time()

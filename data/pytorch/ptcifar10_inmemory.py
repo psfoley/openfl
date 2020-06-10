@@ -24,6 +24,8 @@ class PyTorchCIFAR10InMemory(PyTorchFLDataInMemory):
 
         _, num_classes, X_train, y_train, X_val, y_val = load_cifar10_shard(shard_num=data_path, **kwargs)
 
+        self.training_data_size = len(X_train)
+        self.validation_data_size = len(X_val)
         self.num_classes = num_classes
         self.train_loader = self.create_loader(X=X_train, y=y_train)
         self.val_loader = self.create_loader(X=X_val, y=y_val)

@@ -113,7 +113,7 @@ class PyTorchCNN(PyTorchFLModel):
                 
         return val_score / total_samples
 
-    def train_epoch(self, use_tqdm=False): 
+    def train_batches(self, num_batches, use_tqdm=False): 
         # set to "training" mode
         self.train()
         
@@ -122,17 +122,24 @@ class PyTorchCNN(PyTorchFLModel):
         loader = self.data.get_train_loader()
         if use_tqdm:
             loader = tqdm.tqdm(loader, desc="train epoch")
+        
+        batch_num = 0
 
-        for data, target in loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
-            self.optimizer.zero_grad()
-            output = self(data)
-            loss = self.loss_fn(output=output, target=target)
-            loss.backward()
-            self.optimizer.step()
-            losses.append(loss.detach().cpu().numpy())
-        # DEBUG
-        print(np.mean(losses))
+        while batch_num < num_batches:
+            # shuffling occurs every time this loader is used as an interator
+            for data, target in loader:
+                if batch_num >= num_batches:
+                    break
+                else:
+                    data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
+                    self.optimizer.zero_grad()
+                    output = self(data)
+                    loss = self.loss_fn(output=output, target=target)
+                    loss.backward()
+                    self.optimizer.step()
+                    losses.append(loss.detach().cpu().numpy())
+
+                    batch_num += 1
 
         return np.mean(losses)
 

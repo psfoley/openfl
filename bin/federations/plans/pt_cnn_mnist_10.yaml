@@ -88,3 +88,4 @@ data:
   class_name: PyTorchMNISTInMemory
   nb_collaborators: 10
   batch_size: 256
+  channels_last: False

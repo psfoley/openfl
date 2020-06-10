@@ -36,7 +36,7 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
     """
 
     def __init__(self, data, device='cpu', num_classes=10,RM_loss_coeff = 0.0001, **kwargs):
-        super().__init__(data, device=device)
+        super().__init__(data=data, device=device)
 
         self.num_classes = num_classes
         self.init_network(device, **kwargs)
@@ -100,7 +100,7 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
 
         loader = self.data.get_val_loader()
         if use_tqdm:
-            loader = tqdm(loader, desc="validate")
+            loader = tqdm.tqdm(loader, desc="validate")
 
         with torch.no_grad():
             for data, target in loader:
@@ -115,7 +115,7 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
         #print('validation val :', repr(val_score / total_samples))
         return val_score / total_samples
 
-    def train_epoch(self, use_tqdm=False): 
+    def train_batches(self, num_batches, use_tqdm=False): 
         # set to "training" mode
         self.train()
         
@@ -123,23 +123,28 @@ class PyTorchCNNRepMatching(PyTorchFLModel):
 
         loader = self.data.get_train_loader()
         if use_tqdm:
-            loader = tqdm(loader, desc="train epoch")
+            loader = tqdm.tqdm(loader, desc="train epoch")
 
-        for data, target in loader:
-            data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
-            self.optimizer.zero_grad()
-            self.matching_optimizer.zero_grad()            
-            output = self(data)
-            model_loss = self.loss_fn(output, target.argmax(1))
-            matching_loss = self.rep_matching_wrapper[0].get_matching_loss()
-            (model_loss + self.RM_loss_coeff * matching_loss).backward() 
-            self.optimizer.step()
-            self.matching_optimizer.step()            
-            losses.append(model_loss.detach().cpu().numpy())
-            #print('matching loss',matching_loss.item())
+        batch_num = 0
 
-        # DEBUG
-        print(np.mean(losses))
+        while batch_num < num_batches:
+            # shuffling occers every time loader is used as an iterator
+            for data, target in loader:
+                if batch_num >= num_batches:
+                    break
+                else:
+                    data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
+                    self.optimizer.zero_grad()
+                    self.matching_optimizer.zero_grad()            
+                    output = self(data)
+                    model_loss = self.loss_fn(output, target.argmax(1))
+                    matching_loss = self.rep_matching_wrapper[0].get_matching_loss()
+                    (model_loss + self.RM_loss_coeff * matching_loss).backward() 
+                    self.optimizer.step()
+                    self.matching_optimizer.step()            
+                    losses.append(model_loss.detach().cpu().numpy())
+                    
+                    batch_num += 1
 
         return np.mean(losses)
 

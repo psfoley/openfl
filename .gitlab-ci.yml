@@ -122,6 +122,7 @@ test_spsm_cpu_compression:
     - cd test_fl/
     - ./test_spsm_compression.sh
     timeout: 5h 30m
+    when: manual
 
 test_mpsm_shell_1:
     stage: test 

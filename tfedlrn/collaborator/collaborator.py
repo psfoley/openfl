@@ -38,6 +38,7 @@ class Collaborator(object):
                  channel, 
                  polling_interval=4, 
                  opt_treatment="AGG", 
+                 compression_pipeline=None,
                  epochs_per_round=1.0, 
                  **kwargs):
         self.logger = logging.getLogger(__name__)

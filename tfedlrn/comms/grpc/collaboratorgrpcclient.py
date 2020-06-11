@@ -4,7 +4,7 @@
 import grpc
 import logging
 
-from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub
+from ...proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub
 
 class CollaboratorGRPCClient():
     """Collaboration over gRPC-TLS."""

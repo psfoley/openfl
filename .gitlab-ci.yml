@@ -65,8 +65,8 @@ test_spsm_gpu:
 test_spsm_cpu:
     stage: test
     tags: 
-    - shell-runner-1
-    #- alpine-runner-sh-1
+    - sdp-cpu-runner1
+    #- shell-runner-1
     before_script:
     - whoami
     - pwd

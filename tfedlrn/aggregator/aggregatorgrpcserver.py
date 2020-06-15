@@ -35,9 +35,11 @@ class AggregatorGRPCServer(AggregatorServicer):
         return proto_to_datastream(proto, self.logger)
 
     def UploadLocalModelUpdate(self, request, context):
-        self.validate_collaborator(request, context)
+        proto = LocalModelUpdate()
+        proto = datastream_to_proto(proto, request)
+        self.validate_collaborator(proto, context)
         # turn data stream into local model update
-        return self.aggregator.UploadLocalModelUpdate(datastream_to_proto(LocalModelUpdate(), request))
+        return self.aggregator.UploadLocalModelUpdate(proto)
 
     def UploadLocalMetricsUpdate(self, request, context):
         self.validate_collaborator(request, context)

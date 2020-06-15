@@ -2,7 +2,7 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
-from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader
+from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader, DataStream
 
 def repeated_values_to_nparray(repeated_values):
     return np.array(list(repeated_values))
@@ -67,20 +67,23 @@ def import_weights(fpath):
 
     return tensor_dict
 
-def datastream_to_proto(proto, stream):
+def datastream_to_proto(proto, stream, logger=None):
     npbytes = b""
     for chunk in stream:
         npbytes += chunk.npbytes
 
     if len(npbytes) > 0:
-        return proto.ParseFromString(npbytes)
+        proto.ParseFromString(npbytes)
+        if logger is not None:
+            logger.debug("datastream_to_proto parsed a {}.".format(type(proto)))
+        return proto
     else:
         raise RuntimeError("Received empty stream message of type {}".format(type(proto)))
 
 def proto_to_datastream(proto, logger, max_buffer_size=(2 * 1024 * 1024)):
     npbytes = proto.SerializeToString()
     data_size = len(npbytes)
-    buffer_size = data_size if max_buffer_size==0 else self.max_buffer_size
+    buffer_size = data_size if max_buffer_size > data_size else max_buffer_size
     logger.debug("Setting stream chunks with size {} for proto of type {}".format(buffer_size, type(proto)))
 
     for i in range(0, data_size, buffer_size):

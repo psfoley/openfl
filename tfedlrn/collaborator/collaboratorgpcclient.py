@@ -61,8 +61,9 @@ class CollaboratorGRPCClient():
 
     def UploadLocalModelUpdate(self, message):
         # turn local model update into datastream
-        stream = proto_to_datastream(message, self.logger)
-        return self.stub.UploadLocalModelUpdate(stream)
+        stream = []
+        stream += proto_to_datastream(message, self.logger)
+        return self.stub.UploadLocalModelUpdate(iter(stream))
 
     def UploadLocalMetricsUpdate(self, message):
         return self.stub.UploadLocalMetricsUpdate(message)

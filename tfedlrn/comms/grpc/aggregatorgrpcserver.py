@@ -9,9 +9,9 @@ import os
 import logging
 import time
 
-from ..proto.collaborator_aggregator_interface_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
-from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate
-from ..proto import datastream_to_proto, proto_to_datastream
+from ...proto import datastream_to_proto, proto_to_datastream
+from ...proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate
+from ...proto.collaborator_aggregator_interface_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
 
 class AggregatorGRPCServer(AggregatorServicer):
     def __init__(self, aggregator):

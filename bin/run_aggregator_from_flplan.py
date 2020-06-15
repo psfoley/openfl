@@ -8,7 +8,7 @@ import os
 import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
-from tfedlrn.aggregator.aggregatorgrpcserver import AggregatorGRPCServer
+from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
 from tfedlrn import load_yaml 
 
 from setup_logging import setup_logging

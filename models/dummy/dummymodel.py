@@ -19,7 +19,7 @@ class DummyModel(FLModel):
         self.val_time_mean = val_time_mean
         self.val_time_std = val_time_std
  
-    def train_epoch(self):
+    def train_batches(self):
         self.random_sleep(self.train_time_mean, self.train_time_std)
         return np.random.random()
 

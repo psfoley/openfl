@@ -10,11 +10,16 @@ package tfedlrn_proto;
 
 service Aggregator {
     rpc RequestJob(JobRequest) returns (JobReply) {}
-    rpc DownloadModel(ModelDownloadRequest) returns (GlobalModelUpdate) {}
-    rpc UploadLocalModelUpdate(LocalModelUpdate) returns (LocalModelUpdateAck) {}
+    rpc DownloadModel(ModelDownloadRequest) returns (stream DataStream) {}
+    rpc UploadLocalModelUpdate(stream DataStream) returns (LocalModelUpdateAck) {}
     rpc UploadLocalMetricsUpdate(LocalValidationResults) returns (LocalValidationResultsAck) {}
 }
 
+// handles large size data
+message DataStream {
+	uint32 size = 1; // size, in bytes, of the data sent in npbytes
+	bytes npbytes = 2; // actual data
+}
 
 enum Job {
     JOB_TRAIN = 0;

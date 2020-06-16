@@ -36,7 +36,8 @@ class Collaborator(object):
                  channel, 
                  polling_interval=4, 
                  opt_treatment="AGG", 
-                 epochs_per_round=1.0, 
+                 epochs_per_round=1.0,
+                 num_batches_per_round=None,
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
@@ -51,7 +52,11 @@ class Collaborator(object):
                                         version=-1)
         # number of epochs to perform per round of FL (is a float that is converted 
         # to num_batches before calling the wrapped model train_batches method).
+        # This is overridden by "num_batches_per_round"
         self.epochs_per_round = epochs_per_round
+        self.num_batches_per_round = num_batches_per_round
+        if num_batches_per_round is not None:
+            self.logger.info("Collaborator {} overriding epochs_per_round of {} with num_batches_per_round of {}".format(self.id, self.epochs_per_round, self.num_batches_per_round))
 
         self.wrapped_model = wrapped_model
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
@@ -142,10 +147,14 @@ class Collaborator(object):
         # train the model
         # FIXME: model header "version" needs to be changed to "rounds_trained"
         # FIXME: We assume the models allow training on partial batches.
-        batches_per_epoch = int(np.ceil(data_size/self.wrapped_model.data.batch_size))
-        num_batches = int(np.floor(batches_per_epoch * self.epochs_per_round)) 
+        # FIXME: Currently, num_batches_per_round overrides epochs per round. Is this the correct behavior?
+        if self.num_batches_per_round is not None:
+            num_batches = self.num_batches_per_round
+        else:
+            batches_per_epoch = int(np.ceil(data_size/self.wrapped_model.data.batch_size))
+            num_batches = int(np.floor(batches_per_epoch * self.epochs_per_round)) 
         loss = self.wrapped_model.train_batches(num_batches=num_batches)
-        self.logger.debug("{} Completed the training job.".format(self))
+        self.logger.debug("{} Completed the training job for {} batches.".format(self, num_batches))
 
         # get the trained tensor dict and store any desginated to be held out from aggregation
         tensor_dict = self._remove_and_save_holdout_params(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))

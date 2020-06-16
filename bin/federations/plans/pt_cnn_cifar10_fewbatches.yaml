@@ -1,0 +1,95 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
+# Compose an FL plan in JSON/YAML.
+# The plan is consumed by bin/run_simulation_from_flplan.py, 
+# bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and 
+# bin/create_initial_weights_file_from_plan.py
+
+# Note the use of yaml anchors and aliases in order to enforce dependencies
+# across portions of the config:
+# The anochor '&' assigns a name to a piece of the config
+# The alias '*' references an achor  
+
+# values for first level keys: model, aggregator, and collaborator
+# pass in the generic kwargs for those constructors
+# (ex. collaborator id will be collaborator specific)
+
+# values for first level keys: model and data pass in the generic 
+# kwargs for get_model and get_data functions
+
+# values for the first level key: hostnames is used in the creation of the public
+# key infrastructure
+
+# The model version is used to validate model updates
+# Aggregator, collaborator, and fed ids (as well as model version) are currently
+# used to validate message headers. Collaborator ids are also 
+# used for identifying the data folder of each collaborator
+# (using the local_data_config yaml file)
+
+# Added by the coordinator later: agg_id, agg_url, poll_interval.
+
+# We may have several plans for one dataset, to search the best model architecture for exammple.
+
+description     : Train a model to perform classification on CIFAR10 images.
+status          : active
+
+federation:
+  fed_id: &fed_id 'fed_0'
+  opt_treatment: &opt_treatment 'RESET'
+  polling_interval: &polling_interval 4
+  rounds_to_train: &rounds_to_train 4
+  agg_id: &agg_id 'agg_0'
+  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
+  agg_port: &agg_port 8878 
+  col_ids: &col_ids
+    - 'col_0'
+    - 'col_1'
+    - 'col_2'
+    - 'col_3'
+    - 'col_4'
+    - 'col_5'
+    - 'col_6'
+    - 'col_7'
+    - 'col_8'
+    - 'col_9'
+  init_model_fname: pytorch_cnn_init.pbuf
+  latest_model_fname: pytorch_cnn_latest.pbuf
+  best_model_fname: pytorch_cnn_best.pbuf
+  model_version: &model_version 1
+
+model:
+  code_path: models.pytorch
+  class_name: PyTorchCNN
+  device: cuda
+
+aggregator:
+  agg_id: *agg_id
+  fed_id: *fed_id
+  col_ids: *col_ids
+  rounds_to_train: *rounds_to_train
+  test_mode_whitelist:
+    - spr-gpu01.jf.intel.com
+    - spr-gpu02.jf.intel.com
+
+collaborator:
+  num_batches_per_round: 2
+  agg_id: *agg_id
+  fed_id: *fed_id
+  model_version: *model_version
+  polling_interval: *polling_interval
+  opt_treatment: *opt_treatment 
+
+grpc:
+  addr: *agg_addr
+  port: *agg_port
+  disable_tls: False
+  disable_client_auth: False
+  
+data:
+  data_name: cifar10_shard 
+  code_path: data.pytorch 
+  class_name: PyTorchCIFAR10InMemory
+  nb_collaborators: 10
+  batch_size: 256
+  channels_last: False

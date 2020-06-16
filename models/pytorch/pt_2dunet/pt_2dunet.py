@@ -32,9 +32,10 @@ def dice_coef_loss(pred, target, smoothing=1.0):
 
 class PyTorch2DUNet(PyTorchFLModel):
 
-    def __init__(self, data, device='cpu', optimizer='SGD', **kwargs):
+    def __init__(self, data, device='cpu', optimizer='SGD', batch_norm=True, **kwargs):
         super().__init__(data=data, device=device, **kwargs)
 
+        self.batch_norm = batch_norm
         self.init_network(device=self.device, **kwargs)
         self.init_optimizer(optimizer)
         self.loss_fn = partial(dice_coef_loss, smoothing=1.0)
@@ -120,13 +121,17 @@ class PyTorch2DUNet(PyTorchFLModel):
         # initial down layers
         conv_down_a = [nn.Conv2d(initial_channels, f, 3, padding=1)]
         conv_down_b = [nn.Conv2d(f, f, 3, padding=1)]
+        if self.batch_norm:
+            batch_norms = [nn.BatchNorm2d(f)]
                 
         # rest of the layers going down
         for i in range(1, depth_per_side):
             f *= 2
             conv_down_a.append(nn.Conv2d(f // 2, f, 3, padding=1))                
             conv_down_b.append(nn.Conv2d(f, f, 3, padding=1))
-            
+            if self.batch_norm:
+                batch_norms.append(nn.BatchNorm2d(f))
+
         # going up, do all but the last layer
         conv_up_a = []
         conv_up_b = []
@@ -148,7 +153,12 @@ class PyTorch2DUNet(PyTorchFLModel):
         for i, (a, b) in enumerate(zip(conv_up_a, conv_up_b)):
             setattr(self, 'conv_up_{}a'.format(i+1), a)
             setattr(self, 'conv_up_{}b'.format(i+1), b)
-        
+
+        if self.batch_norm:
+            # all the batch_norm layers need to become fields of this object
+            for i, bn in enumerate(batch_norms):
+                setattr(self, 'batch_norm_{}'.format(i+1), bn)
+
         if print_model:
             print(self)
 
@@ -163,7 +173,11 @@ class PyTorch2DUNet(PyTorchFLModel):
         conv_up_a = [getattr(self, 'conv_up_{}a'.format(i+1)) for i in range(self.depth_per_side - 1)]
         conv_up_b = [getattr(self, 'conv_up_{}b'.format(i+1)) for i in range(self.depth_per_side - 1)]
         
-        # we concatenate the outputs from the b layers
+        # if batch_norm, gather up our batch norm layers
+        if self.batch_norm:
+            batch_norms = [getattr(self, 'batch_norm_{}'.format(i+1)) for i in range(self.depth_per_side)]
+
+        # we concatenate the outputs from the b layers (or the batch norm layers)
         concat_me = []
         pool = x
 
@@ -173,6 +187,8 @@ class PyTorch2DUNet(PyTorchFLModel):
             if i in self.dropout_layers:
                 out_down = self.dropout(out_down)
             out_down = F.relu(b(out_down))
+            if self.batch_norm:
+                out_down = batch_norms[i](out_down)
             # if not the last down b layer, pool it and add it to the concat list
             if b != conv_down_b[-1]:
                 concat_me.append(out_down)

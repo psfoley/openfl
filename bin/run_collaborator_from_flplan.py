@@ -9,7 +9,7 @@ import logging
 import importlib
 
 from tfedlrn.collaborator.collaborator import Collaborator
-from tfedlrn.collaborator.collaboratorgpcclient import CollaboratorGRPCClient
+from tfedlrn.comms.grpc.collaboratorgrpcclient import CollaboratorGRPCClient
 from tfedlrn import load_yaml, get_object
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 

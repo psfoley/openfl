@@ -22,7 +22,7 @@ def load_model(code_path, **kwargs):
     return model
 
 
-def main(plan, data_config_fname, logging_config_path, logging_default_level):
+def main(plan, feature_shape, data_config_fname, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     logger = logging.getLogger(__name__)
@@ -45,9 +45,13 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
     # FIXME: this will ultimately run in a governor environment and should not require any data to work
     # pick the first collaborator to create the data and model (could be any)
     col_id = fed_config['col_ids'][0]
-    data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
 
-    data = get_data(data_names_to_paths, **data_config)
+    if feature_shape is None:
+        data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
+        data = get_data(data_names_to_paths, **data_config)
+    else:
+        data = get_object('data.dummy', 'RandomData', feature_shape=feature_shape)
+        logger.info('Using data object of type {} and feature shape {}'.format(type(data), feature_shape))
 
     wrapped_model = get_object(data=data, **model_config)
     
@@ -70,6 +74,7 @@ def main(plan, data_config_fname, logging_config_path, logging_default_level):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
+    parser.add_argument('--feature_shape', '-fs', type=int, nargs='+', default=None)
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
     parser.add_argument('--logging_config_path', '-c', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")

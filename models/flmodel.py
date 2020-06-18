@@ -11,8 +11,6 @@ You may copy use this file or the appropriate framework-specific base-class to p
 
 import logging
 
-from tfedlrn.proto import export_weights
-
 
 class FLModel(object):
 
@@ -150,6 +148,3 @@ class FLModel(object):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def export_weights(model_name, version, tensor_dict, fpath):
-        export_weights(model_name, version, tensor_dict, fpath)

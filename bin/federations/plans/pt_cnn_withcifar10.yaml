@@ -59,7 +59,7 @@ federation:
   model_version: &model_version 1
 
 model:
-  code_path: models.pytorch
+  module_name: models.pytorch
   class_name: PyTorchCNN
   device: cuda
 
@@ -87,7 +87,7 @@ grpc:
   
 data:
   data_name: cifar10_shard 
-  code_path: data.pytorch 
+  module_name: data.pytorch 
   class_name: PyTorchCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256

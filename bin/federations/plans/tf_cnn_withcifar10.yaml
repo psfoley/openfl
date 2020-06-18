@@ -59,7 +59,7 @@ federation:
   model_version: &model_version 1
 
 model:
-  code_path: models.tensorflow
+  module_name: models.tensorflow
   class_name: KerasCNN
 
 aggregator:
@@ -86,7 +86,7 @@ grpc:
   
 data:
   data_name: cifar10_shard 
-  code_path: data.tensorflow 
+  module_name: data.tensorflow 
   class_name: TensorFlowCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256

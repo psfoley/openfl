@@ -11,13 +11,13 @@ import importlib
 from tfedlrn.collaborator.collaborator import Collaborator
 from tfedlrn.comms.grpc.collaboratorgrpcclient import CollaboratorGRPCClient
 from tfedlrn import load_yaml, get_object
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 
 from setup_logging import setup_logging
 
-
-def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
-    return get_object(code_path, class_name, data_path=data_path, **kwargs)
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def get_channel(base_dir, cert_common_name, **col_grpc_client_config):
     cert_dir = os.path.join(base_dir, col_grpc_client_config.pop('cert_folder', 'pki')) # default to 'pki
@@ -41,6 +41,12 @@ def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname
     data_config = flplan['data']
     data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
 
+
+    if flplan.get('compression_pipeline') is not None:
+        compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
+    else:
+        compression_pipeline = None
+
     col_grpc_client_config = flplan['grpc']
     
     if cert_common_name is None:
@@ -54,10 +60,10 @@ def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname
 
     wrapped_model = get_object(data=data, **model_config)
 
-
     collaborator = Collaborator(col_id=col_id,
                                 wrapped_model=wrapped_model, 
-                                channel=channel, 
+                                channel=channel,
+                                compression_pipeline = compression_pipeline, 
                                 **col_config)
 
 

@@ -58,7 +58,7 @@ federation:
   best_model_fname: pt_cnn_best.pbuf
 
 model:
-  code_path: models.pytorch
+  module_name: models.pytorch
   class_name: PyTorchCNN
     
 aggregator:
@@ -84,7 +84,7 @@ grpc:
   
 data:
   data_name: mnist_shard 
-  code_path: data.pytorch 
+  module_name: data.pytorch 
   class_name: PyTorchMNISTInMemory
   nb_collaborators: 10
   batch_size: 256

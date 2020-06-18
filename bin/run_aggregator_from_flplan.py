@@ -10,6 +10,7 @@ import logging
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
 from tfedlrn import load_yaml 
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 
 
 from setup_logging import setup_logging
 
@@ -31,10 +32,16 @@ def main(plan, cert_common_name, logging_config_path, logging_default_level):
     init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
     latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
     best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+
+    if flplan.get('compression_pipeline') is not None:
+        compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
+    else:
+        compression_pipeline = None
     
     agg = Aggregator(init_model_fpath=init_model_fpath,
                      latest_model_fpath=latest_model_fpath,
-                     best_model_fpath=best_model_fpath, 
+                     best_model_fpath=best_model_fpath,
+                     compression_pipeline=compression_pipeline, 
                      **agg_config)
 
     # default cert folder to pki

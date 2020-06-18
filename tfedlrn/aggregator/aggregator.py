@@ -18,14 +18,15 @@ from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, 
 from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalValidationResults, LocalModelUpdateAck, LocalValidationResultsAck
 
 
-from tfedlrn.proto.protoutils import load_proto, dump_proto
+from tfedlrn.proto.protoutils import dump_proto, load_proto, construct_proto, deconstruct_proto
+from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
 
 # FIXME: simpler "stats" collection/handling
 # FIXME: remove the round tracking/job-result tracking stuff from this?
 # Feels like it conflates model aggregation with round management
 # FIXME: persistence of the trained weights.
 class Aggregator(object):
-    """An Aggregator is the centra node in federated learning.
+    """An Aggregator is the central node in federated learning.
     
     Parameters
     ----------
@@ -57,10 +58,12 @@ class Aggregator(object):
                  straggler_cutoff_time=np.inf,
                  disable_equality_check=True,
                  test_mode_whitelist=None,
+                 compression_pipeline=None, 
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.id = agg_id
         self.fed_id = fed_id
+        #FIXME: Should we do anything to insure the intial model is compressed?
         self.model = load_proto(init_model_fpath)
         self.latest_model_fpath = latest_model_fpath
         self.best_model_fpath = best_model_fpath
@@ -78,11 +81,13 @@ class Aggregator(object):
         log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
         self.tb_writer = tensorboardX.SummaryWriter(log_dir, flush_secs=10)
 
-        self.model_update_in_progress = None
+        self.model_update_in_progress_tensors = None
 
         self.init_per_col_round_stats()
         self.best_model_score = None
         self.mutex = Lock()
+
+        self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
 
     def valid_collaborator_CN_and_id(self, common_name, col_id):
         # if self.test_mode_whitelist is None, then the common_name must match col_id and be in col_ids
@@ -175,23 +180,24 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num-1)
         self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
-        # copy over the model update in progress
-        self.model = self.model_update_in_progress
-
-        # increment the version
-        self.model.header.version += 1
-
-        # Save to file.
+        # construct the model protobuf from in progress tensors (with incremented version number)
+        self.model = construct_proto(tensor_dict=self.model_update_in_progress_tensors, 
+                                     model_id=self.model.header.id, 
+                                     model_version=self.model.header.version + 1, 
+                                     compression_pipeline=self.compression_pipeline)
+        
+        # Save the new model as latest model.
         dump_proto(self.model, self.latest_model_fpath)
 
         model_score = round_val
         if self.best_model_score is None or self.best_model_score < model_score:
             self.logger.info("Saved the best model with score {:f}.".format(model_score))
             self.best_model_score = model_score
+            # Save a model proto version to file as current best model.
             dump_proto(self.model, self.best_model_fpath)
 
         # clear the update pointer
-        self.model_update_in_progress = None
+        self.model_update_in_progress_tensors = None
 
         self.init_per_col_round_stats()
 
@@ -206,22 +212,23 @@ class Aggregator(object):
             self.validate_header(message)
 
             self.logger.info("Receive model update from %s " % message.header.sender)
-            model_proto = message.model
-            model_header = model_proto.header
+
+            # Get the model parameters from the model proto
+            model_tensors = deconstruct_proto(model_proto=message.model, compression_pipeline=self.compression_pipeline)
 
             # validate this model header
-            check_equal(model_header.id, self.model.header.id, self.logger)
-            check_equal(model_header.version, self.model.header.version, self.logger)
+            check_equal(message.model.header.id, self.model.header.id, self.logger)
+            check_equal(message.model.header.version, self.model.header.version, self.logger)
 
             # ensure we haven't received an update from this collaborator already
             check_not_in(message.header.sender, self.per_col_round_stats["loss_results"], self.logger)
             check_not_in(message.header.sender, self.per_col_round_stats["collaborator_training_sizes"], self.logger)
 
-            # if this is our very first update for the round, we take this model as-is
-            # FIXME: move to model deltas, add with original to reconstructf
+            # if this is our very first update for the round, we take these model tensors as-is
+            # FIXME: move to model deltas, add with original to reconstruct
             # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
-            if self.model_update_in_progress is None:
-                self.model_update_in_progress = model_proto
+            if self.model_update_in_progress_tensors is None:
+                self.model_update_in_progress_tensors = model_tensors
 
             # otherwise, we compute the streaming weighted average
             else:
@@ -238,43 +245,28 @@ class Aggregator(object):
 
                 # FIXME: right now we're really using names just to sanity check consistent ordering
 
-                # assert that the models include the same number of tensors
-                check_equal(len(self.model_update_in_progress.tensors), len(model_proto.tensors), self.logger)
+                # check that the models include the same number of tensors
+                check_equal(len(self.model_update_in_progress_tensors), len(model_tensors), self.logger)
 
-                # aggregate all the model tensors in the protobuf
-                # this is a streaming average
-                for i in range(len(self.model_update_in_progress.tensors)):
-                    # global tensor
-                    g = self.model_update_in_progress.tensors[i]
-
-                    # find the local collaborator tensor
-                    l = None
-                    for local_tensor in model_proto.tensors:
-                        if local_tensor.name == g.name:
-                            l = local_tensor
-                            break
-
-                    check_not_equal(l, None, self.logger)
+                # aggregate all the model tensors in the tensor_dict 
+                # (weighted average of local update l and global tensor g for all l, g)
+                for name, l in model_tensors.items():
+                    g = self.model_update_in_progress_tensors[name]
+                    # check that g and l have the same shape
+                    check_equal(g.shape, l.shape, self.logger)
                     
                     # sanity check that the tensors are indeed different for non opt tensors 
                     # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)               
                     if (not self.disable_equality_check \
-                        and not g.name.startswith('__opt') \
-                        and 'RMSprop' not in g.name \
-                        and 'Adam' not in g.name \
-                        and 'RMSProp' not in g.name):
-                        check_not_equal(g.npbytes, l.npbytes, self.logger, name=g.name)
+                        and not name.startswith('__opt') \
+                        and 'RMSprop' not in name \
+                        and 'Adam' not in name \
+                        and 'RMSProp' not in name):
+                        check_equal(np.all(g == l), False, self.logger)
                         
-                    if g.shape != l.shape:
-                        raise ValueError('global tensor shape {} of {} not equal to local tensor shape {} of {}'.format(g.shape, g.name, l.shape, l.name))
-
-                    # now just weighted average these
-                    g_values = np.frombuffer(g.npbytes, dtype=np.float32)
-                    l_values = np.frombuffer(l.npbytes, dtype=np.float32)
-                    new_values = np.average([g_values, l_values], weights=[weight_g, weight_l], axis=0)
-                    del g_values, l_values
-                    # FIXME: we shouldn't convert it to bytes until we are ready to send it back to the collaborators.
-                    self.model_update_in_progress.tensors[i].npbytes = new_values.tobytes('C')
+                    
+                    # now store a weighted average into the update in progress
+                    self.model_update_in_progress_tensors[name] = np.average([g, l], weights=[weight_g, weight_l], axis=0)
 
             # store the loss results and training update size
             self.per_col_round_stats["loss_results"][message.header.sender] = message.loss

@@ -12,9 +12,11 @@ from tfedlrn import load_yaml, get_object
 from single_proc_fed import federate
 from setup_logging import setup_logging
 
-def get_data(data_names_to_paths, data_name, code_path, class_name, **kwargs):
+
+
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
-    return get_object(code_path, class_name, data_path=data_path, **kwargs)
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def main(plan, data_config_fname, logging_config_fname, logging_default_level, **kwargs):
 
@@ -36,11 +38,13 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     col_config = flplan['collaborator']
     model_config = flplan['model']
     data_config = flplan['data']
+    compression_config = flplan.get('compression_pipeline')
 
 
     init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
     latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
     best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+
 
     
 
@@ -55,7 +59,8 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
              agg_config=agg_config,
              col_data=col_data, 
              model_config=model_config, 
-             fed_config=fed_config, 
+             fed_config=fed_config,
+             compression_config=compression_config, 
              init_model_fpath = init_model_fpath, 
              latest_model_fpath = latest_model_fpath, 
              best_model_fpath = best_model_fpath, 

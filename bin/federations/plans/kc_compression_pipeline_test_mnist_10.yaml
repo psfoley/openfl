@@ -62,9 +62,6 @@ compression_pipeline:
     class_name: KCPipeline
     n_clusters: 6
 
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
-
 model:
   module_name: models.tensorflow
   class_name: KerasCNN

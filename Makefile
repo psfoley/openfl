@@ -50,7 +50,8 @@ venv: venv/bin/python3
 
 venv/bin/python3:
 	$(python_version) -m venv venv
-	venv/bin/pip3 install --upgrade pip
+	# specifying pip version to avoid issue with later intel-tensorflow install
+	venv/bin/pip3 install --force-reinstall pip==19.0
 	venv/bin/pip3 install --upgrade setuptools
 	venv/bin/pip3 install --upgrade wheel
 

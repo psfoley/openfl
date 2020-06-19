@@ -58,7 +58,7 @@ federation:
   best_model_fname: dummy_model_best.pbuf
 
 model:
-  module_name: models.dummy
+  module_name: models.dummy.dummymodel
   class_name: DummyModel
   layer_shapes:
     layer_1: [2, 1000, 1000]

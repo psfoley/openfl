@@ -58,7 +58,7 @@ federation:
   best_model_fname: pt_cnn_best.pbuf
 
 model:
-  module_name: models.pytorch
+  module_name: models.pytorch.pt_cnn.pt_cnn
   class_name: PyTorchCNN
     
 aggregator:

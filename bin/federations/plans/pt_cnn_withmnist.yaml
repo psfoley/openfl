@@ -59,7 +59,7 @@ federation:
   model_version: &model_version 1
 
 model:
-  module_name: models.pytorch
+  module_name: models.pytorch.pt_cnn.pt_cnn
   class_name: PyTorchCNN
   device: cpu
     

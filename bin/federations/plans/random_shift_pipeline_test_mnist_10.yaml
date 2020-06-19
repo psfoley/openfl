@@ -69,7 +69,7 @@ hostnames:
   __DEFAULT_HOSTNAME__: some.url
 
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.keras_cnn.keras_cnn
   class_name: KerasCNN
     
 aggregator:

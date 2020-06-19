@@ -53,11 +53,8 @@ compression_pipeline:
     module_name: tfedlrn.tensor_transformation_pipelines
     class_name: RandomShiftPipeline
 
-hostnames:
-  __DEFAULT_HOSTNAME__: spr-gpu01.jf.intel.com
-
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.keras_cnn.keras_cnn
   class_name: KerasCNN
     
 aggregator:

@@ -156,7 +156,6 @@ run_agg_container: venv/bin/python3
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo running agg container for model contained in module named: $(model)
 
-	@echo "Aggregator Container started."
 	@docker run \
 	--net=host \
 	-it --name=tfl_agg_$(model)_$(shell whoami) \

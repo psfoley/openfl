@@ -11,9 +11,9 @@ time CUDA_VISILBE_DEVICES=9 ../venv/bin/python3 ../bin/run_simulation_from_flpla
 echo "-------------------------------------------------------------"
 echo "2======= cifar10, keras cnn creating initial weights ..."
 echo "-------------------------------------------------------------"
-time CUDA_VISIBLE_DEVICES=9 ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p tf_cnn_withcifar10.yaml
+time CUDA_VISIBLE_DEVICES=9 ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p keras_cnn_withcifar10.yaml
 echo "======== cifar10, keras cnn training ..."
-time CUDA_VISILBE_DEVICES=9 ../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p tf_cnn_withcifar10.yaml
+time CUDA_VISILBE_DEVICES=9 ../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p keras_cnn_withcifar10.yaml
 
 echo "-------------------------------------------------------------"
 echo "3======== cifar10, pytorch resnet creating initial weights ..."

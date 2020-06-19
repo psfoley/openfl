@@ -51,7 +51,7 @@ federation:
   best_model_fname: keras_cnn_mnist_best.pbuf
 
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.keras_cnn.keras_cnn
   class_name: KerasCNN
     
 aggregator:

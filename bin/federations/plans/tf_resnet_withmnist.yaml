@@ -59,7 +59,7 @@ federation:
   model_version: &model_version 1
 
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.keras_resnet.keras_resnet
   class_name: KerasResnet
     
 aggregator:

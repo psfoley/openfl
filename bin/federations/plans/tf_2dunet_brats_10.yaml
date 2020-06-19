@@ -59,7 +59,7 @@ federation:
   best_model_fname: tf_2dunet_brats_best.pbuf
 
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.tf_2dunet.tf_2dunet
   class_name: TensorFlow2DUNet
     
 aggregator:

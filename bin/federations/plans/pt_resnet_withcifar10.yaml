@@ -58,7 +58,7 @@ federation:
   best_model_fname: pytorch_resnet_best.pbuf
 
 model:
-  module_name: models.pytorch
+  module_name: models.pytorch.pt_resnet.pt_resnet
   class_name: PyTorchResnet
   device: cuda
     

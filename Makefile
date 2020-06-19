@@ -4,8 +4,6 @@
 # WIP for transfering tutorial steps to makefile
 
 col_num ?= 0
-framework_name ?= tensorflow
-model_name ?= keras_cnn
 use_gpu ?= false
 dataset ?= mnist
 python_version ?= python3.6
@@ -53,6 +51,7 @@ venv/bin/python3:
 	venv/bin/pip3 install --upgrade pip
 	venv/bin/pip3 install --upgrade setuptools
 	venv/bin/pip3 install --upgrade wheel
+	venv/bin/pip3 install --upgrade pyyaml
 
 $(whl): venv/bin/python3
 	venv/bin/python3 setup.py bdist_wheel
@@ -111,14 +110,22 @@ clean:
 
 
 # ADDING TUTORIAL TARGETS
+# simply throw an error if these recipies are called without a plan defined
+ifndef plan
 build_containers: venv/bin/python3
-    ifndef plan_name
-    $(error plan_name needs to be defined in order to run this recipe)
-	endif
-
+	$(error plan needs to be defined in order to run this recipe)
+run_agg_container: venv/bin/python3
+	$(error plan needs to be defined in order to run this recipe)
+run_col_conatiner: venv/bin/python3
+	$(error plan needs to be defined in order to run this recipe)
+else
+build_containers: venv/bin/python3
+	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	            -p $(plan_name) -fk model -sk module_name) )
-	@echo $(module_name)
+	            -p $(plan) -fk model -sk module_name) )
+	$(eval model_dir=$(shell echo $(module_name) | awk '{FS="." ; OFS="/"; $$0=$$0}  { print $$1,$$2,$$3}'))
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@echo building agg and coll containers for model whose module is named: $(model), and located in: $(model_dir)
 
 
 	docker build \
@@ -131,42 +138,51 @@ build_containers: venv/bin/python3
 	--build-arg UID=$(shell id -u) \
 	--build-arg GID=$(shell id -g) \
 	--build-arg UNAME=$(shell whoami) \
-	-t tfl_agg_$(model_name)_$(shell whoami):0.1 \
+	-t tfl_agg_$(model)_$(shell whoami):0.1 \
 	-f Dockerfile \
 	.
 
 	docker build --build-arg whoami=$(shell whoami) \
 	--build-arg use_gpu=$(use_gpu) \
-	-t tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
-	-f ./models/$(framework_name)/$(model_name)/$(device).dockerfile \
+	-t tfl_col_$(device)_$(model)_$(shell whoami):0.1 \
+	-f ./$(model_dir)/$(device).dockerfile \
 	.
 
-run_agg_container:
+run_agg_container: venv/bin/python3
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan) -fk model -sk module_name) )
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@echo running agg container for model contained in module named: $(model)
 
 	@echo "Aggregator Container started."
-	@echo "Run the command: ./run_mnist_aggregator.sh"
 	@docker run \
 	--net=host \
-	-it --name=tfl_agg_$(model_name)_$(shell whoami) \
+	-it --name=tfl_agg_$(model)_$(shell whoami) \
 	--rm \
 	-w /home/$(shell whoami)/tfl/bin \
 	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:$(mount_type) \
 	$(additional_brats_container_lines) \
-	tfl_agg_$(model_name)_$(shell whoami):0.1 \
+	tfl_agg_$(model)_$(shell whoami):0.1 \
 	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mAggregator\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
 
 
-run_col_container:
+run_col_container: venv/bin/python3
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	  -p $(plan) -fk model -sk module_name) )
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@echo running coll container for model $(model) and collaborator col_$(col_num)
 
 	@echo "Collaborator $(col_num) started. You are in the Docker container"
-	@echo "Run the command: ./run_mnist_collaborator.sh $(col_num)"
 	@docker run \
 	$(runtime_line) \
 	--net=host \
-	-it --name=tfl_col_$(device)_$(model_name)_$(shell whoami)_$(col_num) \
+	-it --name=tfl_col_$(device)_$(model)_$(shell whoami)_$(col_num) \
 	--rm \
 	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:ro \
 	$(additional_brats_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
-	tfl_col_$(device)_$(model_name)_$(shell whoami):0.1 \
+	tfl_col_$(device)_$(model)_$(shell whoami):0.1 \
 	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mCollaborator $(col_num)\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
+endif

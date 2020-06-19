@@ -1,7 +1,14 @@
 import argparse
 import os
+import yaml
 
-from tfedlrn import load_yaml
+# this module is used to to parse flplans in preparation of building docker containers
+# here we have a copy of load_yaml from tfedlrn.utils (trying to avoid instalation of tfedlrn)
+def load_yaml(path):
+    plan = None
+    with open(path, 'r') as f:
+        plan = yaml.safe_load(f.read())
+    return plan
 
 
 def get_until_none(key_list, _dict):

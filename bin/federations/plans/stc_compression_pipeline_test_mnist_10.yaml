@@ -62,9 +62,6 @@ compression_pipeline:
     class_name: STCPipeline
     p_sparsity: 0.01
 
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
-
 model:
   module_name: models.tensorflow.keras_cnn.keras_cnn
   class_name: KerasCNN

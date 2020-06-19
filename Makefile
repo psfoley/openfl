@@ -111,8 +111,16 @@ clean:
 
 
 # ADDING TUTORIAL TARGETS
+build_containers: venv/bin/python3
+    ifndef plan_name
+    $(error plan_name needs to be defined in order to run this recipe)
+	endif
 
-build_containers:
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan_name) -fk model -sk module_name) )
+	@echo $(module_name)
+
+
 	docker build \
 	--build-arg BASE_IMAGE=$(base_image) \
 	--build-arg http_proxy \

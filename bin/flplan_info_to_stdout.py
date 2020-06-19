@@ -2,7 +2,6 @@ import argparse
 import os
 
 from tfedlrn import load_yaml
-from setup_logging import setup_logging
 
 
 def get_until_none(key_list, _dict):
@@ -16,10 +15,8 @@ def get_until_none(key_list, _dict):
     return str(result)
     
 
-def main(plan, first_key, second_key, third_key, logging_config_fname, logging_default_level):
+def main(plan, first_key, second_key, third_key):
     
-    setup_logging(path=logging_config_fname, default_level=logging_default_level)
-
     # FIXME: consistent filesystem (#15)
     script_dir = os.path.dirname(os.path.realpath(__file__))
     base_dir = os.path.join(script_dir, 'federations')
@@ -41,7 +38,5 @@ if __name__ == "__main__":
     parser.add_argument('--first_key', '-fk', type=str, default=None)
     parser.add_argument('--second_key', '-sk', type=str, default=None)
     parser.add_argument('--third_key', '-tk', type=str, default=None)
-    parser.add_argument('--logging_config_fname', '-lc', type=str, default="logging.yaml")
-    parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

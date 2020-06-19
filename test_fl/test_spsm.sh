@@ -25,8 +25,8 @@ time ../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p pt_resnet_withm
 echo "-------------------------------------------------------------"
 echo "4======== mnist, keras resnet creating initial weights ..."
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p tf_resnet_withmnist.yaml
+time ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p keras_resnet_withmnist.yaml
 echo "======== mnist, keras resnet training ..."
-time ../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p tf_resnet_withmnist.yaml
+time ../venv/bin/python3 ../bin/run_simulation_from_flplan.py -p keras_resnet_withmnist.yaml
 
 echo "======== Done! ${0}"

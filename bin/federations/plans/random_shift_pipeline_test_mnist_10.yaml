@@ -93,7 +93,7 @@ grpc:
 
 data:
   data_name: mnist_shard 
-  module_name: data.tensorflow 
+  module_name: data.tensorflow.tfmnist_inmemory 
   class_name: TensorFlowMNISTInMemory
   nb_collaborators: 10
   batch_size: 256

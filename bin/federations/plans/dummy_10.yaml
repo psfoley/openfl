@@ -93,7 +93,7 @@ grpc:
   
 data:
   data_name: mnist_shard # irrelevant 
-  module_name: data.dummy
+  module_name: data.dummy.emptydata
   class_name: EmptyData
   data_size_mean: 100
   data_size_std: 20

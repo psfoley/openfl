@@ -31,7 +31,7 @@ def setup_logging(path="logging.yaml", default_level='info'):
                     handler_config = config["handlers"][handler_name]
                     if "filename" in handler_config:
                         file_path = os.path.abspath(handler_config["filename"])
-                        logdir_path = os.path.split(file_path)[0]
+                        logdir_path = os.path.dirname(file_path)
                         if not os.path.exists(logdir_path):
                             print("Creating log directory: ", logdir_path)
                             os.makedirs(logdir_path) 

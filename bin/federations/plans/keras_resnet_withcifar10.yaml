@@ -58,7 +58,7 @@ federation:
   best_model_fname: keras_resnet_best.pbuf
 
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.keras_resnet.keras_resnet
   class_name: KerasResnet
     
 aggregator:
@@ -84,7 +84,7 @@ grpc:
   
 data:
   data_name: cifar10_shard 
-  module_name: data.tensorflow
+  module_name: data.tensorflow.tfcifar10_inmemory
   class_name: TensorFlowCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256

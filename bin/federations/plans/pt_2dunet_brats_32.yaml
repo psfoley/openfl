@@ -81,7 +81,7 @@ federation:
   best_model_fname: pt_2dunet_brats_best.pbuf
 
 model:
-  module_name: models.pytorch
+  module_name: models.pytorch.pt_2dunet.pt_2dunet
   class_name: PyTorch2DUNet
   device: cuda
     
@@ -108,7 +108,7 @@ grpc:
   
 data:
   data_name: brats 
-  module_name: data.pytorch 
+  module_name: data.pytorch.ptbrats_inmemory 
   class_name: PyTorchBratsInMemory
   percent_train: 0.8
   batch_size: 64

@@ -58,7 +58,7 @@ federation:
   best_model_fname: dummy_model_best.pbuf
 
 model:
-  module_name: models.dummy
+  module_name: models.dummy.dummymodel
   class_name: DummyModel
   layer_shapes:
     layer_1: [2, 1000, 1000]
@@ -93,7 +93,7 @@ grpc:
   
 data:
   data_name: mnist_shard # irrelevant 
-  module_name: data.dummy
+  module_name: data.dummy.emptydata
   class_name: EmptyData
   data_size_mean: 100
   data_size_std: 20

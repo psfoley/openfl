@@ -50,7 +50,7 @@ federation:
   best_model_fname: tf_2dunet_brats_best.pbuf
 
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.tf_2dunet.tf_2dunet
   class_name: TensorFlow2DUNet
     
 aggregator:
@@ -76,7 +76,7 @@ grpc:
   
 data:
   data_name: brats 
-  module_name: data.tensorflow 
+  module_name: data.tensorflow.tfbrats_inmemory 
   class_name: TensorFlowBratsInMemory
   percent_train: 0.8
   batch_size: 64

@@ -63,11 +63,8 @@ compression_pipeline:
     p_sparsity: 0.01
     n_clusters: 6
 
-hostnames:
-  __DEFAULT_HOSTNAME__: some.url
-
 model:
-  module_name: models.tensorflow
+  module_name: models.tensorflow.keras_cnn.keras_cnn
   class_name: KerasCNN
     
 aggregator:
@@ -91,7 +88,7 @@ grpc:
 
 data:
   data_name: mnist_shard 
-  module_name: data.tensorflow 
+  module_name: data.tensorflow.tfmnist_inmemory 
   class_name: TensorFlowMNISTInMemory
   nb_collaborators: 10
   batch_size: 256

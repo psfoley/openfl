@@ -31,7 +31,7 @@
 
 # We may have several plans for one dataset, to search the best model architecture for exammple.
 
-description     : Train a model to perform classification on MNIST images.
+description     : Train a model to perform classification on CIFAR10 images.
 status          : active
 
 federation:
@@ -53,15 +53,15 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-  init_model_fname: keras_resnet_init.pbuf
-  latest_model_fname: keras_resnet_latest.pbuf
-  best_model_fname: keras_resnet_best.pbuf
+  init_model_fname: tensorflow_cnn_init.pbuf
+  latest_model_fname: tensorflow_cnn_latest.pbuf
+  best_model_fname: tensorflow_cnn_best.pbuf
   model_version: &model_version 1
 
 model:
-  module_name: models.tensorflow
-  class_name: KerasResnet
-    
+  module_name: models.tensorflow.keras_cnn.keras_cnn
+  class_name: KerasCNN
+
 aggregator:
   agg_id: *agg_id
   fed_id: *fed_id
@@ -83,11 +83,11 @@ grpc:
   port: *agg_port
   disable_tls: False
   disable_client_auth: False
-
+  
 data:
-  data_name: mnist_shard 
-  module_name: data.tensorflow
-  class_name: TensorFlowMNISTInMemory
+  data_name: cifar10_shard 
+  module_name: data.tensorflow.tfcifar10_inmemory 
+  class_name: TensorFlowCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256
   channels_last: True

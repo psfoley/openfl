@@ -58,7 +58,7 @@ federation:
   best_model_fname: pytorch_resnet_best.pbuf
 
 model:
-  module_name: models.pytorch
+  module_name: models.pytorch.pt_resnet.pt_resnet
   class_name: PyTorchResnet
   device: cuda
     
@@ -85,7 +85,7 @@ grpc:
   
 data:
   data_name: cifar10_shard 
-  module_name: data.pytorch 
+  module_name: data.pytorch.ptcifar10_inmemory  
   class_name: PyTorchCIFAR10InMemory
   nb_collaborators: 10
   batch_size: 256

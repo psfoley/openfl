@@ -26,11 +26,20 @@ def setup_logging(path="logging.yaml", default_level='info'):
         with open(path, 'r') as f:
             try:
                 config = yaml.safe_load(f.read())
+                # create directories (if needed) to hold file handler output files
+                for handler_name in config["handlers"]:
+                    handler_config = config["handlers"][handler_name]
+                    if "filename" in handler_config:
+                        file_path = os.path.abspath(handler_config["filename"])
+                        logdir_path = os.path.split(file_path)[0]
+                        if not os.path.exists(logdir_path):
+                            print("Creating log directory: ", logdir_path)
+                            os.makedirs(logdir_path) 
                 logging.config.dictConfig(config)
                 coloredlogs.install()
                 print("Loaded logging configuration: %s" % path)
             except Exception as e:
-                print("Invalid logging configuration file [%s]." % path)
+                print("Trouble loading logging configuration with file [%s]." % path)
                 print(e)
                 logging.basicConfig(level=default_level)
                 coloredlogs.install(level=default_level)

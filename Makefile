@@ -117,7 +117,7 @@ build_containers: venv/bin/python3
 	$(error plan needs to be defined in order to run this recipe)
 run_agg_container: venv/bin/python3
 	$(error plan needs to be defined in order to run this recipe)
-run_col_conatiner: venv/bin/python3
+run_col_container: venv/bin/python3
 	$(error plan needs to be defined in order to run this recipe)
 else
 build_containers: venv/bin/python3

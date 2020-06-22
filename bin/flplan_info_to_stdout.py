@@ -22,14 +22,12 @@ def get_until_none(key_list, _dict):
     return str(result)
     
 
-def main(plan, first_key, second_key, third_key):
+def main(plan, key_list=[None]):
     
     # FIXME: consistent filesystem (#15)
     script_dir = os.path.dirname(os.path.realpath(__file__))
     base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
-
-    key_list = [first_key, second_key, third_key]
 
     flplan = load_yaml(os.path.join(plan_dir, plan))
 
@@ -42,8 +40,6 @@ def main(plan, first_key, second_key, third_key):
 if __name__ == "__main__": 
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
-    parser.add_argument('--first_key', '-fk', type=str, default=None)
-    parser.add_argument('--second_key', '-sk', type=str, default=None)
-    parser.add_argument('--third_key', '-tk', type=str, default=None)
+    parser.add_argument('--key_list', '-kl', type=str, nargs="*")
     args = parser.parse_args()
     main(**vars(args))

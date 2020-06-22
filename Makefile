@@ -123,7 +123,7 @@ else
 build_containers: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	            -p $(plan) -fk model -sk module_name) )
+	            -p $(plan) -kl model module_name) )
 	$(eval model_dir=$(shell echo $(module_name) | awk '{FS="." ; OFS="/"; $$0=$$0}  { print $$1,$$2,$$3}'))
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo building agg and coll containers for model whose module is named: $(model), and located in: $(model_dir)
@@ -152,7 +152,7 @@ build_containers: venv/bin/python3
 run_agg_container: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	            -p $(plan) -fk model -sk module_name) )
+	            -p $(plan) -kl model module_name) )
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo running agg container for model contained in module named: $(model)
 
@@ -170,7 +170,7 @@ run_agg_container: venv/bin/python3
 run_col_container: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	  -p $(plan) -fk model -sk module_name) )
+	  -p $(plan) -kl model module_name) )
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo running coll container for model $(model) and collaborator col_$(col_num)
 

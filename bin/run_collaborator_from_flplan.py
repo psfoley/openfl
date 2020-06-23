@@ -4,6 +4,7 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import argparse
+import sys
 import os
 import logging
 import importlib
@@ -39,8 +40,12 @@ def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname
     col_config = flplan['collaborator']
     model_config = flplan['model']
     data_config = flplan['data']
-    data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
-
+    data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
+    if col_id not in data_names_to_paths:
+        sys.exit("Could not find collaborator id \"{}\" in the local data config file. Please edit \"{}\" to specify the datapaths for this collaborator.".format(col_id, data_config_fname))
+    data_names_to_paths = data_names_to_paths[col_id]
+    if data_config['data_name'] not in data_names_to_paths:
+        sys.exit("Could not find data path for collaborator id \"{}\" and dataset name \"{}\". Please edit \"{}\" to specify the path (or shard) for this collaborator and dataset.".format(col_id, data_config['data_name'], data_config_fname))
 
     if flplan.get('compression_pipeline') is not None:
         compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))

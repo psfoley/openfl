@@ -12,6 +12,8 @@ from models import FLModel
 class DummyModel(FLModel):
 
     def __init__(self, data, layer_shapes, train_time_mean, train_time_std, val_time_mean, val_time_std, **kwargs):
+        super().__init__(data=data, **kwargs)
+
         self.data = data
         self.layer_shapes = layer_shapes
         self.train_time_mean = train_time_mean

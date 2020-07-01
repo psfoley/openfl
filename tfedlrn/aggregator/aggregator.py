@@ -401,9 +401,9 @@ class Aggregator(object):
         if message.model_header.version == -1:
             if self.model.header.is_delta:
                 raise RuntimeError('First collaborator model download, and we only have a delta.')
-        elif model_header.is_delta != self.model.header.is_delta:
+        elif message.model_header.is_delta != self.model.header.is_delta:
             raise RuntimeError('Collaborator requesting non-initial download should hold a model with the same is_delta as aggregated model.')
-        elif model_header.is_delta and (model_header.delta_from_version != self.model.header.delta_from_version):
+        elif message.model_header.is_delta and (message.model_header.delta_from_version != self.model.header.delta_from_version):
             # TODO: In the future we could send non-delta model here to restore base model.
             raise NotImplementedError('Base of download model delta does not match current collaborator base, and aggregator restoration of base model not implemented.')
 

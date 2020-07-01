@@ -41,7 +41,7 @@ class Collaborator(object):
                  compression_pipeline=None,
                  epochs_per_round=1.0, 
                  num_batches_per_round=None, 
-                 send_model_deltas = True,
+                 send_model_deltas = False,
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel

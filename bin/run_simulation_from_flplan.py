@@ -7,7 +7,7 @@ import argparse
 import os
 import logging
 
-from tfedlrn import load_yaml
+from tfedlrn import load_yaml, parse_fl_plan
 from single_proc_fed import federate
 from setup_logging import setup_logging
 
@@ -25,7 +25,7 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     weights_dir = os.path.join(base_dir, 'weights')
 
     # parse configs from flplan
-    flplan = load_yaml(os.path.join(plan_dir, plan))
+    flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     by_col_data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
     fed_config = flplan['federation']
     agg_config = flplan['aggregator']

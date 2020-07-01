@@ -11,7 +11,7 @@ import importlib
 
 from tfedlrn.collaborator.collaborator import Collaborator
 from tfedlrn.comms.grpc.collaboratorgrpcclient import CollaboratorGRPCClient
-from tfedlrn import load_yaml, get_object
+from tfedlrn import parse_fl_plan, get_object, load_yaml
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 
 from setup_logging import setup_logging
@@ -36,7 +36,7 @@ def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname
     base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
 
-    flplan = load_yaml(os.path.join(plan_dir, plan))
+    flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     col_config = flplan['collaborator']
     model_config = flplan['model']
     data_config = flplan['data']

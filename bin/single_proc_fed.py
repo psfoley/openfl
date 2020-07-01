@@ -11,6 +11,11 @@ from tfedlrn.collaborator import Collaborator
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 
 
+def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
+    data_path = data_names_to_paths[data_name]
+    return get_object(module_name, class_name, data_path=data_path, **kwargs)
+
+
 def get_collaborators(model, aggregator, col_ids, compression_pipeline, **kwargs):
     collaborators = {} 
     for col_id in col_ids:
@@ -22,12 +27,13 @@ def get_collaborators(model, aggregator, col_ids, compression_pipeline, **kwargs
     return collaborators  
     
 
-def federate(col_config,
+def federate(data_config, 
+             col_config,
              agg_config,
-             col_data, 
              model_config, 
              fed_config,
              compression_config, 
+             by_col_data_names_to_paths, 
              init_model_fpath, 
              latest_model_fpath, 
              best_model_fpath, 
@@ -35,6 +41,10 @@ def federate(col_config,
 
     # get the number of collaborators
     col_ids = fed_config['col_ids']
+
+    # get the BraTS data objects for each collaborator
+    col_data = {col_id: get_data(by_col_data_names_to_paths[col_id], **data_config) for col_id in col_ids}
+    
     
     # instantiate the model (using the first collaborator dataset for now)
     model = get_object(data=col_data[col_ids[0]], **model_config)

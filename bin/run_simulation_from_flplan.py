@@ -6,17 +6,11 @@
 import argparse
 import os
 import logging
-import importlib
 
-from tfedlrn import load_yaml, get_object
+from tfedlrn import load_yaml
 from single_proc_fed import federate
 from setup_logging import setup_logging
 
-
-
-def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
-    data_path = data_names_to_paths[data_name]
-    return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def main(plan, data_config_fname, logging_config_fname, logging_default_level, **kwargs):
 
@@ -45,22 +39,16 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
     best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
 
-
-    
-
-
-    # get the BraTS data objects for each collaborator
-    col_ids = fed_config['col_ids']
-    col_data = {col_id: get_data(by_col_data_names_to_paths[col_id], **data_config) for col_id in col_ids}
-    
+  
     # TODO: Run a loop here over various parameter values and iterations
     # TODO: implement more than just saving init, best, and latest model
-    federate(col_config=col_config, 
+    federate(data_config=data_config, 
+             col_config=col_config, 
              agg_config=agg_config,
-             col_data=col_data, 
              model_config=model_config, 
              fed_config=fed_config,
-             compression_config=compression_config, 
+             compression_config=compression_config,
+             by_col_data_names_to_paths=by_col_data_names_to_paths, 
              init_model_fpath = init_model_fpath, 
              latest_model_fpath = latest_model_fpath, 
              best_model_fpath = best_model_fpath, 

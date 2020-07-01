@@ -3,6 +3,7 @@
 
 import yaml
 import importlib
+import hashlib
 import numpy as np
 
 def load_yaml(path):

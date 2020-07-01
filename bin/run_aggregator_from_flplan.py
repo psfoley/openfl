@@ -9,7 +9,7 @@ import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import load_yaml 
+from tfedlrn import parse_fl_plan 
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 
 
 from setup_logging import setup_logging
@@ -24,7 +24,7 @@ def main(plan, cert_common_name, logging_config_path, logging_default_level):
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
 
-    flplan = load_yaml(os.path.join(plan_dir, plan))
+    flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
     fed_config = flplan['federation']
     grpc_server_config = flplan['grpc']

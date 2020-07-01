@@ -68,7 +68,9 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
 
     model_proto = construct_proto(tensor_dict=tensor_dict, 
                                   model_id=wrapped_model.__class__.__name__, 
-                                  model_version=0, 
+                                  model_version=0,
+                                  is_delta=False, 
+                                  delta_from_version=-1, 
                                   compression_pipeline=compression_pipeline)
 
     dump_proto(model_proto=model_proto, fpath=fpath)

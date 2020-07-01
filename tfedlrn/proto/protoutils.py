@@ -14,9 +14,10 @@ def model_proto_to_bytes_and_metadata(model_proto):
                                              'bool_list': proto.bool_list} for proto in tensor_proto.transformer_metadata]
     return bytes_dict, metadata_dict
 
-def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, metadata_dict):
 
-    model_header = ModelHeader(id=model_id, version=model_version)
+def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_delta, delta_from_version, metadata_dict):
+
+    model_header = ModelHeader(id=model_id, version=model_version, is_delta=is_delta, delta_from_version=delta_from_version)
     
     tensor_protos = []
     for key, data_bytes in bytes_dict.items():
@@ -40,12 +41,11 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, metad
             metadata_protos.append(MetadataProto(int_to_float=int_to_float, int_list=int_list, bool_list=bool_list))
         tensor_protos.append(TensorProto(name=key, 
                                          data_bytes=data_bytes, 
-                                         transformer_metadata=metadata_protos))
-    
+                                         transformer_metadata=metadata_protos))   
     return ModelProto(header=model_header, tensors=tensor_protos)
 
 
-def construct_proto(tensor_dict, model_id, model_version, compression_pipeline):
+def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_version, compression_pipeline):
     # compress the arrays in the tensor_dict, and form the model proto
     # TODO: Hold-out tensors from the compression pipeline.
     bytes_dict = {}
@@ -56,7 +56,9 @@ def construct_proto(tensor_dict, model_id, model_version, compression_pipeline):
     # convert the compressed_tensor_dict and metadata to protobuf, and make the new model proto
     model_proto = bytes_and_metadata_to_model_proto(bytes_dict=bytes_dict, 
                                                     model_id=model_id, 
-                                                    model_version=model_version, 
+                                                    model_version=model_version,
+                                                    is_delta=is_delta, 
+                                                    delta_from_version=delta_from_version, 
                                                     metadata_dict=metadata_dict)
     return model_proto
 

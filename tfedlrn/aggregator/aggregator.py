@@ -58,7 +58,7 @@ class Aggregator(object):
                  straggler_cutoff_time=np.inf,
                  disable_equality_check=True,
                  test_mode_whitelist=None,
-                 compression_pipeline=None, 
+                 compression_pipeline=None,  
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.id = agg_id
@@ -81,7 +81,7 @@ class Aggregator(object):
         log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
         self.tb_writer = tensorboardX.SummaryWriter(log_dir, flush_secs=10)
 
-        self.model_update_in_progress_tensors = None
+        self.model_update_in_progress = None
 
         self.init_per_col_round_stats()
         self.best_model_score = None
@@ -181,9 +181,11 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
         # construct the model protobuf from in progress tensors (with incremented version number)
-        self.model = construct_proto(tensor_dict=self.model_update_in_progress_tensors, 
+        self.model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
                                      model_id=self.model.header.id, 
                                      model_version=self.model.header.version + 1, 
+                                     is_delta=self.model_update_in_progress["is_delta"], 
+                                     delta_from_version=self.model_update_in_progress["delta_from_version"],
                                      compression_pipeline=self.compression_pipeline)
         
         # Save the new model as latest model.
@@ -197,7 +199,7 @@ class Aggregator(object):
             dump_proto(self.model, self.best_model_fpath)
 
         # clear the update pointer
-        self.model_update_in_progress_tensors = None
+        self.model_update_in_progress = None
 
         self.init_per_col_round_stats()
 
@@ -213,8 +215,10 @@ class Aggregator(object):
 
             self.logger.info("Receive model update from %s " % message.header.sender)
 
-            # Get the model parameters from the model proto
+            # Get the model parameters from the model proto and additional model info
             model_tensors = deconstruct_proto(model_proto=message.model, compression_pipeline=self.compression_pipeline)
+            is_delta = message.model.header.is_delta
+            delta_from_version = message.model.header.delta_from_version
 
             # validate this model header
             check_equal(message.model.header.id, self.model.header.id, self.logger)
@@ -227,8 +231,10 @@ class Aggregator(object):
             # if this is our very first update for the round, we take these model tensors as-is
             # FIXME: move to model deltas, add with original to reconstruct
             # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
-            if self.model_update_in_progress_tensors is None:
-                self.model_update_in_progress_tensors = model_tensors
+            if self.model_update_in_progress is None:
+                self.model_update_in_progress = {"tensor_dict": model_tensors,
+                                                 "is_delta": is_delta,
+                                                 "delta_from_version": delta_from_version}
 
             # otherwise, we compute the streaming weighted average
             else:
@@ -245,13 +251,16 @@ class Aggregator(object):
 
                 # FIXME: right now we're really using names just to sanity check consistent ordering
 
-                # check that the models include the same number of tensors
-                check_equal(len(self.model_update_in_progress_tensors), len(model_tensors), self.logger)
+                # check that the models include the same number of tensors, and that whether or not
+                # it is a delta and from what version is the same
+                check_equal(len(self.model_update_in_progress["tensor_dict"]), len(model_tensors), self.logger)
+                check_equal(self.model_update_in_progress["is_delta"], is_delta, self.logger)
+                check_equal(self.model_update_in_progress["delta_from_version"], delta_from_version, self.logger)
 
                 # aggregate all the model tensors in the tensor_dict 
                 # (weighted average of local update l and global tensor g for all l, g)
                 for name, l in model_tensors.items():
-                    g = self.model_update_in_progress_tensors[name]
+                    g = self.model_update_in_progress["tensor_dict"][name]
                     # check that g and l have the same shape
                     check_equal(g.shape, l.shape, self.logger)
                     
@@ -266,7 +275,7 @@ class Aggregator(object):
                         
                     
                     # now store a weighted average into the update in progress
-                    self.model_update_in_progress_tensors[name] = np.average([g, l], weights=[weight_g, weight_l], axis=0)
+                    self.model_update_in_progress["tensor_dict"][name] = np.average([g, l], weights=[weight_g, weight_l], axis=0)
 
             # store the loss results and training update size
             self.per_col_round_stats["loss_results"][message.header.sender] = message.loss
@@ -382,11 +391,21 @@ class Aggregator(object):
 
         self.logger.info("Received model download request from %s " % message.header.sender)
 
-        # check if the models don't match
+        # ensure the models don't match
         if not(self.collaborator_out_of_date(message.model_header)):
-            statement = "Assertion failed: self.collaborator_out_of_date(message.model_header)"
+            statement = "Collaborator asking for download when not out of date."
             self.logger.exception(statement)
             raise RuntimeError(statement)
+
+        # check whether there is an issue related to the sending of deltas or non-deltas
+        if message.model_header.version == -1:
+            if self.model.header.is_delta:
+                raise RuntimeError('First collaborator model download, and we only have a delta.')
+        elif model_header.is_delta != self.model.header.is_delta:
+            raise RuntimeError('Collaborator requesting non-initial download should hold a model with the same is_delta as aggregated model.')
+        elif model_header.is_delta and (model_header.delta_from_version != self.model.header.delta_from_version):
+            # TODO: In the future we could send non-delta model here to restore base model.
+            raise NotImplementedError('Base of download model delta does not match current collaborator base, and aggregator restoration of base model not implemented.')
 
         reply = GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
 

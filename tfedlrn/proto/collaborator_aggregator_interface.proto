@@ -52,14 +52,18 @@ message MessageHeader {
 
 message ModelHeader {
     string id = 1;
+    bool is_delta = 2;
+    int32 delta_from_version = 3;
     // FIXME: is this version or rounds trained? We need to know rounds trained somewhere, and this currently does track that
-    int32 version = 2;
+    int32 version = 4;
 }
 
 message ModelProto {
     ModelHeader header = 1;
     repeated TensorProto tensors = 2;
+    
 }
+
 
 // COLLABORATOR MESSAGES
 
@@ -70,6 +74,7 @@ message LocalModelUpdate {
     // map<string, float> loss = 4;
     float loss = 4;
 }
+
 
 message LocalValidationResults {
     MessageHeader header = 1;
@@ -101,6 +106,7 @@ message GlobalModelUpdate {
     MessageHeader header = 1;
     ModelProto model = 2;
 }
+
 
 message JobReply {
     MessageHeader header = 1;

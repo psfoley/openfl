@@ -41,7 +41,7 @@ class Collaborator(object):
                  compression_pipeline=None,
                  epochs_per_round=1.0, 
                  num_batches_per_round=None, 
-                 send_model_deltas = True,
+                 send_model_deltas=True,
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
@@ -53,6 +53,8 @@ class Collaborator(object):
         self.fed_id = fed_id
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
+                                        is_delta=send_model_deltas,
+                                        delta_from_version=-1,
                                         version=-1)
         # number of epochs to perform per round of FL (is a float that is converted 
         # to num_batches before calling the wrapped model train_batches method).
@@ -206,22 +208,28 @@ class Collaborator(object):
         # get the trained tensor dict and store any designated to be held out from aggregation
         shared_tensors = self._remove_and_save_holdout_tensors(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
         
-        # create the model proto
+        # prep the model proto info
         if self.send_model_deltas:
             deltas = self.create_deltas(tensor_dict=shared_tensors)
-            model_proto = construct_proto(tensor_dict=deltas["tensor_dict"], 
-                                          model_id=self.model_header.id, 
-                                          model_version=self.model_header.version, 
-                                          compression_pipeline=self.compression_pipeline, 
-                                          is_delta=True, 
-                                          delta_from_version=deltas["delta_from_version"])
+            tensor_dict = deltas["tensor_dict"]
+            delta_from_version = deltas["delta_from_version"]
         else:
-            model_proto = construct_proto(tensor_dict=shared_tensors, 
-                                          model_id=self.model_header.id, 
-                                          model_version=self.model_header.version, 
-                                          compression_pipeline=self.compression_pipeline, 
-                                          is_delta=False, 
-                                          delta_from_version=-1)
+            tensor_dict = shared_tensors
+            delta_from_version = -1
+
+        # create the model proto    
+        model_proto = construct_proto(tensor_dict=tensor_dict, 
+                                      model_id=self.model_header.id, 
+                                      model_version=self.model_header.version, 
+                                      compression_pipeline=self.compression_pipeline, 
+                                      is_delta=self.send_model_deltas, 
+                                      delta_from_version=delta_from_version)
+
+        # For purposes of
+        self.model_header = ModelHeader(id=self.model_header.id,
+                                            is_delta=self.send_model_deltas,
+                                            delta_from_version=delta_from_version,
+                                            version=self.model_header.version)
 
         self.logger.debug("{} - Sending the model to the aggregator.".format(self))
 

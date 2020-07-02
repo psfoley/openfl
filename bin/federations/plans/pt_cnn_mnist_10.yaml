@@ -30,17 +30,6 @@
 aggregator:
   defaults_file: defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train: 4
-  col_ids:
-    - 'col_0'
-    - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
   init_model_fname: pytorch_cnn_init.pbuf
   latest_model_fname: pytorch_cnn_latest.pbuf
   best_model_fname: pytorch_cnn_best.pbuf
@@ -51,20 +40,10 @@ model:
 
 collaborator:
   defaults_file         : collaborator.yaml
-  num_batches_per_round : 2
 
 network:
   defaults_file: defaults/network.yaml
  
 data:
-  defaults_file: defaults/data_pt_cifar10.yaml
+  defaults_file: defaults/data_pt_mnist.yaml
   nb_collaborators: 10
-
- 
-data:
-  data_name: mnist_shard
-  module_name: data.pytorch.ptmnist_inmemory
-  class_name: PyTorchMNISTInMemory
-  nb_collaborators: 10
-  batch_size: 256
-  channels_last: False

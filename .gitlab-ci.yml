@@ -1,4 +1,3 @@
-
 #image: alpine
 # before_script:
 #   - mkdir -p $HOME/.docker/
@@ -27,6 +26,7 @@ pages:
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn
   - sphinx-apidoc -f -o . ../models
+  - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
   artifacts:

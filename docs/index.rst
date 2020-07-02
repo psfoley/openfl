@@ -16,7 +16,7 @@ model without sharing sensitive information with each other.
 
 There are basically two components in the library:
 the *collaborator* which uses local sensitive dataset to fine-tune
-the aggreagated model and the *aggreagator* which receives
+the aggregated model and the *aggregator* which receives
 model updates from collaborators and distribute the aggregated
 models.
 
@@ -24,12 +24,13 @@ The *aggregator* is framework-anostic, while the *collaborator*
 can use any deep learning frameworks, such as Tensorflow or
 Pytorch.
 
-**tfedlrn** is developed by Secure Intelligence Team, Intel Labs.
+**tfedlrn** is developed by Secure Intelligence Team, Intel Labs and Intel Internet of Things Group.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   manual
    tutorial
    tfedlrn
    models

@@ -185,7 +185,6 @@ class Aggregator(object):
                                      model_id=self.model.header.id, 
                                      model_version=self.model.header.version + 1, 
                                      is_delta=self.model_update_in_progress["is_delta"], 
-                                     delta_from_version=self.model_update_in_progress["delta_from_version"],
                                      compression_pipeline=self.compression_pipeline)
         
         # Save the new model as latest model.
@@ -218,7 +217,6 @@ class Aggregator(object):
             # Get the model parameters from the model proto and additional model info
             model_tensors = deconstruct_proto(model_proto=message.model, compression_pipeline=self.compression_pipeline)
             is_delta = message.model.header.is_delta
-            delta_from_version = message.model.header.delta_from_version
 
             # validate this model header
             check_equal(message.model.header.id, self.model.header.id, self.logger)
@@ -233,8 +231,7 @@ class Aggregator(object):
             # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
             if self.model_update_in_progress is None:
                 self.model_update_in_progress = {"tensor_dict": model_tensors,
-                                                 "is_delta": is_delta,
-                                                 "delta_from_version": delta_from_version}
+                                                 "is_delta": is_delta}
 
             # otherwise, we compute the streaming weighted average
             else:
@@ -252,10 +249,9 @@ class Aggregator(object):
                 # FIXME: right now we're really using names just to sanity check consistent ordering
 
                 # check that the models include the same number of tensors, and that whether or not
-                # it is a delta and from what version is the same
+                # it is a delta is the same
                 check_equal(len(self.model_update_in_progress["tensor_dict"]), len(model_tensors), self.logger)
                 check_equal(self.model_update_in_progress["is_delta"], is_delta, self.logger)
-                check_equal(self.model_update_in_progress["delta_from_version"], delta_from_version, self.logger)
 
                 # aggregate all the model tensors in the tensor_dict 
                 # (weighted average of local update l and global tensor g for all l, g)
@@ -392,6 +388,8 @@ class Aggregator(object):
         self.logger.info("Received model download request from %s " % message.header.sender)
 
         # ensure the models don't match
+        HERE IS WHERE YOU PARSE WHETHER THE MODEL IS JUST ONE BEHIND (WE CAN DO IT) OR MORE 
+        (NEED TO RESTORE FROM SAVED NON-DELTA MODEL AND WILL NEED TO BE DONE WITH ONLY LOSSLESS COMPRESSION)
         if not(self.collaborator_out_of_date(message.model_header)):
             statement = "Collaborator asking for download when not out of date."
             self.logger.exception(statement)
@@ -403,9 +401,6 @@ class Aggregator(object):
                 raise RuntimeError('First collaborator model download, and we only have a delta.')
         elif message.model_header.is_delta != self.model.header.is_delta:
             raise RuntimeError('Collaborator requesting non-initial download should hold a model with the same is_delta as aggregated model.')
-        elif message.model_header.is_delta and (message.model_header.delta_from_version != self.model.header.delta_from_version):
-            # TODO: In the future we could send non-delta model here to restore base model.
-            raise NotImplementedError('Base of download model delta does not match current collaborator base, and aggregator restoration of base model not implemented.')
 
         reply = GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
 

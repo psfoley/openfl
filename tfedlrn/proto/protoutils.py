@@ -15,9 +15,9 @@ def model_proto_to_bytes_and_metadata(model_proto):
     return bytes_dict, metadata_dict
 
 
-def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_delta, delta_from_version, metadata_dict):
+def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_delta, metadata_dict):
 
-    model_header = ModelHeader(id=model_id, version=model_version, is_delta=is_delta, delta_from_version=delta_from_version)
+    model_header = ModelHeader(id=model_id, version=model_version, is_delta=is_delta)
     
     tensor_protos = []
     for key, data_bytes in bytes_dict.items():
@@ -45,7 +45,7 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_de
     return ModelProto(header=model_header, tensors=tensor_protos)
 
 
-def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_version, compression_pipeline):
+def construct_proto(tensor_dict, model_id, model_version, is_delta, compression_pipeline):
     # compress the arrays in the tensor_dict, and form the model proto
     # TODO: Hold-out tensors from the compression pipeline.
     bytes_dict = {}
@@ -58,7 +58,6 @@ def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_v
                                                     model_id=model_id, 
                                                     model_version=model_version,
                                                     is_delta=is_delta, 
-                                                    delta_from_version=delta_from_version, 
                                                     metadata_dict=metadata_dict)
     return model_proto
 

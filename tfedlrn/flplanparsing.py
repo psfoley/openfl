@@ -18,9 +18,20 @@ def parse_fl_plan(plan_path, logger=None):
     # collect all the plan filepaths used
     plan_files = [plan_path]
 
+    # walk the top level keys for defaults_file in sorted order
+    for k in sorted(flplan.keys()):
+        defaults_file = flplan[k].get('defaults_file')
+        if defaults_file is not None:
+            defaults_file = os.path.join(os.path.dirname(plan_path), defaults_file)
+            logger.info("Using FLPlan defaults for section '{}' from file '{}'".format(k, defaults_file))
+            defaults = load_yaml(defaults_file)
+            defaults.update(flplan[k])
+            flplan[k] = defaults
+            plan_files.append(defaults_file)
+
     # create the hash of these files
     flplan_fname = os.path.splitext(os.path.basename(plan_path))[0]
-    flplan_hash = hash_files(plan_files)
+    flplan_hash = hash_files(plan_files, logger=logger)
 
     fed_id = '{}_{}'.format(flplan_fname, flplan_hash[:8])
     agg_id = 'aggregator_{}'.format(fed_id)
@@ -33,9 +44,11 @@ def parse_fl_plan(plan_path, logger=None):
     return flplan
 
 
-def hash_files(paths):
+def hash_files(paths, logger=None):
     md5 = hashlib.md5()
     for p in paths:
         with open(p, 'rb') as f:
             md5.update(f.read())
+        if logger is not None:
+            logger.info("After hashing {}, hash is {}".format(p, md5.hexdigest()))
     return md5.hexdigest()

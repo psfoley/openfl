@@ -31,7 +31,6 @@ def federate(data_config,
              col_config,
              agg_config,
              model_config, 
-             fed_config,
              compression_config, 
              by_col_data_names_to_paths, 
              init_model_fpath, 
@@ -40,7 +39,7 @@ def federate(data_config,
              **kwargs):
 
     # get the number of collaborators
-    col_ids = fed_config['col_ids']
+    col_ids = agg_config['col_ids']
 
     # get the BraTS data objects for each collaborator
     col_data = {col_id: get_data(by_col_data_names_to_paths[col_id], **data_config) for col_id in col_ids}
@@ -72,7 +71,7 @@ def federate(data_config,
                                       compression_pipeline=compression_pipeline,
                                       **col_config)
 
-    rounds_to_train = fed_config['rounds_to_train']
+    rounds_to_train = agg_config['rounds_to_train']
 
 
 

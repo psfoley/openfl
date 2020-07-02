@@ -27,18 +27,10 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-# We may have several plans for one dataset, to search the best model architecture for exammple.
-
-description     : Train a model to perform classification on CIFAR10 images.
-status          : active
-
-federation: 
-  opt_treatment: &opt_treatment 'RESET'
-  polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 4
-  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 8878
-  col_ids: &col_ids
+aggregator:
+  defaults_file: defaults/aggregator_test_mode_whitelist.yaml
+  rounds_to_train: 4
+  col_ids:
     - 'col_0'
     - 'col_1'
     - 'col_2'
@@ -52,36 +44,19 @@ federation:
   init_model_fname: pytorch_cnn_init.pbuf
   latest_model_fname: pytorch_cnn_latest.pbuf
   best_model_fname: pytorch_cnn_best.pbuf
-  model_version: &model_version 1
 
 model:
   module_name: models.pytorch.pt_cnn.pt_cnn
   class_name: PyTorchCNN
   device: cuda
 
-aggregator: 
-  col_ids: *col_ids
-  rounds_to_train: *rounds_to_train
-  test_mode_whitelist:
-    - spr-gpu01.jf.intel.com
-    - spr-gpu02.jf.intel.com
-
 collaborator:
-  num_batches_per_round: 2 
-  model_version: *model_version
-  polling_interval: *polling_interval
-  opt_treatment: *opt_treatment
+  defaults_file         : collaborator.yaml
+  num_batches_per_round : 2
 
-grpc:
-  addr: *agg_addr
-  port: *agg_port
-  disable_tls: False
-  disable_client_auth: False
+network:
+  defaults_file: defaults/network.yaml
  
 data:
-  data_name: cifar10_shard
-  module_name: data.pytorch.ptcifar10_inmemory
-  class_name: PyTorchCIFAR10InMemory
+  defaults_file: defaults/data_pt_cifar10.yaml
   nb_collaborators: 10
-  batch_size: 256
-  channels_last: False

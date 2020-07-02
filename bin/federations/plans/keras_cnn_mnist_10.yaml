@@ -1,7 +1,7 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-# Compose an FL plan in JSON/YAML.
+# Compose an FL plan in YAML
 # The plan is consumed by bin/run_simulation_from_flplan.py,
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and
 # bin/create_initial_weights_file_from_plan.py
@@ -27,18 +27,22 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-# We may have several plans for one dataset, to search the best model architecture for exammple.
+model:
+  module_name   : models.tensorflow.keras_cnn.keras_cnn
+  class_name    : KerasCNN 
 
-description     : Train a model to perform semantic segmentation on brain fMRI images.
-status          : active
+data:
+  defaults_file     : defaults/data_tf_mnist.yaml
+  nb_collaborators  : 10
+  batch_size        : 256
 
-federation: 
-  opt_treatment: &opt_treatment 'RESET'
-  polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 10
-  agg_addr: &agg_addr "spr-gpu02.jf.intel.com"
-  agg_port: &agg_port 82278
-  col_ids: &col_ids
+aggregator:
+  defaults_file     : defaults/aggregator_test_mode_whitelist.yaml
+  rounds_to_train   : 10
+  init_model_fname  : keras_cnn_mnist_init.pbuf
+  latest_model_fname: keras_cnn_mnist_latest.pbuf
+  best_model_fname  : keras_cnn_mnist_best.pbuf
+  col_ids           :
     - 'col_0'
     - 'col_1'
     - 'col_2'
@@ -49,34 +53,9 @@ federation:
     - 'col_7'
     - 'col_8'
     - 'col_9'
-  init_model_fname: keras_cnn_mnist_init.pbuf
-  latest_model_fname: keras_cnn_mnist_latest.pbuf
-  best_model_fname: keras_cnn_mnist_best.pbuf
 
-model:
-  module_name: models.tensorflow.keras_cnn.keras_cnn
-  class_name: KerasCNN
-   
-aggregator: 
-  col_ids: *col_ids
-  rounds_to_train: *rounds_to_train
-  test_mode_whitelist:
-    - spr-gpu01.jf.intel.com
-    - spr-gpu02.jf.intel.com
+collaborator:
+  defaults_file : defaults/collaborator.yaml
 
-collaborator: 
-  polling_interval: *polling_interval
-  opt_treatment: *opt_treatment
-
-grpc:
-  addr: *agg_addr
-  port: *agg_port
-  disable_tls: False
-  disable_client_auth: False
- 
-data:
-  data_name: mnist_shard
-  module_name: data.tensorflow.tfmnist_inmemory
-  class_name: TensorFlowMNISTInMemory
-  nb_collaborators: 10
-  batch_size: 256
+network:
+  defaults_file       : defaults/network.yaml

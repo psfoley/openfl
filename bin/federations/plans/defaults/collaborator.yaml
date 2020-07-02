@@ -1,0 +1,7 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
+polling_interval  : 4
+opt_treatment     : 'RESET'
+send_model_deltas : False
+epochs_per_round  : 1.0

@@ -27,24 +27,9 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-
-
-description     : Train a model to perform classification on MNIST images.
-status          : activeaggregator:
+aggregator:
   defaults_file: defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train: 4
-  agg_port: &agg_port 8878
-  col_ids:
-    - 'col_0'
-    - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
   init_model_fname: tensorflow_cnn_init.pbuf
   latest_model_fname: tensorflow_cnn_latest.pbuf
   best_model_fname: tensorflow_cnn_best.pbuf
@@ -62,5 +47,3 @@ network:
 data:
   defaults_file: defaults/data_tf_mnist.yaml
   nb_collaborators: 10
-  batch_size: 256
-  channels_last: True

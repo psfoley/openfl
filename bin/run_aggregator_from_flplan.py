@@ -9,13 +9,13 @@ import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import parse_fl_plan 
+from tfedlrn import parse_fl_plan, load_yaml
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 
 
 from setup_logging import setup_logging
 
 
-def main(plan, cert_common_name, logging_config_path, logging_default_level):
+def main(plan, collaborators_file, cert_common_name, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
@@ -23,10 +23,14 @@ def main(plan, cert_common_name, logging_config_path, logging_default_level):
     base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
+    collaborators_dir = os.path.join(base_dir, 'collaborator_lists')
 
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
     network_config = flplan['network']
+
+    # patch in the collaborators file
+    agg_config['col_ids'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['col_ids']
 
     init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
     latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
@@ -59,8 +63,9 @@ def main(plan, cert_common_name, logging_config_path, logging_default_level):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
+    parser.add_argument('--collaborators_file', '-c', type=str, required=True, help="Name of YAML File in /bin/federations/collaborator_lists/")
     parser.add_argument('--cert_common_name', '-ccn', type=str, default=None)
-    parser.add_argument('--logging_config_path', '-c', type=str, default="logging.yaml")
+    parser.add_argument('--logging_config_path', '-lcp', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

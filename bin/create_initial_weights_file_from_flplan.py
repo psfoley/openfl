@@ -17,7 +17,7 @@ def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
     return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
-def main(plan, feature_shape, data_config_fname, logging_config_path, logging_default_level):
+def main(plan, collaborators_file, feature_shape, data_config_fname, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     logger = logging.getLogger(__name__)
@@ -43,11 +43,13 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
     else:
         compression_pipeline = NoCompressionPipeline()
 
-    # FIXME: this will ultimately run in a governor environment and should not require any data to work
-    # pick the first collaborator to create the data and model (could be any)
-    col_id = agg_config['col_ids'][0]
 
     if feature_shape is None:
+        if collaborators_file is None:
+            sys.exit("You must specify either a feature shape or a collaborator list in order for the script to determine the input layer shape")
+        # FIXME: this will ultimately run in a governor environment and should not require any data to work
+        # pick the first collaborator to create the data and model (could be any)
+        col_id = load_yaml(os.path.join(base_dir, 'collaborator_lists', collaborators_file))['col_ids'][0]
         data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
         data = get_data(data_names_to_paths, **data_config)
     else:
@@ -81,9 +83,10 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
+    parser.add_argument('--collaborators_file', '-c', type=str, default=None, help="Name of YAML File in /bin/federations/collaborator_lists/")
     parser.add_argument('--feature_shape', '-fs', type=int, nargs='+', default=None)
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
-    parser.add_argument('--logging_config_path', '-c', type=str, default="logging.yaml")
+    parser.add_argument('--logging_config_path', '-lcp', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

@@ -27,24 +27,9 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-
-
-description     : Train a model to perform classification on CIFAR10 images.
-status          : activeaggregator:
+aggregator:
   defaults_file: defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train: 4
-  agg_port: &agg_port 8878
-  col_ids:
-    - 'col_0'
-    - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
   init_model_fname: keras_resnet_init.pbuf
   latest_model_fname: keras_resnet_latest.pbuf
   best_model_fname: keras_resnet_best.pbuf
@@ -52,7 +37,6 @@ status          : activeaggregator:
 model:
   module_name: models.tensorflow.keras_resnet.keras_resnet
   class_name: KerasResnet
-   
 
 collaborator:
   defaults_file: defaults/collaborator.yaml

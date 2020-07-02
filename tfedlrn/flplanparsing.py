@@ -33,6 +33,14 @@ def parse_fl_plan(plan_path, logger=None):
     flplan_fname = os.path.splitext(os.path.basename(plan_path))[0]
     flplan_hash = hash_files(plan_files, logger=logger)
 
+    # check for auto_port convenience settings
+    if flplan['network']['agg_port'] == 'auto':
+        # replace the port number with something in the range of min-max
+        # default is 49152 to 60999
+        port_range = flplan['network'].get('agg_auto_port_range', (49152, 60999))
+        port = (int(flplan_hash, 16) % (port_range[1] - port_range[0])) + port_range[0]
+        flplan['network']['agg_port'] = port
+
     fed_id = '{}_{}'.format(flplan_fname, flplan_hash[:8])
     agg_id = 'aggregator_{}'.format(fed_id)
 
@@ -40,6 +48,8 @@ def parse_fl_plan(plan_path, logger=None):
     flplan['aggregator']['fed_id'] = fed_id
     flplan['collaborator']['agg_id'] = agg_id
     flplan['collaborator']['fed_id'] = fed_id
+
+    logger.info("Parsed plan:\n{}".format(yaml.dump(flplan)))
 
     return flplan
 

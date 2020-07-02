@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 
 project = 'tfedlrn'
-copyright = '2019, Secure Intelligence Team'
+copyright = '2020, Secure Intelligence Team'
 author = 'Secure Intelligence Team'
 master_doc = 'index'
 

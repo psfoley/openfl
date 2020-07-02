@@ -1,0 +1,6 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
+test_mode_whitelist:
+  - spr-gpu01.jf.intel.com
+  - spr-gpu02.jf.intel.com

@@ -46,8 +46,7 @@ class AggregatorGRPCServer(AggregatorServicer):
         return self.aggregator.UploadLocalMetricsUpdate(request)
 
     def serve(self, 
-              addr, 
-              port, 
+              agg_port, 
               disable_tls=False, 
               disable_client_auth=False, 
               ca=None, 
@@ -79,7 +78,7 @@ class AggregatorGRPCServer(AggregatorServicer):
                                       ('grpc.max_send_message_length', 128 * 1024 * 1024),
                                       ('grpc.max_receive_message_length', 128 * 1024 * 1024)])
         add_AggregatorServicer_to_server(self, server)
-        uri = "[::]:{port:d}".format(port=port)
+        uri = "[::]:{port:d}".format(port=agg_port)
         self.disable_tls = disable_tls
         self.logger = logger
 

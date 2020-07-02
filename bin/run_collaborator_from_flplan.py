@@ -52,14 +52,14 @@ def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname
     else:
         compression_pipeline = None
 
-    col_grpc_client_config = flplan['grpc']
+    network_config = flplan['network']
     
     if cert_common_name is None:
         cert_common_name = col_id
 
     channel = get_channel(base_dir=base_dir, 
                           cert_common_name=cert_common_name,
-                          **col_grpc_client_config)
+                          **network_config)
 
     data = get_data(data_names_to_paths, **data_config)
 

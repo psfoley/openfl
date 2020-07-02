@@ -27,18 +27,12 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-# We may have several plans for one dataset, to search the best model architecture for exammple.
-
-description     : Train a model to perform classification on MNIST images.
-status          : active
-
-federation: 
-  opt_treatment: &opt_treatment 'RESET'
-  polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 10
+aggregator:
+  defaults_file: defaults/aggregator_test_mode_whitelist.yaml
+  rounds_to_train: 10
   agg_addr: &agg_addr 10.42.69.67 # "spr-gpu01.jf.intel.com"
   agg_port: &agg_port 8878
-  col_ids: &col_ids
+  col_ids:
     - 'col_0'
     #- 'col_1'
     # - 'col_2'
@@ -52,24 +46,14 @@ federation:
   init_model_fname: pt_cnn_rep_init.pbuf
   latest_model_fname: pt_cnn_rep_latest.pbuf
   best_model_fname: pt_cnn_rep_best.pbuf
-  model_version: &model_version 1
 
 model:
   module_name: models.pytorch.pt_cnn.pt_cnn_rep_matching
   class_name: PyTorchCNNRepMatching
   device: cuda
 
-aggregator: 
-  col_ids: *col_ids
-  rounds_to_train: *rounds_to_train
-  test_mode_whitelist:
-    - spr-gpu01.jf.intel.com
-    - spr-gpu02.jf.intel.com
-
-collaborator: 
-  model_version: *model_version
-  polling_interval: *polling_interval
-  opt_treatment: *opt_treatment
+collaborator:
+  defaults_file: defaults/collaborator.yaml
 
 grpc:
   addr: *agg_addr

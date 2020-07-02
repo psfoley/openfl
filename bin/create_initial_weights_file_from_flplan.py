@@ -9,7 +9,7 @@ import logging
 import importlib
 
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline, NoCompressionPipeline
-from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
+from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts, parse_fl_plan
 from tfedlrn.proto.protoutils import dump_proto, construct_proto
 from setup_logging import setup_logging
 
@@ -32,9 +32,9 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
         print('creating folder:', weights_dir)
         os.makedirs(weights_dir)
 
-    plan = load_yaml(os.path.join(plan_dir, plan))
+    plan = parse_fl_plan(os.path.join(plan_dir, plan))
     model_config = plan['model']
-    fed_config = plan['federation']
+    agg_config = plan['aggregator']
     data_config = plan['data']
 
     # For now we are compressing initial models if a compression pipeline exists
@@ -45,7 +45,7 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
 
     # FIXME: this will ultimately run in a governor environment and should not require any data to work
     # pick the first collaborator to create the data and model (could be any)
-    col_id = fed_config['col_ids'][0]
+    col_id = agg_config['col_ids'][0]
 
     if feature_shape is None:
         data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
@@ -56,7 +56,7 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
 
     wrapped_model = get_object(data=data, **model_config)
     
-    fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
+    fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
 
     tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
     

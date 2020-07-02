@@ -27,7 +27,6 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     # parse configs from flplan
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     by_col_data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
-    fed_config = flplan['federation']
     agg_config = flplan['aggregator']
     col_config = flplan['collaborator']
     model_config = flplan['model']
@@ -35,9 +34,9 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     compression_config = flplan.get('compression_pipeline')
 
 
-    init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
-    latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
-    best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+    init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
+    latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
+    best_model_fpath = os.path.join(weights_dir, agg_config['best_model_fname'])
 
   
     # TODO: Run a loop here over various parameter values and iterations
@@ -45,8 +44,7 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     federate(data_config=data_config, 
              col_config=col_config, 
              agg_config=agg_config,
-             model_config=model_config, 
-             fed_config=fed_config,
+             model_config=model_config,
              compression_config=compression_config,
              by_col_data_names_to_paths=by_col_data_names_to_paths, 
              init_model_fpath = init_model_fpath, 

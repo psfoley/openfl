@@ -26,12 +26,11 @@ def main(plan, cert_common_name, logging_config_path, logging_default_level):
 
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
-    fed_config = flplan['federation']
-    grpc_server_config = flplan['grpc']
+    network_config = flplan['network']
 
-    init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
-    latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
-    best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+    init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
+    latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
+    best_model_fpath = os.path.join(weights_dir, agg_config['best_model_fname'])
 
     if flplan.get('compression_pipeline') is not None:
         compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
@@ -45,17 +44,17 @@ def main(plan, cert_common_name, logging_config_path, logging_default_level):
                      **agg_config)
 
     # default cert folder to pki
-    cert_dir = os.path.join(base_dir, grpc_server_config.pop('cert_folder', 'pki')) # default to 'pki'
+    cert_dir = os.path.join(base_dir, network_config.pop('cert_folder', 'pki')) # default to 'pki'
 
     if cert_common_name is None:
-        cert_common_name = fed_config['agg_addr']
+        cert_common_name = network_config['agg_addr']
     agg_cert_path = os.path.join(cert_dir, "agg_{}".format(cert_common_name))
 
     agg_grpc_server = AggregatorGRPCServer(agg)
     agg_grpc_server.serve(ca=os.path.join(cert_dir, 'cert_chain.crt'),
                           certificate=os.path.join(agg_cert_path, 'agg_{}.crt'.format(cert_common_name)),
                           private_key=os.path.join(agg_cert_path, 'agg_{}.key'.format(cert_common_name)), 
-                          **grpc_server_config)
+                          **network_config)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

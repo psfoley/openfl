@@ -1,0 +1,8 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
+agg_addr            : spr-gpu01.jf.intel.com
+agg_port            : 14353
+disable_tls         : False
+disable_client_auth : False
+cert_folder         : pki

@@ -51,4 +51,3 @@ collaborator:
 
 network:
   defaults_file : defaults/network.yaml
-  agg_port      : 74428

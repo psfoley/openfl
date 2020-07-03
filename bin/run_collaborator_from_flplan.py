@@ -28,7 +28,7 @@ def get_channel(base_dir, cert_common_name, **col_grpc_client_config):
                                   private_key=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.key'.format(cert_common_name)), 
                                   **col_grpc_client_config)
 
-def main(plan, col_id, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level):
+def main(plan, collaborator_common_name, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level):
     setup_logging(path=logging_config_fname, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
@@ -41,11 +41,11 @@ def main(plan, col_id, single_col_cert_common_name, data_config_fname, logging_c
     model_config = flplan['model']
     data_config = flplan['data']
     data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
-    if col_id not in data_names_to_paths:
-        sys.exit("Could not find collaborator id \"{}\" in the local data config file. Please edit \"{}\" to specify the datapaths for this collaborator.".format(col_id, data_config_fname))
-    data_names_to_paths = data_names_to_paths[col_id]
+    if collaborator_common_name not in data_names_to_paths:
+        sys.exit("Could not find collaborator id \"{}\" in the local data config file. Please edit \"{}\" to specify the datapaths for this collaborator.".format(collaborator_common_name, data_config_fname))
+    data_names_to_paths = data_names_to_paths[collaborator_common_name]
     if data_config['data_name'] not in data_names_to_paths:
-        sys.exit("Could not find data path for collaborator id \"{}\" and dataset name \"{}\". Please edit \"{}\" to specify the path (or shard) for this collaborator and dataset.".format(col_id, data_config['data_name'], data_config_fname))
+        sys.exit("Could not find data path for collaborator id \"{}\" and dataset name \"{}\". Please edit \"{}\" to specify the path (or shard) for this collaborator and dataset.".format(collaborator_common_name, data_config['data_name'], data_config_fname))
 
     if flplan.get('compression_pipeline') is not None:
         compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
@@ -56,7 +56,7 @@ def main(plan, col_id, single_col_cert_common_name, data_config_fname, logging_c
     
     # if a single cert common name is in use, then that is the certificate we must use
     if single_col_cert_common_name is None:
-        cert_common_name = col_id
+        cert_common_name = collaborator_common_name
     else:
         cert_common_name = single_col_cert_common_name
 
@@ -68,7 +68,7 @@ def main(plan, col_id, single_col_cert_common_name, data_config_fname, logging_c
 
     wrapped_model = get_object(data=data, **model_config)
 
-    collaborator = Collaborator(col_id=col_id,
+    collaborator = Collaborator(collaborator_common_name=collaborator_common_name,
                                 wrapped_model=wrapped_model, 
                                 channel=channel,
                                 compression_pipeline = compression_pipeline,
@@ -81,7 +81,7 @@ def main(plan, col_id, single_col_cert_common_name, data_config_fname, logging_c
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
-    parser.add_argument('--col_id', '-col', type=str, required=True)
+    parser.add_argument('--collaborator_common_name', '-col', type=str, required=True)
     parser.add_argument('--single_col_cert_common_name', '-scn', type=str, default=None)
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
     parser.add_argument('--logging_config_fname', '-lc', type=str, default="logging.yaml")

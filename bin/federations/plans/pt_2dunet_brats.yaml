@@ -27,26 +27,22 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-model:
-  module_name   : models.tensorflow.keras_cnn.keras_cnn
-  class_name    : KerasCNN 
-
-data:
-  defaults_file     : defaults/data_tf_mnist.yaml
-  nb_collaborators  : 2
-  batch_size        : 256
-
 aggregator:
-  rounds_to_train   : 6
-  init_model_fname  : keras_cnn_mnist_init.pbuf
-  latest_model_fname: keras_cnn_mnist_latest.pbuf
-  best_model_fname  : keras_cnn_mnist_best.pbuf
-  collaborator_common_names           :
-    - 'col_0'
-    - 'col_1'  
+  rounds_to_train: 50
+  init_model_fname: pt_2dunet_brats_init.pbuf
+  latest_model_fname: pt_2dunet_brats_latest.pbuf
+  best_model_fname: pt_2dunet_brats_best.pbuf
+
+model:
+  module_name: models.pytorch
+  class_name: PyTorch2DUNet
+  device: cuda
 
 collaborator:
-  defaults_file : defaults/collaborator.yaml
+  defaults_file: defaults/collaborator.yaml
 
 network:
-  defaults_file : defaults/network.yaml
+  defaults_file: defaults/network.yaml
+ 
+data:
+  defaults_file: defaults/data_pt_brats.yaml

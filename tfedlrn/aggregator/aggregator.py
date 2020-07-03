@@ -33,9 +33,9 @@ class Aggregator(object):
     ----------
     id : str
         Aggregation ID.
-    fed_id : str
+    federation_uuid : str
         Federation ID.
-    col_ids : list of str
+    collaborator_common_names : list of str
         The list of IDs of enrolled collaborators.
     connection : ?
         Used to be ZMQ connection, but deprecated in gRPC.
@@ -48,9 +48,9 @@ class Aggregator(object):
     """
     # FIXME: no selector logic is in place
     def __init__(self,
-                 agg_id,
-                 fed_id,
-                 col_ids,
+                 aggregator_uuid,
+                 federation_uuid,
+                 collaborator_common_names,
                  init_model_fpath,
                  latest_model_fpath,
                  best_model_fpath,
@@ -62,13 +62,13 @@ class Aggregator(object):
                  compression_pipeline=None,  
                  **kwargs):
         self.logger = logging.getLogger(__name__)
-        self.id = agg_id
-        self.fed_id = fed_id
+        self.uuid = aggregator_uuid
+        self.federation_uuid = federation_uuid
         #FIXME: Should we do anything to insure the intial model is compressed?
         self.model = load_proto(init_model_fpath)
         self.latest_model_fpath = latest_model_fpath
         self.best_model_fpath = best_model_fpath
-        self.col_ids = col_ids
+        self.collaborator_common_names = collaborator_common_names
         self.round_num = 1
         self.rounds_to_train = rounds_to_train
         self.quit_job_sent_to = []
@@ -84,7 +84,7 @@ class Aggregator(object):
             self.single_col_cert_common_name = '' # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
 
         #FIXME: close the handler before termination.
-        log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
+        log_dir = './logs/tensorboardX/%s_%s' % (self.uuid, self.federation_uuid)
         self.tb_writer = tensorboardX.SummaryWriter(log_dir, flush_secs=10)
 
         self.model_update_in_progress = None
@@ -95,26 +95,26 @@ class Aggregator(object):
 
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
 
-    def valid_collaborator_CN_and_id(self, common_name, col_id):
-        # if self.test_mode_whitelist is None, then the common_name must match col_id and be in col_ids
+    def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
+        # if self.test_mode_whitelist is None, then the common_name must match collaborator_common_name and be in collaborator_common_names
         if self.single_col_cert_common_name == '':  # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
-            return common_name == col_id and col_id in self.col_ids
-        # otherwise, common_name must be in whitelist and col_id must be in col_ids
+            return cert_common_name == collaborator_common_name and collaborator_common_name in self.collaborator_common_names
+        # otherwise, common_name must be in whitelist and collaborator_common_name must be in collaborator_common_names
         else:
-            return common_name == self.single_col_cert_common_name and col_id in self.col_ids
+            return cert_common_name == self.single_col_cert_common_name and collaborator_common_name in self.collaborator_common_names
 
     def all_quit_jobs_sent(self):
-        return sorted(self.quit_job_sent_to) == sorted(self.col_ids)
+        return sorted(self.quit_job_sent_to) == sorted(self.collaborator_common_names)
 
     def validate_header(self, message):
         # validate that the message is for me
-        check_equal(message.header.recipient, self.id, self.logger)
+        check_equal(message.header.recipient, self.uuid, self.logger)
         
         # validate that the message is for my federation
-        check_equal(message.header.federation_id, self.fed_id, self.logger)
+        check_equal(message.header.federation_id, self.federation_uuid, self.logger)
         
         # validate that the sender is one of my collaborators
-        check_is_in(message.header.sender, self.col_ids, self.logger)
+        check_is_in(message.header.sender, self.collaborator_common_names, self.logger)
 
         # check that we agree on single_col_cert_common_name
         check_equal(message.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
@@ -126,7 +126,7 @@ class Aggregator(object):
         self.per_col_round_stats = dict(zip(keys, values))
 
     def collaborator_is_done(self, c):
-        assert c in self.col_ids
+        assert c in self.collaborator_common_names
 
         # FIXME: this only works because we have fixed roles each round
         return (c in self.per_col_round_stats["loss_results"] and
@@ -136,7 +136,7 @@ class Aggregator(object):
                 c in self.per_col_round_stats["collaborator_validation_sizes"])
 
     def num_collaborators_done(self):
-        return sum([self.collaborator_is_done(c) for c in self.col_ids])
+        return sum([self.collaborator_is_done(c) for c in self.collaborator_common_names])
 
     def straggler_time_expired(self):
         return self.round_start_time is not None and ((time.time() - self.round_start_time) > self.straggler_cutoff_time)
@@ -147,7 +147,7 @@ class Aggregator(object):
     def straggler_cutoff_check(self):
         cutoff = self.straggler_time_expired() and self.minimum_collaborators_reported()
         if cutoff:
-            collaborators_done = [c for c in self.col_ids if self.collaborator_is_done(c)]
+            collaborators_done = [c for c in self.collaborator_common_names if self.collaborator_is_done(c)]
             self.logger.info('\tEnding round early due to straggler cutoff. Collaborators done: {}'.format(collaborators_done))
         return cutoff
     
@@ -160,11 +160,11 @@ class Aggregator(object):
         check_equal(self.per_col_round_stats["agg_validation_results"].keys(), self.per_col_round_stats["collaborator_validation_sizes"].keys(), self.logger)
 
         # if everyone is done OR our straggler policy calls for an early round end
-        if self.num_collaborators_done() == len(self.col_ids) or self.straggler_cutoff_check():
+        if self.num_collaborators_done() == len(self.collaborator_common_names) or self.straggler_cutoff_check():
             self.end_of_round()
 
     def get_weighted_average_of_collaborators(self, value_dict, weight_dict):
-        cols = [k for k in value_dict.keys() if k in self.col_ids]
+        cols = [k for k in value_dict.keys() if k in self.collaborator_common_names]
         return np.average([value_dict[c] for c in cols], weights=[weight_dict[c] for c in cols])        
 
     def end_of_round(self):
@@ -423,7 +423,7 @@ class Aggregator(object):
         return reply       
 
     def create_reply_header(self, message):
-        return MessageHeader(sender=self.id, recipient=message.header.sender, federation_id=self.fed_id, counter=message.header.counter, single_col_cert_common_name=self.single_col_cert_common_name)
+        return MessageHeader(sender=self.uuid, recipient=message.header.sender, federation_id=self.federation_uuid, counter=message.header.counter, single_col_cert_common_name=self.single_col_cert_common_name)
 
     def collaborator_out_of_date(self, model_header):
         # validate that this is the right model to be checking

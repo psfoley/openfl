@@ -53,6 +53,8 @@ class Collaborator(object):
         self.agg_id = agg_id
         self.fed_id = fed_id
         self.single_col_cert_common_name = single_col_cert_common_name
+        if self.single_col_cert_common_name is None:
+            self.single_col_cert_common_name = '' # FIXME: this is just for protobuf compatibility. Cleaner solution?
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
                                         version=-1)

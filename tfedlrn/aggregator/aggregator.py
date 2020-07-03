@@ -80,6 +80,8 @@ class Aggregator(object):
 
         if self.single_col_cert_common_name is not None:
             self.log_big_warning()
+        else:
+            self.single_col_cert_common_name = '' # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
 
         #FIXME: close the handler before termination.
         log_dir = './logs/tensorboardX/%s_%s' % (self.id, self.fed_id)
@@ -95,7 +97,7 @@ class Aggregator(object):
 
     def valid_collaborator_CN_and_id(self, common_name, col_id):
         # if self.test_mode_whitelist is None, then the common_name must match col_id and be in col_ids
-        if self.single_col_cert_common_name is None:
+        if self.single_col_cert_common_name == '':  # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
             return common_name == col_id and col_id in self.col_ids
         # otherwise, common_name must be in whitelist and col_id must be in col_ids
         else:

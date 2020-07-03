@@ -37,7 +37,6 @@ data:
   batch_size        : 256
 
 aggregator:
-  defaults_file     : defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train   : 6
   init_model_fname  : keras_cnn_mnist_init.pbuf
   latest_model_fname: keras_cnn_mnist_latest.pbuf

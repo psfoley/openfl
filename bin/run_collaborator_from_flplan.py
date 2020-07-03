@@ -28,7 +28,7 @@ def get_channel(base_dir, cert_common_name, **col_grpc_client_config):
                                   private_key=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.key'.format(cert_common_name)), 
                                   **col_grpc_client_config)
 
-def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname, logging_default_level):
+def main(plan, col_id, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level):
     setup_logging(path=logging_config_fname, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
@@ -54,8 +54,11 @@ def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname
 
     network_config = flplan['network']
     
-    if cert_common_name is None:
+    # if a single cert common name is in use, then that is the certificate we must use
+    if single_col_cert_common_name is None:
         cert_common_name = col_id
+    else:
+        cert_common_name = single_col_cert_common_name
 
     channel = get_channel(base_dir=base_dir, 
                           cert_common_name=cert_common_name,
@@ -68,7 +71,8 @@ def main(plan, col_id, cert_common_name, data_config_fname, logging_config_fname
     collaborator = Collaborator(col_id=col_id,
                                 wrapped_model=wrapped_model, 
                                 channel=channel,
-                                compression_pipeline = compression_pipeline, 
+                                compression_pipeline = compression_pipeline,
+                                single_col_cert_common_name=single_col_cert_common_name,  
                                 **col_config)
 
 
@@ -78,7 +82,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
     parser.add_argument('--col_id', '-col', type=str, required=True)
-    parser.add_argument('--cert_common_name', '-ccn', type=str, default=None)
+    parser.add_argument('--single_col_cert_common_name', '-scn', type=str, default=None)
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
     parser.add_argument('--logging_config_fname', '-lc', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")

@@ -28,7 +28,6 @@
 # (using the local_data_config yaml file)
 
 aggregator:
-  defaults_file: defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train: 10
   init_model_fname: pytorch_cnn_init.pbuf
   latest_model_fname: pytorch_cnn_latest.pbuf

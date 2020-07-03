@@ -1,3 +1,5 @@
+How Can Intel Protect Federated Learning?
+=========================================
 
 Intel:sup:`®` Software Guard Extensions (`SGX<https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) are a set of CPU instructions that
 can be used by developers to set aside private regions of code and data
@@ -31,7 +33,7 @@ manifest file is specified, the command:
 
 $ SGX=1 ./pal_loader httpd
 
-will use the pal_loader command to create the enclave from the 
+will use the pal_loader command to create the enclave from the
 manifest and run the web server (http) within the enclave. No other
 modifications are needed for the httpd application.
 

@@ -30,7 +30,7 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
     network_config = flplan['network']
 
     # patch in the collaborators file
-    agg_config['col_ids'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['col_ids']
+    agg_config['collaborator_common_names'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
 
     init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
     latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])

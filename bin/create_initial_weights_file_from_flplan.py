@@ -49,8 +49,8 @@ def main(plan, collaborators_file, feature_shape, data_config_fname, logging_con
             sys.exit("You must specify either a feature shape or a collaborator list in order for the script to determine the input layer shape")
         # FIXME: this will ultimately run in a governor environment and should not require any data to work
         # pick the first collaborator to create the data and model (could be any)
-        col_id = load_yaml(os.path.join(base_dir, 'collaborator_lists', collaborators_file))['col_ids'][0]
-        data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
+        collaborator_common_name = load_yaml(os.path.join(base_dir, 'collaborator_lists', collaborators_file))['collaborator_common_names'][0]
+        data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][collaborator_common_name]
         data = get_data(data_names_to_paths, **data_config)
     else:
         data = get_object('data.dummy', 'RandomData', feature_shape=feature_shape)

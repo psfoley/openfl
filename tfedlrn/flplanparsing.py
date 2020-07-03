@@ -41,13 +41,13 @@ def parse_fl_plan(plan_path, logger=None):
         port = (int(flplan_hash, 16) % (port_range[1] - port_range[0])) + port_range[0]
         flplan['network']['agg_port'] = port
 
-    fed_id = '{}_{}'.format(flplan_fname, flplan_hash[:8])
-    agg_id = 'aggregator_{}'.format(fed_id)
+    federation_uuid = '{}_{}'.format(flplan_fname, flplan_hash[:8])
+    aggregator_uuid = 'aggregator_{}'.format(federation_uuid)
 
-    flplan['aggregator']['agg_id'] = agg_id
-    flplan['aggregator']['fed_id'] = fed_id
-    flplan['collaborator']['agg_id'] = agg_id
-    flplan['collaborator']['fed_id'] = fed_id
+    flplan['aggregator']['aggregator_uuid'] = aggregator_uuid
+    flplan['aggregator']['federation_uuid'] = federation_uuid
+    flplan['collaborator']['aggregator_uuid'] = aggregator_uuid
+    flplan['collaborator']['federation_uuid'] = federation_uuid
 
     logger.info("Parsed plan:\n{}".format(yaml.dump(flplan)))
 

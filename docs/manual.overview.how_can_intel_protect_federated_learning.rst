@@ -4,7 +4,7 @@
 How Can Intel Protect Federated Learning?
 =========================================
 
-Intel\ :sup:`®`\ Software Guard Extensions (` SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) are a set of CPU instructions that
+Intel\ :sup:`®` \ Software Guard Extensions (`SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) are a set of CPU instructions that
 can be used by developers to set aside private regions of code and data
 (`Bahmani, et al., 2017 <https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_). These private regions, called enclaves,
 are isolated sections of memory and compute that cannot be accessed
@@ -14,12 +14,12 @@ access to the CPU cannot access the enclave without the authorized key.
 .. image:: images/sgx.png
 
 This allows for developers to deploy their code and data on untrusted
-machines in a secure manner. In 2015, Intel\ :sup:`®`\ SGX was launched as the
+machines in a secure manner. In 2015, Intel\ :sup:`®` \ SGX was launched as the
 `first commercial implementation <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions/details.html>`_
 of what is more formally called a
 trusted execution environment (`TEE <https://en.wikipedia.org/wiki/Trusted_execution_environment>`_).
 
-One path to enable Intel\ :sup:`®`\ SGX in an application is to refactor the
+One path to enable Intel\ :sup:`®` \ SGX in an application is to refactor the
 application code to use the Intel SDK for SGX. However, many developers
 are reluctant to change their existing code.
 
@@ -34,13 +34,13 @@ With Graphene, the developer simply defines a manifest file
 that describes which code and data is allowed within the enclave.
 This manifest file is used to automatically create the enclave on an
 SGX-compatible CPU. For example, once Graphene is installed and the
-manifest file is specified, the command:
+manifest file is specified, the command::
 
-.. code-block:: bash
-   $ SGX=1 ./pal_loader httpd
+  $ SGX=1 ./pal_loader httpd
 
 will use the pal_loader command to create the enclave from the
 manifest and run the web server (http) within the enclave. No other
 modifications are needed for the httpd application.
 
+    
 .. image:: images/graphene.png

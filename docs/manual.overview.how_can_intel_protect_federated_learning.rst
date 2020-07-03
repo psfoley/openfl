@@ -13,8 +13,12 @@ are isolated sections of memory and compute that cannot be accessed
 without a `cryptographic key <https://en.wikipedia.org/wiki/Cryptographic_key_types>`_. Even users with root access or physical
 access to the CPU cannot access the enclave without the authorized key.
 
-.. image:: images/sgx.png
 
+.. figure:: images/sgx.png
+   :scale: 50 %
+   :alt: Intel\ :sup:`®` \ Software Guard Extensions
+
+  
 This allows for developers to deploy their code and data on untrusted
 machines in a secure manner. In 2015, Intel\ :sup:`®` \ SGX was launched as the
 `first commercial implementation <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions/details.html>`_

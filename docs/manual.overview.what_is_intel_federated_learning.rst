@@ -12,8 +12,8 @@ not fully-controlled by the federation owner.
 Previous attacks have shown that adversaries may be able to steal the model,
 reconstruct data based on the model updates, and/or prevent convergence of
 the training when using untrusted nodes
-(`Bagdasaryan, Veit, Hua, Estrin, & Shmatikov, 2018<https://arxiv.org/abs/1807.00459>`_;
-`Bhagoji, Chakraborty, Supriyo, & Calo, 2018<https://arxiv.org/abs/1811.12470>`_).
+(`Bagdasaryan, Veit, Hua, Estrin, & Shmatikov, 2018 <https://arxiv.org/abs/1807.00459>`_;
+`Bhagoji, Chakraborty, Supriyo, & Calo, 2018 <https://arxiv.org/abs/1811.12470>`_).
 With Intel® Federated Learning protected via Intel\ :sup:`®`\ SGX,
 adversaries are unable to use the model and unable to adapt their
 attacks because the actual training is only visible to those with an

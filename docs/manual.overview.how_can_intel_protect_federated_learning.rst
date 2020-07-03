@@ -1,9 +1,9 @@
 How Can Intel Protect Federated Learning?
 =========================================
 
-Intel\ :sup:`®`\ Software Guard Extensions (`SGX<https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) are a set of CPU instructions that
+Intel\ :sup:`®`\ Software Guard Extensions (`SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) are a set of CPU instructions that
 can be used by developers to set aside private regions of code and data
-(`Bahmani, et al., 2017<https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_). These private regions, called enclaves,
+(`Bahmani, et al., 2017 <https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_). These private regions, called enclaves,
 are isolated sections of memory and compute that cannot be accessed
 without a cryptographic key. Even users with root access or physical
 access to the CPU cannot access the enclave without the authorized key.
@@ -12,9 +12,9 @@ access to the CPU cannot access the enclave without the authorized key.
 
 This allows for developers to deploy their code and data on untrusted
 machines in a secure manner. In 2015, Intel\ :sup:`®`\ SGX was launched as the
-`first commercial implementation<https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions/details.html>`_
+`first commercial implementation <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions/details.html>`_
  of what is more formally called a
-trusted execution environment (`TEE<https://en.wikipedia.org/wiki/Trusted_execution_environment>`_).
+trusted execution environment (`TEE <https://en.wikipedia.org/wiki/Trusted_execution_environment>`_).
 
 One path to enable Intel\ :sup:`®`\ SGX in an application is to refactor the
 application code to use the Intel SDK for SGX. However, many developers

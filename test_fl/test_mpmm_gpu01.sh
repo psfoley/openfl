@@ -31,7 +31,7 @@ time ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p ke
 echo "-------------------------------------------------------------"
 echo "======== aggregator on gpu01 ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/run_aggregator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -c cols_2.yaml &
+time ../venv/bin/python3 ../bin/run_aggregator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -c cols_2.yaml -scn spr-gpu02.jf.intel.com &
 wait
 echo "-------------------------------------------------------------"
 echo "======== Exit code:: $?"

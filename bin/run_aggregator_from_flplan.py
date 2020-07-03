@@ -15,7 +15,7 @@ from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 from setup_logging import setup_logging
 
 
-def main(plan, collaborators_file, cert_common_name, logging_config_path, logging_default_level):
+def main(plan, collaborators_file, single_col_cert_common_name, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
@@ -44,14 +44,14 @@ def main(plan, collaborators_file, cert_common_name, logging_config_path, loggin
     agg = Aggregator(init_model_fpath=init_model_fpath,
                      latest_model_fpath=latest_model_fpath,
                      best_model_fpath=best_model_fpath,
-                     compression_pipeline=compression_pipeline, 
+                     compression_pipeline=compression_pipeline,
+                     single_col_cert_common_name=single_col_cert_common_name,
                      **agg_config)
 
     # default cert folder to pki
     cert_dir = os.path.join(base_dir, network_config.pop('cert_folder', 'pki')) # default to 'pki'
 
-    if cert_common_name is None:
-        cert_common_name = network_config['agg_addr']
+    cert_common_name = network_config['agg_addr']
     agg_cert_path = os.path.join(cert_dir, "agg_{}".format(cert_common_name))
 
     agg_grpc_server = AggregatorGRPCServer(agg)
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
     parser.add_argument('--collaborators_file', '-c', type=str, required=True, help="Name of YAML File in /bin/federations/collaborator_lists/")
-    parser.add_argument('--cert_common_name', '-ccn', type=str, default=None)
+    parser.add_argument('--single_col_cert_common_name', '-scn', type=str, default=None)
     parser.add_argument('--logging_config_path', '-lcp', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()

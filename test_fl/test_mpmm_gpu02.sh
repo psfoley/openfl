@@ -29,7 +29,7 @@ sleep 30
 echo "-------------------------------------------------------------"
 echo "======== collaborator 0 ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_0 -ccn spr-gpu02.jf.intel.com &
+time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_0 -scn spr-gpu02.jf.intel.com &
 echo "======== exit code $?"
 
 #echo "sleeping for 30 sec. waiting for the aggregator"
@@ -38,7 +38,7 @@ echo "======== exit code $?"
 echo "-------------------------------------------------------------"
 echo "======== collaborator 1 ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_1 -ccn spr-gpu02.jf.intel.com &
+time ../venv/bin/python3 ../bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2_mpmm.yaml -col col_1 -scn spr-gpu02.jf.intel.com &
 wait
 echo "======== Exit code $?"
 echo "======== Done! on gpu02 ${0}"

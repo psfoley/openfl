@@ -29,7 +29,6 @@
 
 
 aggregator:
-  defaults_file: defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train: 4
   init_model_fname: pytorch_cnn_init.pbuf
   latest_model_fname: pytorch_cnn_latest.pbuf
@@ -51,7 +50,6 @@ data:
   nb_collaborators: 10
 
 aggregator:
-  defaults_file: defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train: 10
   agg_addr: &agg_addr 10.42.69.67 # "spr-gpu01.jf.intel.com"
   agg_port: &agg_port 8878

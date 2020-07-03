@@ -42,6 +42,7 @@ class Collaborator(object):
                  epochs_per_round=1.0, 
                  num_batches_per_round=None, 
                  send_model_deltas = False,
+                 single_col_cert_common_name=None,
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
@@ -51,6 +52,7 @@ class Collaborator(object):
         self.id = col_id
         self.agg_id = agg_id
         self.fed_id = fed_id
+        self.single_col_cert_common_name = single_col_cert_common_name
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
                                         version=-1)
@@ -126,7 +128,7 @@ class Collaborator(object):
 
 
     def create_message_header(self):
-        header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)
+        header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter, single_col_cert_common_name=self.single_col_cert_common_name)
         return header
 
     def __repr__(self):
@@ -142,6 +144,9 @@ class Collaborator(object):
         
         # check that the federation id matches
         check_equal(reply.header.federation_id, self.fed_id, self.logger)
+
+        # check that we agree on single_col_cert_common_name
+        check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
 
     def run(self):
         time_to_quit = False

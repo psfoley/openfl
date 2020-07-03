@@ -2,8 +2,8 @@
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 
-Configure The Federation
-========================
+Configuring the Federation
+==========================
 
 `TLS <https://en.wikipedia.org/wiki/Transport_Layer_Security>`_ encryption is 
 used for the network connections. 
@@ -83,10 +83,10 @@ you want to be able to run as a collaborator, you should have:
 - bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.crt
 - bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.key
 
-	Note that once the certificates are transferred to the collaborator, 
-	it is now possible 
-	to participate in any future federations run by this aggregator. 
-	(The aggregator can revoke this privilege.)
+Note that once the certificates are transferred to the collaborator, 
+it is now possible 
+to participate in any future federations run by this aggregator. 
+(The aggregator can revoke this privilege.)
 
 6.	On the aggregator machine you should have the files:
 

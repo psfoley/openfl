@@ -10,5 +10,8 @@ Overview
    manual.overview.how_can_intel_protect_federated_learning
    manual.overview.what_is_intel_federated_learning
    
+   
+.. image:: images/hls_fl_graphic.png
+
 
  

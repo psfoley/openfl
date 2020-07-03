@@ -32,6 +32,8 @@ to change their existing applications. Several commercial implementations
 based on Graphene have been created by our partners, including
 `Fortanix <https://fortanix.com>`_ and `SContain <https://scontain.com>`_.
 
+.. image:: images/graphene.png
+
 With Graphene, the developer simply defines a manifest file
 that describes which code and data is allowed within the enclave.
 This manifest file is used to automatically create the enclave on an
@@ -47,4 +49,4 @@ manifest and run the web server (http) within the enclave. No other
 modifications are needed for the httpd application.
 
     
-.. image:: images/graphene.png
+

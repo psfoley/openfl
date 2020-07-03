@@ -21,13 +21,13 @@ All Nodes
 
 .. code-block:: console
 
-  $ unzip OpenFederatedLearning-master.zip
+  $ unzip spr_secure_intelligence-trusted_federated_learning.zip
 
 2.	Change into the OpenFederatedLearning-master subdirectory.
 
 .. code-block:: console
 
-  $ cd OpenFederatedLearning-master
+  $ cd spr_secure_intelligence-trusted_federated_learning
 
 On the Aggregator Node
 

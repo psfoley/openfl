@@ -7,7 +7,7 @@ attacks that are well documented in the literature. With Intel:sup:`®` SGX on
 every node in the federation, risks are mitigated even if the nodes are
 not fully-controlled by the federation owner.
 
-.. image:: images/diagram_fl.png
+.. image:: images/trusted_fl.png
 
 Previous attacks have shown that adversaries may be able to steal the model,
 reconstruct data based on the model updates, and/or prevent convergence of

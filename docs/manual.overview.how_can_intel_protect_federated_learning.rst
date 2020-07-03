@@ -8,7 +8,7 @@ Intel\ :sup:`®` \ Software Guard Extensions (`SGX <https://software.intel.com/c
 can be used by developers to set aside private regions of code and data
 (`Bahmani, et al., 2017 <https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_). These private regions, called enclaves,
 are isolated sections of memory and compute that cannot be accessed
-without a cryptographic key. Even users with root access or physical
+without a `cryptographic key <https://en.wikipedia.org/wiki/Cryptographic_key_types>`_. Even users with root access or physical
 access to the CPU cannot access the enclave without the authorized key.
 
 .. image:: images/sgx.png

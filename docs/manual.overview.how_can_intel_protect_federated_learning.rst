@@ -4,9 +4,11 @@
 How Can Intel Protect Federated Learning?
 =========================================
 
-Intel\ :sup:`®` \ Software Guard Extensions (`SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) are a set of CPU instructions that
+Intel\ :sup:`®` \ Software Guard Extensions (`SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) 
+are a set of CPU instructions that
 can be used by developers to set aside private regions of code and data
-(`Bahmani, et al., 2017 <https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_). These private regions, called enclaves,
+(`Bahmani, et al., 2017 <https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_). 
+These private regions, called `enclaves <https://en.wikipedia.org/wiki/Software_Guard_Extensions>`_,
 are isolated sections of memory and compute that cannot be accessed
 without a `cryptographic key <https://en.wikipedia.org/wiki/Cryptographic_key_types>`_. Even users with root access or physical
 access to the CPU cannot access the enclave without the authorized key.
@@ -20,7 +22,7 @@ of what is more formally called a
 trusted execution environment (`TEE <https://en.wikipedia.org/wiki/Trusted_execution_environment>`_).
 
 One path to enable Intel\ :sup:`®` \ SGX in an application is to refactor the
-application code to use the Intel SDK for SGX. However, many developers
+application code to use the `Intel SDK for SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions/sdk.html>`_. However, many developers
 are reluctant to change their existing code.
 
 `Graphene <https://github.com/oscarlab/graphene>`_ is an

@@ -8,4 +8,5 @@ Manual
 .. toctree::
 
    manual.overview
+   install
 

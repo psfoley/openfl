@@ -149,6 +149,8 @@ test_mpsm_shell_1:
     - rm -rf ./bin/federations/certs
     - echo "copy the certs ..."
     - cp -r /home/gitlab-runner/workspace/pki ./bin/federations/
+    - echo "copy the network.yaml file ..."
+    - cp -r /home/gitlab-runner/workspace/plan_defaults/network.yaml ./bin/federations/plans/defaults/
     script:
     - cd test_fl/
     - ./test_mpsm.sh
@@ -184,6 +186,8 @@ test_mpmm_shell_1:
     - rm -rf ./bin/federations/pki
     - echo "copy the certs ..."
     - cp -r /home/gitlab-runner/workspace/pki ./bin/federations/
+    - echo "copy the network.yaml file ..."
+    - cp -r /home/gitlab-runner/workspace/plan_defaults/network.yaml ./bin/federations/plans/defaults/
     script:
     - cd test_fl/
     - ./test_mpmm_gpu01.sh
@@ -219,6 +223,8 @@ test_mpmm_shell_2:
     - rm -rf ./bin/federations/certs
     - echo "copy the certs ..."
     - cp -r /home/gitlab-runner/workspace/pki ./bin/federations/
+    - echo "copy the network.yaml file ..."
+    - cp -r /home/gitlab-runner/workspace/plan_defaults/network.yaml ./bin/federations/plans/defaults/
     script:
     - cd test_fl/
     - ./test_mpmm_gpu02.sh

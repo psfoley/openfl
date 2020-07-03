@@ -23,12 +23,12 @@ trap cleanup SIGINT SIGTERM SIGQUIT
 echo "-------------------------------------------------------------"
 echo "======== creating init weights ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml
+time ../venv/bin/python3 ../bin/create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml -c cols_2.yaml
 
 echo "-------------------------------------------------------------"
 echo "======== aggregator ......"
 echo "-------------------------------------------------------------"
-time ../venv/bin/python3 ../bin/run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml &
+time ../venv/bin/python3 ../bin/run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml -c cols_2.yaml &
 echo "-------------------------------------------------------------"
 echo "======== collaborator 0 ......"
 echo "-------------------------------------------------------------"

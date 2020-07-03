@@ -29,9 +29,6 @@
 
 aggregator:
   rounds_to_train: 16
-  col_ids:
-    - 'col_0'
-    - 'col_1'
   init_model_fname: keras_cnn_mnist_init.pbuf
   latest_model_fname: keras_cnn_mnist_latest.pbuf
   best_model_fname: keras_cnn_mnist_best.pbuf

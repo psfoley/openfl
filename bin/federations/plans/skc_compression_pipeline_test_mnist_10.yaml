@@ -30,17 +30,6 @@
 aggregator:
   defaults_file: defaults/aggregator_test_mode_whitelist.yaml
   rounds_to_train: 10
-  col_ids:
-    - 'col_0'
-    - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
   init_model_fname: keras_cnn_mnist_init.pbuf
   latest_model_fname: keras_cnn_mnist_latest.pbuf
   best_model_fname: keras_cnn_mnist_best.pbuf

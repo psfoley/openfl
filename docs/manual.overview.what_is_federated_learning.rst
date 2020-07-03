@@ -5,7 +5,7 @@
 What is Federated Learning?
 ===========================
 
-Federated learning is a distributed machine learning approach that
+`Federated learning <https://en.wikipedia.org/wiki/Federated_learning>`_ is a distributed machine learning approach that
 enables organizations to collaborate on machine learning projects
 without sharing sensitive data, such as, patient records, financial data,
 or classified secrets (`McMahan, 2016 <https://arxiv.org/abs/1602.05629>`_;

@@ -36,7 +36,9 @@ With Graphene, the developer simply defines a manifest file
 that describes which code and data is allowed within the enclave.
 This manifest file is used to automatically create the enclave on an
 SGX-compatible CPU. For example, once Graphene is installed and the
-manifest file is specified, the command::
+manifest file is specified, the command
+
+.. code-block:: console
 
   $ SGX=1 ./pal_loader httpd
 

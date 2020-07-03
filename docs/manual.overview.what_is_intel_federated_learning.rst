@@ -2,11 +2,11 @@
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 
-What is Intel® Federated Learning?
+What is Intel\ :sup:`®` \ Federated Learning?
 ==================================
 
-By leveraging the security provided by Intel\ :sup:`®` \ SGX and the ease of deployment
-provided by Graphene, Federated Learning can be protected from adversarial
+By leveraging the security provided by Intel\ :sup:`®` \ `SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_ and the ease of deployment
+provided by `Graphene <https://github.com/oscarlab/graphene>`_, Federated Learning can be protected from adversarial
 attacks that are well documented in the literature. With Intel\ :sup:`®` \ SGX on
 every node in the federation, risks are mitigated even if the nodes are
 not fully-controlled by the federation owner.

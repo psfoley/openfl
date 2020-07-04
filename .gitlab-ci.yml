@@ -30,6 +30,7 @@ pages:
   - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
+  - make latexpdf
   artifacts:
     paths:
     - public

@@ -78,12 +78,12 @@ the Aggregator can join the federation.
 
 5.	Once you have the certificates created, you need to move the certificates
 to the correct machines and ensure each machine has the cert_chain.crt
-needed to verify cert signatures.
+needed to verify certificate signatures.
 For example, on a test machine named TEST_MACHINE that
 you want to be able to run as a collaborator, you should have:
 
 +---------------------------+--------------------------------------------------------------+
-| Type                      | Filename                                                     |
+| File Type                 | Filename                                                     |
 +===========================+==============================================================+
 | Certificate chain         | bin/federations/pki/cert_chain.crt                           |
 +---------------------------+--------------------------------------------------------------+
@@ -100,7 +100,7 @@ to participate in any future federations run by this aggregator.
 6.	On the aggregator machine you should have the files:
 
 +---------------------------+------------------------------------------------------------------------------------------------------------------+
-| Type                      | Filename                                                                                                         |
+| File Type                 | Filename                                                                                                         |
 +===========================+==================================================================================================================+
 | Certificate chain         | bin/federations/pki/cert_chain.crt                                                                               |
 +---------------------------+------------------------------------------------------------------------------------------------------------------+

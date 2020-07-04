@@ -25,8 +25,8 @@ order to test some basic functionality:
 
 ### Installation Steps
 
-NOTE: You'll need to first setup the certificates
-:ref:`using these instructions <_install_certs>`.
+.. note::
+   You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.
 
 1.	Unzip the source code
 

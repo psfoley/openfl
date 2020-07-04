@@ -58,11 +58,12 @@ IP address for the aggregator, replacing [IP_ADDRESS].
 
   $ bash create-aggregator.sh AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 
-Tip: You can discover the FQDN with the Linux command:
+.. note::
+   You can discover the FQDN with the Linux command:
 
-.. code-block:: console
+   .. code-block:: console
 
-  $ hostname –-fqdn
+     $ hostname –-fqdn
 
 4.	For each test machine you want to run collaborators on, we create a collaborator
 certificate, replacing TEST.MACHINE.NAME with the actual test machine name.

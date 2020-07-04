@@ -12,5 +12,4 @@ Changes to this manual, the project code, the project design should be expected.
 
    install.design
    install.certificates
-   install.baremetal
-   install.docker
+   install.installing

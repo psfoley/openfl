@@ -1,17 +1,17 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-**********************
-Baremetal Installation
-**********************
+***********************
+Installing the Software
+***********************
 
 Intel has tested the installation on Ubuntu 18.04 and Centos 7.6 systems.
 A Python 3.6 virtual environment (venv) is used to isolate the packages.
 The basic installation is via the Makefile included in the root directory
 of the repository.
 
-Installation Steps
-##################
+Initial Steps
+#############
 
 .. note::
    You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.
@@ -62,7 +62,10 @@ address (required for security). For example:
 5.	Make sure that you followed the steps in Configure the Federation and
 have copied the keys and certificates onto the federation nodes.
 
-6.	Build the virtual environment using the command:
+Baremetal Installation
+######################
+
+1.	Build the virtual environment using the command:
 
 .. code-block:: console
 
@@ -75,6 +78,7 @@ Python packages by editing this section in the Makefile.
 
 .. figure:: images/custom_packages.png
 
+
    How to install a custom package in the virtual environment.
 
 Just add your own line. For example,
@@ -82,3 +86,32 @@ Just add your own line. For example,
 .. code-block:: console
 
    $ venv/bin/pip3 install my_package 
+
+Docker Installation
+###################
+
+.. code-block:: console
+
+  $ docker run hello-world
+  Hello from Docker!
+  This message shows that your installation appears to be working correctly.
+  ...
+  ...
+  ...
+
+  1.	Build the Docker containers using the command:
+
+  .. code-block:: console
+
+     $ make build_containers model_name=DOCKER_LABEL
+
+  replacing *DOCKER_LABEL* with whatever label you wish to give the Docker container.
+
+  This should create the Docker containers that are used by the aggregator
+  and the collaborators. It will append the *DOCKER_LABEL* and the
+  name of the user that created the container.
+
+  .. code-block:: console
+
+     Successfully tagged tfl_agg_DOCKER_LABEL_USERNAME:0.1
+     Successfully tagged tfl_col_cpu_DOCKER_LABEL_USERNAME:0.1

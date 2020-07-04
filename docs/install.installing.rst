@@ -154,5 +154,5 @@ the output would be:
 
 .. code-block:: console
 
-   Successfully tagged tfl_agg_keras_cnn_intel123:0.1
-   Successfully tagged tfl_col_cpu_keras_cnn_intel123:0.1
+   $ Successfully tagged tfl_agg_keras_cnn_intel123:0.1
+   $ Successfully tagged tfl_col_cpu_keras_cnn_intel123:0.1

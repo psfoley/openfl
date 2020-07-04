@@ -32,7 +32,19 @@ Initial Steps
 
    $ cd spr_secure_intelligence-trusted_federated_learning
 
-3.	Use a text editor to open the YAML file for the federation plan.
+3. Install Python 3 and the Python `virtual environment <https://docs.python.org/3.6/library/venv.html#module-venv>`_.
+
+.. note::
+You can find the instructions on the official
+`Python website <https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#installing-virtualenv>`_.
+You may need to log out and back in for the changes to take effect.
+
+   .. code-block:: console
+
+     $ python3 -m pip install --user virtualenv
+
+
+4.	Use a text editor to open the YAML file for the federation plan.
 
 .. code-block:: console
 
@@ -57,13 +69,13 @@ address (required for security). For example:
      $ hostname –-fqdn
 
 
-4.	If pyyaml is not installed, then use pip to install it:
+5.	If pyyaml is not installed, then use pip to install it:
 
 .. code-block:: console
 
    $ pip3 install pyyaml
 
-5.	Make sure that you followed the steps in Configure the Federation and
+6.	Make sure that you followed the steps in Configure the Federation and
 have copied the keys and certificates onto the federation nodes.
 
 Baremetal Installation

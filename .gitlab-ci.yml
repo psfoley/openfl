@@ -10,7 +10,8 @@ pages:
   stage: build
   tags: 
   - alpine-runner-sh-1
-  image: alpine
+  #image: alpine
+  image: sphinxdoc/sphinx
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912
@@ -18,10 +19,10 @@ pages:
   - apk --no-cache add py3-pip python3-dev
   - apk --no-cache add musl-dev linux-headers g++
 
-  - pip3 install wheel
-  - pip3 install sphinx sphinx_rtd_theme sphinxcontrib.napoleon
-  - pip3 install numpy pyyaml
-  - pip3 install protobuf
+#  - pip3 install wheel
+#  - pip3 install sphinx sphinx_rtd_theme sphinxcontrib.napoleon
+#  - pip3 install numpy pyyaml
+#  - pip3 install protobuf
   
   - apk --no-cache add make
   - cd docs

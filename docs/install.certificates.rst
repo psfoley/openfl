@@ -82,11 +82,15 @@ needed to verify cert signatures.
 For example, on a test machine named TEST_MACHINE that
 you want to be able to run as a collaborator, you should have:
 
-.. code-block:: console
-
-   bin/federations/pki/cert_chain.crt
-   bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.crt
-   bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.key
++---------------------------+--------------------------------------------------------------+
+| Type                      | Filename                                                     |
++===========================+==============================================================+
+| Certificate chain         | bin/federations/pki/cert_chain.crt                           |
++---------------------------+--------------------------------------------------------------+
+| Collaborator certificate  | bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.crt    |
++---------------------------+--------------------------------------------------------------+
+| Collaborator key          | bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.key    |
++---------------------------+--------------------------------------------------------------+
 
 Note that once the certificates are transferred to the collaborator,
 it is now possible

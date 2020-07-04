@@ -104,7 +104,7 @@ running the command:
 
    $ python3 run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml -ccn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 
-Notice we have to pass the fully qualified domain name (FQDN) so that
+Notice we have to pass the `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ so that
 the correct certificate can be presented. At this point, the aggregator
 is running and waiting for the collaborators to connect. When all of the
 collaborators connect, the aggregator starts training. When the last round

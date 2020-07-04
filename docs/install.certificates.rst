@@ -99,8 +99,12 @@ to participate in any future federations run by this aggregator.
 
 6.	On the aggregator machine you should have the files:
 
-.. code-block:: console
-
-  bin/federations/pki/cert_chain.crt
-  bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt
-  bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key
++---------------------------+------------------------------------------------------------------------------------------------------------------+
+| Type                      | Filename                                                                                                         |
++===========================+==================================================================================================================+
+| Certificate chain         | bin/federations/pki/cert_chain.crt                                                                               |
++---------------------------+------------------------------------------------------------------------------------------------------------------+
+| Collaborator certificate  | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt    |
++---------------------------+------------------------------------------------------------------------------------------------------------------+
+| Collaborator key          | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key    |
++---------------------------+------------------------------------------------------------------------------------------------------------------+

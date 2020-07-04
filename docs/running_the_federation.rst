@@ -79,7 +79,7 @@ On the Aggregator
    $ make run_agg_container model_name=$DOCKER_LABEL
 
 where *$DOCKER_LABEL* is the label you added to the Docker image during
-it's creation.
+its creation.
 
 When the Docker container for the aggregator begins you’ll see the prompt above.
 This means you are within the running Docker container.
@@ -91,7 +91,7 @@ will be stored within protobuf files on the aggregator and passed to the
 collaborators during initialization. As seen in the YAML file, the protobuf
 file with the initial weights is expected to be found in the file
 *keras_cnn_mnist_init.pbuf*. For this example, however, we’ll just create an
-initial set of random model weights and putting it into that file by 
+initial set of random model weights and putting it into that file by
 running the command:
 
 .. code-block:: console

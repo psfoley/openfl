@@ -12,4 +12,4 @@ Overview
    overview.what_is_intel_federated_learning
 
 
-.. image:: images/hls_fl_graphic.png
+.. figure:: images/hls_fl_graphic.png

@@ -16,8 +16,9 @@ access to the CPU cannot access the enclave without the authorized key.
 
 
 .. figure:: images/sgx.png
-   :scale: 50 %
    :alt: Intel\ :sup:`®` \ Software Guard Extensions
+
+   Intel\ :sup:`®` \ Software Guard Extensions
 
 
 This allows for developers to deploy their code and data on untrusted
@@ -37,7 +38,9 @@ to change their existing applications. Several commercial implementations
 based on Graphene have been created by our partners, including
 `Fortanix <https://fortanix.com>`_ and `SContain <https://scontain.com>`_.
 
-.. image:: images/graphene.png
+.. figure:: images/graphene.png
+
+  Graphene allows unmodified programs to be protected by SGX.
 
 With Graphene, the developer simply defines a manifest file
 that describes which code and data is allowed within the enclave.

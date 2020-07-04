@@ -1,9 +1,9 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-
+*******************
 Docker Installation
-===================
+*******************
 
 We will show you how to set up Intel\ :sup:`®` \ Federated Learning on
 Docker using a simple MNIST dataset and a TensorFlow/Keras CNN model as
@@ -23,7 +23,8 @@ order to test some basic functionality:
   ...
   ...
 
-### Installation Steps
+Installation Steps
+##################
 
 .. note::
    You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.

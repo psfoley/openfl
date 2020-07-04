@@ -1,16 +1,17 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-
+**********************
 Baremetal Installation
-======================
+**********************
 
 Intel has tested the installation on Ubuntu 18.04 and Centos 7.6 systems.
 A Python 3.6 virtual environment (venv) is used to isolate the packages.
 The basic installation is via the Makefile included in the root directory
 of the repository.
 
-### Installation Steps
+Installation Steps
+##################
 
 .. note::
    You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.

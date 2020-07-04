@@ -18,7 +18,7 @@ pages:
 
   - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark 
   
-  - apk --no-cache add make
+  - apk --no-cache add make rst2pdf
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn
   - sphinx-apidoc -f -o . ../models

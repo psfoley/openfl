@@ -137,15 +137,22 @@ Docker Installation
 
 .. code-block:: console
 
-   $ make build_containers model_name=DOCKER_LABEL
+   $ make build_containers model_name=$DOCKER_LABEL
 
-replacing *DOCKER_LABEL* with whatever label you wish to give the Docker container.
-
-This should create the Docker containers that are used by the aggregator
-and the collaborators. It will append the *DOCKER_LABEL* and the
-name of the user that created the container.
+replacing *$DOCKER_LABEL* with whatever label you wish to give the Docker container.
+For example,
 
 .. code-block:: console
 
-   Successfully tagged tfl_agg_DOCKER_LABEL_USERNAME:0.1
-   Successfully tagged tfl_col_cpu_DOCKER_LABEL_USERNAME:0.1
+   $ make build_containers model_name=keras_cnn
+
+This should create the Docker containers that are used by the aggregator
+and the collaborators. It will append the *$DOCKER_LABEL* and the
+name of the user that created the container. For example,
+if user **intel123** ran the command using the Docker label *keras_cnn* then
+the output would be:
+
+.. code-block:: console
+
+   Successfully tagged tfl_agg_keras_cnn_intel123:0.1
+   Successfully tagged tfl_col_cpu_keras_cnn_intel123:0.1

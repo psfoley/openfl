@@ -10,25 +10,21 @@ pages:
   stage: build
   tags: 
   - alpine-runner-sh-1
-  image: alpine
+  image: python:3.6-alpine
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912
   - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-  - apk --no-cache add py3-pip python3-dev
-  - apk --no-cache add musl-dev linux-headers g++
 
-  - pip3 install wheel
-  - pip3 install sphinx sphinx_rtd_theme sphinxcontrib.napoleon
-  - pip3 install numpy pyyaml
-  - pip3 install protobuf
+  - apk --no-cache add make 
+  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark 
   
-  - apk --no-cache add make
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn
   - sphinx-apidoc -f -o . ../models
   - sphinx-apidoc -f -o . ../data
   - make html
+#  - make latexpdf
   - mv _build/html/ ../public/
   artifacts:
     paths:

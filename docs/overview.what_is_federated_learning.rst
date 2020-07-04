@@ -16,4 +16,5 @@ is that the model moves to meet the data rather than the data moving
 to meet the model. Therefore, the minimum data movement needed
 across the federation is solely the model parameters and their updates.
 
-.. image:: images/diagram_fl.png
+.. figure:: images/diagram_fl.png
+   Federated Learning

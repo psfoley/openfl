@@ -45,11 +45,13 @@ aggregator address. Please make sure you specify the fully-qualified
 domain name (`FQDN <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_)
 address (required for security). For example:
 
-You can discover the FQDN by running the Linux command:
+.. note::
+   You can discover the FQDN with the Linux command:
 
-.. code-block:: console
+   .. code-block:: console
 
-   $ hostname --fqdn
+     $ hostname –-fqdn
+
 
 4.	If pyyaml is not installed, then use pip to install it:
 
@@ -69,7 +71,10 @@ have copied the keys and certificates onto the federation nodes.
 This should create a Python 3 virtual environment with the required
 packages (e.g. TensorFlow, PyTorch, nibabel) that are used by
 the aggregator and the collaborators. Note that you can add custom
-Python packages by editing this section in the Makefile:
+Python packages by editing this section in the Makefile.
+
+.. figure:: images/custom_packages.png
+   How to install a custom package in the virtual environment.
 
 Just add your own line. For example,
 

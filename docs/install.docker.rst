@@ -58,11 +58,13 @@ aggregator address. Please make sure you specify the fully-qualified
 domain name (`FQDN <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_)
 address (required for security). For example:
 
-You can discover the FQDN by running the Linux command:
+.. note::
+   You can discover the FQDN with the Linux command:
 
-.. code-block:: console
+   .. code-block:: console
 
-   $ hostname --fqdn
+     $ hostname –-fqdn
+
 
 4.	If pyyaml is not installed, then use pip to install it:
 

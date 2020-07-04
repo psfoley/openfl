@@ -1,9 +1,9 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-
+**************************
 Configuring the Federation
-==========================
+**************************
 
 `TLS <https://en.wikipedia.org/wiki/Transport_Layer_Security>`_ encryption is
 used for the network connections.
@@ -14,9 +14,8 @@ we will run the aggregator and collaborators on the same localhost server
 so these configuration steps just need to be done once on that machine.
 
 .. _install_certs:
-Steps:
-
 All Nodes
+#########
 
 1.	 Unzip the source code
 
@@ -31,6 +30,7 @@ All Nodes
   $ cd spr_secure_intelligence-trusted_federated_learning
 
 On the Aggregator Node
+######################
 
 1.	Change the directory to bin/federations/pki:
 

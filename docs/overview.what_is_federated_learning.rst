@@ -1,9 +1,9 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-
+***************************
 What is Federated Learning?
-===========================
+***************************
 
 `Federated learning <https://en.wikipedia.org/wiki/Federated_learning>`_ is a distributed machine learning approach that
 enables organizations to collaborate on machine learning projects

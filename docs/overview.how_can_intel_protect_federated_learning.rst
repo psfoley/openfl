@@ -1,13 +1,14 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
+*****************************************
 How Can Intel Protect Federated Learning?
-=========================================
+*****************************************
 
-Intel\ :sup:`®` \ Software Guard Extensions (`SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_) 
+Intel\ :sup:`®` \ Software Guard Extensions (`SGX <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html>`_)
 are a set of CPU instructions that
 can be used by developers to set aside private regions of code and data
-(`Bahmani, et al., 2017 <https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_). 
+(`Bahmani, et al., 2017 <https://hal.archives-ouvertes.fr/hal-01898742/file/2016-1057.pdf>`_).
 These private regions, called `enclaves <https://en.wikipedia.org/wiki/Software_Guard_Extensions>`_,
 are isolated sections of memory and compute that cannot be accessed
 without a `cryptographic key <https://en.wikipedia.org/wiki/Cryptographic_key_types>`_. Even users with root access or physical
@@ -18,7 +19,7 @@ access to the CPU cannot access the enclave without the authorized key.
    :scale: 50 %
    :alt: Intel\ :sup:`®` \ Software Guard Extensions
 
-  
+
 This allows for developers to deploy their code and data on untrusted
 machines in a secure manner. In 2015, Intel\ :sup:`®` \ SGX was launched as the
 `first commercial implementation <https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions/details.html>`_
@@ -51,6 +52,3 @@ manifest file is specified, the command
 will use the pal_loader command to create the enclave from the
 manifest and run the web server (http) within the enclave. No other
 modifications are needed for the httpd application.
-
-    
-

@@ -82,7 +82,7 @@ have copied the keys and certificates onto the federation nodes.
 replacing *DOCKER_LABEL* with whatever label you wish to give the Docker container.
 
 This should create the Docker containers that are used by the aggregator
-and the collaborators. It will append the DOCKER_LABEL and the
+and the collaborators. It will append the *DOCKER_LABEL* and the
 name of the user that created the container.
 
 .. code-block:: console

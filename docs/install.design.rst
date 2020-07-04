@@ -1,12 +1,12 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-
+*****************
 Design Philosophy
-=================
+*****************
 
 The overall design is that all of the scripts are built off of the
-federation plan. The plan is just a `YAML <https://en.wikipedia.org/wiki/YAML>`_ 
+federation plan. The plan is just a `YAML <https://en.wikipedia.org/wiki/YAML>`_
 file that defines the
 collaborators, aggregator, connections, models, data,
 and any other parameters that describes how the training will evolve.

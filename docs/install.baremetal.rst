@@ -74,6 +74,7 @@ the aggregator and the collaborators. Note that you can add custom
 Python packages by editing this section in the Makefile.
 
 .. figure:: images/custom_packages.png
+
    How to install a custom package in the virtual environment.
 
 Just add your own line. For example,

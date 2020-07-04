@@ -12,6 +12,7 @@ every node in the federation, risks are mitigated even if the nodes are
 not fully-controlled by the federation owner.
 
 .. figure:: images/trusted_fl.png
+
   Intel\ :sup:`®` \ Federated Learning
 
 Previous attacks have shown that adversaries may be able to steal the model,

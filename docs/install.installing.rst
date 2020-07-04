@@ -5,9 +5,12 @@
 Installing the Software
 ***********************
 
-Intel has tested the installation on Ubuntu 18.04 and Centos 7.6 systems.
-A Python 3.6 virtual environment (venv) is used to isolate the packages.
-The basic installation is via the Makefile included in the root directory
+Intel has tested the installation on `Ubuntu 18.04 <https://releases.ubuntu.com/18.04/>`_
+and `Centos 7.6 <https://www.centos.org/>`_ systems.
+A Python 3 `virtual environment (venv) <https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv>`_
+is used to isolate the packages.
+The basic installation is via the `Makefile <https://gitlab.devtools.intel.com/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning/-/blob/master/Makefile>`_
+included in the root directory
 of the repository.
 
 Initial Steps
@@ -67,7 +70,7 @@ Baremetal Installation
 
 .. note::
 
-   Make sure you've run the :ref:`Initial Steps <initial-steps>`
+   Make sure you've run the `intial installation steps <#Initial-Steps>`_ first.
 
 1.	Build the virtual environment using the command:
 
@@ -76,7 +79,7 @@ Baremetal Installation
    $ make install
 
 This should create a Python 3 virtual environment with the required
-packages (e.g. TensorFlow, PyTorch, nibabel) that are used by
+packages (e.g. TensorFlow, PyTorch, OpenCV, nibabel) that are used by
 the aggregator and the collaborators. Note that you can add custom
 Python packages by editing this section in the Makefile.
 
@@ -96,7 +99,7 @@ Docker Installation
 
 .. note::
 
-   Make sure you've run the :ref:`Initial Steps <initial-steps>`
+   Make sure you've run the `intial installation steps <#Initial-Steps>`_ first.
 
 .. note::
     You'll need Docker installed on all nodes. To check

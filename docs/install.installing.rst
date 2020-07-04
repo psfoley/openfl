@@ -13,6 +13,7 @@ The basic installation is via the `Makefile <https://gitlab.devtools.intel.com/s
 included in the root directory
 of the repository.
 
+
 Initial Steps
 #############
 
@@ -70,7 +71,7 @@ Baremetal Installation
 
 .. note::
 
-   Make sure you've run the `intial installation steps <#Initial-Steps>`_ first.
+   Make sure you've run the :ref:`install.installing:Initial Steps` section first.
 
 1.	Build the virtual environment using the command:
 
@@ -99,7 +100,7 @@ Docker Installation
 
 .. note::
 
-   Make sure you've run the `intial installation steps <#Initial-Steps>`_ first.
+   Make sure you've run the :ref:`install.installing:Initial Steps` section first.
 
 .. note::
     You'll need Docker installed on all nodes. To check

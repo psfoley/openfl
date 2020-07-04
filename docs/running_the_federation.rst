@@ -55,7 +55,8 @@ On the Collaborator
 
 1.	Make sure that you followed the steps in :ref:`Configure the Federation <install_certs>` and have copied the keys and certificates onto the federation nodes.
 
-2.	Copy the plan file (keras_cnn_mnist_2.yaml) from the aggregator over to the collaborator to the plan subdirectory (bin/federations/plans)
+2.	Copy the plan file (e.g. *keras_cnn_mnist_2.yaml*) from the aggregator
+over to the collaborator to the plan subdirectory (**bin/federations/plans**)
 
 3.	Build the virtual environment using the command:
 
@@ -63,13 +64,17 @@ On the Collaborator
 
    $ make install
 
-4.	Now run the collaborator col_1 using the Python script. Again, you will need to pass in the fully qualified domain name in order to present the correct certificate.
+4.	Now run the collaborator col_1 using the Python script. Again,
+you will need to pass in the fully qualified domain name in
+order to present the correct certificate.
 
 .. code-block:: console
 
    $ ./venv/bin/python3 ./bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_1 -ccn COLLABORATOR.FULLY.QUALIFIED.DOMAIN.NAME
 
-5.	Repeat this for each collaborator in the federation. Once all collaborators have joined, the aggregator will start and you will see log messages describing the progress of the federated training.
+5.	Repeat this for each collaborator in the federation. Once all
+collaborators have joined, the aggregator will start and you
+will see log messages describing the progress of the federated training.
 
 
 .. _running_docker:

@@ -82,9 +82,11 @@ needed to verify cert signatures.
 For example, on a test machine named TEST_MACHINE that
 you want to be able to run as a collaborator, you should have:
 
-- bin/federations/pki/cert_chain.crt
-- bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.crt
-- bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.key
+.. code-block:: console
+
+   bin/federations/pki/cert_chain.crt
+   bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.crt
+   bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.key
 
 Note that once the certificates are transferred to the collaborator,
 it is now possible
@@ -93,6 +95,8 @@ to participate in any future federations run by this aggregator.
 
 6.	On the aggregator machine you should have the files:
 
-- bin/federations/pki/cert_chain.crt
-- bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt
-- bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key
+.. code-block:: console
+
+  bin/federations/pki/cert_chain.crt
+  bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt
+  bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key

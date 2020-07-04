@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'tfedlrn'
+project = 'FLedge'
 copyright = '2020, Intel'
 author = 'Secure Intelligence Team'
 master_doc = 'index'

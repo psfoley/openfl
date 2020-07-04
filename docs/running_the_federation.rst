@@ -14,10 +14,24 @@ First make sure you've installed the software :ref:`using these instructions <in
 Running on Baremetal
 ####################
 
+We will show you how to set up Intel\ :sup:`®` \ Federated Learning using a simple `MNIST <https://en.wikipedia.org/wiki/MNIST_database>`_
+dataset and a `TensorFlow/Keras <https://www.tensorflow.org/>`_
+CNN model as an example.
+
+Before you run the federation make sure you have followed the
+instructions for the :ref:`Baremetal installation <install_baremetal>`.
+
 On the Aggregator
 ~~~~~~~~~~~~~~~~~
 
-1.	It is assumed that the federation may be fine-tuning a previously trained model. For this reason, the pre-trained weights for the model will be stored within protobuf files on the aggregator and passed to the collaborators during initialization. As seen in the YAML file, the protobuf file with the initial weights is expected to be found in the file keras_cnn_mnist_init.pbuf. For this example, however, we’ll just create an initial set of random model weights and putting it into that file by running the command:
+1.	It is assumed that the federation may be fine-tuning a previously
+trained model. For this reason, the pre-trained weights for the model
+will be stored within protobuf files on the aggregator and
+passed to the collaborators during initialization. As seen in
+the YAML file, the protobuf file with the initial weights is
+expected to be found in the file keras_cnn_mnist_init.pbuf. For
+this example, however, we’ll just create an initial set of
+random model weights and putting it into that file by running the command:
 
 .. code-block:: console
 
@@ -29,7 +43,12 @@ On the Aggregator
 
    $ ./venv/bin/python3 ./bin/run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml -ccn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 
-At this point, the aggregator is running and waiting for the collaborators to connect. When all of the collaborators connect, the aggregator starts training. When the last round of training is complete, the aggregator stores the final weights in the protobuf file that was specified in the YAML file (in this case keras_cnn_mnist_latest.pbuf).
+At this point, the aggregator is running and waiting
+for the collaborators to connect. When all of the collaborators
+connect, the aggregator starts training. When the last round of
+training is complete, the aggregator stores the final weights in
+the protobuf file that was specified in the YAML file
+(in this case *keras_cnn_mnist_latest.pbuf*).
 
 On the Collaborator
 ~~~~~~~~~~~~~~~~~~~
@@ -59,7 +78,9 @@ Running on Docker
 #################
 
 We will show you how to set up Intel\ :sup:`®` \ Federated Learning on
-Docker using a simple MNIST dataset and a TensorFlow/Keras CNN model as
+Docker using a simple `MNIST <https://en.wikipedia.org/wiki/MNIST_database>`_
+dataset and a `TensorFlow/Keras <https://www.tensorflow.org/>`_
+CNN model as
 an example. You will note that this is literally the
 same code as the :ref:`Baremetal <running_baremetal>`, but we are simply wrapping
 the venv within a Docker container.
@@ -133,5 +154,6 @@ for the collaborator node to present the correct certificate.
 3.	Repeat this for each collaborator in the federation. Once all
 collaborators have joined, the aggregator will start and
 you will see log messages describing the progress of the federated training.
+
 
  

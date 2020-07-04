@@ -10,7 +10,6 @@ A Python 3.6 virtual environment (venv) is used to isolate the packages.
 The basic installation is via the Makefile included in the root directory
 of the repository.
 
-.. _install_initial_steps:
 Initial Steps
 #############
 
@@ -68,7 +67,7 @@ Baremetal Installation
 
 .. note::
 
-   Make sure you've run the :ref:`Initial Steps <install_initial_steps>`
+   Make sure you've run the :ref:`Initial Steps <initial-steps>`
 
 1.	Build the virtual environment using the command:
 
@@ -97,7 +96,7 @@ Docker Installation
 
 .. note::
 
-   Make sure you've run the :ref:`Initial Steps <install_initial_steps>`
+   Make sure you've run the :ref:`Initial Steps <initial-steps>`
 
 .. note::
     You'll need Docker installed on all nodes. To check

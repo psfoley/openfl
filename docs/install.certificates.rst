@@ -104,7 +104,7 @@ to participate in any future federations run by this aggregator.
 +===========================+==================================================================================================================+
 | Certificate chain         | bin/federations/pki/cert_chain.crt                                                                               |
 +---------------------------+------------------------------------------------------------------------------------------------------------------+
-| Collaborator certificate  | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt    |
+| Aggregator certificate    | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt    |
 +---------------------------+------------------------------------------------------------------------------------------------------------------+
-| Collaborator key          | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key    |
+| Aggregator key            | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key    |
 +---------------------------+------------------------------------------------------------------------------------------------------------------+

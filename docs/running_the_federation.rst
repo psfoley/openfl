@@ -136,7 +136,8 @@ protobuf file that was specified in the YAML file
 On the Collaborators
 ~~~~~~~~~~~~~~~~~~~~
 
-1.	Now run the Docker on the collaborator. For collaborator **col_1**, run this command:
+1.	Now run the Docker on the collaborator. For example, if the collaborator
+label is **col_1**, run this command:
 
 .. code-block:: console
 

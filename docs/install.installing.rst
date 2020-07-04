@@ -82,7 +82,7 @@ the aggregator and the collaborators. Note that you can add custom
 Python packages by editing this section in the Makefile.
 
 .. figure:: images/custom_packages.png
-   :scale: 100 %
+   :scale: 80 %
 
    How to install a custom package in the virtual environment.
 

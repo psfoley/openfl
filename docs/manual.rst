@@ -7,6 +7,6 @@ Manual
 
 .. toctree::
 
-   manual.overview
+   overview
    install
 

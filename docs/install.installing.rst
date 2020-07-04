@@ -10,6 +10,7 @@ A Python 3.6 virtual environment (venv) is used to isolate the packages.
 The basic installation is via the Makefile included in the root directory
 of the repository.
 
+.. _install_initial_steps:
 Initial Steps
 #############
 
@@ -65,6 +66,10 @@ have copied the keys and certificates onto the federation nodes.
 Baremetal Installation
 ######################
 
+.. note::
+
+   Make sure you've run the :ref:`Initial Steps <install_initial_steps>`
+
 1.	Build the virtual environment using the command:
 
 .. code-block:: console
@@ -85,19 +90,28 @@ Just add your own line. For example,
 
 .. code-block:: console
 
-   $ venv/bin/pip3 install my_package 
+   venv/bin/pip3 install my_package 
 
 Docker Installation
 ###################
 
-.. code-block:: console
+.. note::
 
-  $ docker run hello-world
-  Hello from Docker!
-  This message shows that your installation appears to be working correctly.
-  ...
-  ...
-  ...
+   Make sure you've run the :ref:`Initial Steps <install_initial_steps>`
+
+.. note::
+    You'll need Docker installed on all nodes. To check
+    that Docker is installed and running properly, you
+    can run the Docker *Hello World* command like this:
+
+    .. code-block:: console
+
+      $ docker run hello-world
+      Hello from Docker!
+      This message shows that your installation appears to be working correctly.
+      ...
+      ...
+      ...
 
 1.	Build the Docker containers using the command:
 

@@ -37,12 +37,9 @@ import sphinxcontrib.napoleon
 extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autosectionlabel',
-    'rst2pdf.pdfbuilder',
     "sphinxcontrib.napoleon",
 ]
 
-
-pdf_documents = [('index', u'rst2pdf', u'FLedge', u'Intel'),]
 
 napoleon_google_docstring = False
 

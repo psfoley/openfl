@@ -99,19 +99,19 @@ Docker Installation
   ...
   ...
 
-  1.	Build the Docker containers using the command:
+1.	Build the Docker containers using the command:
 
-  .. code-block:: console
+.. code-block:: console
 
-     $ make build_containers model_name=DOCKER_LABEL
+   $ make build_containers model_name=DOCKER_LABEL
 
-  replacing *DOCKER_LABEL* with whatever label you wish to give the Docker container.
+replacing *DOCKER_LABEL* with whatever label you wish to give the Docker container.
 
-  This should create the Docker containers that are used by the aggregator
-  and the collaborators. It will append the *DOCKER_LABEL* and the
-  name of the user that created the container.
+This should create the Docker containers that are used by the aggregator
+and the collaborators. It will append the *DOCKER_LABEL* and the
+name of the user that created the container.
 
-  .. code-block:: console
+.. code-block:: console
 
-     Successfully tagged tfl_agg_DOCKER_LABEL_USERNAME:0.1
-     Successfully tagged tfl_col_cpu_DOCKER_LABEL_USERNAME:0.1
+   Successfully tagged tfl_agg_DOCKER_LABEL_USERNAME:0.1
+   Successfully tagged tfl_col_cpu_DOCKER_LABEL_USERNAME:0.1

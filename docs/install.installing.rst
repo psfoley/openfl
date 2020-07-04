@@ -75,8 +75,10 @@ address (required for security). For example:
 
    $ pip3 install pyyaml
 
-6.	Make sure that you followed the steps in Configure the Federation and
+6.	Make sure that you followed the steps in :ref:`Configure the Federation <install_certs>` and
 have copied the keys and certificates onto the federation nodes.
+
+.. _install_baremetal:
 
 Baremetal Installation
 ######################
@@ -106,6 +108,9 @@ Just add your own line. For example,
 .. code-block:: console
 
    venv/bin/pip3 install my_package 
+
+
+.. _install_docker:
 
 Docker Installation
 ###################

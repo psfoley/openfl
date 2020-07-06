@@ -136,16 +136,8 @@ This way, we can configure the data-paths for multiple collaborators in a single
 You'll find one such file in the repository that looks like this:
 
 .. code-block:: console
-    $ cat bin/federations/local_data_config.yaml                                                                                                                                                                                       
-    # Copyright (C) 2020 Intel Corporation
-    # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
-    
-    # all keys under 'collaborators' corresponds to a specific colaborator name
-    # the corresponding dictionary has data_name, data_path pairs. Note
-    # that in the mnist case we do not store the data locally, and
-    # the data_path is used to pass an integer that helps the data object construct
-    # the shard of the mnist dataset to be use for this collaborator.
-    
+
+    $ cat bin/federations/local_data_config.yaml
     collaborators:
       col_one_big:
         brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0-9'
@@ -159,3 +151,4 @@ You'll find one such file in the repository that looks like this:
         cifar10_shard: 1
     ...
 
+For the shards, you'll usually just need an index. For datasets that are already seperated, you need to set the paths for each collaborator/dataset pair here. Note that in our case, we have a shared /raid volume that each of our development nodes can access. This makes life easy, and also ensures we can run any collaborator on any machine. Highly recommended for testing and development! We even go so far as using softlinks to allow various collaborator assignments (e.g. moving data around to increase collaborator-specific biases).

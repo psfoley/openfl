@@ -8,8 +8,14 @@ Setting Defaults for FLPlans (Testing)
 This section walks you through configuring one or more machines to run test federations for testing/development. For production deployments, see forthcoming documentation (TODO: link to "production" deployments documentation when we have it).
 
 Prerequisites:
+
 1. In root directory of source code (TODO: link section on getting the code)
-2. You know the fully-qualified domain name or IP address of the machine you want to use as your aggregator.
+2. You know the fully-qualified domain name or IP address of the machine you want to use as your aggregator. For example, you can use the following linux/cygwin command:
+
+
+.. code-block:: console
+
+    $ hostname –-fqdn
 
 .. _network_defaults:
 
@@ -18,97 +24,138 @@ Setting Defaults for Network settings
 
 FL Plans support default configurations to make it easier to share settings between FL Plans. This also makes it easier to customize another's plan without changing the main plan file, so you can share plans with other developers.
 
-You'll find the defaults files under:
+You can list the various files with:
+   
+.. code-block:: console
 
+    $ ls -l bin/federations/plans/defaults
+    total 36
+    -rw-r--r-- 1 msheller intelall 285 Jul  6 15:01 collaborator.yaml
+    -rw-r--r-- 1 msheller intelall 274 Jul  6 15:01 data_empty.yaml
+    -rw-r--r-- 1 msheller intelall 311 Jul  6 15:01 data_pt_brats.yaml
+    -rw-r--r-- 1 msheller intelall 333 Jul  6 15:01 data_pt_cifar10.yaml
+    -rw-r--r-- 1 msheller intelall 327 Jul  6 15:01 data_pt_mnist.yaml
+    -rw-r--r-- 1 msheller intelall 323 Jul  6 15:01 data_tf_brats.yaml
+    -rw-r--r-- 1 msheller intelall 315 Jul  6 15:01 data_tf_cifar10.yaml
+    -rw-r--r-- 1 msheller intelall 274 Jul  6 15:01 data_tf_mnist.yaml
+    -rw-r--r-- 1 msheller intelall 400 Jul  6 15:01 network.yaml.example
 
-1.	 Unzip the source code
+We're going to create a network.yaml file from the example and set it to be specific to you.
+
+1. First, we need to copy the example file that we're going to change. Copy it and take a look at it:
 
 .. code-block:: console
 
-  $ unzip spr_secure_intelligence-trusted_federated_learning.zip
+    $ cp bin/federations/plans/defaults/network.yaml.example bin/federations/plans/defaults/network.yaml
+    $ cat bin/federations/plans/defaults/network.yaml
+    # Copyright (C) 2020 Intel Corporation
+    # Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+    
+    agg_addr            : FQDN of aggregator machine
+    agg_port            : auto
+    hash_salt           : Anything you want. Make it unique
+    disable_tls         : False
+    disable_client_auth : False
+    cert_folder         : pki
 
-2.	Change into the project directory.
-
-.. code-block:: console
-
-  $ cd spr_secure_intelligence-trusted_federated_learning
-
-On the Aggregator Node
-######################
-
-1.	Change the directory to bin/federations/pki:
-
-.. code-block:: console
-
-  $ cd bin/federations/pki
-
-2.	Run the Certificate Authority script. This will setup the Aggregator node
-as the `Certificate Authority <https://en.wikipedia.org/wiki/Certificate_authority>`_
-for the Federation. All certificates will be
-signed by the aggregator. Follow the command-line instructions and enter
-in the information as prompted. The script will create a simple database
-file to keep track of all issued certificates.
+2. Open your new file in an editor:
 
 .. code-block:: console
 
-  $ bash setup_ca.sh
+    $ vi bin/federations/plans/defaults/network.yaml
 
-3.	Run the aggregator cert script, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
-with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_
-for the aggregator machine. You may optionally include the
-IP address for the aggregator, replacing [IP_ADDRESS].
+3. First, we need to set the aggregator address to the FQDN or IP of the aggregator machine, such as:
 
 .. code-block:: console
 
-  $ bash create-aggregator.sh AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+    agg_addr            : msheller-aggregator.intel.com
 
-.. note::
-   You can discover the FQDN with the Linux command:
-
-   .. code-block:: console
-
-     $ hostname –-fqdn
-
-4.	For each test machine you want to run collaborators on, we create a collaborator
-certificate, replacing TEST.MACHINE.NAME with the actual test machine name.
-Note that this does not have to be the FQDN. Also, note that this script
-is run on the Aggregator node because it is the Aggregator that signs the
-certificate. Only Collaborators with valid certificates signed by
-the Aggregator can join the federation.
+3. Next, you can choose a specific port, or if you intend to run multiple aggregator processes for testing, leave it as 'auto'. 'Auto' simply uses federation UUID (which is a hash of the FL Plan files, including the defaults files) to pick a random port. This way the collaborators and aggregator will compute the same "random" port. (TODO: link autoport doc).
 
 .. code-block:: console
 
-  $ bash create-collaborator.sh TEST.MACHINE.NAME
+    agg_port            : auto # I am keeping it auto because I run lots of federations at the same time on the same machines...
 
-5.	Once you have the certificates created, you need to move the certificates
-to the correct machines and ensure each machine has the cert_chain.crt
-needed to verify certificate signatures.
-For example, on a test machine named TEST_MACHINE that
-you want to be able to run as a collaborator, you should have:
+4. Finally, in development teams with shared machines, it is possible for FL Plans to be exactly identical. This leads to idential FL Plan UUIDs (hashes). For this reason, we give our plans a silly salt. It can be anything, so long as it is unique among your team:
 
-+---------------------------+--------------------------------------------------------------+
-| File Type                 | Filename                                                     |
-+===========================+==============================================================+
-| Certificate chain         | bin/federations/pki/cert_chain.crt                           |
-+---------------------------+--------------------------------------------------------------+
-| Collaborator certificate  | bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.crt    |
-+---------------------------+--------------------------------------------------------------+
-| Collaborator key          | bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.key    |
-+---------------------------+--------------------------------------------------------------+
+.. code-block:: console
 
-Note that once the certificates are transferred to the collaborator,
-it is now possible
-to participate in any future federations run by this aggregator.
-(The aggregator can revoke this privilege.)
+    hash_salt            : micah.j.sheller@intel.com # your email isn't a bad choice
 
-6.	On the aggregator machine you should have the files:
+Now your FL Plans will use your aggregator machine, and if it is shared, you shouldn't likely run into port choice conflicts.
 
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
-| File Type                 | Filename                                                                                                         |
-+===========================+==================================================================================================================+
-| Certificate chain         | bin/federations/pki/cert_chain.crt                                                                               |
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
-| Aggregator certificate    | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt    |
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
-| Aggregator key            | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key    |
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
+Note that here is where you can do things like disable tls or change which directory you use for your certs. **We don't condone disabling TLS**.
+
+
+Creating Collaborator Lists
+#########
+
+When an aggregator executes an FL Plan, it also requires a list of collaborator names that are allowed to participate. In a production setting, these names are meaningful and are tightly coupled each client's digital certificate used in the TLS connection. However, for test environments, you can name them whatever you wish (you will be passing these on the collaborator commandlines). You can find existing test lists under:
+
+.. code-block:: console
+
+    $ ls -l bin/federations/collaborator_lists                                                                                                                                                                                         
+    total 24
+    -rw-r--r-- 1 msheller intelall  46 Jul  6 15:01 col_one_big.yaml
+    -rw-r--r-- 1 msheller intelall 147 Jul  6 15:01 cols_10.yaml
+    -rw-r--r-- 1 msheller intelall  52 Jul  6 15:01 cols_2.yaml
+    -rw-r--r-- 1 msheller intelall 432 Jul  6 15:01 cols_32.yaml
+    -rw-r--r-- 1 msheller intelall  40 Jul  6 15:01 only_col_2.yaml
+    -rw-r--r-- 1 msheller intelall  52 Jul  6 15:01 only_cols_2_and_3.yaml
+
+And you'll see that they have very exciting contents, such as:
+
+.. code-block:: console
+
+    $ cat bin/federations/collaborator_lists/cols_10.yaml
+    collaborator_common_names :
+      - 'col_0'
+      - 'col_1'
+      - 'col_2'
+      - 'col_3'
+      - 'col_4'
+      - 'col_5'
+      - 'col_6'
+      - 'col_7'
+      - 'col_8'
+      - 'col_9'
+
+In a real setting, these lists would hold the common names in the certificates the collaborators (one per cert). In a development/test environment, feel free to use any naming-convention. You will need these names later, so we recommend keeping them simple. Note that you may want to run multiple collaborators on a single machine, so you may not want to use machine names here. (TODO: Add reference to auto-lists when we implement that convenience feature).
+
+Configuring Collaborator Local Data Directories
+#########
+
+When a collaborator executes and FL Plan, the FL Plan will contain a data_name entry such as "brats" or "mnist_shard" or similar. This name serves as a key in a dictionary of paths or shards on the collaborator (we use "shards" to refer to tests where a single data is split among collaborators at runtime, i.e. "sharded"). We store these mappings in .yaml files of a structure:
+
+.. code-block:: console
+    collaborator_common_name:
+        data_name: <path or shard>
+
+This way, we can configure the data-paths for multiple collaborators in a single file. In production, such a file would only have the information for a single collaborator.
+
+You'll find one such file in the repository that looks like this:
+
+.. code-block:: console
+    $ cat bin/federations/local_data_config.yaml                                                                                                                                                                                       
+    # Copyright (C) 2020 Intel Corporation
+    # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+    
+    # all keys under 'collaborators' corresponds to a specific colaborator name
+    # the corresponding dictionary has data_name, data_path pairs. Note
+    # that in the mnist case we do not store the data locally, and
+    # the data_path is used to pass an integer that helps the data object construct
+    # the shard of the mnist dataset to be use for this collaborator.
+    
+    collaborators:
+      col_one_big:
+        brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0-9'
+      col_0:
+        brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+        mnist_shard: 0
+        cifar10_shard: 0
+      col_1:
+        brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
+        mnist_shard: 1
+        cifar10_shard: 1
+    ...
+

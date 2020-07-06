@@ -152,3 +152,33 @@ You'll find one such file in the repository that looks like this:
     ...
 
 For the shards, you'll usually just need an index. For datasets that are already seperated, you need to set the paths for each collaborator/dataset pair here. Note that in our case, we have a shared /raid volume that each of our development nodes can access. This makes life easy, and also ensures we can run any collaborator on any machine. Highly recommended for testing and development! We even go so far as using softlinks to allow various collaborator assignments (e.g. moving data around to increase collaborator-specific biases).
+
+
+Copy the Files to the other machines
+#########
+
+Currently, we don't yet support configuration through the governor. All configuration is done manually. This means we need to copy these files around to our other systems. Hopefully, you can do this with a few calls to 'scp' :) For the aggregator node, you'll need the copy the following files:
+
+1. Copy files to your aggregator machine. You'll need to copy over the following:
+
++-----------------------------------+--------------------------------------------------------------+
+| File Type                         | Filename                                                     |
++===================================+==============================================================+
+| Plans files defaults              | bin/federations/plans/defaults/\*.yaml                       |
++-----------------------------------+--------------------------------------------------------------+
+| Plan files (if changed)           | bin/federations/plans/\*.yaml                                |
++-----------------------------------+--------------------------------------------------------------+
+| Collaborator lists (if changed)   | bin/federations/collaborator_lists/\*.yaml                   |
++-----------------------------------+--------------------------------------------------------------+
+
+2. Copy files to **each** of your collaborator machines. You'll need to copy over the following:
+
++-----------------------------------+--------------------------------------------------------------+
+| File Type                         | Filename                                                     |
++===================================+==============================================================+
+| Plans files defaults              | bin/federations/plans/defaults/\*.yaml                       |
++-----------------------------------+--------------------------------------------------------------+
+| Plan files (if changed)           | bin/federations/plans/\*.yaml                                |
++-----------------------------------+--------------------------------------------------------------+
+| Data config file                  | bin/federations/local_data_config.yaml                       |
++-----------------------------------+--------------------------------------------------------------+

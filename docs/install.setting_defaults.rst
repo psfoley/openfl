@@ -90,7 +90,7 @@ Note that here is where you can do things like disable tls or change which direc
 Creating Collaborator Lists
 #########
 
-When an aggregator executes an FL Plan, it also requires a list of collaborator names that are allowed to participate. In a production setting, these names are meaningful and are tightly coupled each client's digital certificate used in the TLS connection. However, for test environments, you can name them whatever you wish (you will be passing these on the collaborator commandlines). You can find existing test lists under:
+When an aggregator executes an FL Plan, it also requires a list of collaborator names that are allowed to participate. In a production setting, these names are meaningful and are tightly coupled with each client's digital certificate used in the TLS connection. However, for test environments, you can name them whatever you wish (you will be passing these on the collaborator commandlines). You can find existing test lists under:
 
 .. code-block:: console
 

@@ -388,8 +388,6 @@ class Aggregator(object):
         self.logger.info("Received model download request from %s " % message.header.sender)
 
         # ensure the models don't match
-        HERE IS WHERE YOU PARSE WHETHER THE MODEL IS JUST ONE BEHIND (WE CAN DO IT) OR MORE 
-        (NEED TO RESTORE FROM SAVED NON-DELTA MODEL AND WILL NEED TO BE DONE WITH ONLY LOSSLESS COMPRESSION)
         if not(self.collaborator_out_of_date(message.model_header)):
             statement = "Collaborator asking for download when not out of date."
             self.logger.exception(statement)
@@ -401,6 +399,10 @@ class Aggregator(object):
                 raise RuntimeError('First collaborator model download, and we only have a delta.')
         elif message.model_header.is_delta != self.model.header.is_delta:
             raise RuntimeError('Collaborator requesting non-initial download should hold a model with the same is_delta as aggregated model.')
+        elif message.model_header.is_delta and (self.model.header.version - message.model_header.version) > 1:
+            # TODO: Here we could provide the collaborator with a non-delta version 
+            #       (Note: we should only apply lossless compression in this case)
+            raise NotImplementedError('Collaborator is too far behind global model to make use of a delta.')
 
         reply = GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
 

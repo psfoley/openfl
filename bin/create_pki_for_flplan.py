@@ -74,7 +74,7 @@ def main(plan):
     create_certs_for(cert_dir, name, full_hostname, ca_key_path, ca_crt_path)
 
     # for each collaborator, create a key, csr and crt
-    for name in flplan['federation']['col_ids']:
+    for name in flplan['federation']['collaborator_common_names']:
         if name not in hostnames.keys():
             full_hostname = hostnames['__DEFAULT_HOSTNAME__']
         else:

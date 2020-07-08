@@ -27,31 +27,11 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-# We may have several plans for one dataset, to search the best model architecture for exammple.
-
-description     : Use a dummy model to stress-test the aggregator
-status          : active
-
-federation: 
-  opt_treatment: &opt_treatment 'RESET'
-  polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 10
-  agg_addr: &agg_addr "spr-gpu01.jf.intel.com"
-  agg_port: &agg_port 92278
-  col_ids: &col_ids
-    - 'col_0'
-    - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
-  init_model_fname: dummy_model_init.pbuf
+aggregator:
+  rounds_to_train   : 10
+  init_model_fname  : dummy_model_init.pbuf
   latest_model_fname: dummy_model_latest.pbuf
-  best_model_fname: dummy_model_best.pbuf
+  best_model_fname  : dummy_model_best.pbuf
 
 model:
   module_name: models.dummy.dummymodel
@@ -66,27 +46,14 @@ model:
   val_time_mean: 1
   val_time_std: 1
 
-aggregator: 
-  col_ids: *col_ids
-  rounds_to_train: *rounds_to_train
-  test_mode_whitelist:
-    - spr-gpu01.jf.intel.com
-    - spr-gpu02.jf.intel.com
+collaborator:
+  defaults_file: defaults/collaborator.yaml
 
-collaborator: 
-  polling_interval: *polling_interval
-  opt_treatment: *opt_treatment
-
-grpc:
-  addr: *agg_addr
-  port: *agg_port
-  disable_tls: True
-  disable_client_auth: True
+network:
+  defaults_file: defaults/network.yaml
  
 data:
-  data_name: mnist_shard # irrelevant
-  module_name: data.dummy.emptydata
-  class_name: EmptyData
+  defaults_file: defaults/data_empty.yaml
   data_size_mean: 100
   data_size_std: 20
   p_train: 0.8

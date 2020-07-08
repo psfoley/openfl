@@ -12,9 +12,9 @@ from single_proc_fed import federate
 from setup_logging import setup_logging
 
 
-def main(plan, data_config_fname, logging_config_fname, logging_default_level, **kwargs):
+def main(plan, collaborators_file, data_config_fname, logging_config_path, logging_default_level, **kwargs):
 
-    setup_logging(path=logging_config_fname, default_level=logging_default_level)
+    setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
     # establish location for fl plan as well as 
@@ -23,21 +23,23 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
+    collaborators_dir = os.path.join(base_dir, 'collaborator_lists')
 
     # parse configs from flplan
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     by_col_data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
-    fed_config = flplan['federation']
     agg_config = flplan['aggregator']
     col_config = flplan['collaborator']
     model_config = flplan['model']
     data_config = flplan['data']
     compression_config = flplan.get('compression_pipeline')
 
+    # patch in the collaborators file
+    agg_config['collaborator_common_names'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
 
-    init_model_fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
-    latest_model_fpath = os.path.join(weights_dir, fed_config['latest_model_fname'])
-    best_model_fpath = os.path.join(weights_dir, fed_config['best_model_fname'])
+    init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
+    latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
+    best_model_fpath = os.path.join(weights_dir, agg_config['best_model_fname'])
 
   
     # TODO: Run a loop here over various parameter values and iterations
@@ -45,8 +47,7 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
     federate(data_config=data_config, 
              col_config=col_config, 
              agg_config=agg_config,
-             model_config=model_config, 
-             fed_config=fed_config,
+             model_config=model_config,
              compression_config=compression_config,
              by_col_data_names_to_paths=by_col_data_names_to_paths, 
              init_model_fpath = init_model_fpath, 
@@ -58,8 +59,9 @@ def main(plan, data_config_fname, logging_config_fname, logging_default_level, *
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
+    parser.add_argument('--collaborators_file', '-c', type=str, required=True, help="Name of YAML File in /bin/federations/collaborator_lists/")
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
-    parser.add_argument('--logging_config_fname', '-c', type=str, default="logging.yaml")
+    parser.add_argument('--logging_config_path', '-lcp', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

@@ -31,9 +31,9 @@ class Collaborator(object):
     """The current class is not good for local test without channel. """
     # FIXME: do we need a settable model version? Shouldn't col always start assuming out of sync?
     def __init__(self, 
-                 col_id, 
-                 agg_id, 
-                 fed_id, 
+                 collaborator_common_name, 
+                 aggregator_uuid, 
+                 federation_uuid, 
                  wrapped_model, 
                  channel, 
                  polling_interval=4, 
@@ -41,16 +41,24 @@ class Collaborator(object):
                  compression_pipeline=None,
                  epochs_per_round=1.0, 
                  num_batches_per_round=None, 
+<<<<<<< HEAD
                  send_model_deltas = True,
+=======
+                 send_model_deltas = False,
+                 single_col_cert_common_name=None,
+>>>>>>> 219a38ac0762348e71800348e2389cbd191e587f
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
         self.polling_interval = polling_interval
 
         # this stuff is really about sanity/correctness checking to ensure the bookkeeping and control flow is correct
-        self.id = col_id
-        self.agg_id = agg_id
-        self.fed_id = fed_id
+        self.common_name = collaborator_common_name
+        self.aggregator_uuid = aggregator_uuid
+        self.federation_uuid = federation_uuid
+        self.single_col_cert_common_name = single_col_cert_common_name
+        if self.single_col_cert_common_name is None:
+            self.single_col_cert_common_name = '' # FIXME: this is just for protobuf compatibility. Cleaner solution?
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
                                         is_delta=send_model_deltas,
@@ -61,7 +69,7 @@ class Collaborator(object):
         self.epochs_per_round = epochs_per_round
         self.num_batches_per_round = num_batches_per_round
         if num_batches_per_round is not None:
-            self.logger.info("Collaborator {} overriding epochs_per_round of {} with num_batches_per_round of {}".format(self.id, self.epochs_per_round, self.num_batches_per_round))
+            self.logger.info("Collaborator {} overriding epochs_per_round of {} with num_batches_per_round of {}".format(self.common_name, self.epochs_per_round, self.num_batches_per_round))
 
         self.wrapped_model = wrapped_model
         self.tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
@@ -119,22 +127,25 @@ class Collaborator(object):
 
 
     def create_message_header(self):
-        header = MessageHeader(sender=self.id, recipient=self.agg_id, federation_id=self.fed_id, counter=self.counter)
+        header = MessageHeader(sender=self.common_name, recipient=self.aggregator_uuid, federation_id=self.federation_uuid, counter=self.counter, single_col_cert_common_name=self.single_col_cert_common_name)
         return header
 
     def __repr__(self):
-        return 'collaborator {} of federation {}'.format(self.id, self.fed_id)
+        return 'collaborator {} of federation {}'.format(self.common_name, self.federation_uuid)
 
     def __str__(self):
         return self.__repr__()
 
     def validate_header(self, reply):
         # check message is from my agg to me
-        check_equal(reply.header.sender, self.agg_id, self.logger)
-        check_equal(reply.header.recipient, self.id, self.logger)
+        check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
+        check_equal(reply.header.recipient, self.common_name, self.logger)
         
         # check that the federation id matches
-        check_equal(reply.header.federation_id, self.fed_id, self.logger)
+        check_equal(reply.header.federation_id, self.federation_uuid, self.logger)
+
+        # check that we agree on single_col_cert_common_name
+        check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
 
     def run(self):
         time_to_quit = False
@@ -147,7 +158,7 @@ class Collaborator(object):
                 time.sleep(self.polling_interval)
 
     def run_to_yield_or_quit(self):
-        self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.id, self.fed_id, self.agg_id))
+        self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.common_name, self.federation_uuid, self.aggregator_uuid))
         self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
         while True:
             # query for job and validate it

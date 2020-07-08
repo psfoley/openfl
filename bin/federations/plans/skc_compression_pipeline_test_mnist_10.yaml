@@ -27,60 +27,29 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-# We may have several plans for one dataset, to search the best model architecture for exammple.
-
-description     : Train a model to perform semantic segmentation on brain fMRI images.
-status          : active
-
-federation: 
-  opt_treatment: &opt_treatment 'RESET'
-  polling_interval: &polling_interval 4
-  rounds_to_train: &rounds_to_train 10
-  agg_addr: &agg_addr "spr-gpu02.jf.intel.com"
-  agg_port: &agg_port 82278
-  col_ids: &col_ids
-    - 'col_0'
-    - 'col_1'
-    - 'col_2'
-    - 'col_3'
-    - 'col_4'
-    - 'col_5'
-    - 'col_6'
-    - 'col_7'
-    - 'col_8'
-    - 'col_9'
+aggregator:
+  rounds_to_train: 10
   init_model_fname: keras_cnn_mnist_init.pbuf
   latest_model_fname: keras_cnn_mnist_latest.pbuf
   best_model_fname: keras_cnn_mnist_best.pbuf
 
 compression_pipeline:
-    module_name: tfedlrn.tensor_transformation_pipelines
-    class_name: SKCPipeline
-    p_sparsity: 0.01
-    n_clusters: 6
+  module_name: tfedlrn.tensor_transformation_pipelines
+  class_name: SKCPipeline
+  p_sparsity: 0.01
+  n_clusters: 6
 
 model:
   module_name: models.tensorflow.keras_cnn.keras_cnn
   class_name: KerasCNN
-   
-aggregator: 
-  col_ids: *col_ids
-  rounds_to_train: *rounds_to_train
 
-collaborator: 
-  polling_interval: *polling_interval
-  opt_treatment: *opt_treatment
+collaborator:
+  defaults_file: defaults/collaborator.yaml
 
-grpc:
-  addr: *agg_addr
-  port: *agg_port
-  disable_tls: False
-  disable_client_auth: False
-  cert_folder: test
+network:
+  defaults_file: defaults/network.yaml
 
 data:
-  data_name: mnist_shard
-  module_name: data.tensorflow.tfmnist_inmemory
-  class_name: TensorFlowMNISTInMemory
+  defaults_file: defaults/data_tf_mnist.yaml
   nb_collaborators: 10
   batch_size: 256

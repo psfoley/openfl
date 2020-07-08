@@ -9,7 +9,7 @@ import logging
 import importlib
 
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline, NoCompressionPipeline
-from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
+from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts, parse_fl_plan
 from tfedlrn.proto.protoutils import dump_proto, construct_proto
 from setup_logging import setup_logging
 
@@ -17,7 +17,7 @@ def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     data_path = data_names_to_paths[data_name]
     return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
-def main(plan, feature_shape, data_config_fname, logging_config_path, logging_default_level):
+def main(plan, collaborators_file, feature_shape, data_config_fname, logging_config_path, logging_default_level):
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     logger = logging.getLogger(__name__)
@@ -32,9 +32,9 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
         print('creating folder:', weights_dir)
         os.makedirs(weights_dir)
 
-    plan = load_yaml(os.path.join(plan_dir, plan))
+    plan = parse_fl_plan(os.path.join(plan_dir, plan))
     model_config = plan['model']
-    fed_config = plan['federation']
+    agg_config = plan['aggregator']
     data_config = plan['data']
 
     # For now we are compressing initial models if a compression pipeline exists
@@ -43,12 +43,14 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
     else:
         compression_pipeline = NoCompressionPipeline()
 
-    # FIXME: this will ultimately run in a governor environment and should not require any data to work
-    # pick the first collaborator to create the data and model (could be any)
-    col_id = fed_config['col_ids'][0]
 
     if feature_shape is None:
-        data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][col_id]
+        if collaborators_file is None:
+            sys.exit("You must specify either a feature shape or a collaborator list in order for the script to determine the input layer shape")
+        # FIXME: this will ultimately run in a governor environment and should not require any data to work
+        # pick the first collaborator to create the data and model (could be any)
+        collaborator_common_name = load_yaml(os.path.join(base_dir, 'collaborator_lists', collaborators_file))['collaborator_common_names'][0]
+        data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators'][collaborator_common_name]
         data = get_data(data_names_to_paths, **data_config)
     else:
         data = get_object('data.dummy', 'RandomData', feature_shape=feature_shape)
@@ -56,7 +58,7 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
 
     wrapped_model = get_object(data=data, **model_config)
     
-    fpath = os.path.join(weights_dir, fed_config['init_model_fname'])
+    fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
 
     tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
     
@@ -81,9 +83,10 @@ def main(plan, feature_shape, data_config_fname, logging_config_path, logging_de
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--plan', '-p', type=str, required=True)
+    parser.add_argument('--collaborators_file', '-c', type=str, default=None, help="Name of YAML File in /bin/federations/collaborator_lists/")
     parser.add_argument('--feature_shape', '-fs', type=int, nargs='+', default=None)
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
-    parser.add_argument('--logging_config_path', '-c', type=str, default="logging.yaml")
+    parser.add_argument('--logging_config_path', '-lcp', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     args = parser.parse_args()
     main(**vars(args))

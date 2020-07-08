@@ -20,9 +20,9 @@ class AggregatorGRPCServer(AggregatorServicer):
     def validate_collaborator(self, request, context):
         if not self.disable_tls:
             common_name = context.auth_context()['x509_common_name'][0].decode("utf-8")
-            col_id = request.header.sender
-            if not self.aggregator.valid_collaborator_CN_and_id(common_name, col_id):
-                raise ValueError("Invalid collaborator. CN: |{}| col_id: |{}|".format(common_name, col_id))
+            collaborator_common_name = request.header.sender
+            if not self.aggregator.valid_collaborator_CN_and_id(common_name, collaborator_common_name):
+                raise ValueError("Invalid collaborator. CN: |{}| collaborator_common_name: |{}|".format(common_name, collaborator_common_name))
 
     def RequestJob(self, request, context):
         self.validate_collaborator(request, context)
@@ -46,8 +46,7 @@ class AggregatorGRPCServer(AggregatorServicer):
         return self.aggregator.UploadLocalMetricsUpdate(request)
 
     def serve(self, 
-              addr, 
-              port, 
+              agg_port, 
               disable_tls=False, 
               disable_client_auth=False, 
               ca=None, 
@@ -79,7 +78,7 @@ class AggregatorGRPCServer(AggregatorServicer):
                                       ('grpc.max_send_message_length', 128 * 1024 * 1024),
                                       ('grpc.max_receive_message_length', 128 * 1024 * 1024)])
         add_AggregatorServicer_to_server(self, server)
-        uri = "[::]:{port:d}".format(port=port)
+        uri = "[::]:{port:d}".format(port=agg_port)
         self.disable_tls = disable_tls
         self.logger = logger
 

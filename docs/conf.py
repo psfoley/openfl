@@ -21,8 +21,8 @@ sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'tfedlrn'
-copyright = '2019, Secure Intelligence Team'
+project = 'FLedge'
+copyright = '2020, Intel'
 author = 'Secure Intelligence Team'
 master_doc = 'index'
 
@@ -36,8 +36,10 @@ import sphinxcontrib.napoleon
 
 extensions = [
     "sphinx_rtd_theme",
+    'sphinx.ext.autosectionlabel',
     "sphinxcontrib.napoleon",
 ]
+
 
 napoleon_google_docstring = False
 
@@ -61,3 +63,5 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+autosectionlabel_prefix_document = True

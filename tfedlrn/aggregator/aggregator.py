@@ -3,6 +3,7 @@
 
 import time
 import os
+import shutil
 import logging
 import time
 
@@ -182,24 +183,32 @@ class Aggregator(object):
         round_loss = self.get_weighted_average_of_collaborators(self.per_col_round_stats["loss_results"],
                                                                 self.per_col_round_stats["collaborator_training_sizes"])
 
-        # compute the weighted validation average
-        round_val = self.get_weighted_average_of_collaborators(self.per_col_round_stats["agg_validation_results"],
-                                                                self.per_col_round_stats["collaborator_validation_sizes"])
+        # compute the weighted average of collaborator pre-train validation (valiation of this round's initial global model)
+        round_initial_global_val = self.get_weighted_average_of_collaborators(self.per_col_round_stats["agg_validation_results"],
+                                                                              self.per_col_round_stats["collaborator_validation_sizes"])
+
+        # if this round initial global is best global seen so far, save it as such
+        if self.best_model_score is None or self.best_model_score < round_initial_global_val:
+            self.best_model_score = round_initial_global_val
+            # The inital global model being evaluated here is stored under latest model
+            shutil.copyfile(self.latest_model_fpath, self.best_model_fpath)
+            self.logger.info("Saved the best model with score {:f}.".format(round_initial_global_val))
+            
 
         # FIXME: proper logging
         self.logger.info('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
-        self.logger.info('\tvalidation: {}'.format(round_val))
+        self.logger.info('\tround initial global validation: {}'.format(round_initial_global_val))
         self.logger.info('\tloss: {}'.format(round_loss))
 
         self.tb_writer.add_scalars('training/loss', {**self.per_col_round_stats["loss_results"], "federation": round_loss}, global_step=self.round_num)
         self.tb_writer.add_scalars('training/size', self.per_col_round_stats["collaborator_training_sizes"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/preagg_result', self.per_col_round_stats["preagg_validation_results"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num-1)
-        self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
+        self.tb_writer.add_scalars('validation/preagg_results', self.per_col_round_stats["preagg_validation_results"], global_step=self.round_num)
+        self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num)
+        self.tb_writer.add_scalars('validation/initial_global_val_results', {**self.per_col_round_stats["agg_validation_results"], "federation": round_initial_global_val}, global_step=self.round_num)
 
 
         
-        # construct the model protobuf from in progress tensors (with incremented version number)
+        # construct the initial global model for next round
         self.model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
                                      model_id=self.model.header.id, 
                                      model_version=self.model.header.version + 1, 
@@ -224,14 +233,6 @@ class Aggregator(object):
        
         # Save the new model as latest model.
         dump_proto(model_to_save, self.latest_model_fpath)
-
-        model_score = round_val
-        THIS APPEARS TO BE A BUG, WOULD WANT TO MOVE THIS TO SAVE THE PREVIOUS VERSION SO COULD JUST SAVE SELF.LATEST BEFORE THE LINE ABOVE  
-        if self.best_model_score is None or self.best_model_score < model_score:
-            self.logger.info("Saved the best model with score {:f}.".format(model_score))
-            self.best_model_score = model_score
-            # Save a model proto version to file as current best model.
-            dump_proto(model_to_save, self.best_model_fpath)
 
         # clear the update pointer
         self.model_update_in_progress = None

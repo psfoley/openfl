@@ -41,12 +41,8 @@ class Collaborator(object):
                  compression_pipeline=None,
                  epochs_per_round=1.0, 
                  num_batches_per_round=None, 
-<<<<<<< HEAD
                  send_model_deltas = True,
-=======
-                 send_model_deltas = False,
                  single_col_cert_common_name=None,
->>>>>>> 219a38ac0762348e71800348e2389cbd191e587f
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.channel = channel
@@ -109,7 +105,7 @@ class Collaborator(object):
         delta_dict = {key: (tensor_dict[key] - self.base_dict_for_deltas[key]) for key in self.base_dict_for_deltas}
         return delta_dict
 
-    def update_base_for_deltas(self, tensor_dict, version, is_delta=True):
+    def update_base_for_deltas(self, tensor_dict, is_delta=True):
         if not self.send_model_deltas:
             raise ValueError("Should not be handing a base for deltas when not sending deltas.")
         if self.base_dict_for_deltas is None:

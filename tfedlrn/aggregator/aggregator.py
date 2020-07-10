@@ -94,6 +94,14 @@ class Aggregator(object):
         self.mutex = Lock()
 
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
+        # if collaborators are sending model deltas, aggregator side tracking of non-delta global model is needed (restoration & saving models)
+        self.non_delta_dict = None
+
+    def update_non_delta_dict(self, tensor_dict):
+        if set(self.non_delta_dict.keys()) != set(tensor_dict.keys()):
+            raise ValueError("Attempting to update base with tensors whose names do not match current base names.")
+        self.non_delta_dict = {key: (self.non_delta_dict[key] + tensor_dict[key]) for key in tensor_dict}
+
 
     def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
         # if self.test_mode_whitelist is None, then the common_name must match collaborator_common_name and be in collaborator_common_names
@@ -189,22 +197,41 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num-1)
         self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
+
+        
         # construct the model protobuf from in progress tensors (with incremented version number)
         self.model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
                                      model_id=self.model.header.id, 
                                      model_version=self.model.header.version + 1, 
                                      is_delta=self.model_update_in_progress["is_delta"], 
                                      compression_pipeline=self.compression_pipeline)
-        
+
+        if self.model_update_in_progress['is_delta']:
+            if self.model.header.version == 0:
+                # set up tracking of non-delta global model 
+                self.non_delta_dict = deconstruct_proto(self.model, self.compression_pipeline)
+            # we update here with a delta that has passed through compression/decompression in order that our result matches the global model tracked by collaborators
+            self.update_non_delta_dict(tensor_dict=deconstruct_proto(self.model, self.compression_pipeline))
+
+            # construct a model protobuf for saving to disk from the non-delta version of the model in progress tensors (with incremented version number)
+            model_to_save = construct_proto(tensor_dict=self.non_delta_dict, 
+                                            model_id=self.model.header.id, 
+                                            model_version=self.model.header.version + 1, 
+                                            is_delta=False, 
+                                            compression_pipeline=NoCompressionPipeline())
+        else:
+            model_to_save = self.model
+       
         # Save the new model as latest model.
-        dump_proto(self.model, self.latest_model_fpath)
+        dump_proto(model_to_save, self.latest_model_fpath)
 
         model_score = round_val
+        THIS APPEARS TO BE A BUG, WOULD WANT TO MOVE THIS TO SAVE THE PREVIOUS VERSION SO COULD JUST SAVE SELF.LATEST BEFORE THE LINE ABOVE  
         if self.best_model_score is None or self.best_model_score < model_score:
             self.logger.info("Saved the best model with score {:f}.".format(model_score))
             self.best_model_score = model_score
             # Save a model proto version to file as current best model.
-            dump_proto(self.model, self.best_model_fpath)
+            dump_proto(model_to_save, self.best_model_fpath)
 
         # clear the update pointer
         self.model_update_in_progress = None

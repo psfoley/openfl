@@ -189,9 +189,13 @@ class Aggregator(object):
 
         # if this round initial global is best global seen so far, save it as such
         if self.best_model_score is None or self.best_model_score < round_initial_global_val:
+            if self.best_model_score is None:
+                # The inital global model being evaluated here is the very first global model (and is self.model)
+                dump_proto(self.model, self.best_model_fpath)
+            else:
+                # The inital global model being evaluated here resides at the latest model fpath (self.model may be a delta)
+                shutil.copyfile(self.latest_model_fpath, self.best_model_fpath)
             self.best_model_score = round_initial_global_val
-            # The inital global model being evaluated here is stored under latest model
-            shutil.copyfile(self.latest_model_fpath, self.best_model_fpath)
             self.logger.info("Saved the best model with score {:f}.".format(round_initial_global_val))
             
 

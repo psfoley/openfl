@@ -4,6 +4,7 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import argparse
+import sys
 import os
 import logging
 import importlib
@@ -72,7 +73,6 @@ def main(plan, collaborators_file, feature_shape, data_config_fname, logging_con
                                   model_id=wrapped_model.__class__.__name__, 
                                   model_version=0,
                                   is_delta=False, 
-                                  delta_from_version=-1, 
                                   compression_pipeline=compression_pipeline)
 
     dump_proto(model_proto=model_proto, fpath=fpath)

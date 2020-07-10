@@ -267,11 +267,10 @@ class Collaborator(object):
         # compute the aggregated tensors dict from the model proto
         agg_tensor_dict = deconstruct_proto(model_proto=received_model_proto, compression_pipeline=self.compression_pipeline)
         
-        # We update the base every round, so we can use the base to get the current global values of the shared tensors.
         if self.send_model_deltas:
             self.update_base_for_deltas(tensor_dict=agg_tensor_dict, 
                                         is_delta=received_model_is_delta)
-            # base_for_deltas can provide the global shared tensor values here
+            # base_dict_for_deltas can be used to replace the aggregated delta tensor dict with non delta values
             agg_tensor_dict = self.base_dict_for_deltas
 
         # restore any tensors held out from aggregation

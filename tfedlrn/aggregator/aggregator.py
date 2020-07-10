@@ -196,15 +196,17 @@ class Aggregator(object):
             
 
         # FIXME: proper logging
-        self.logger.info('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
-        self.logger.info('\tround initial global validation: {}'.format(round_initial_global_val))
-        self.logger.info('\tloss: {}'.format(round_loss))
+        self.logger.info(20*'#')
+        self.logger.info('round {} results for model id/version {}/{}'.format(self.round_num, self.model.header.id, self.model.header.version))
+        self.logger.info('\tround {} initial global validation: {}'.format(self.round_num, round_initial_global_val))
+        self.logger.info('\tweighted average of end of round {} local training loss: {}'.format(self.round_num, round_loss))
+        self.logger.info(20*'#')
 
         self.tb_writer.add_scalars('training/loss', {**self.per_col_round_stats["loss_results"], "federation": round_loss}, global_step=self.round_num)
         self.tb_writer.add_scalars('training/size', self.per_col_round_stats["collaborator_training_sizes"], global_step=self.round_num)
         self.tb_writer.add_scalars('validation/preagg_results', self.per_col_round_stats["preagg_validation_results"], global_step=self.round_num)
         self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/initial_global_val_results', {**self.per_col_round_stats["agg_validation_results"], "federation": round_initial_global_val}, global_step=self.round_num)
+        self.tb_writer.add_scalars('validation/global_val_results', {**self.per_col_round_stats["agg_validation_results"], "federation": round_initial_global_val}, global_step=self.round_num-1)
 
 
         

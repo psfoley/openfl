@@ -105,7 +105,7 @@ class Collaborator(object):
         delta_dict = {key: (tensor_dict[key] - self.base_dict_for_deltas[key]) for key in self.base_dict_for_deltas}
         return delta_dict
 
-    def update_base_for_deltas(self, tensor_dict, is_delta=True):
+    def update_base_for_deltas(self, tensor_dict, is_delta):
         if not self.send_model_deltas:
             raise ValueError("Should not be handing a base for deltas when not sending deltas.")
         if self.base_dict_for_deltas is None:

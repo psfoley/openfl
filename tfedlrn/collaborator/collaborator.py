@@ -260,9 +260,9 @@ class Collaborator(object):
         check_not_equal(received_model_version, self.model_header.version, self.logger)
         
         # set our model header using the locally defined is_delta attribute and shared model id and version
-        self.model_header = ModelHeader(id=self.received_model_proto.header.id,
+        self.model_header = ModelHeader(id=received_model_proto.header.id,
                                         is_delta=self.send_model_deltas,
-                                        version=eceived_model_proto.header.version)
+                                        version=received_model_proto.header.version)
 
         # compute the aggregated tensors dict from the model proto
         agg_tensor_dict = deconstruct_proto(model_proto=received_model_proto, compression_pipeline=self.compression_pipeline)
@@ -270,7 +270,6 @@ class Collaborator(object):
         # We update the base every round, so we can use the base to get the current global values of the shared tensors.
         if self.send_model_deltas:
             self.update_base_for_deltas(tensor_dict=agg_tensor_dict, 
-                                        version=received_model_version, 
                                         is_delta=received_model_is_delta)
             # base_for_deltas can provide the global shared tensor values here
             agg_tensor_dict = self.base_dict_for_deltas

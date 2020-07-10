@@ -223,9 +223,9 @@ class Aggregator(object):
 
         if self.model_update_in_progress['is_delta']:
             if self.model.header.version == 0:
-                # set up tracking of non-delta global model 
+                # set up tracking of non-delta global model using the exact version 0 all collaborators use 
                 self.non_delta_dict = deconstruct_proto(self.model, self.compression_pipeline)
-            # we update here with a delta that has passed through compression/decompression in order that our result matches the global model tracked by collaborators
+            # we update here with a delta that has passed through compression/decompression, so as to exactly match next round collaborator initial global models
             self.update_non_delta_dict(tensor_dict=deconstruct_proto(self.model, self.compression_pipeline))
 
             # construct a model protobuf for saving to disk from the non-delta version of the model in progress tensors (with incremented version number)

@@ -212,23 +212,27 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num)
         self.tb_writer.add_scalars('validation/global_val_results', {**self.per_col_round_stats["agg_validation_results"], "federation": round_initial_global_val}, global_step=self.round_num-1)
 
-
-        
-        # construct the initial global model for next round
-        self.model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
+        # prepare an initial global model for next round (not yet setting it as self.model)
+        temp_model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
                                      model_id=self.model.header.id, 
                                      model_version=self.model.header.version + 1, 
                                      is_delta=self.model_update_in_progress["is_delta"], 
                                      compression_pipeline=self.compression_pipeline)
-
+        
+        
+        # create and/or update the non delta dict
         if self.model_update_in_progress['is_delta']:
             if self.model.header.version == 0:
                 # set up tracking of non-delta global model using the exact version 0 all collaborators use 
                 self.non_delta_dict = deconstruct_proto(self.model, self.compression_pipeline)
             # we update here with a delta that has passed through compression/decompression, so as to exactly match next round collaborator initial global models
-            self.update_non_delta_dict(tensor_dict=deconstruct_proto(self.model, self.compression_pipeline))
+            self.update_non_delta_dict(tensor_dict=deconstruct_proto(temp_model, self.compression_pipeline))
+        
+        # set the initial global model for next round
+        self.model = temp_model
 
-            # construct a model protobuf for saving to disk from the non-delta version of the model in progress tensors (with incremented version number)
+        # determine the model protobuf for saving to disk to exactly match next round collaborator initial global models
+        if self.model_update_in_progress['is_delta']:
             model_to_save = construct_proto(tensor_dict=self.non_delta_dict, 
                                             model_id=self.model.header.id, 
                                             model_version=self.model.header.version + 1, 

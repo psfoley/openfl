@@ -231,7 +231,7 @@ class Aggregator(object):
         # set the initial global model for next round
         self.model = temp_model
 
-        # determine the model protobuf for saving to disk to exactly match next round collaborator initial global models
+        # determine the model protobuf for saving to disk (exactly matching next round collaborator initial global models)
         if self.model_update_in_progress['is_delta']:
             model_to_save = construct_proto(tensor_dict=self.non_delta_dict, 
                                             model_id=self.model.header.id, 

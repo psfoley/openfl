@@ -37,7 +37,7 @@ class Collaborator(object):
         # this would return a list of what tensors we require as TensorKeys
         required_tensorkeys_relative = self.model.get_required_tensorkeys_for_function(func_name, **kwargs)
 
-        # models actually return "relative" tensorkeys of (LOCAL|GLOBAL, name, round_offset)
+        # models actually return "relative" tensorkeys of (name, LOCAL|GLOBAL, round_offset)
         # so we need to update these keys to their "absolute values"
         required_tensorkeys = []
         for tname, origin, rnd_num in required_tensorkeys_relative:
@@ -46,13 +46,14 @@ class Collaborator(object):
             else:
                 origin = self.collaborator_name
             
+            #rnd_num is the relative round. So if rnd_num is -1, get the tensor from the previous round
             required_tensorkeys.append(TensorKey(tname, origin, rnd_num + round_number))
         
-        input_numpy_dict = self.get_numpy_dict_for_tensorkeys(required_tensorkeys)
+        input_tensor_dict = self.get_numpy_dict_for_tensorkeys(required_tensorkeys)
 
         # now we have whatever the model needs to do the task
         func = getattr(self.model, func_name)
-        output_tensor_dict = func(round_number, input_tensor_dict)
+        output_tensor_dict = func(collaborator_common_name, round_number, input_tensor_dict, **kwargs)
 
         # send the results for this tasks
         self.send_task_results(output_tensor_dict, round_number, task)

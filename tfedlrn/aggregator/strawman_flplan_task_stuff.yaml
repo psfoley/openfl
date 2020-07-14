@@ -6,6 +6,7 @@ tasks:
       - f1_score
       - accuracy
       batch_size: 32
+      local_model: false
   locally_tuned_model_validation:
     function  : validate
     kwargs    :
@@ -13,6 +14,7 @@ tasks:
       - f1_score
       - accuracy
       batch_size: 32
+      local_model: true
   train:
     function  : train
     kwargs    :

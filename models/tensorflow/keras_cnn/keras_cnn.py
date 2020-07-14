@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number'])
 
 import logging
 import numpy as np
@@ -18,6 +19,8 @@ class KerasCNN(KerasFLModel):
         super().__init__(**kwargs)
         
         self.model = self.build_model(self.feature_shape, self.data.num_classes, **kwargs)
+
+        self.initialize_tensorkeys_for_functions()
 
         self.set_logger()
 

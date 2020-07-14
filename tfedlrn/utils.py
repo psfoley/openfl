@@ -5,6 +5,10 @@ import yaml
 import importlib
 import hashlib
 import numpy as np
+from collections import namedtuple
+
+TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number'])
+
 
 def load_yaml(path):
     plan = None

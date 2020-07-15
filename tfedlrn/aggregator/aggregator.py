@@ -28,7 +28,7 @@ from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
 # FIXME: persistence of the trained weights.
 class Aggregator(object):
     """An Aggregator is the central node in federated learning.
-    
+
     Parameters
     ----------
     id : str
@@ -59,7 +59,7 @@ class Aggregator(object):
                  straggler_cutoff_time=np.inf,
                  disable_equality_check=True,
                  single_col_cert_common_name=None,
-                 compression_pipeline=None,  
+                 compression_pipeline=None,
                  **kwargs):
         self.logger = logging.getLogger(__name__)
         self.uuid = aggregator_uuid
@@ -96,6 +96,16 @@ class Aggregator(object):
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
 
     def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
+        """Determine if the collaborator certificate and ID are valid for this federation.
+
+        Args:
+            cert_common_name: Common name for security certificate
+            collaborator_common_name: Common name for collaborator
+
+        Returns:
+            boolean: True means the collaborator common name matches the name in the security certificate.
+
+        """
         # if self.test_mode_whitelist is None, then the common_name must match collaborator_common_name and be in collaborator_common_names
         if self.single_col_cert_common_name == '':  # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
             return cert_common_name == collaborator_common_name and collaborator_common_name in self.collaborator_common_names
@@ -104,15 +114,28 @@ class Aggregator(object):
             return cert_common_name == self.single_col_cert_common_name and collaborator_common_name in self.collaborator_common_names
 
     def all_quit_jobs_sent(self):
+        """Determines if all collaborators have been sent the QUIT command.
+
+        Returns:
+            boolean: True if all collaborators have been sent the QUIT command.
+
+        """
         return sorted(self.quit_job_sent_to) == sorted(self.collaborator_common_names)
 
     def validate_header(self, message):
+        """Validates the message is from valid collaborator in this federation.
+
+        Returns:
+            boolean: True if the message is from a valid collaborator in this federation.
+
+        """
+
         # validate that the message is for me
         check_equal(message.header.recipient, self.uuid, self.logger)
-        
+
         # validate that the message is for my federation
         check_equal(message.header.federation_id, self.federation_uuid, self.logger)
-        
+
         # validate that the sender is one of my collaborators
         check_is_in(message.header.sender, self.collaborator_common_names, self.logger)
 
@@ -126,6 +149,15 @@ class Aggregator(object):
         self.per_col_round_stats = dict(zip(keys, values))
 
     def collaborator_is_done(self, c):
+        """Determines if a collaborator is finished a round.
+
+        Args:
+            c: Collaborator name
+
+        Returns:
+            boolean: True if collaborator c is done.
+
+        """
         assert c in self.collaborator_common_names
 
         # FIXME: this only works because we have fixed roles each round
@@ -136,22 +168,54 @@ class Aggregator(object):
                 c in self.per_col_round_stats["collaborator_validation_sizes"])
 
     def num_collaborators_done(self):
+        """Returns the number of collaborators that have finished the training round.
+
+        Returns:
+            int: The number of collaborators that have finished this round of training.
+
+        """
         return sum([self.collaborator_is_done(c) for c in self.collaborator_common_names])
 
     def straggler_time_expired(self):
+        """Determines if there are still collaborators that have not returned past the expected round time.
+        Returns:
+            boolean: True if training round limit has expired (i.e. there are straggler collaborators that have not returned in the expected time)
+
+        """
         return self.round_start_time is not None and ((time.time() - self.round_start_time) > self.straggler_cutoff_time)
 
     def minimum_collaborators_reported(self):
+        """Determines if enough collaborators have returned to do the aggregation.
+
+        Returns:
+            boolean: True if the number of collaborators that have finished is greater than the minimum threshold set.
+
+        """
         return self.num_collaborators_done() >= self.minimum_reporting
 
     def straggler_cutoff_check(self):
+        """Determines if a collaborator is finished a round.
+
+        Args:
+            c: Collaborator name
+
+        Returns:
+            boolean: True if collaborator c is done.
+
+        """
         cutoff = self.straggler_time_expired() and self.minimum_collaborators_reported()
         if cutoff:
             collaborators_done = [c for c in self.collaborator_common_names if self.collaborator_is_done(c)]
             self.logger.info('\tEnding round early due to straggler cutoff. Collaborators done: {}'.format(collaborators_done))
         return cutoff
-    
+
     def end_of_round_check(self):
+        """Determines if it is the end of a training round.
+
+        Returns:
+            boolean: True if training round has ended.
+
+        """
         # FIXME: find a nice, clean way to manage these values without having to manually ensure
         # the keys are in sync
 
@@ -164,10 +228,22 @@ class Aggregator(object):
             self.end_of_round()
 
     def get_weighted_average_of_collaborators(self, value_dict, weight_dict):
+        """Calculate the weighted average of the model updates from the collaborators.
+
+        Args:
+            value_dict: A dictionary of the values (model tensors)
+            weight_dict: A dictionary of the collaborator weights (percentage of total data size)
+
+        Returns:
+            Dictionary of the weights average for all collaborator models
+
+        """
         cols = [k for k in value_dict.keys() if k in self.collaborator_common_names]
-        return np.average([value_dict[c] for c in cols], weights=[weight_dict[c] for c in cols])        
+        return np.average([value_dict[c] for c in cols], weights=[weight_dict[c] for c in cols])
 
     def end_of_round(self):
+        """Runs required tasks when the training round has ended.
+        """
         # FIXME: what all should we do to track results/metrics? It should really be an easy, extensible solution
 
         # compute the weighted loss average
@@ -190,13 +266,13 @@ class Aggregator(object):
         self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
 
         # construct the model protobuf from in progress tensors (with incremented version number)
-        self.model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
-                                     model_id=self.model.header.id, 
-                                     model_version=self.model.header.version + 1, 
-                                     is_delta=self.model_update_in_progress["is_delta"], 
+        self.model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"],
+                                     model_id=self.model.header.id,
+                                     model_version=self.model.header.version + 1,
+                                     is_delta=self.model_update_in_progress["is_delta"],
                                      delta_from_version=self.model_update_in_progress["delta_from_version"],
                                      compression_pipeline=self.compression_pipeline)
-        
+
         # Save the new model as latest model.
         dump_proto(self.model, self.latest_model_fpath)
 
@@ -266,23 +342,23 @@ class Aggregator(object):
                 check_equal(self.model_update_in_progress["is_delta"], is_delta, self.logger)
                 check_equal(self.model_update_in_progress["delta_from_version"], delta_from_version, self.logger)
 
-                # aggregate all the model tensors in the tensor_dict 
+                # aggregate all the model tensors in the tensor_dict
                 # (weighted average of local update l and global tensor g for all l, g)
                 for name, l in model_tensors.items():
                     g = self.model_update_in_progress["tensor_dict"][name]
                     # check that g and l have the same shape
                     check_equal(g.shape, l.shape, self.logger)
-                    
-                    # sanity check that the tensors are indeed different for non opt tensors 
-                    # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)               
+
+                    # sanity check that the tensors are indeed different for non opt tensors
+                    # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)
                     if (not self.disable_equality_check \
                         and not name.startswith('__opt') \
                         and 'RMSprop' not in name \
                         and 'Adam' not in name \
                         and 'RMSProp' not in name):
                         check_equal(np.all(g == l), False, self.logger)
-                        
-                    
+
+
                     # now store a weighted average into the update in progress
                     self.model_update_in_progress["tensor_dict"][name] = np.average([g, l], weights=[weight_g, weight_l], axis=0)
 
@@ -314,7 +390,7 @@ class Aggregator(object):
             # validate this model header
             check_equal(model_header.id, self.model.header.id, self.logger)
             check_equal(model_header.version, self.model.header.version, self.logger)
-            
+
             sender = message.header.sender
 
             if sender not in self.per_col_round_stats["agg_validation_results"]:
@@ -323,7 +399,7 @@ class Aggregator(object):
                 # FIXME: is this an error case that should be handled?
                 check_not_in(message.header.sender, self.per_col_round_stats["agg_validation_results"], self.logger)
                 check_not_in(message.header.sender, self.per_col_round_stats["collaborator_validation_sizes"], self.logger)
-                
+
                 # store the validation results and validation size
                 self.per_col_round_stats["agg_validation_results"][message.header.sender] = message.results
                 self.per_col_round_stats["collaborator_validation_sizes"][message.header.sender] = message.data_size
@@ -369,7 +445,7 @@ class Aggregator(object):
         # else this collaborator is done for the round
         else:
             job = JOB_YIELD
-        
+
         self.logger.debug("Receive job request from %s and assign with %s" % (message.header.sender, job))
 
         reply = JobReply(header=self.create_reply_header(message), job=job)
@@ -391,8 +467,8 @@ class Aggregator(object):
                 self.end_of_round_check()
             finally:
                 self.mutex.release()
-        
-        return reply      
+
+        return reply
 
     def DownloadModel(self, message):
         t = time.time()
@@ -419,8 +495,8 @@ class Aggregator(object):
         reply = GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
 
         self.logger.debug('aggregator handled RequestJob in time {}'.format(time.time() - t))
-        
-        return reply       
+
+        return reply
 
     def create_reply_header(self, message):
         return MessageHeader(sender=self.uuid, recipient=message.header.sender, federation_id=self.federation_uuid, counter=message.header.counter, single_col_cert_common_name=self.single_col_cert_common_name)
@@ -428,81 +504,81 @@ class Aggregator(object):
     def collaborator_out_of_date(self, model_header):
         # validate that this is the right model to be checking
         check_equal(model_header.id, self.model.header.id, self.logger)
-        
+
         return model_header.version != self.model.header.version
 
     def log_big_warning(self):
         self.logger.warning("\n{}\nYOU ARE RUNNING IN SINGLE COLLABORATOR CERT MODE! THIS IS NOT PROPER PKI AND SHOULD ONLY BE USED IN DEVELOPMENT SETTINGS!!!! YE HAVE BEEN WARNED!!!".format(the_dragon))
 
 
-the_dragon = """                                                                                           
-                                                                                           
- ,@@.@@+@@##@,@@@@.`@@#@+  *@@@@ #@##@  `@@#@# @@@@@   @@    @@@@` #@@@ :@@ `@#`@@@#.@     
-  @@ #@ ,@ +. @@.@* #@ :`   @+*@ .@`+.   @@ *@::@`@@   @@#  @@  #`;@`.@@ @@@`@`#@* +:@`    
-  @@@@@ ,@@@  @@@@  +@@+    @@@@ .@@@    @@ .@+:@@@:  .;+@` @@ ,;,#@` @@ @@@@@ ,@@@* @     
-  @@ #@ ,@`*. @@.@@ #@ ,;  `@+,@#.@.*`   @@ ,@::@`@@` @@@@# @@`:@;*@+ @@ @`:@@`@ *@@ `     
- .@@`@@,+@+;@.@@ @@`@@;*@  ;@@#@:*@+;@  `@@;@@ #@**@+;@ `@@:`@@@@  @@@@.`@+ .@ +@+@*,@     
-  `` ``     ` ``  .     `     `      `     `    `  .` `  ``   ``    ``   `       .   `     
-                                                                                           
-                                                                                           
-                                                                                           
-                                            .**                                            
-                                      ;`  `****:                                           
-                                     @**`*******                                           
-                         ***        +***********;                                          
-                        ,@***;` .*:,;************                                          
-                        ;***********@@***********                                          
-                        ;************************,                                         
-                        `*************************                                         
-                         *************************                                         
-                         ,************************                                         
-                          **#*********************                                         
-                          *@****`     :**********;                                         
-                          +**;          .********.                                         
-                          ;*;            `*******#:                       `,:              
-                                          ****@@@++::                ,,;***.               
-                                          *@@@**;#;:         +:      **++*,                
-                                          @***#@@@:          +*;     ,****                 
-                                          @*@+****           ***`     ****,                
-                                         ,@#******.  ,       ****     **;,**.              
-                                         * ******** :,       ;*:*+    **  :,**             
-                                        #  ********::      *,.*:**`   *      ,*;           
-                                        .  *********:      .+,*:;*:   :      `:**          
-                                       ;   :********:       ***::**   `       ` **         
-                                       +   :****::***  ,    *;;::**`             :*        
-                                      ``   .****::;**:::    *;::::*;              ;*       
-                                      *     *****::***:.    **::::**               ;:      
-                                      #     *****;:****     ;*::;***               ,*`     
-                                      ;     ************`  ,**:****;               ::*     
-                                      :     *************;:;*;*++:                   *.    
-                                      :     *****************;*                      `*    
-                                     `.    `*****************;  :                     *.   
-                                     .`    .*+************+****;:                     :*   
-                                     `.    :;+***********+******;`    :              .,*   
-                                      ;    ::*+*******************. `::              .`:.  
-                                      +    :::**********************;;:`                *  
-                                      +    ,::;*************;:::*******.                *  
-                                      #    `:::+*************:::;********  :,           *  
-                                      @     :::***************;:;*********;:,           *  
-                                      @     ::::******:*********************:         ,:*  
-                                      @     .:::******:;*********************,         :*  
-                                      #      :::******::******###@*******;;****        *,  
-                                      #      .::;*****::*****#****@*****;:::***;  ``  **   
-                                      *       ::;***********+*****+#******::*****,,,,**    
-                                      :        :;***********#******#******************     
-                                      .`       `;***********#******+****+************      
-                                      `,        ***#**@**+***+*****+**************;`       
-                                       ;         *++**#******#+****+`      `.,..           
-                                       +         `@***#*******#****#                       
-                                       +          +***@********+**+:                       
-                                       *         .+**+;**;;;**;#**#                        
-                                      ,`         ****@         +*+:                        
-                                      #          +**+         :+**                         
-                                      @         ;**+,       ,***+                          
-                                      #      #@+****      *#****+                          
-                                     `;     @+***+@      `#**+#++                          
-                                     #      #*#@##,      .++:.,#                           
-                                    `*      @#            +.                               
-                                  @@@                                                      
-                                 #`@                                                       
+the_dragon = """
+
+ ,@@.@@+@@##@,@@@@.`@@#@+  *@@@@ #@##@  `@@#@# @@@@@   @@    @@@@` #@@@ :@@ `@#`@@@#.@
+  @@ #@ ,@ +. @@.@* #@ :`   @+*@ .@`+.   @@ *@::@`@@   @@#  @@  #`;@`.@@ @@@`@`#@* +:@`
+  @@@@@ ,@@@  @@@@  +@@+    @@@@ .@@@    @@ .@+:@@@:  .;+@` @@ ,;,#@` @@ @@@@@ ,@@@* @
+  @@ #@ ,@`*. @@.@@ #@ ,;  `@+,@#.@.*`   @@ ,@::@`@@` @@@@# @@`:@;*@+ @@ @`:@@`@ *@@ `
+ .@@`@@,+@+;@.@@ @@`@@;*@  ;@@#@:*@+;@  `@@;@@ #@**@+;@ `@@:`@@@@  @@@@.`@+ .@ +@+@*,@
+  `` ``     ` ``  .     `     `      `     `    `  .` `  ``   ``    ``   `       .   `
+
+
+
+                                            .**
+                                      ;`  `****:
+                                     @**`*******
+                         ***        +***********;
+                        ,@***;` .*:,;************
+                        ;***********@@***********
+                        ;************************,
+                        `*************************
+                         *************************
+                         ,************************
+                          **#*********************
+                          *@****`     :**********;
+                          +**;          .********.
+                          ;*;            `*******#:                       `,:
+                                          ****@@@++::                ,,;***.
+                                          *@@@**;#;:         +:      **++*,
+                                          @***#@@@:          +*;     ,****
+                                          @*@+****           ***`     ****,
+                                         ,@#******.  ,       ****     **;,**.
+                                         * ******** :,       ;*:*+    **  :,**
+                                        #  ********::      *,.*:**`   *      ,*;
+                                        .  *********:      .+,*:;*:   :      `:**
+                                       ;   :********:       ***::**   `       ` **
+                                       +   :****::***  ,    *;;::**`             :*
+                                      ``   .****::;**:::    *;::::*;              ;*
+                                      *     *****::***:.    **::::**               ;:
+                                      #     *****;:****     ;*::;***               ,*`
+                                      ;     ************`  ,**:****;               ::*
+                                      :     *************;:;*;*++:                   *.
+                                      :     *****************;*                      `*
+                                     `.    `*****************;  :                     *.
+                                     .`    .*+************+****;:                     :*
+                                     `.    :;+***********+******;`    :              .,*
+                                      ;    ::*+*******************. `::              .`:.
+                                      +    :::**********************;;:`                *
+                                      +    ,::;*************;:::*******.                *
+                                      #    `:::+*************:::;********  :,           *
+                                      @     :::***************;:;*********;:,           *
+                                      @     ::::******:*********************:         ,:*
+                                      @     .:::******:;*********************,         :*
+                                      #      :::******::******###@*******;;****        *,
+                                      #      .::;*****::*****#****@*****;:::***;  ``  **
+                                      *       ::;***********+*****+#******::*****,,,,**
+                                      :        :;***********#******#******************
+                                      .`       `;***********#******+****+************
+                                      `,        ***#**@**+***+*****+**************;`
+                                       ;         *++**#******#+****+`      `.,..
+                                       +         `@***#*******#****#
+                                       +          +***@********+**+:
+                                       *         .+**+;**;;;**;#**#
+                                      ,`         ****@         +*+:
+                                      #          +**+         :+**
+                                      @         ;**+,       ,***+
+                                      #      #@+****      *#****+
+                                     `;     @+***+@      `#**+#++
+                                     #      #*#@##,      .++:.,#
+                                    `*      @#            +.
+                                  @@@
+                                 #`@
                                   ,                                                        """

@@ -10,7 +10,7 @@ def load_yaml(path):
     """Load a YAML file
 
     Args:
-        path: The directory path for the federation plan (FL Plan)
+        path (string): The directory path for the federation plan (FL Plan)
 
     Returns:
         A YAML object of the federation plan.
@@ -38,6 +38,8 @@ def get_object(module_name, class_name, **kwargs):
 
 def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
     """Splits the tensor dictionary into float and non-floating point values
+
+    Splits a tensor dictionary into float and non-float values.
 
     Args:
         tensor_dict: A dictionary of tensors

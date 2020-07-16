@@ -293,6 +293,16 @@ class Aggregator(object):
         self.round_start_time = None
 
     def UploadLocalModelUpdate(self, message):
+        """Parses the collaborator reply message to get the collaborator model update
+
+        Args:
+            message: Message from the collaborator
+
+        Returns:
+            The reply to the message (usually just the acknowledgement to the collaborator)
+
+        """
+
         self.mutex.acquire(blocking=True)
         try:
             t = time.time()
@@ -379,6 +389,16 @@ class Aggregator(object):
         return reply
 
     def UploadLocalMetricsUpdate(self, message):
+        """Parses the collaborator reply message to get the collaborator metrics (usually the local validation score)
+
+        Args:
+            message: Message from the collaborator
+
+        Returns:
+            The reply to the message (usually just the acknowledgement to the collaborator)
+
+        """
+
         self.mutex.acquire(blocking=True)
         try:
             t = time.time()
@@ -421,6 +441,16 @@ class Aggregator(object):
         return reply
 
     def RequestJob(self, message):
+        """Parse message for job request and act accordingly.
+
+        Args:
+            message: Message from the collaborator
+
+        Returns:
+            The reply to the message (usually just the acknowledgement to the collaborator)
+
+        """
+
         t = time.time()
         self.validate_header(message)
 
@@ -471,6 +501,16 @@ class Aggregator(object):
         return reply
 
     def DownloadModel(self, message):
+        """Sends a model to the collaborator
+
+        Args:
+            message: Message from the collaborator
+
+        Returns:
+            The reply to the message (usually just the acknowledgement to the collaborator)
+
+        """
+
         t = time.time()
         self.validate_header(message)
 
@@ -499,9 +539,27 @@ class Aggregator(object):
         return reply
 
     def create_reply_header(self, message):
+        """Creates a header for the reply to the message
+
+        Args:
+            message: Message from the collaborator
+
+        Returns:
+            The message header.
+
+        """
         return MessageHeader(sender=self.uuid, recipient=message.header.sender, federation_id=self.federation_uuid, counter=message.header.counter, single_col_cert_common_name=self.single_col_cert_common_name)
 
     def collaborator_out_of_date(self, model_header):
+        """Determines if the collaborator has the wrong version of the model (aka out of date)
+
+        Args:
+            model_header: Header for the model
+
+        Returns:
+            The reply to the message (usually just the acknowledgement to the collaborator)
+
+        """
         # validate that this is the right model to be checking
         check_equal(model_header.id, self.model.header.id, self.logger)
 

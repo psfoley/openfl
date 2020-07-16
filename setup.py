@@ -25,5 +25,5 @@ setup(name='tfedlrn',
                 'data.dummy',
                 'data.pytorch', 
                 'data.tensorflow'],
-      install_requires=['tensorflow==1.14.0', 'torch==1.2.0', 'protobuf', 'pyyaml', 'grpcio', 'tqdm', 'coloredlogs', 'tensorboardX', 'nibabel', 'sklearn']
+      install_requires=['tensorflow==1.14.0', 'torch==1.2.0', 'protobuf', 'pyyaml', 'grpcio', 'tqdm', 'coloredlogs', 'tensorboardX', 'nibabel', 'sklearn', 'pandas']
 )

@@ -1,12 +1,16 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
+import pandas as pd
+import numpy as np
+
 TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number'])
 
 class Collaborator(object):
 
     def __init__(self, aggregator, model, collaborator_name, aggregator_uuid, federation_uuid, tasks_config):
-        self.tensor_cache = {} # We would really want this as an object
+        # We would really want this as an object
+        self.tensor_db = pd.DataFrame([], columns=['full_tensor_name','tensor_name','origin','round','tags','nparray']) 
         self.aggregator = aggregator
         self.model = model
         self.header = MessageHeader(sender=collaborator_name, receiver=aggregator_uuid, federation_uuid=federation_uuid)
@@ -55,6 +59,9 @@ class Collaborator(object):
         func = getattr(self.model, func_name)
         output_tensor_dict = func(collaborator_common_name, round_number, input_tensor_dict, **kwargs)
 
+        # Save output_tensor_dict to TensorDB
+        self.insert_to_tensor_db(output_tensor_dict)
+
         # send the results for this tasks
         self.send_task_results(output_tensor_dict, round_number, task)
 
@@ -63,7 +70,7 @@ class Collaborator(object):
 
     def get_numpy_dict_for_tensorkey(self, tensor_key):
         # try to get from the store
-        nparray = self.get_tensor_from_store(tensor_key)
+        nparray = self.get_tensor_from_tensor_db(tensor_key)
 
         # if None and origin is our aggregator, request it from the aggregator
         if nparray is None:
@@ -71,7 +78,10 @@ class Collaborator(object):
 
         return nparray
     
-    def get_tensor_from_cache(self, tensor_name, round_number):
+    def get_tensor_from_cache(self, tensor_name, round_number=-1):
+        if round_number != -1:
+          return self.tensor_db[self.tensor_db['full_tensor_name'] == tensor_name]
+
         return self.aggregated_tensor_cache.get(CacheKey(tensor_name, round_number))
 
     def get_aggregated_tensor_from_aggregator(self, tensor_name, round_number):
@@ -88,7 +98,7 @@ class Collaborator(object):
         nparray = self.named_tensor_to_nparray(response.tensor)
         
         # cache this tensor
-        self.cache_tensor(tensor_name, round_number, nparray)
+        self.cache_tensor(tensor_name, nparray)
 
         return tensor
     
@@ -101,7 +111,7 @@ class Collaborator(object):
         response = self.aggregator.SendLocalTaskResults(TaskResults)
         self.validate_reponse(response)
 
-    def nparray_to_named_tensor(name, nparray, round_number):
+    def nparray_to_named_tensor(tensor_name, nparray, round_number):
         # if we have an aggregated tensor, we can make a delta
         previous_nparray = get_tensor_from_cache(name, round_number - 1)
 
@@ -124,6 +134,14 @@ class Collaborator(object):
         
         return nparray
     
-    def cache_tensor(self, tensor_name, round_number, nparray):
-        k = CacheKey(tensor_name, round_number)
-        self.aggregated_tensor_cache[k] = nparray)
+    def cache_tensor(self, tensor_name, nparray):
+        """
+        Add tensor to TensorDB (dataframe)
+        """
+        tensor_fields = tensor_name.split('.')
+        local_tensor_name, origin, round = tensor_fields[:3]
+        tags = '.'.join(tensor_fields[3:])
+        #The reason to include 'full_tensor_name' is that it makes it very simple to construct a dict of {'tensor_name':nparray}
+        df = pd.DataFrame([tensor_name,local_tensor_name,origin,round,tags,[nparray]], \
+                          columns=['full_tensor_name','tensor_name','origin','round','tags','nparray']) 
+        self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)

@@ -312,12 +312,12 @@ class KerasFLModel(FLModel):
 
         #Minimal required tensors for train function 
         tensor_names = self._get_weights_names(self.model) + self._get_weights_names(self.model.optimizer)
-        self.required_tensorkeys_for_functions['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0) for tensor_name in tensor_names]
+        self.required_tensorkeys_for_functions['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,'model') for tensor_name in tensor_names]
 
         #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
         self.required_tensorkeys_for_functions['validation'] = {}
         self.required_tensorkeys_for_functions['validation']['local_model=true'] = \
-                [TensorKey(tensor_name,'LOCAL',0) for tensor_name in tensor_names]
+                [TensorKey(tensor_name,'LOCAL',0,'trained') for tensor_name in tensor_names]
         self.required_tensorkeys_for_functions['validation']['local_model=false'] = \
                 [TensorKey(tensor_name,'GLOBAL',0) for tensor_name in tensor_names]
 

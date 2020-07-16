@@ -7,7 +7,7 @@ import hashlib
 import numpy as np
 from collections import namedtuple
 
-TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number'])
+TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number','tags'])
 
 
 def load_yaml(path):

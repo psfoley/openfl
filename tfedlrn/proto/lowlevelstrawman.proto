@@ -52,8 +52,8 @@ message Acknowledgement {
 
 message NamedTensor {
     required string         name                    = 1;
-    required bool           is_delta                = 2;
-    required int32          round_number            = 3;
+    required int32          round_number            = 2;
+    repeated string         tags                    = 3;
     repeated MetadataProto  transformer_metadata    = 4;
     required bytes          data_bytes              = 5;
 }

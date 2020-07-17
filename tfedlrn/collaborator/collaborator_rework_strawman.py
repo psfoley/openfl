@@ -4,13 +4,12 @@
 import pandas as pd
 import numpy as np
 
-TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number'])
-
 class Collaborator(object):
 
     def __init__(self, aggregator, model, collaborator_name, aggregator_uuid, federation_uuid, tasks_config):
         # We would really want this as an object
-        self.tensor_db = pd.DataFrame([], columns=['full_tensor_name','tensor_name','origin','round','tags','nparray']) 
+        self.tensor_db = pd.DataFrame([], columns=['tensor_name','origin','round','tags','nparray']) 
+        self.tensor_codec = TensorCodec(self.
         self.aggregator = aggregator
         self.model = model
         self.header = MessageHeader(sender=collaborator_name, receiver=aggregator_uuid, federation_uuid=federation_uuid)
@@ -57,7 +56,7 @@ class Collaborator(object):
 
         # now we have whatever the model needs to do the task
         func = getattr(self.model, func_name)
-        output_tensor_dict = func(collaborator_common_name, round_number, input_tensor_dict, **kwargs)
+        output_tensor_dict = func(self.collaborator_name, round_number, input_tensor_dict, **kwargs)
 
         # Save output_tensor_dict to TensorDB
         self.insert_to_tensor_db(output_tensor_dict)
@@ -78,13 +77,20 @@ class Collaborator(object):
 
         return nparray
     
-    def get_tensor_from_cache(self, tensor_name, round_number=-1):
-        if round_number != -1:
-          return self.tensor_db[self.tensor_db['full_tensor_name'] == tensor_name]
+    def get_tensor_from_cache(self, tensor_key):
+        """
+        Performs a lookup of the tensor_key in the TensorDB. Returns the nparray if it is available
+        Otherwise, it returns 'None'
+        """
+        df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_key['tensor_name']) & \
+                            (self.tensor_db['origin'] == tensor_key['origin']) & \
+                            (self.tensor_db['round_num'] == tensor_key['round_num']) & \
+                            (self.tensor_db['tags'] == tensor_key['tags'])]
+        if len(df) == 0:
+            return None
+        return df['nparray'][0][0]
 
-        return self.aggregated_tensor_cache.get(CacheKey(tensor_name, round_number))
-
-    def get_aggregated_tensor_from_aggregator(self, tensor_name, round_number):
+    def get_aggregated_tensor_from_aggregator(self, tensor_key, round_number):
         request = TensorRequest(header=self.header,
                                 round_number=round_number,
                                 tensor_name=tensor_name)
@@ -98,11 +104,12 @@ class Collaborator(object):
         nparray = self.named_tensor_to_nparray(response.tensor)
         
         # cache this tensor
-        self.cache_tensor(tensor_name, nparray)
+        self.cache_tensor(tensor_key, nparray)
 
         return tensor
     
     def send_task_results(self, tensor_dict, round_number, task_name):
+        #Need better function name
         named_tensors = [self.nparray_to_named_tensor(v, k, round_number) for k, v in tensor_dict.items()]
         request = TaskResults(header=self.header,
                               round_number=round_number,
@@ -111,18 +118,42 @@ class Collaborator(object):
         response = self.aggregator.SendLocalTaskResults(TaskResults)
         self.validate_reponse(response)
 
-    def nparray_to_named_tensor(tensor_name, nparray, round_number):
-        # if we have an aggregated tensor, we can make a delta
-        previous_nparray = get_tensor_from_cache(name, round_number - 1)
+    def nparray_to_named_tensor(self,tensor_key, nparray, round_number):
+        """
+        This function constructs the NamedTensor Protobuf and also includes logic to create delta, 
+        compress tensors with the TensorCodec, etc.
+        """
 
+        # if we have an aggregated tensor, we can make a delta
+        previous_nparray = None
+        #If 'model' is in the tensor, we can create a delta from the 
+        if('model' in tensor_key['tags']):
+          previous_nparray = self.get_tensor_from_cache(TensorKey(tensor_key['tensor_name'],\
+                                                                  tensor_key['origin'],\
+                                                                  tensor_key['round_num'] - 1,\
+                                                                  tensor_key['tags'])) 
+        if('trained' in tensor_key['tags']):
+          #Should get the pretrained model to create the delta
+          previous_nparray = self.get_tensor_from_cache(TensorKey(tensor_key['tensor_name'],\
+                                                                  tensor_key['origin'],\
+                                                                  tensor_key['round_num'],\
+                                                                  ('model'))) 
         if previous_nparray is not None:
             nparray -= previous_nparray
+            #self.cache_tensor(append_tensor_tag(tensor_key,'delta'),nparray)
+            delta_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],tuple(list(tensor_key[3])+['delta']))
+            self.cache_tensor(delta_tensor_key,nparray)
             is_delta = True
         else:
             is_delta = False
         
         # do the remaining stuff as we do now for compression and tobytes and stuff
+        #output_tensor_dict = self.tensor_codec.compress(tensor_key,nparray)
+        output_tensor_dict = TensorCodec('compress',self.compression_pipeline))
+
+
         ...
+        return named_tensor
 
     def named_tensor_to_nparray(named_tensor):
         # do the stuff we do now for decompression and frombuffer and stuff
@@ -134,14 +165,14 @@ class Collaborator(object):
         
         return nparray
     
-    def cache_tensor(self, tensor_name, nparray):
+    def cache_tensor(self, tensor_key, nparray):
         """
-        Add tensor to TensorDB (dataframe)
+        Insert tensor into TensorDB (dataframe)
         """
-        tensor_fields = tensor_name.split('.')
-        local_tensor_name, origin, round = tensor_fields[:3]
-        tags = '.'.join(tensor_fields[3:])
-        #The reason to include 'full_tensor_name' is that it makes it very simple to construct a dict of {'tensor_name':nparray}
-        df = pd.DataFrame([tensor_name,local_tensor_name,origin,round,tags,[nparray]], \
-                          columns=['full_tensor_name','tensor_name','origin','round','tags','nparray']) 
+        tensor_name = tensor_key['tensor_name']
+        origin = tensor_key['origin']
+        round_num = tensor_key['round_num']
+        tags = tensor_key['tags']
+        df = pd.DataFrame([tensor_name,origin,round,tags,[nparray]], \
+                          columns=['tensor_name','origin','round','tags','nparray']) 
         self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)

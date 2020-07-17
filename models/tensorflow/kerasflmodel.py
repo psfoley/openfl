@@ -46,7 +46,7 @@ class KerasFLModel(FLModel):
         None
         """
         #Must update all model weights. No guarantee that all of the tensors included in dict are part of model
-        base_tensor_dict = { key.split('.')[0] : value for key,value in input_tensor_dict.items()}
+        base_tensor_dict = { tensor_key['tensor_name'] : value for key,value in input_tensor_dict.items()}
         #If round > 0, always assume optimizer to be updated. The values could come from local or 
         if round_num > 0:
             self.set_tensor_dict(base_tensor_dict,with_opt_vars=True)
@@ -62,7 +62,7 @@ class KerasFLModel(FLModel):
         Returns
         -------
         dict
-            'tensor_name: nparray'
+            'TensorKey: nparray'
         """
         if 'metrics' not in kwargs:
             raise KeyError('metrics must be included in kwargs')
@@ -94,18 +94,21 @@ class KerasFLModel(FLModel):
             raise ValueError('KerasFLModel does not support specifying new metrics after build')
 
         #Output metric tensors (scalar)
-        suffix = '.{}.{}.{}'.format(col_name,round_num,'trained')
-        #Will look something like 'loss.col_1.2.trained' or 'f1_score.col_1.2.trained' 
-        output_metric_dict = {metric + suffix: np.array(np.mean([history.history[metric]])) for metric in param_metrics}
+        origin = col_name 
+        tags = 'trained'
+        output_metric_dict = {TensorKey(metric,origin,round_num,tags): np.array(np.mean([history.history[metric]])) for metric in param_metrics}
 
-        #output model tensors
-        output_model_dict = self.get_tensor_dict(self, with_opt_vars=True, suffix=suffix)
+        #output model tensors (Doesn't include TensorKey)
+        output_model_dict = self.get_tensor_dict(with_opt_vars=True)
+        
+        #Create new dict with TensorKey (this could be moved to get_tensor_dict potentially)
+        output_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray, for tensor_name,nparray in output_model_dict.items()}
 
-        output_tensor_dict = {**output_metric_dict,**output_model_dict}
+        output_tensor_dict = {**output_metric_dict,**output_tensorkey_model_dict}
         
         return output_tensor_dict
 
-    def validate(self,input_tensor_dict,**kwargs):
+    def validate(self, col_name, round_num, input_tensor_dict,**kwargs):
         """
         Run the trained model on validation data; report results
         Parameters
@@ -114,7 +117,7 @@ class KerasFLModel(FLModel):
 
         Returns
         -------
-        output_tensor_dict : This should primarily be metrics (acc, precision, f1_score, etc.)
+        output_tensor_dict : {TensorKey: nparray} (these correspond to acc, precision, f1_score, etc.)
         """
 
         batch_size = 1
@@ -132,14 +135,15 @@ class KerasFLModel(FLModel):
         if set.intersection(set(param_metrics),set(model_metric_names)) != set(model_metric_names):
             raise ValueError('KerasFLModel does not support specifying new metrics.')
         
-        suffix = '.{}.{}.{}'.format(col_name,round_num,'validate')
+        origin = col_name 
+        tags = 'validate'
         if kwargs['local_model'] == True:
             suffix += '_local'
         else:
             suffix += '_agg'
-        output_model_dict = {metric + suffix: ret_dict[metric] for metric in param_metrics}
+        output_tensor_dict = {TensorKey(metric,origin,round_num,tags): np.array(ret_dict[metric]) for metric in param_metrics}
 
-        return output_model_dict
+        return output_tensor_dict
 
     @staticmethod
     def _get_weights_names(obj):

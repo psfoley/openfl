@@ -21,13 +21,20 @@ from enum import Enum
 
 class OptTreatment(Enum):
     """Optimizer methods
-
     """
 
     RESET = 1
+    """
+    RESET tells each collaborator to reset to a freshly initialized optimizer at the beginning of each round.
+    """
     EDGE = 2
+    """
+    EDGE tells each collaborator (edge) continue with the optimizer state held from last round.
+    """
     AGG = 3
-
+    """
+    AGG tells the aggregator to aggregate all collaborator states (e.g. weighted average of all shared optimizer parameters).
+    """
 
 # FIXME: this is actually a tuple of a collaborator/flplan
 # CollaboratorFLPlanExecutor?
@@ -149,6 +156,15 @@ class Collaborator(object):
         return deltas
 
     def update_base_for_deltas(self, tensor_dict, delta_from_version, version, is_delta=True):
+        """Update the base model weights with the delta weights from the aggregator
+
+        Args:
+            tensor_dict: Dictionary of tensors
+            delta_from_version: The delta tensors for the update
+            version: The new version of the model
+
+        """
+
         if not self.send_model_deltas:
             raise ValueError("Should not be handing a base for deltas when not sending deltas.")
         if self.base_for_deltas["tensor_dict"] is None:
@@ -170,16 +186,35 @@ class Collaborator(object):
 
 
     def create_message_header(self):
+        """Create a message header to send to network
+
+        Returns:
+            Message header for network communications
+
+        """
         header = MessageHeader(sender=self.common_name, recipient=self.aggregator_uuid, federation_id=self.federation_uuid, counter=self.counter, single_col_cert_common_name=self.single_col_cert_common_name)
         return header
 
     def __repr__(self):
+        """Print collaborator and federation names/uuids.
+        """
         return 'collaborator {} of federation {}'.format(self.common_name, self.federation_uuid)
 
     def __str__(self):
         return self.__repr__()
 
     def validate_header(self, reply):
+        """Validate message header from the aggregator.
+
+        Checks the message against the federation certificates to ensure it commons from approved aggregator in current federation.
+
+        Args:
+            reply: Message reply from collaborator.
+
+        Returns:
+            boolean: True if reply is valid for this federation.
+
+        """
         # check message is from my agg to me
         check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
         check_equal(reply.header.recipient, self.common_name, self.logger)
@@ -191,6 +226,9 @@ class Collaborator(object):
         check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
 
     def run(self):
+        """Runs the collaborator code in a loop until federation quits.
+
+        """
         time_to_quit = False
         while True:
             time_to_quit = self.run_to_yield_or_quit()
@@ -201,6 +239,26 @@ class Collaborator(object):
                 time.sleep(self.polling_interval)
 
     def run_to_yield_or_quit(self):
+        """Runs the collaborator code in a loop until federation quits.
+
+        Loops indefinitely looking for messages from the federation aggregator.
+        It looks for the following network messages:
+
+        .. code-block:: python
+
+           if job is JOB_DOWNLOAD_MODEL:
+               self.do_download_model_job()
+           elif job is JOB_VALIDATE:
+               self.do_validate_job()
+           elif job is JOB_TRAIN:
+               self.do_train_job()
+           elif job is JOB_YIELD:
+               return False
+           elif job is JOB_QUIT:
+               return True
+
+        """
+
         self.logger.info("Collaborator [%s] connects to federation [%s] and aggegator [%s]." % (self.common_name, self.federation_uuid, self.aggregator_uuid))
         self.logger.debug("The optimizer variable treatment is [%s]." % self.opt_treatment)
         while True:
@@ -224,6 +282,12 @@ class Collaborator(object):
                 return True
 
     def _with_opt_vars(self):
+        """Determines optimizer operation to perform.
+
+        Returns:
+           boolean: True means *AGG* method for optimizer.
+
+        """
         if self.opt_treatment in (OptTreatment.EDGE, OptTreatment.RESET):
             self.logger.debug("Not share the optimization variables.")
             return False
@@ -232,6 +296,11 @@ class Collaborator(object):
             return True
 
     def do_train_job(self):
+        """Train the model.
+
+        This is the code that actual runs the model training on the collaborator.
+
+        """
         # get the initial tensor dict
         # initial_tensor_dict = self.wrapped_model.get_tensor_dict()
 
@@ -278,6 +347,10 @@ class Collaborator(object):
         self.logger.info("{} - Model update succesfully sent to aggregator".format(self))
 
     def do_validate_job(self):
+        """Validate the model (locally)
+
+        Runs the validation of the model on the local dataset.
+        """
         results = self.wrapped_model.validate()
         self.logger.debug("{} - Completed the validation job.".format(self))
         data_size = self.wrapped_model.get_validation_data_size()
@@ -287,6 +360,11 @@ class Collaborator(object):
         check_type(reply, LocalValidationResultsAck, self.logger)
 
     def do_download_model_job(self):
+        """Download model operation
+
+        Asks the aggregator for the latest model to download and downloads it.
+
+        """
 
         # time the download
         download_start = time.time()

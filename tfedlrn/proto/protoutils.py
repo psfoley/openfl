@@ -2,7 +2,8 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
-from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader, MetadataProto, DataStream
+from tfedlrn import TensorKey
+from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader, MetadataProto, DataStream, NamedTensor
 
 def model_proto_to_bytes_and_metadata(model_proto):
     bytes_dict = {}
@@ -43,6 +44,28 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_de
                                          data_bytes=data_bytes, 
                                          transformer_metadata=metadata_protos))   
     return ModelProto(header=model_header, tensors=tensor_protos)
+
+def construct_named_tensor(tensor_key, nparray, transformer_metadata, lossless):
+    
+    metadata_protos = []
+    for metadata in transformer_metadata:
+        if metadata.get('int_to_float') is not None:
+            int_to_float = metadata.get('int_to_float')
+        else:
+            int_to_float = {}
+
+        if metadata.get('int_list') is not None:
+            int_list = metadata.get('int_list')
+        else:
+            int_list = []
+
+        if metadata.get('bool_list') is not None:
+            bool_list = metadata.get('bool_list')
+        else:
+            bool_list = []
+        metadata_protos.append(MetadataProto(int_to_float=int_to_float, int_list=int_list, bool_list=bool_list))
+
+    return NamedTensor(name=tensor_key[0],round_number=tensor_key[2],lossless=lossless,tags=tensor_key[3],transformer_metadata=metadata_protos,data_bytes=nparray)
 
 
 def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_version, compression_pipeline):

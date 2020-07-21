@@ -6,6 +6,7 @@ from tfedlrn.tensor_transformation_pipelines import Float32NumpyArrayToBytes
 class RandomShiftTransformer(Transformer):
     
     def __init__(self):
+        self.lossy = False
         return
 
 

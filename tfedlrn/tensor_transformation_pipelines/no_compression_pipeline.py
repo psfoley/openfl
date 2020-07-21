@@ -4,7 +4,7 @@ import numpy as np
 
 class Float32NumpyArrayToBytes(Transformer):
     def __init__(self, **kwargs):
-        pass
+        self.lossy = False
 
     def forward(self, data, **kwargs):
         # TODO: Warn when this casting is being performed.

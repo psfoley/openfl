@@ -53,9 +53,10 @@ message Acknowledgement {
 message NamedTensor {
     required string         name                    = 1;
     required int32          round_number            = 2;
-    repeated string         tags                    = 3;
-    repeated MetadataProto  transformer_metadata    = 4;
-    required bytes          data_bytes              = 5;
+    required bool           lossless		    = 3;
+    repeated string         tags                    = 4;
+    repeated MetadataProto  transformer_metadata    = 5;
+    required bytes          data_bytes              = 6;
 }
 
 message MetadataProto {

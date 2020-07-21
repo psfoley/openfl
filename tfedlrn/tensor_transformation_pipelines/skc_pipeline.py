@@ -13,6 +13,7 @@ class SparsityTransformer(Transformer):
         """ 
         p: sparsity ratio
         """
+        self.lossy = True
         self.p = p
         return
 
@@ -78,6 +79,7 @@ class KmeansTransformer(Transformer):
     """ 
     def __init__(self, n_cluster=6):
         self.n_cluster = n_cluster
+        self.lossy = True
         return
 
     def forward(self, data, **kwargs):
@@ -135,6 +137,7 @@ class GZIPTransformer(Transformer):
     """ A transformer class to losslessly compress data.
     """
     def __init__(self):
+        self.lossy = False
         return
 
     def forward(self, data, **kwargs):

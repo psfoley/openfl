@@ -9,6 +9,7 @@ class KmeansTransformer(Transformer):
     """ A transformer class to quantize input data.
     """
     def __init__(self, n_cluster=6):
+        self.lossy = True
         self.n_cluster = n_cluster
         return
 
@@ -70,6 +71,7 @@ class GZIPTransformer(Transformer):
     """ A transformer class to losslessly compress data.
     """
     def __init__(self):
+        self.lossy = False
         return
 
     def forward(self, data, **kwargs):

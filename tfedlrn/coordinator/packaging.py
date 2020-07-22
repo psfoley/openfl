@@ -9,17 +9,12 @@ import zipfile
 def get_src_fpaths(dir, sort=True):
     """Get a list of file paths from a folder of Python source code.
 
-    Parameters
-    ----------
-    dir : src
-        The path of the folder.
-    sort : bool
-        If we should sort the file paths.
+    Args:
+        dir : The path of the folder
+        sort (boolean): If we should sort the file paths
 
-    Returns
-    -------
-    list
-        A list of string of file path.
+    Returns:
+        list: A list of string of file path
     """
     filtered_ext = ['pyc']
     fpaths = []
@@ -31,7 +26,7 @@ def get_src_fpaths(dir, sort=True):
                 if fname.endswith(ext):
                     filtered = True
                     break
-            
+
             if not filtered:
                 fpath = os.path.join(dname, fname)
                 fpaths.append(fpath)
@@ -41,17 +36,14 @@ def get_src_fpaths(dir, sort=True):
 
 
 def get_sha256_hash_from_files(fpaths):
-    """ Calculate the sha256 checksum of a list of files.
+    """Calculate the sha256 checksum of a list of files.
 
-    Parameters
-    ----------
-    fpath : list
-        A list of string of file path.
-    
-    Returns
-    -------
-    str
-        A hash string.
+    Args:
+        fpath (list): A list of string of file path
+
+    Returns:
+        str: A hash string
+
     """
     hasher = hashlib.sha256()
     for fpath in fpaths:
@@ -64,15 +56,13 @@ def get_sha256_hash_from_files(fpaths):
 
 def get_sha256_digest(bytes):
     """ Get sha256 digest from binary bytes.
-    Parameters
-    ----------
-    bytes : bytes
-        Binary byte string.
 
-    Returns
-    -------
-    str
-        Sha256 digest in string.
+    Args:
+        bytes (bytes): Binary byte string
+
+    Returns:
+        str: Sha256 digest in string
+
     """
     hasher = hashlib.sha256()
     hasher.update(bytes)
@@ -80,19 +70,15 @@ def get_sha256_digest(bytes):
     return hash
 
 def check_bytes_sha256(bytes, ref_digest):
-    """ Check the integrity of a binary byte string with sha256 digest.
+    """Check the integrity of a binary byte string with sha256 digest.
 
-    Parameters
-    ----------
-    bytes : bytes
-        Binary byte string.
-    ref_digest : str
-        A reference sha256 digest.
-    
-    Returns
-    -------
-    bool
-        True if the integrity is verified.
+    Args:
+        bytes (bytes): Binary byte string
+        ref_digest (str): A reference sha256 digest
+
+    Returns:
+        bool: True if the integrity is verified
+
     """
     digest = get_sha256_digest(bytes)
     if digest == ref_digest:
@@ -102,17 +88,15 @@ def check_bytes_sha256(bytes, ref_digest):
 
 def get_code_hash(dir):
     """ Get the hash string of a folder of Python source code.
+
     We traverse all files except *.pyc, sort the files and calcualte sha256.
 
-    Parameters
-    ----------
-    dir : str
-        The folder path of the code.
+    Args:
+    dir (str): The folder path of the code
 
-    Returns
-    -------
-    str
-        A hash string.
+    Returns:
+        str: A hash string
+
     """
     fpaths = get_src_fpaths(dir, sort=True)
     hash = get_sha256_hash_from_files(fpaths)
@@ -122,23 +106,19 @@ def get_code_hash(dir):
 def zip_files(dir, compression = zipfile.ZIP_DEFLATED):
     """Zip a folder of files.
 
-    Parameters
-    ----------
-    dir : str
-        The folder containing subfolders and files.
-    compression : int
-        The compression lever from 0(fast) to 9(small). ZIP_DEFLATED==6 by default.
+    Args:
+        dir (str) : The folder containing subfolders and files
+        compression (int): The compression lever from 0(fast) to 9(small). ZIP_DEFLATED==6 by default
 
-    Returns
-    -------
-    bytes
-        The byte stream of the zip file.
+    Returns:
+    bytes: The byte stream of the zip file
+
     """
     fpaths = get_src_fpaths(dir, sort=True)
     zip_file = io.BytesIO()
     compression = zipfile.ZIP_DEFLATED
 
-    with zipfile.ZipFile(zip_file, 'w', compression=compression) as zip: 
+    with zipfile.ZipFile(zip_file, 'w', compression=compression) as zip:
         for fpath in fpaths:
             zip.write(fpath)
 
@@ -151,14 +131,11 @@ def zip_files(dir, compression = zipfile.ZIP_DEFLATED):
 def unzip_files(zip_stream, target_dir, compression = zipfile.ZIP_DEFLATED):
     """Unzip files for a byte stream.
 
-    Parameters
-    ----------
-    zip_stream : bytes
-        The byte stream of a zip file.
-    target_dir : str
-        The target directory to store the unzipped files.
-    compression : int
-        The compression lever from 0(fast) to 9(small). ZIP_DEFLATED==6 by default.
+    Args:
+        zip_stream (bytes): The byte stream of a zip file
+        target_dir (str): The target directory to store the unzipped files
+        compression (int): The compression lever from 0(fast) to 9(small). ZIP_DEFLATED==6 by default
+
     """
     zip_file = io.BytesIO(zip_stream)
     zip_file.seek(0)

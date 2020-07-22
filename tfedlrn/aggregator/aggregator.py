@@ -29,22 +29,14 @@ from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
 class Aggregator(object):
     """An Aggregator is the central node in federated learning.
 
-    Parameters
-    ----------
-    id : str
-        Aggregation ID.
-    federation_uuid : str
-        Federation ID.
-    collaborator_common_names : list of str
-        The list of IDs of enrolled collaborators.
-    connection : ?
-        Used to be ZMQ connection, but deprecated in gRPC.
-    init_model_fpath : str
-        The location of the initial weight file.
-    latest_model_fpath : str
-        The file location to store the latest weight.
-    best_model_fpath : str
-        The file location to store the weight of the best model.
+    Args:
+        id (string): Aggregation ID.
+        federation_uuid (string): Federation ID
+        collaborator_common_names (list of str): The list of IDs of enrolled collaborators.
+        connection : Used to be ZMQ connection, but deprecated in gRPC.
+        init_model_fpath (string): The location of the initial weight file.
+        latest_model_fpath (string): The file location to store the latest weight.
+        best_model_fpath (string): The file location to store the weight of the best model.
     """
     # FIXME: no selector logic is in place
     def __init__(self,

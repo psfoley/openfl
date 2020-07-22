@@ -12,10 +12,35 @@ logger = logging.getLogger(__name__)
 
 
 def train_val_split(features, labels, percent_train, shuffle):
-    # Splits incoming feature and labels into training and validation. The value 
-    # of shuffle determines whether shuffling occurs before the split is performed. 
+    """Train/validation splot of the BraTS dataset
+
+    Splits incoming feature and labels into training and validation. The value
+    of shuffle determines whether shuffling occurs before the split is performed.
+
+    Args:
+        features: The input images
+        labels: The ground truth labels
+        percent_train (float): The percentage of the dataset that is training.
+        shuffle (boolean): True = shuffle the dataset before the split
+
+    Returns:
+        train_features: The input images for the training dataset
+        train_labels: The ground truth labels for the training dataset
+        val_features: The input images for the validation dataset
+        val_labels: The ground truth labels for the validation dataset
+    """
 
     def split(list, idx):
+        """Split a Python list into 2 lists
+
+        Args:
+            list: The Python list to split
+            idx: The index where to split the list into 2 parts
+
+        Returns:
+            Two lists
+
+        """
         if idx < 0 or idx > len(list):
             raise ValueError("split was out of expected range.")
         return list[:idx], list[idx:]
@@ -33,31 +58,49 @@ def train_val_split(features, labels, percent_train, shuffle):
     train_labels, val_labels = split(list=labels, idx=split_idx)
     return train_features, train_labels, val_features, val_labels
 
-def load_from_NIfTY(parent_dir, 
-                    percent_train, 
-                    shuffle, 
-                    channels_last=True, 
-                    task='whole_tumor', 
+def load_from_NIfTY(parent_dir,
+                    percent_train,
+                    shuffle,
+                    channels_last=True,
+                    task='whole_tumor',
                     **kwargs):
-    # Loads data from the parent directory (NIfTY files for whole brains are 
-    # assumed to be contained in subdirectories of the parent directory). 
-    # Performs a split of the data into training and validation, and the value 
-    # of shuffle determined whether shuffling is performed before this split 
-    # occurs - both split and shuffle are done in a way to 
-    # keep whole brains intact. The kwargs are passed to nii_reader.
+    """Load the BraTS dataset from the NiFTI file format
+
+    Loads data from the parent directory (NIfTY files for whole brains are
+    assumed to be contained in subdirectories of the parent directory).
+    Performs a split of the data into training and validation, and the value
+    of shuffle determined whether shuffling is performed before this split
+    occurs - both split and shuffle are done in a way to
+    keep whole brains intact. The kwargs are passed to nii_reader.
+
+    Args:
+        parent_dir: The parent directory for the BraTS data
+        percent_train (float): The percentage of the data to make the training dataset
+        shuffle (boolean): True means shuffle the dataset order before the split
+        channels_last (boolean): Input tensor uses channels as last dimension (Default is True)
+        task: Prediction task (Default is 'whole_tumor' prediction)
+        **kwargs: Variable arguments to pass to the function
+
+    Returns:
+        train_features: The input images for the training dataset
+        train_labels: The ground truth labels for the training dataset
+        val_features: The input images for the validation dataset
+        val_labels: The ground truth labels for the validation dataset
+
+    """
 
     path = os.path.join(parent_dir)
     subdirs = os.listdir(path)
     subdirs.sort()
     subdir_paths = [os.path.join(path, subdir) for subdir in subdirs]
-     
+
     imgs_all = []
     msks_all = []
     for brain_path in subdir_paths:
         these_imgs, these_msks = \
             nii_reader(brain_path=brain_path,
-                       task=task, 
-                       channels_last=channels_last, 
+                       task=task,
+                       channels_last=channels_last,
                        **kwargs)
         # the needed files where not present if a tuple of None is returned
         if these_imgs is None:
@@ -65,17 +108,17 @@ def load_from_NIfTY(parent_dir,
         else:
             imgs_all.append(these_imgs)
             msks_all.append(these_msks)
-    
+
     # converting to arrays to allow for numpy indexing used during split
     imgs_all = np.array(imgs_all)
     msks_all = np.array(msks_all)
 
-    # note here that each is a list of 155 slices per brain, and so the 
+    # note here that each is a list of 155 slices per brain, and so the
     # split keeps brains intact
     imgs_all_train, msks_all_train, imgs_all_val, msks_all_val = \
-        train_val_split(features=imgs_all, 
-                        labels=msks_all, 
-                        percent_train=percent_train, 
+        train_val_split(features=imgs_all,
+                        labels=msks_all,
+                        percent_train=percent_train,
                         shuffle=shuffle)
     # now concatenate the lists
     imgs_train = np.concatenate(imgs_all_train, axis=0)

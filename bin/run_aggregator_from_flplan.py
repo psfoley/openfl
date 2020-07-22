@@ -20,10 +20,10 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
 
     Args:
         plan: The Federation (FL) plan
-        collaborators_file:
-        single_col_cert_common_name:
-        logging_config_path:
-        logging_default_level:
+        collaborators_file: The file listing the collaborators
+        single_col_cert_common_name: The SSL certificate
+        logging_config_path: The log configuration file
+        logging_default_level: The log level
 
     """
 

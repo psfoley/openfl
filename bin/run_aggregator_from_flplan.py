@@ -9,7 +9,7 @@ import logging
 
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import parse_fl_plan, load_yaml
+from tfedlrn import parse_fl_plan, load_yaml, get_object
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 
 from tfedlrn import TensorKey
 
@@ -29,7 +29,8 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     agg_config = flplan['aggregator']
     network_config = flplan['network']
-    task_config = flplan['task']
+    tasks = flplan['tasks']
+    task_assigner_config = flplan['task_assigner']
 
     # patch in the collaborators file
     agg_config['collaborator_common_names'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
@@ -41,7 +42,11 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
     else:
         compression_pipeline = None
 
-    task_assigner = TaskAssigner(task_config)
+    #Create task assigner
+    task_assigner = get_object(**task_assigner_config,
+                               tasks=tasks,
+                               collaborator_list=agg_config['collaborator_common_names'],
+                               rounds=agg_config['rounds_to_train'])
 
     #custom_tensor_dir has any other custom tensors that the user wants present on the aggregator on initialization 
     agg = Aggregator(initial_model_file_path=init_model_fpath,

@@ -21,7 +21,7 @@ class TensorCodec(object):
         assert(lossless_pipeline.is_lossy() == False), "The provided pipeline is not lossless"
         self.lossless_pipeline = lossless_pipeline
 
-    def compress(self,tensor_key,data,override_with_lossless=False,**kwargs):
+    def compress(self,tensor_key,data,require_lossless=False,**kwargs):
         """
         Wrapper around the tensor_pipeline.forward function, but it also keeps track of the tensorkeys associated with the
         compressed nparray
@@ -30,7 +30,7 @@ class TensorCodec(object):
         tensor_key:             TensorKey is provided to verify it should be compressed, 
                                 and new TensorKeys returned will be derivatives of the existing tensor_name
         data:                   (uncompressed) numpy array associated with the tensor_key
-        override_with_lossless: boolean. Does tensor require lossless compression
+        require_lossless:       boolean. Does tensor require lossless compression
 
         Returns
         -------
@@ -51,7 +51,7 @@ class TensorCodec(object):
         compressed_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],new_tags)
         return compressed_tensor_key,compressed_nparray,metadata
 
-    def decompress(self,tensor_key, data, transformer_metadata, override_with_lossless=False,**kwargs):
+    def decompress(self,tensor_key, data, transformer_metadata, require_lossless=False,**kwargs):
         """
         Wrapper around the tensor_pipeline.backward function, but it also keeps track of the tensorkeys associated with the
         decompressed nparray
@@ -61,7 +61,7 @@ class TensorCodec(object):
                                 and new TensorKeys returned will be derivatives of the existing tensor_name
         data:                   (compressed) numpy array associated with the tensor_key
         transformer_metadata:   metadata associated with the compressed tensor
-        override_with_lossless: boolean, does data require lossless decompression
+        require_lossless:       boolean, does data require lossless decompression
 
         Returns
         -------
@@ -144,7 +144,6 @@ class TensorCodec(object):
     def find_dependencies(self,tensor_key,send_model_deltas):
         """
         This function resolves the tensors required to do the specified operation.
-        For example, if a tensor is compressed
         """
         tensor_key_dependencies = []
 

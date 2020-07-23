@@ -6,7 +6,8 @@ import numpy as np
 
 from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
 
-from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
+from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline, TensorCodec
+from tfedlrn.tensor_db import TensorDB
 
 class Collaborator(object):
 
@@ -19,7 +20,7 @@ class Collaborator(object):
                  tasks_config,
                  send_model_deltas = False):
         # We would really want this as an object
-        self.tensor_db = pd.DataFrame([], columns=['tensor_name','origin','round','tags','nparray']) 
+        self.tensor_db = TensorDB() 
         self.tensor_codec = TensorCodec(self.compression_pipeline)
         self.aggregator = aggregator
         self.model = model
@@ -89,7 +90,7 @@ class Collaborator(object):
         extract_metadata:   The requested tensor may have metadata needed for decompression
         """
         # try to get from the store
-        nparray = self.get_tensor_from_tensor_cache(tensor_key)
+        nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
 
         # if None and origin is our aggregator, request it from the aggregator
         if nparray is None:
@@ -100,7 +101,7 @@ class Collaborator(object):
                 #Resolve dependencies
                 #tensor_dependencies[0] corresponds to the prior version of the model. 
                 #If it exists locally, should pull the remote delta because this is the least costly path
-                prior_model_layer = self.get_tensor_from_tensor_cache(tensor_dependencies[0])
+                prior_model_layer = self.tensor_db.get_tensor_from_cache(tensor_dependencies[0])
                 if prior_model_layer != None:
                     uncompressed_delta = self.get_aggregated_tensor_from_aggregator(tensor_dependencies[1])
                     nparray = self.tensor_codec.apply_delta(tensor_dependencies[0],prior_model_layer,uncompressed_delta)
@@ -112,19 +113,6 @@ class Collaborator(object):
                 nparray = self.get_aggregated_tensor_from_aggregator(tensor_name,require_lossless=True)
 
         return nparray
-    
-    def get_tensor_from_cache(self, tensor_key):
-        """
-        Performs a lookup of the tensor_key in the TensorDB. Returns the nparray if it is available
-        Otherwise, it returns 'None'
-        """
-        df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_key['tensor_name']) & \
-                            (self.tensor_db['origin'] == tensor_key['origin']) & \
-                            (self.tensor_db['round_num'] == tensor_key['round_num']) & \
-                            (self.tensor_db['tags'] == tensor_key['tags'])]
-        if len(df) == 0:
-            return None
-        return df['nparray'][0][0]
 
     def get_aggregated_tensor_from_aggregator(self, tensor_key, require_lossless=False):
         """
@@ -160,7 +148,7 @@ class Collaborator(object):
         nparray = self.named_tensor_to_nparray(response.named_tensor)
         
         # cache this tensor
-        self.cache_tensor(tensor_key, nparray)
+        self.tensor_db.cache_tensor({tensor_key, nparray})
 
         return tensor
     
@@ -183,7 +171,7 @@ class Collaborator(object):
         if('trained' in tensor_key['tags'] and self.send_model_deltas):
           #Should get the pretrained model to create the delta. If training has happened,
           #Model should already be stored in the TensorDB
-          model_nparray = self.get_tensor_from_cache(TensorKey(tensor_key['tensor_name'],\
+          model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_key['tensor_name'],\
                                                                   tensor_key['origin'],\
                                                                   tensor_key['round_num'],\
                                                                   ('model'))) 
@@ -222,25 +210,6 @@ class Collaborator(object):
             decompressed_tensor_key = tensor_key
             decompressed_nparray = raw_bytes
 
-        self.cache_tensor(decompressed_tensor_key,decompressed_nparray)
+        self.tensor_db.cache_tensor({decompressed_tensor_key: decompressed_nparray})
         
         return decompressed_nparray
-
-    def insert_results_to_tensor_db(self.output_tensor_dict):
-        """
-        Insert the results of the task into the TensorDB
-        """
-        for tensor_key,nparray in output_tensor_dict.items():
-            self.cache_tensor(tensor_key, nparray)
-    
-    def cache_tensor(self, tensor_key, nparray):
-        """
-        Insert tensor into TensorDB (dataframe)
-        """
-        tensor_name = tensor_key['tensor_name']
-        origin = tensor_key['origin']
-        round_num = tensor_key['round_num']
-        tags = tensor_key['tags']
-        df = pd.DataFrame([tensor_name,origin,round,tags,[nparray]], \
-                          columns=['tensor_name','origin','round','tags','nparray']) 
-        self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)

@@ -1,19 +1,51 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-TaskResultKey   = namedtuple('TaskResultKey', ['task_name', 'owner', 'round_number'])
-TensorKey       = namedtuple('TensorKey', ['tensor_name', 'owner', 'round_number'])
+import numpy as np
+import pandas as pd
+from tfedlrn import TensorKey,TaskResultKey
 
 class Aggregator(object):
+
+    """An Aggregator is the central node in federated learning
+
+    Parameters
+    ----------
+    aggregator_uuid : str
+        Aggregation ID.
+    federation_uuid : str
+        Federation ID.
+    collaborator_common_names : list of str
+        The list of IDs of enrolled collaborators.
+    connection : ?
+        Used to be ZMQ connection, but deprecated in gRPC.
+    init_model_fpath : str
+        The location of the initial weight file.
+    latest_model_fpath : str
+        The file location to store the latest weight.
+    best_model_fpath : str
+        The file location to store the weight of the best model.
+    """
 
     def __init__(self,
                  aggregator_uuid,
                  federation_uuid,
                  collaborator_common_names,
-                 initial_tensor_file_path,
+                 initial_model_file_path,
+                 custom_tensor_dir,
                  task_assigner,
-                 ...):
-        self.aggregated_tensors = self.load_initial_tensors() # keys are TensorKeys
+                 rounds_to_train=256,
+                 minimum_reporting=-1,
+                 straggler_cutoff_time=np.inf,
+                 disable_equality_check=True,
+                 single_col_cert_common_name=None,
+                 compression_pipeline=None,
+                 **kwargs):
+        self.tensor_db = TensorDB()
+        self.tensor_codec = TensorCodec(self.compression_pipeline)
+        self.initial_model_file_path = initial_model_file_path
+        self.custom_tensor_dir = custom_tensor_dir
+        self.load_initial_tensors() # keys are TensorKeys
 
         self.collaborator_tensor_results = {} # {TensorKey: nparray}}
 
@@ -22,6 +54,19 @@ class Aggregator(object):
 
         self.task_assigner = task_assigner
         ...
+
+    def load_initial_tensors(self):
+        """
+        Load all of the tensors required to begin federated learning:
+
+        1. Initial model
+        2. Any custom tensors. These are previously serialized named tensors
+
+        Parameters
+        ----------
+        """
+        self.model = load_proto(self.initial_model_file_path)deconstruct_model_proto(self.
+
         
     def GetTasks(self, request):
         # all messages get sanity checked
@@ -66,8 +111,8 @@ class Aggregator(object):
         tensor_name         = request.name
         round_number        = request.round_number
 
-        k = TensorKey(tensor_name, self.uuid, round_number)
-        nparray = self.aggregated_tensors.get(k)
+        tensor_key = TensorKey(tensor_name, self.uuid, round_number)
+        nparray = self.tensor_from_cache(key)
         if nparray is None:
             raise ValueError("Aggregator does not have an aggregated tensor for {}".format(k))
 

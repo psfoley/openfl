@@ -102,7 +102,7 @@ class KerasFLModel(FLModel):
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
         
         #Create new dict with TensorKey (this could be moved to get_tensor_dict potentially)
-        output_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray, for tensor_name,nparray in output_model_dict.items()}
+        output_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in output_model_dict.items()}
 
         output_tensor_dict = {**output_metric_dict,**output_tensorkey_model_dict}
         
@@ -323,6 +323,6 @@ class KerasFLModel(FLModel):
         self.required_tensorkeys_for_functions['validation']['local_model=true'] = \
                 [TensorKey(tensor_name,'LOCAL',0,'trained') for tensor_name in tensor_names]
         self.required_tensorkeys_for_functions['validation']['local_model=false'] = \
-                [TensorKey(tensor_name,'GLOBAL',0) for tensor_name in tensor_names]
+                [TensorKey(tensor_name,'GLOBAL',0,()) for tensor_name in tensor_names]
 
 

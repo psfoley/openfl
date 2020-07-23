@@ -3,7 +3,8 @@
 
 import numpy as np
 from tfedlrn import TensorKey
-from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader, MetadataProto, DataStream, NamedTensor
+#from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader, MetadataProto, DataStream, NamedTensor
+from tfedlrn.proto.lowlevelstrawman_pb2 import ModelProto, NamedTensor, MetadataProto
 
 def model_proto_to_bytes_and_metadata(model_proto):
     bytes_dict = {}
@@ -84,6 +85,31 @@ def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_v
                                                     delta_from_version=delta_from_version, 
                                                     metadata_dict=metadata_dict)
     return model_proto
+
+def construct_model_proto(tensor_dict, compression_pipeline):
+    # compress the arrays in the tensor_dict, and form the model proto
+    # TODO: Hold-out tensors from the compression pipeline.
+    named_tensors = []
+    for key, nparray in tensor_dict.items():
+        bytes, transformer_metadata = compression_pipeline.forward(data=nparray)
+        tensor_key = TensorKey(key,'agg',0,('model'))
+        named_tensors.append(construct_named_tensor(tensor_key, bytes, transformer_metadata, lossless=True))
+
+    return ModelProto(tensors=named_tensors)
+
+
+def deconstruct_model_proto(model_proto, compression_pipeline):
+    # extract the tensor_dict and metadata
+    bytes_dict, metadata_dict = model_proto_to_bytes_and_metadata(model_proto)
+            
+    # decompress the tensors
+    # TODO: Handle tensors meant to be held-out from the compression pipeline (currently none are held out).
+    tensor_dict = {} 
+    for key in bytes_dict:
+        tensor_dict[key] = compression_pipeline.backward(data=bytes_dict[key], 
+                                                         transformer_metadata=metadata_dict[key])
+    return tensor_dict
+
 
 
 def deconstruct_proto(model_proto, compression_pipeline):

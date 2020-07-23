@@ -40,6 +40,10 @@ message TensorResponse {
     required NamedTensor     tensor          = 3;
 }
 
+message ModelProto {
+    repeated NamedTensor    tensors         = 1;
+}
+
 // we'll actually send this as a data stream
 message TaskResults {
     required MessageHeader  header          = 1;

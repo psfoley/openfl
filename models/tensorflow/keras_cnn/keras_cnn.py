@@ -1,6 +1,5 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
-TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number'])
 
 import logging
 import numpy as np
@@ -10,6 +9,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Flatten, Dense
 from models.tensorflow import KerasFLModel
+from tfedlrn import TensorKey
 
 class KerasCNN(KerasFLModel):
     """A basic convolutional neural network model.

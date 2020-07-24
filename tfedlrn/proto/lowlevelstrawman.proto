@@ -49,7 +49,8 @@ message TaskResults {
     required MessageHeader  header          = 1;
     required int32          round_number    = 2;
     required string         task_name       = 3;
-    repeated NamedTensor    tensors         = 4;    
+    required int32	    data_size       = 4;
+    repeated NamedTensor    tensors         = 5;    
 }
 
 message Acknowledgement {

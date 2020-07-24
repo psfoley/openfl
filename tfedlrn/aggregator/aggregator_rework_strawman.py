@@ -3,7 +3,10 @@
 
 import numpy as np
 import pandas as pd
+from threading import Lock
+
 from tfedlrn import TensorKey,TaskResultKey
+from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
 
 class Aggregator(object):
 
@@ -41,7 +44,14 @@ class Aggregator(object):
                  single_col_cert_common_name=None,
                  compression_pipeline=None,
                  **kwargs):
+        self.round_number = 0
+        self.rounds_to_train = rounds_to_train
+        self.collaborator_common_names = collaborator_common_names
+        self.uuid = aggregator_uuid
+        self.federation_uuid = federation_uuid
+        self.task_assigner = task_assigner
         self.tensor_db = TensorDB()
+        self.compression_pipeline = compression_pipeline or NoCompressionPipeline() 
         self.tensor_codec = TensorCodec(self.compression_pipeline)
         self.initial_model_file_path = initial_model_file_path
         self.custom_tensor_dir = custom_tensor_dir
@@ -51,9 +61,24 @@ class Aggregator(object):
 
         # these enable getting all tensors for a task
         self.collaborator_tasks_results = {} # {TaskResultKey: list of TensorKeys}
+        self.collaborator_task_completion_status = {}
+        self.initialize_collaborator_task_status()
 
-        self.task_assigner = task_assigner
-        ...
+
+    def init_collaborator_task_status(self):
+        """
+        On initialization, all collaborators haven't completed any tasks. 
+        Of course, there are exceptions that should be handled 
+        (if aggregator goes down, should be able to recover state from TensorDB/Collaborators)
+        """
+        for col in self.collaborator_common_names:
+            self.collaborator_task_completion_status[col] = {}
+            for round in range(self.rounds_to_train):
+                self.collaborator_task_completion_status[col][round] = {}
+                tasks = self.task_assigner.get_tasks_for_collaborators(col,round)
+                    for task in tasks:
+                        self.collaborator_task_completion_status[col][round][task] = False
+
 
     def load_initial_tensors(self):
         """
@@ -74,12 +99,35 @@ class Aggregator(object):
             #Here is where the additional tensors should be loaded into the TensorDB
             pass
 
+    def check_request(self, request):
+        """
+        Validate request header matches expected values
+        """
+        #TODO improve this check. The sender name could be spoofed
+        assert(request.header.sender in collaborator_common_names), \
+                'Collaborator {} is unrecognized by the Aggregator'.format(request.header.sender)
+        assert(request.header.receiver == self.uuid), \
+                'Aggregator UUID does not match'.format(request.header.receiver)
+        assert(request.header.federation_uuid == self.federation_uuid), \
+                'Federation UUID is unrecognized'.format(request.header.federation_uuid)
+
+    def get_header(self,collaborator_name):
+        """
+        Compose and return MessageHeader
+        """
+        return MessageHeader(sender=self.uuid, receiver=collaborator_name, federation_uuid=self.federation_uuid)
+
+    def get_sleep_time(self):
+        """
+        Sleep 10 seconds
+        """
+        return 10
         
     def GetTasks(self, request):
         # all messages get sanity checked
         self.check_request(request)
 
-        collaborator_name = request.sender
+        collaborator_name = request.header.sender
 
         # first, if it is time to quit, inform the collaborator
         if self.quitting_time():
@@ -93,7 +141,7 @@ class Aggregator(object):
         tasks = self.task_assigner.get_tasks_for_collaborator(self, collaborator_name) # fancy task assigners may want aggregator state
         
         # if no tasks, tell the collaborator to sleep
-        if tasks is None:
+        if len(tasks) == 0:
             return TasksResponse(header=self.get_header(collaborator_name),
                                  round_number=self.round_number,
                                  tasks=None,
@@ -102,6 +150,15 @@ class Aggregator(object):
 
         # if we do have tasks, remove any that we already have results for
         tasks = [t for t in tasks if not self.collaborator_task_completed(collaborator_name, t, self.round_number)]
+
+        #Do the check again because it's possible that all tasks have been completed
+        if len(tasks) == 0:
+            return TasksResponse(header=self.get_header(collaborator_name),
+                                 round_number=self.round_number,
+                                 tasks=None,
+                                 sleep_time=self.get_sleep_time(), # this could be an extensible function if we want
+                                 quit=False)
+
 
         return TasksResponse(header=self.get_header(collaborator_name),
                              round_number=self.round_number,
@@ -117,9 +174,12 @@ class Aggregator(object):
         collaborator_name   = request.header.sender
         tensor_name         = request.name
         round_number        = request.round_number
+        tags                = request.tags
 
-        tensor_key = TensorKey(tensor_name, self.uuid, round_number)
-        nparray = self.tensor_from_cache(key)
+
+        tensor_key = TensorKey(tensor_name, self.uuid, round_number,tags)
+        collaborator_weight_dict = ???
+        nparray = self.tensor_db.get_aggregated_tensor(key,collaborator_weight_dict)
         if nparray is None:
             raise ValueError("Aggregator does not have an aggregated tensor for {}".format(k))
 
@@ -149,7 +209,7 @@ class Aggregator(object):
         bool
 
         """
-        return self.collaborator_task_completion_status[collaborator_name][task_name][round_number]
+        return self.collaborator_task_completion_status[collaborator_name][round_number][task_name]
 
     def SendLocalTaskResults(self, request):
         # all messages get sanity checked
@@ -214,5 +274,3 @@ class Aggregator(object):
 
         return all([self.is_task_done(t) for t in tasks_for_round])
 
-
-class GroupedTaskAssigner

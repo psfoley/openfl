@@ -154,9 +154,17 @@ class Collaborator(object):
     
     def send_task_results(self, tensor_dict, round_number, task_name):
         named_tensors = [self.nparray_to_named_tensor(k, v) for k, v in tensor_dict.items()]
+        #For general tasks, there may be no notion of data size to send. But that raises the question
+        #how to properly aggregate results.
+        data_size = -1
+        if 'train' in task_name:
+            data_size = self.model.get_training_data_size()
+        if 'valid' in task_name:
+            data_size = self.model.get_validation_data_size()
         request = TaskResults(header=self.header,
                               round_number=round_number,
                               task_name=task_name,
+                              data_size=data_size,
                               tensors=named_tensors)
         response = self.aggregator.SendLocalTaskResults(TaskResults)
         self.validate_reponse(response)

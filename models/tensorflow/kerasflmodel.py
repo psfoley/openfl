@@ -16,32 +16,39 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 
 class KerasFLModel(FLModel):
+    """The base model for Keras models in the federation.
+    """
     def __init__(self, **kwargs):
+        """Initializer
+
+        Args:
+            **kwargs: Additional parameters to pass to the function
+
+        """
         super().__init__(**kwargs)
 
         self.model = keras.Model()
 
         NUM_PARALLEL_EXEC_UNITS = 1
-        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, 
-                                inter_op_parallelism_threads=1, 
-                                allow_soft_placement=True, 
+        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS,
+                                inter_op_parallelism_threads=1,
+                                allow_soft_placement=True,
                                 device_count = {'CPU': NUM_PARALLEL_EXEC_UNITS })
         config.gpu_options.allow_growth=True
-        
+
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
     def train_batches(self, num_batches):
-        """
-        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        """Train the model on a specified number of batches
+
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without
         replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
-        Returns
-        -------
-        float
-            loss
+        Returns:
+            float: loss metric
         """
-        
+
         # keras model fit method allows for partial batches
         batches_per_epoch = int(np.ceil(self.data.get_training_data_size()/self.data.batch_size))
 
@@ -50,7 +57,7 @@ class KerasFLModel(FLModel):
         else:
             num_epochs = num_batches // batches_per_epoch
 
-        history = self.model.fit(self.data.X_train, 
+        history = self.model.fit(self.data.X_train,
                                  self.data.y_train,
                                  batch_size=self.data.batch_size,
                                  epochs=num_epochs,
@@ -60,6 +67,9 @@ class KerasFLModel(FLModel):
         return loss
 
     def validate(self):
+        """Validate the model on the local dataset
+
+        """
         vals = self.model.evaluate(self.data.X_val, self.data.y_val, verbose=0)
         metrics_names = self.model.metrics_names
         ret_dict = dict(zip(metrics_names, vals))
@@ -67,17 +77,13 @@ class KerasFLModel(FLModel):
 
     @staticmethod
     def _get_weights_dict(obj):
-        """
-        Get the dictionary of weights.
-        Parameters
-        ----------
-        obj : Model or Optimizer
-            The target object that we want to get the weights.
+        """Get the dictionary of weights.
 
-        Returns
-        -------
-        dict
-            The weight dictionary.
+        Args:
+            obj (Model or Optimizer): The target object that we want to get the weights.
+
+        Returns:
+            dict: The weight dictionary.
         """
         weights_dict = {}
         weight_names = [weight.name for weight in obj.weights]
@@ -88,39 +94,34 @@ class KerasFLModel(FLModel):
 
     @staticmethod
     def _set_weights_dict(obj, weights_dict):
-        """
-        Set the object weights with a dictionary. The obj can be a model or an optimizer.
-        Parameters
-        ----------
-        obj : Model or Optimizer
-            The target object that we want to set the weights.
-        weights_dict : dict
-            The weight dictionary.
+        """Set the object weights with a dictionary.
 
-        Returns
-        -------
-        None
+        The obj can be a model or an optimizer.
+
+        Args:
+            obj (Model or Optimizer): The target object that we want to set the weights.
+            weights_dict (dict): The weight dictionary.
+
+        Returns:
+            None
         """
         weight_names = [weight.name for weight in obj.weights]
         weight_values = [weights_dict[name] for name in weight_names]
         obj.set_weights(weight_values)
 
     def initialize_globals(self):
+        """Initialize global variables
+        """
         self.sess.run(tf.global_variables_initializer())
 
     def get_tensor_dict(self, with_opt_vars):
-        """
-        Get the model weights as a tensor dictionary.
+        """Get the model weights as a tensor dictionary.
 
-        Parameters
-        ----------
-        with_opt_vars : bool
-            If we should include the optimizer's status.
+        Args:
+            with_opt_vars (boolean): True = include the optimizer's status.
 
-        Returns
-        -------
-        dict
-            The tensor dictionary.
+        Returns:
+            dict: The tensor dictionary.
         """
         model_weights = self._get_weights_dict(self.model)
 
@@ -133,7 +134,13 @@ class KerasFLModel(FLModel):
         return model_weights
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
-        
+        """Sets the model weights with a tensor dictionary.
+
+        Args:
+            tensor_dict: the tensor dictionary
+            with_opt_vars (boolean): True = include the optimizer's status.
+        """
+
         if with_opt_vars is False:
             self._set_weights_dict(self.model, tensor_dict)
         else:
@@ -145,5 +152,10 @@ class KerasFLModel(FLModel):
             self._set_weights_dict(self.model.optimizer, opt_weights_dict)
 
     def reset_opt_vars(self):
+        """Reset optimizer variables
+
+        Resets the optimizer variables
+
+        """
         for weight in self.model.optimizer.weights:
             weight.initializer.run(session=self.sess)

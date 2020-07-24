@@ -65,7 +65,14 @@ class Aggregator(object):
         Parameters
         ----------
         """
-        self.model = load_proto(self.initial_model_file_path)deconstruct_model_proto(self.
+        self.model = load_proto(self.initial_model_file_path)
+        tensor_dict = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
+        tensor_key_dict = {TensorKey(k,self.uuid,0,('model')):v for k,v in tensor_dict.items()}
+        #All initial model tensors are loaded here
+        self.tensor_db.cache_tensor(tensor_key_dict)
+        if custom_tensor_dir != None:
+            #Here is where the additional tensors should be loaded into the TensorDB
+            pass
 
         
     def GetTasks(self, request):
@@ -123,6 +130,26 @@ class Aggregator(object):
         return TensorResponse(header=self.get_header(collaborator_name),
                               round_number=round_number,
                               tensor=named_tensor)
+
+
+    def collaborator_task_completed(collaborator_name, task_name, round_number):
+        """
+        Check if the collaborator has completed the task for the round. 
+        The aggregator doesn't actually know which tensors should be sent from the collaborator
+        so it must to rely specifically on the presence of previous results
+
+        Parameters
+        ----------
+        collaborator_name
+        task_name
+        round_number
+
+        Returns
+        -------
+        bool
+
+        """
+        return self.collaborator_task_completion_status[collaborator_name][task_name][round_number]
 
     def SendLocalTaskResults(self, request):
         # all messages get sanity checked

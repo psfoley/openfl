@@ -136,11 +136,12 @@ class KerasFLModel(FLModel):
             raise ValueError('KerasFLModel does not support specifying new metrics.')
         
         origin = col_name 
-        tags = 'validate'
+        suffix = 'validate'
         if kwargs['local_model'] == True:
             suffix += '_local'
         else:
             suffix += '_agg'
+        tags = (suffix)
         output_tensor_dict = {TensorKey(metric,origin,round_num,tags): np.array(ret_dict[metric]) for metric in param_metrics}
 
         return output_tensor_dict

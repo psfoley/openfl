@@ -202,4 +202,9 @@ class PyTorchCNN(PyTorchFLModel):
         return np.mean(losses)
 
     def reset_opt_vars(self):
+        """Reset optimizer variables
+
+        Resets the optimizer state variables.
+
+        """
         self._init_optimizer()

@@ -11,21 +11,29 @@ import torch.nn as nn
 
 from models import FLModel
 
-
 class PyTorchFLModel(nn.Module, FLModel):
+    """PyTorch Model class for Federated Learning
+    """
 
     def __init__(self, device='cpu', **kwargs):
+        """Initializer
+
+        Args:
+            device(string): Compute device (default="cpu")
+            **kwargs: Additional parameters to pass to the functions
+        """
+
         super().__init__()
         FLModel.__init__(self, **kwargs)
 
         self.device = device
-        
+
         self.optimizer = None
         self.loss_fn = None
 
         # overwrite attribute to account for one optimizer param (in every child model that
         # does not overwrite get and set tensordict) that is not a numpy array
-        self.tensor_dict_split_fn_kwargs = {'holdout_types': ['non_float'], 
+        self.tensor_dict_split_fn_kwargs = {'holdout_types': ['non_float'],
                                             'holdout_tensor_names': ['__opt_state_needed']
                                            }
 
@@ -33,17 +41,17 @@ class PyTorchFLModel(nn.Module, FLModel):
     # def train_batches(self, num_batches, use_tqdm=False):
     #     # set to "training" mode
     #     self.train()
-        
+
     #     losses = []
 
     #     gen = self.data.get_train_loader()
     #     if use_tqdm:
     #         gen = tqdm.tqdm(gen, desc="training for this round")
-        
+
     #     batch_num = 0
 
     #     while batch_num < num_batches:
-    #         # shuffling happens every time gen is used as an iterator            
+    #         # shuffling happens every time gen is used as an iterator
     #         for (data, target) in gen:
     #             if batch_num >= num_batches:
     #                 break
@@ -61,7 +69,7 @@ class PyTorchFLModel(nn.Module, FLModel):
     #                 losses.append(loss.detach().cpu().numpy())
 
     #                 batch_num += 1
-        
+
     #     return np.mean(losses)
 
 
@@ -72,7 +80,7 @@ class PyTorchFLModel(nn.Module, FLModel):
     #     self.eval()
     #     val_score = 0
     #     total_samples = 0
-    
+
     #     with torch.no_grad():
     #         for data, target in batch_generator:
     #             if isinstance(data, np.ndarray):
@@ -87,6 +95,16 @@ class PyTorchFLModel(nn.Module, FLModel):
     #     return val_score / total_samples
 
     def get_tensor_dict(self, with_opt_vars=False):
+        """Return the tensor dictionary
+
+        Args:
+            with_opt_vars(boolean): Return the tensor dictionary including the optimizer tensors (Default=False)
+
+        Returns:
+            dict: Tensor dictionary {**dict, **optimizer_dict}
+
+        """
+
         # Gets information regarding tensor model layers and optimizer state.
         # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
         # for now, state dict gives us names which is good
@@ -101,6 +119,13 @@ class PyTorchFLModel(nn.Module, FLModel):
         return state
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars=False):
+        """Set the tensor dictionary
+
+        Args:
+            tensor_dict: The tensor dictionary
+            with_opt_vars(boolean): Return the tensor dictionary including the optimizer tensors (Default=False)
+
+        """
         # Sets tensors for model layers and optimizer state.
         # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
         # for now, state dict gives us names, which is good
@@ -129,8 +154,15 @@ class PyTorchFLModel(nn.Module, FLModel):
         return self.optimizer
 
 def _derive_opt_state_dict(opt_state_dict):
-    # Flattens the optimizer state dict so as to have key, value pairs with values as numpy arrays.
-    # The keys have sufficient info to restore opt_state_dict using expand_derived_opt_state_dict.
+    """Separate optimizer tensors from the tensor dictionary
+
+    Flattens the optimizer state dict so as to have key, value pairs with values as numpy arrays.
+    The keys have sufficient info to restore opt_state_dict using expand_derived_opt_state_dict.
+
+    Args:
+        opt_state_dict: The optimizer state dictionary
+
+    """
 
     derived_opt_state_dict = {}
 
@@ -147,7 +179,7 @@ def _derive_opt_state_dict(opt_state_dict):
 
     # We assume that the state collected for all params in all param groups is the same.
     # We also assume that whether or not the associated values to these state subkeys
-    #   is a tensor depends only on the subkey. 
+    #   is a tensor depends only on the subkey.
     # Using assert statements to break the routine if these assumptions are incorrect.
     for state_key in opt_state_dict['state'].keys():
         assert example_state_subkeys == set(opt_state_dict['state'][state_key].keys())
@@ -165,7 +197,7 @@ def _derive_opt_state_dict(opt_state_dict):
         else:
             state_subkey_tags.append('')
     state_subkeys_and_tags = list(zip(state_subkeys, state_subkey_tags))
-    
+
     # Forming the flattened dict, using a concatenation of group index, subindex, tag,
     # and subkey inserted into the flattened dict key - needed for reconstruction.
     nb_params_per_group = []
@@ -185,11 +217,20 @@ def _derive_opt_state_dict(opt_state_dict):
 
 
 def expand_derived_opt_state_dict(derived_opt_state_dict, device):
-    # Takes a derived opt_state_dict and creates an opt_state_dict suitable as
-    # input for load_state_dict for restoring optimizer state.
+    """Expand the optimizer state dictionary
 
-    # Reconstructing state_subkeys_and_tags using the example key 
-    # prefix, "__opt_state_0_0_", certain to be present.
+    Takes a derived opt_state_dict and creates an opt_state_dict suitable as
+    input for load_state_dict for restoring optimizer state.
+
+    Reconstructing state_subkeys_and_tags using the example key
+    prefix, "__opt_state_0_0_", certain to be present.
+
+    Args:
+        derived_opt_state_dict: Optimizer state dictionary
+
+    Returns:
+        dict: Optimizer state dictionary
+    """
     state_subkeys_and_tags = []
     for key in derived_opt_state_dict:
         if key.startswith('__opt_state_0_0_'):
@@ -216,12 +257,12 @@ def expand_derived_opt_state_dict(derived_opt_state_dict, device):
                 if tag == 'istensor':
                     new_v = torch.from_numpy(derived_opt_state_dict.pop(flat_key))
                 else:
-                    # Here (for currrently supported optimizers) the subkey should be 'step' 
+                    # Here (for currrently supported optimizers) the subkey should be 'step'
                     # and the length of array should be one.
                     assert subkey == 'step'
                     assert len(derived_opt_state_dict[flat_key]) == 1
                     new_v = int(derived_opt_state_dict.pop(flat_key))
-                opt_state_dict['state'][this_id][subkey] = new_v 
+                opt_state_dict['state'][this_id][subkey] = new_v
 
 
     # sanity check that we did not miss any optimizer state
@@ -231,6 +272,11 @@ def expand_derived_opt_state_dict(derived_opt_state_dict, device):
 
 
 def _get_optimizer_state(optimizer):
+    """Return the optimizer state
+
+    Args:
+        optimizer
+    """
 
     opt_state_dict = deepcopy(optimizer.state_dict())
     derived_opt_state_dict = _derive_opt_state_dict(opt_state_dict)
@@ -239,6 +285,14 @@ def _get_optimizer_state(optimizer):
 
 
 def _set_optimizer_state(optimizer, device, derived_opt_state_dict):
+    """Sets the optimizer state
+
+    Args:
+        optimizer:
+        device:
+        derived_opt_state_dict:
+
+    """
 
     temp_state_dict = expand_derived_opt_state_dict(derived_opt_state_dict, device)
 
@@ -251,8 +305,13 @@ def _set_optimizer_state(optimizer, device, derived_opt_state_dict):
 
     optimizer.load_state_dict(temp_state_dict)
 
-
 def to_cpu_numpy(state):
+    """Send data to CPU as Numpy array
+
+    Args:
+        state
+
+    """
     # deep copy so as to decouple from active model
     state = deepcopy(state)
 

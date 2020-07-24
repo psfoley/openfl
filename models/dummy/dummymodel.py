@@ -10,8 +10,22 @@ from models import FLModel
 
 
 class DummyModel(FLModel):
+    """Generic (dummy) model
+    """
 
     def __init__(self, data, layer_shapes, train_time_mean, train_time_std, val_time_mean, val_time_std, **kwargs):
+        """Initializer
+
+        Args:
+            data: The dataloader object
+            layer_shapes: 
+            train_time_mean:
+            train_time_std:
+            val_time_mean:
+            val_time_std:
+            **kwargs: Additional variable to pass to the function
+        """
+
         super().__init__(data=data, **kwargs)
 
         self.data = data
@@ -20,7 +34,7 @@ class DummyModel(FLModel):
         self.train_time_std = train_time_std
         self.val_time_mean = val_time_mean
         self.val_time_std = val_time_std
- 
+
     def train_batches(self):
         self.random_sleep(self.train_time_mean, self.train_time_std)
         return np.random.random()

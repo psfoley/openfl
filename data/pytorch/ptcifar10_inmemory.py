@@ -11,14 +11,16 @@ from data.pytorch.ptfldata_inmemory import PyTorchFLDataInMemory
 from data import load_cifar10_shard
 
 class PyTorchCIFAR10InMemory(PyTorchFLDataInMemory):
+    """PyTorch data loader for CIFAR10 dataset
+    """
 
     def __init__(self, data_path, batch_size, **kwargs):
-        """
-        Instantiate the data object 
+        """Instantiate the data object
 
-        Returns
-        -------
-        None
+        Args:
+            data_path: file path for the data
+            batch_size(int): batch size for the data loader
+            **kwargs: Additional parameters to pass to function
         """
         super().__init__(batch_size)
 

@@ -13,47 +13,91 @@ import torch.optim as optim
 from models.pytorch import PyTorchFLModel
 
 # FIXME: move to some custom losses.py file?
-def dice_coef(pred, target, smoothing=1.0):    
+def dice_coef(pred, target, smoothing=1.0):
+    """Dice Coefficient
+
+    Calculates the Soresen Dice cofficient
+
+    Args:
+        pred: Array for the model predictions
+        target: Array for the model target (ground truth labels)
+        smoothing (float): Laplace smoothing factor (Default = 1.0)
+
+    """
     intersection = (pred * target).sum(dim=(1, 2, 3))
     union = (pred + target).sum(dim=(1, 2, 3))
-    
+
     return ((2 * intersection + smoothing) / (union + smoothing)).mean()
 
 
-def dice_coef_loss(pred, target, smoothing=1.0):    
+def dice_coef_loss(pred, target, smoothing=1.0):
+    """Dice coefficient loss
+
+    This is actually -log Dice
+
+    Args:
+        pred: Array for the model predictions
+        target: Array for the model target (ground truth labels)
+        smoothing (float): Laplace smoothing factor (Default = 1.0)
+    """
     intersection = (pred * target).sum(dim=(1, 2, 3))
     union = (pred + target).sum(dim=(1, 2, 3))
-    
+
     term1 = -torch.log(2 * intersection + smoothing)
     term2 = torch.log(union + smoothing)
-    
+
     return term1.mean() + term2.mean()
 
 
 class PyTorch2DUNet(PyTorchFLModel):
+    """PyTorch 2D U-Net model class for Federated Learning
+    """
 
     def __init__(self, data, device='cpu', optimizer='SGD', batch_norm=True, **kwargs):
+        """Initializer
+
+        Args:
+            data: The data loader class
+            device: The hardware device to use for training (Default = "cpu")
+            optimizer: The deep learning optimizer (Default="SGD", stochastic gradient descent)
+            batch_norm (boolean): True uses the batch normalization layer (Default=True)
+            **kwargs: Additional arguments to pass to the function
+
+        """
+
         super().__init__(data=data, device=device, **kwargs)
 
         self.batch_norm = batch_norm
         self.init_network(device=self.device, **kwargs)
         self.init_optimizer(optimizer)
         self.loss_fn = partial(dice_coef_loss, smoothing=1.0)
-   
+
     def train_batches(self, num_batches, use_tqdm=False):
+        """Train batches
+
+        Train the model on the requested number of batches.
+
+        Args:
+            num_batches: The number of batches to train on before returning
+            use_tqdm (boolean): Use tqdm to print a progress bar (Default=True)
+
+        Returns:
+            loss metric
+        """
+
         # set to "training" mode
         self.train()
-        
+
         losses = []
 
         gen = self.data.get_train_loader()
         if use_tqdm:
             gen = tqdm.tqdm(gen, desc="training for this round")
-        
+
         batch_num = 0
 
         while batch_num < num_batches:
-            # shuffling happens every time gen is used as an iterator            
+            # shuffling happens every time gen is used as an iterator
             for (data, target) in gen:
                 if batch_num >= num_batches:
                     break
@@ -71,10 +115,19 @@ class PyTorch2DUNet(PyTorchFLModel):
                     losses.append(loss.detach().cpu().numpy())
 
                     batch_num += 1
-        
+
         return np.mean(losses)
 
-    def validate(self, use_tqdm=False):       
+    def validate(self, use_tqdm=False):
+        """Validate
+
+        Run validation of the model on the local data.
+
+        Args:
+            use_tqdm (boolean): Use tqdm to print a progress bar (Default=True)
+
+        """
+
         self.eval()
         val_score = 0
         total_samples = 0
@@ -93,16 +146,35 @@ class PyTorch2DUNet(PyTorchFLModel):
         return val_score / total_samples
 
     def reset_opt_vars(self):
+        """Reset optimizer variables
+
+        Resets the optimizer state variables.
+
+        """
         self.init_optimizer(self.optimizer.__class__.__name__)
-           
+
     def init_network(self,
                      device,
                      print_model=True,
                      dropout_layers=[2, 3],
                      initial_channels=1,
                      depth_per_side=5,
-                     initial_filters=32, 
+                     initial_filters=32,
                      **kwargs):
+        """Initialize the Model (Network)
+
+        Creates the 2D U-Net model in PyTorch.
+
+        Args:
+            device: The hardware device to use for training
+            print_model (boolean): Print the model topology (Default=True)
+            dropout_layers (list): (Default=[2, 3])
+            initial_channels (int): Number of channels in the input layer (Default=1)
+            depth_per_side (int): Number of max pooling layers in the encoder/decoder (Default=5)
+            initial_filters (int): Number of filters in the initial convolutional layer (Default=32)
+            **kwargs: Additional arguments to pass to the function
+        """
+
 
         f = initial_filters
         if dropout_layers is None:
@@ -112,22 +184,22 @@ class PyTorch2DUNet(PyTorchFLModel):
 
         # store our depth for our forward function
         self.depth_per_side = 5
-        
+
         # parameter-less layers
         self.dropout = nn.Dropout(p=0.2)
         self.maxpool = nn.MaxPool2d(2)
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-                
+
         # initial down layers
         conv_down_a = [nn.Conv2d(initial_channels, f, 3, padding=1)]
         conv_down_b = [nn.Conv2d(f, f, 3, padding=1)]
         if self.batch_norm:
             batch_norms = [nn.BatchNorm2d(f)]
-                
+
         # rest of the layers going down
         for i in range(1, depth_per_side):
             f *= 2
-            conv_down_a.append(nn.Conv2d(f // 2, f, 3, padding=1))                
+            conv_down_a.append(nn.Conv2d(f // 2, f, 3, padding=1))
             conv_down_b.append(nn.Conv2d(f, f, 3, padding=1))
             if self.batch_norm:
                 batch_norms.append(nn.BatchNorm2d(f))
@@ -140,15 +212,15 @@ class PyTorch2DUNet(PyTorchFLModel):
             # triple input channels due to skip connections
             conv_up_a.append(nn.Conv2d(f*3, f, 3, padding=1))
             conv_up_b.append(nn.Conv2d(f, f, 3, padding=1))
-            
+
         # do the last layer
         self.conv_out = nn.Conv2d(f, 1, 1, padding=0)
-        
+
         # all up/down layers need to to become fields of this object
         for i, (a, b) in enumerate(zip(conv_down_a, conv_down_b)):
             setattr(self, 'conv_down_{}a'.format(i+1), a)
             setattr(self, 'conv_down_{}b'.format(i+1), b)
-            
+
         # all up/down layers need to to become fields of this object
         for i, (a, b) in enumerate(zip(conv_up_a, conv_up_b)):
             setattr(self, 'conv_up_{}a'.format(i+1), a)
@@ -164,15 +236,20 @@ class PyTorch2DUNet(PyTorchFLModel):
 
         # send this to the device
         self.to(device)
-        
+
     def forward(self, x):
-        
+        """Forward pass of the model
+
+        Args:
+            x: Data input to the model for the forward pass
+        """
+
         # gather up our up and down layer members for easier processing
         conv_down_a = [getattr(self, 'conv_down_{}a'.format(i+1)) for i in range(self.depth_per_side)]
         conv_down_b = [getattr(self, 'conv_down_{}b'.format(i+1)) for i in range(self.depth_per_side)]
         conv_up_a = [getattr(self, 'conv_up_{}a'.format(i+1)) for i in range(self.depth_per_side - 1)]
         conv_up_b = [getattr(self, 'conv_up_{}b'.format(i+1)) for i in range(self.depth_per_side - 1)]
-        
+
         # if batch_norm, gather up our batch norm layers
         if self.batch_norm:
             batch_norms = [getattr(self, 'batch_norm_{}'.format(i+1)) for i in range(self.depth_per_side)]
@@ -193,7 +270,7 @@ class PyTorch2DUNet(PyTorchFLModel):
             if b != conv_down_b[-1]:
                 concat_me.append(out_down)
                 pool = self.maxpool(out_down) # feed the pool into the next layer
-        
+
         # reverse the concat_me layers
         concat_me = concat_me[::-1]
 
@@ -205,11 +282,17 @@ class PyTorch2DUNet(PyTorchFLModel):
             up = torch.cat([self.upsample(in_up), c], dim=1)
             up = F.relu(a(up))
             in_up = F.relu(b(up))
-        
+
         # finally, return the output
         return torch.sigmoid(self.conv_out(in_up))
 
     def init_optimizer(self, optimizer='SGD'):
+        """Initialize the optimizer
+
+        Args:
+            optimizer: Type of optimizer (Default="SGD")
+        """
+
         if optimizer == 'SGD':
             self.optimizer = optim.SGD(self.parameters(), lr=1e-3, momentum=0.9)
         elif optimizer == 'RMSprop':
@@ -218,4 +301,3 @@ class PyTorch2DUNet(PyTorchFLModel):
             self.optimizer = optim.Adam(self.parameters(), lr=1e-5)
         else:
             raise ValueError('Optimizer: {} is not curently supported'.format(optimizer))
-

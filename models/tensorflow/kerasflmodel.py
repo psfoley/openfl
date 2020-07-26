@@ -54,7 +54,7 @@ class KerasFLModel(FLModel):
             self.set_tensor_dict(base_tensor_dict,with_opt_vars=False)
 
 
-    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches, **kwargs):
+    def train(self, col_name, round_num, input_tensor_dict, num_batches, **kwargs):
         """
         Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
         replacement until data is exausted. Then data is replaced and shuffled and draws continue.
@@ -68,7 +68,7 @@ class KerasFLModel(FLModel):
             raise KeyError('metrics must be included in kwargs')
 
         #rebuild model with updated weights
-        self.rebuild_model(round, input_tensor_dict)
+        self.rebuild_model(round_num, input_tensor_dict)
 
         # keras model fit method allows for partial batches
         batches_per_epoch = int(np.ceil(self.data.get_training_data_size()/self.data.batch_size))
@@ -96,7 +96,7 @@ class KerasFLModel(FLModel):
         #Output metric tensors (scalar)
         origin = col_name 
         tags = 'trained'
-        output_metric_dict = {TensorKey(metric,origin,round_num,tags): np.array(np.mean([history.history[metric]])) for metric in param_metrics}
+        output_metric_dict = {TensorKey(metric,origin,round_num,('metric')): np.array(np.mean([history.history[metric]])) for metric in param_metrics}
 
         #output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
@@ -123,7 +123,7 @@ class KerasFLModel(FLModel):
         batch_size = 1
         if 'batch_size' in kwargs:
             batch_size = kwargs['batch_size']
-        self.rebuild_model(round, input_tensor_dict)
+        self.rebuild_model(round_num, input_tensor_dict)
         param_metrics = kwargs['metrics']
 
         vals = self.model.evaluate(self.data.X_val, self.data.y_val,batch_size=batch_size, verbose=0)
@@ -141,7 +141,7 @@ class KerasFLModel(FLModel):
             suffix += '_local'
         else:
             suffix += '_agg'
-        tags = (suffix)
+        tags = ('metric',suffix)
         output_tensor_dict = {TensorKey(metric,origin,round_num,tags): np.array(ret_dict[metric]) for metric in param_metrics}
 
         return output_tensor_dict

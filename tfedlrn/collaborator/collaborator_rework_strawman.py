@@ -9,6 +9,9 @@ from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
 from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline, TensorCodec
 from tfedlrn.tensor_db import TensorDB
 
+from tfedlrn.proto.protoutils import construct_proto, deconstruct_proto, construct_named_tensor
+
+
 class Collaborator(object):
 
     def __init__(self, 
@@ -18,15 +21,33 @@ class Collaborator(object):
                  aggregator_uuid, 
                  federation_uuid, 
                  tasks_config,
-                 send_model_deltas = False):
+                 send_model_deltas = False,
+                 single_col_cert_common_name = None):
+        if self.single_col_cert_common_name is None:
+            self.single_col_cert_common_name = '' #For protobuf compatibility
         # We would really want this as an object
+        self.collaborator_name = collaborator_name
+        self.aggregator_uuid = aggregation_uuid
+        self.federation_uuid = federation_uuid
         self.tensor_db = TensorDB() 
-        self.tensor_codec = TensorCodec(self.compression_pipeline)
         self.aggregator = aggregator
         self.model = model
         self.send_model_deltas = send_model_deltas
-        self.header = MessageHeader(sender=collaborator_name, receiver=aggregator_uuid, federation_uuid=federation_uuid)
+        self.header = MessageHeader(sender=collaborator_name, receiver=aggregator_uuid, \
+                                    federation_uuid=federation_uuid, single_col_cert_common_name=self.single_col_cert_common_name)
         self.tasks_config = tasks_config # pulled from flplan
+
+        # Check that the message was intended to go to this collaborator
+
+    def validate_response(self, reply:
+        check_equal(reply.header.receiver, self.collaborator_name, self.logger)
+        check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
+
+        #Check that federation id matches
+        check_equal(reply.header.federation_uuid, self.federation_uuid, self.logger)
+
+        # check that there is aggrement on the single_col_cert_common_name
+        check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name)
 
     def run(self):
         while True:
@@ -72,7 +93,7 @@ class Collaborator(object):
         output_tensor_dict = func(self.collaborator_name, round_number, input_tensor_dict, **kwargs)
 
         # Save output_tensor_dict to TensorDB
-        self.insert_results_to_tensor_db(output_tensor_dict)
+        self.tensor_db.cache_tensor(output_tensor_dict)
 
         # send the results for this tasks; delta and compression will occur in this function
         self.send_task_results(output_tensor_dict, round_number, task)
@@ -104,7 +125,7 @@ class Collaborator(object):
                 prior_model_layer = self.tensor_db.get_tensor_from_cache(tensor_dependencies[0])
                 if prior_model_layer != None:
                     uncompressed_delta = self.get_aggregated_tensor_from_aggregator(tensor_dependencies[1])
-                    nparray = self.tensor_codec.apply_delta(tensor_dependencies[0],prior_model_layer,uncompressed_delta)
+                    nparray = self.tensor_codec.apply_delta(tensor_dependencies[1],uncompressed_delta,prior_model_layer)
                 else:
                     #The original model tensor should be fetched from aggregator
                     nparray = self.get_aggregated_tensor_from_aggregator(tensor_key)

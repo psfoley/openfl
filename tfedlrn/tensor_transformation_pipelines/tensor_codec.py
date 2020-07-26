@@ -118,15 +118,15 @@ class TensorCodec(object):
         delta_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],new_tags)
         return delta_tensor_key,nparray - base_model_nparray
 
-    def apply_delta(self,base_model_tensor_key,base_model_nparray,delta):
+    def apply_delta(self,tensor_key,delta,base_model_nparray):
         """
         Adds delta to the nparray 
 
         Args
         ----
-        base_model_tensor_key:  This is the tensor_key associated with the nparray. Should have a tag of 'trained' or 'aggregated'
-        base_model_nparray:     The nparray that corresponds to the prior weights
+        tensor_key:             This is the tensor_key associated with the delta. Should have a tag of 'trained' or 'aggregated'
         delta:                  Weight delta between the new model and old model
+        base_model_nparray:     The nparray that corresponds to the prior weights
 
         Returns
         -------
@@ -136,8 +136,16 @@ class TensorCodec(object):
         """
         assert(nparray.shape == delta.shape), \
                 'Shape of layer ({}) is not equal to delta shape of ({})'.format(nparray.shape,base_model_nparray.shape)
-        assert('model' in tensor_key[3]), 'The tensorkey should be provided from the base model'
-        new_model_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2] + 1,tensor_key[3])
+        #assert('model' in tensor_key[3]), 'The tensorkey should be provided from the base model'
+        #Aggregator UUID has the prefix 'aggregator'
+        if 'aggregator' in tensor_key[1]: 
+            tags = list(tensor_key[3])
+            tags.remove('delta')
+            new_tags = tuple(tags)
+            new_model_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],new_tags)
+        else:
+            new_model_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model'))
+
         return new_model_tensor_key,nparray + delta
 
 

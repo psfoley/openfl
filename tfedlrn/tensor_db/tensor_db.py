@@ -76,6 +76,15 @@ class TensorDB(object):
         assert(sum(collaborator_weight_dict.values()) == 1.0), "Collaborator weights are not normalized"
         collaborator_names = collaborator_weight_dict.keys()
         agg_tensor_dict = {}
+        
+        #Check if the aggregated tensor is already present in TensorDB
+        raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_key[0]) & \
+                                (self.tensor_db['origin'] == tensor_key[1]) & \
+                                (self.tensor_db['round'] == tensor_key[2]) & \
+                                (self.tensor_db['tags'] == tensor_key[3])]['nparray']
+        if len(raw_df) > 0:
+            return raw_df.iloc[0]
+
         for col in collaborator_names:
             if(type(tensor_key[3]) == str):
                 new_tags = tuple([tensor_key[3]] + [col])
@@ -93,5 +102,8 @@ class TensorDB(object):
                 agg_tensor_dict[col] = raw_df.iloc[0]
             agg_tensor_dict[col] = agg_tensor_dict[col] * collaborator_weight_dict[col] 
         agg_nparray = np.sum([agg_tensor_dict[col] for col in collaborator_names],axis=0)
+        
+        #Cache aggregated tensor in TensorDB
+        self.cache_tensor({tensor_key: agg_nparray})
 
         return agg_nparray            

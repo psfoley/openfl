@@ -62,6 +62,9 @@ class RandomGroupedTaskAssigner(TaskAssigner):
         return self.collaborators_for_task[task_name][round_number]
 
     def get_all_tasks_for_round(round_number):
-        raise NotImplementedError
+        """
+        Currently all tasks are performed on each round, but there may be a reason to change this
+        """
+        return self.all_tasks_in_groups
 
 

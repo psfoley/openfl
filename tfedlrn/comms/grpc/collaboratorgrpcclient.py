@@ -56,8 +56,8 @@ class CollaboratorGRPCClient():
     def GetTasks(self, message):
         return self.stub.GetTasks(message)
 
-    def GetAggregatedTensors(self, message):
-        return self.stub.GetAggregatedTensors(message)
+    def GetAggregatedTensor(self, message):
+        return self.stub.GetAggregatedTensor(message)
 
     def SendLocalTaskResults(self, message):
         #Convert (potentially) long list of tensors into stream

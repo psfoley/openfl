@@ -61,7 +61,7 @@ class RandomGroupedTaskAssigner(TaskAssigner):
     def get_collaborators_for_task(self, task_name, round_number):
         return self.collaborators_for_task[task_name][round_number]
 
-    def get_all_tasks_for_round(round_number):
+    def get_all_tasks_for_round(self,round_number):
         """
         Currently all tasks are performed on each round, but there may be a reason to change this
         """

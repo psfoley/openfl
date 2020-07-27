@@ -95,13 +95,22 @@ class Aggregator(object):
         #If the collaborator requests a delta, this value is set to true
         self.model = load_proto(self.initial_model_file_path)
         tensor_dict = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
-        tensor_key_dict = {TensorKey(k,self.uuid,0,('model')):v for k,v in tensor_dict.items()}
+        tensor_key_dict = {TensorKey(k,self.uuid,0,('model',)):v for k,v in tensor_dict.items()}
         #All initial model tensors are loaded here
         self.tensor_db.cache_tensor(tensor_key_dict)
         self.logger.info('This is the initial tensor_db: {}'.format(self.tensor_db))
         if self.custom_tensor_dir != None:
             #Here is where the additional tensors should be loaded into the TensorDB
             pass
+
+    def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
+        # if self.test_mode_whitelist is None, then the common_name must match collaborator_common_name and be in collaborator_common_names
+        if self.single_col_cert_common_name == '':  # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
+            return cert_common_name == collaborator_common_name and collaborator_common_name in self.collaborator_common_names
+        # otherwise, common_name must be in whitelist and collaborator_common_name must be in collaborator_common_names
+        else:
+            return cert_common_name == self.single_col_cert_common_name and collaborator_common_name in self.collaborator_common_names
+
 
     def all_quit_jobs_sent(self):
         return set(self.quit_job_sent_to) == set(self.collaborator_common_names)
@@ -111,7 +120,7 @@ class Aggregator(object):
         Validate request header matches expected values
         """
         #TODO improve this check. The sender name could be spoofed
-        check_is_in(request.header.sender, collaborator_common_names, self.logger) 
+        check_is_in(request.header.sender, self.collaborator_common_names, self.logger) 
 
         #Validate the message is for me
         check_equal(request.header.receiver, self.uuid, self.logger)
@@ -127,7 +136,7 @@ class Aggregator(object):
         """
         Compose and return MessageHeader
         """
-        return MessageHeader(sender=self.uuid, receiver=collaborator_name, federation_uuid=self.federation_uuid)
+        return MessageHeader(sender=self.uuid, receiver=collaborator_name, federation_uuid=self.federation_uuid, single_col_cert_common_name=self.single_col_cert_common_name)
 
     def get_sleep_time(self):
         """
@@ -148,6 +157,7 @@ class Aggregator(object):
         self.check_request(request)
 
         collaborator_name = request.header.sender
+        self.logger.info('GetTasks reached for collaborator {}'.format(collaborator_name))
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():
@@ -159,7 +169,7 @@ class Aggregator(object):
                                  quit=True)
         
         # otherwise, get the tasks from our task assigner
-        tasks = self.task_assigner.get_tasks_for_collaborator(self, collaborator_name) # fancy task assigners may want aggregator state
+        tasks = self.task_assigner.get_tasks_for_collaborator(collaborator_name,self.round_number) # fancy task assigners may want aggregator state
         
         # if no tasks, tell the collaborator to sleep
         if len(tasks) == 0:
@@ -193,11 +203,18 @@ class Aggregator(object):
 
         # get the values we need from the protobuf
         collaborator_name   = request.header.sender
-        tensor_name         = request.name
+        tensor_name         = request.tensor_name
         require_lossless    = request.require_lossless
         round_number        = request.round_number
         tags                = request.tags
 
+        #TODO This is a hack. Until the rest of the code is changed to support single element tuples (i.e. (value,)
+        #The value needs to be converted to a string :(
+        #if type(tags) != str and len(tags) == 1:
+        #    tags = tags[0]
+ 
+
+        self.logger.info('Getting aggregated tensor {} for collaborator {}'.format(tensor_name,collaborator_name))
 
         tensor_key = TensorKey(tensor_name, self.uuid, round_number,tuple(tags))
         send_model_deltas = False
@@ -208,23 +225,20 @@ class Aggregator(object):
 
         if 'aggregated' in tensor_key[3] and 'delta' in tensor_key[3] and round_number != 0:
             send_model_deltas = True
-            agg_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('aggregated'))
+            agg_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('aggregated',))
         else:
             agg_tensor_key = tensor_key
         
-        if self.round_num == 0:
+        if self.round_number == 0:
             #We cannot get the relative weights from each of the collaborators because they haven't
             #Been sent yet. The contents of the weight_dict shouldn't matter because the aggregated model
             #(i.e. the initialized model loaded from disk) should be found in TensorDB
-            #TODO Create function that is able to resolve data size for the tensor based on task.
-            #It appears that task name is required as part of this aggregation request, because data weights are 
-            #defined at the task level. As the code stands, it compute the mean of all tensors
 
-            self.collaborator_weight_dict = {col: 1.0/len(self.collaborator_list) for col in self.collaborator_list}
+            self.collaborator_weight_dict = {col: 1.0/len(self.collaborator_common_names) for col in self.collaborator_common_names}
 
         nparray = self.tensor_db.get_aggregated_tensor(tensor_key,self.collaborator_weight_dict)
         if nparray is None:
-            raise ValueError("Aggregator does not have an aggregated tensor for {}".format(k))
+            raise ValueError("Aggregator does not have an aggregated tensor for {}".format(tensor_key))
 
         # quite a bit happens in here, including compression, delta handling, etc...
         # we might want to cache these as well
@@ -241,13 +255,13 @@ class Aggregator(object):
         """
 
         # if we have an aggregated tensor, we can make a delta
-        if('aggregated' in tensor_key['tags'] and send_model_deltas):
+        if('aggregated' in tensor_key[3] and send_model_deltas):
           #Should get the pretrained model to create the delta. If training has happened,
           #Model should already be stored in the TensorDB
           model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_key[0],\
                                                                   tensor_key[1],\
                                                                   tensor_key[2]-1,\
-                                                                  ('model'))) 
+                                                                  ('model',))) 
         
           assert(model_nparray != None), "The original model layer should be present if the latest aggregated model is present"
           delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
@@ -265,7 +279,7 @@ class Aggregator(object):
 
 
 
-    def collaborator_task_completed(collaborator, task, round_num):
+    def collaborator_task_completed(self, collaborator, task, round_num):
         """
         Check if the collaborator has completed the task for the round. 
         The aggregator doesn't actually know which tensors should be sent from the collaborator
@@ -296,6 +310,8 @@ class Aggregator(object):
         round_number        = request.round_number
         data_size           = request.data_size
         named_tensors       = request.tensors
+        
+        self.logger.info('Collaborator {} is sending task results for round {}'.format(collaborator_name,round_number))
 
         # TODO: do we drop these on the floor?
         # if round_number != self.round_number:
@@ -325,11 +341,12 @@ class Aggregator(object):
             self.collaborator_task_weight[task_key] = data_size
         
         self.end_of_task_check(task_name)
+        self.logger.info('TensorDB updated with task results: {}'.format(self.tensor_db))
 
         return Acknowledgement(header=self.get_header(collaborator_name))
 
 
-    def process_named_tensor(named_tensor,collaborator_name):
+    def process_named_tensor(self,named_tensor,collaborator_name):
         """
         Extract the named tensor fields, performs decompression, delta computation, 
         and inserts results into TensorDB.
@@ -344,10 +361,10 @@ class Aggregator(object):
                      'int_list': proto.int_list,
                      'bool_list': proto.bool_list} for proto in named_tensor.transformer_metadata]
         #The tensor has already been transfered to aggregator, so the newly constructed tensor should have the aggregator origin
-        tensor_key = TensorKey(named_tensor.name, self.uuid, named_tensor.round_number, named_tensor.tags)
+        tensor_key = TensorKey(named_tensor.name, self.uuid, named_tensor.round_number, tuple(named_tensor.tags))
         if 'compressed' in tensor_key[3]:
             temp_tk, decompressed_nparray =  \
-                    self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,override_with_lossless=True)
+                    self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,require_lossless=True)
             #Need to add the collaborator tag to the resulting tensor
             if type(temp_tk[3]) == str:
                 new_tags = tuple([temp_tk[3]] + [collaborator_name])
@@ -366,7 +383,7 @@ class Aggregator(object):
             decompressed_tensor_key = TensorKey(temp_tk[0],temp_tk[1],temp_tk[2],new_tags)
 
         if 'delta' in tensor_key[3]:
-            base_model_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model'))
+            base_model_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model',))
             base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tensor_key)
             if base_model_nparray == None:
                 raise ValueError("Base model not present in TensorDB")
@@ -387,13 +404,13 @@ class Aggregator(object):
         """
 
         # if we have an aggregated tensor, we can make a delta
-        if('aggregated' in tensor_key['tags'] and send_model_deltas):
+        if('aggregated' in tensor_key[0] and send_model_deltas):
           #Should get the pretrained model to create the delta. If training has happened,
           #Model should already be stored in the TensorDB
           model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_key[0],\
                                                                   tensor_key[1],\
                                                                   tensor_key[2]-1,\
-                                                                  ('model'))) 
+                                                                  ('model',))) 
         
           assert(model_nparray != None), "The original model layer should be present if the latest aggregated model is present"
           delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
@@ -404,7 +421,7 @@ class Aggregator(object):
         else:
             #Assume every other tensor requires lossless compression
             compressed_tensor_key, compressed_nparray, metadata = \
-                    self.tensor_codec.compress(tensorkey,nparray,require_lossless=True)
+                    self.tensor_codec.compress(tensor_key,nparray,require_lossless=True)
             named_tensor = construct_named_tensor(compressed_tensor_key,compressed_nparray,metadata,lossless=compress_lossless)
         
         return named_tensor
@@ -412,7 +429,7 @@ class Aggregator(object):
 
     def end_of_task_check(self, task_name):
         if self.is_task_done(task_name):
-            self.aggregate_task_results(task_name)
+            #self.aggregate_task_results(task_name)
             
             # now check for the end of the round
             self.end_of_round_check()
@@ -428,7 +445,7 @@ class Aggregator(object):
                 collaborators_for_task = self.task_assigner.get_collaborators_for_task(task_name,self.round_number)
                 #The collaborator data sizes for that task
                 collaborator_weights_unnormalized = \
-                        {c:collaborator_task_weight[TaskResultKey(task_name,c,self.round_number)] \
+                        {c:self.collaborator_task_weight[TaskResultKey(task_name,c,self.round_number)] \
                         for c in collaborators_for_task}
                 weight_total = sum(collaborator_weights_unnormalized.values())
                 collaborator_weight_dict = {k:v/weight_total for k,v in collaborator_weights_unnormalized.items()}
@@ -447,7 +464,7 @@ class Aggregator(object):
                     agg_results = self.tensor_db.get_aggregated_tensor(agg_tensor_key,collaborator_weight_dict)
                     if 'metric' == tensor_key[3][0]:
                         #Print the aggregated metric
-                        self.logger.info('{}:\t{}'.format(tensor_key[0],agg_results[0]))
+                        self.logger.info('{}:\t{}'.format(tensor_key[0],agg_results))
                         #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
                     if 'trained' in tensor_key[3][0]:
                         #The aggregated tensorkey tags should have the form of 'trained' or 'trained.lossy_decompressed'
@@ -455,12 +472,16 @@ class Aggregator(object):
                         #compressed, etc. then reinserted to TensorDB with 'model' tag
 
                         #First insert the aggregated model layer with the correct tensorkey
-                        agg_tag_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2]+1,('aggregated'))
+                        agg_tag_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2]+1,('aggregated',))
                         self.tensor_db.cache_tensor({agg_tag_tk:agg_results})
 
                         #Create delta
-                        base_model_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model'))
+                        base_model_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model',))
                         base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tk)
+                        self.logger.info('base_model_tensor_key = {}'.format(base_model_tk))
+                        self.logger.info('base_model_nparray = {}'.format(base_model_nparray))
+                        self.logger.info('agg_tag_tensor_key = {}'.format(agg_tag_tk))
+                        self.logger.info('agg_results = {}'.format(agg_results))
                         delta_tk,delta_nparray = self.tensor_codec.generate_delta(agg_tag_tk,agg_results,base_model_nparray)
 
                         #Compress lossless/lossy
@@ -479,7 +500,7 @@ class Aggregator(object):
                                 self.tensor_codec.apply_delta(decompressed_delta_tk,decompressed_delta_nparray,base_model_nparray)
 
                         #Finally, cache the updated model tensor
-                        self.tensor_db.cache_tensor({new_model_tk,new_model_nparray})
+                        self.tensor_db.cache_tensor({new_model_tk:new_model_nparray})
 
            
             #Once all of the task results have been processed

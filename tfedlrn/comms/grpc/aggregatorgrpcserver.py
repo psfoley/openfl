@@ -10,6 +10,7 @@ import logging
 import time
 
 from ...proto import datastream_to_proto, proto_to_datastream
+from ...proto.lowlevelstrawman_pb2 import TaskResults
 from ...proto.lowlevelstrawman_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
 
 class AggregatorGRPCServer(AggregatorServicer):
@@ -36,11 +37,11 @@ class AggregatorGRPCServer(AggregatorServicer):
         return self.aggregator.GetAggregatedTensor(request)
 
     def SendLocalTaskResults(self, request, context):
-        proto = TasksResults()
+        proto = TaskResults()
         proto = datastream_to_proto(proto, request)
         self.validate_collaborator(proto, context)
         # turn data stream into local model update
-        return self.aggregator.UploadLocalModelUpdate(proto)
+        return self.aggregator.SendLocalTaskResults(proto)
 
 
     #def DownloadModel(self, request, context):

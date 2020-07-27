@@ -9,7 +9,7 @@ import os
 import logging
 import importlib
 
-from tfedlrn.collaborator.collaborator import Collaborator
+from tfedlrn.collaborator.collaborator_rework_strawman import Collaborator
 from tfedlrn.comms.grpc.collaboratorgrpcclient import CollaboratorGRPCClient
 from tfedlrn import parse_fl_plan, get_object, load_yaml
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
@@ -38,6 +38,7 @@ def main(plan, collaborator_common_name, single_col_cert_common_name, data_confi
 
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
     col_config = flplan['collaborator']
+    print(col_config)
     model_config = flplan['model']
     data_config = flplan['data']
     data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
@@ -53,6 +54,7 @@ def main(plan, collaborator_common_name, single_col_cert_common_name, data_confi
         compression_pipeline = None
 
     network_config = flplan['network']
+    tasks_config = flplan['tasks']
     
     # if a single cert common name is in use, then that is the certificate we must use
     if single_col_cert_common_name is None:
@@ -68,9 +70,10 @@ def main(plan, collaborator_common_name, single_col_cert_common_name, data_confi
 
     wrapped_model = get_object(data=data, **model_config)
 
-    collaborator = Collaborator(collaborator_common_name=collaborator_common_name,
-                                wrapped_model=wrapped_model, 
-                                channel=channel,
+    collaborator = Collaborator(collaborator_name=collaborator_common_name,
+                                model=wrapped_model, 
+                                aggregator=channel,
+                                tasks_config=tasks_config,
                                 compression_pipeline = compression_pipeline,
                                 single_col_cert_common_name=single_col_cert_common_name,  
                                 **col_config)

@@ -3,11 +3,17 @@
 
 import pandas as pd
 import numpy as np
+import time
+import logging
 
-from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
+from ..proto.lowlevelstrawman_pb2 import MessageHeader, MetadataProto, ModelProto
+from ..proto.lowlevelstrawman_pb2 import TasksRequest, TasksResponse, TensorRequest, TensorResponse, NamedTensor, Acknowledgement, TaskResults
+from .. import check_type, check_equal, check_not_equal, split_tensor_dict_for_holdouts
+
 
 from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline, TensorCodec
 from tfedlrn.tensor_db import TensorDB
+from tfedlrn import TensorKey
 
 from tfedlrn.proto.protoutils import construct_proto, deconstruct_proto, construct_named_tensor
 
@@ -18,17 +24,23 @@ class Collaborator(object):
                  aggregator, 
                  model, 
                  collaborator_name, 
+                 compression_pipeline,
                  aggregator_uuid, 
                  federation_uuid, 
                  tasks_config,
                  send_model_deltas = False,
-                 single_col_cert_common_name = None):
+                 single_col_cert_common_name = None,
+                 **kwargs):
+        self.single_col_cert_common_name = single_col_cert_common_name
         if self.single_col_cert_common_name is None:
             self.single_col_cert_common_name = '' #For protobuf compatibility
         # We would really want this as an object
         self.collaborator_name = collaborator_name
-        self.aggregator_uuid = aggregation_uuid
+        self.logger = logging.getLogger(__name__)
+        self.aggregator_uuid = aggregator_uuid
         self.federation_uuid = federation_uuid
+        self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
+        self.tensor_codec = TensorCodec(self.compression_pipeline)
         self.tensor_db = TensorDB() 
         self.aggregator = aggregator
         self.model = model
@@ -39,7 +51,7 @@ class Collaborator(object):
 
         # Check that the message was intended to go to this collaborator
 
-    def validate_response(self, reply:
+    def validate_response(self, reply):
         check_equal(reply.header.receiver, self.collaborator_name, self.logger)
         check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
 
@@ -47,7 +59,7 @@ class Collaborator(object):
         check_equal(reply.header.federation_uuid, self.federation_uuid, self.logger)
 
         # check that there is aggrement on the single_col_cert_common_name
-        check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name)
+        check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
 
     def run(self):
         while True:
@@ -55,12 +67,14 @@ class Collaborator(object):
             if tasks.quit:
                 break
             elif tasks.sleep_time > 0:
-                self.sleep(tasks.sleep_time) # some sleep function
+                time.sleep(tasks.sleep_time) # some sleep function
             else:
                 for task in tasks.tasks:
                     self.do_task(task, tasks.round_number)
+        self.logger.info('End of experiment reached. Exiting...')
 
     def get_tasks(self):
+        self.logger.info('Calling get_tasks...')
         request = TasksRequest(header=self.header)
         response = self.aggregator.GetTasks(request)
         self.validate_response(response) # sanity checks and validation
@@ -77,20 +91,21 @@ class Collaborator(object):
         # models actually return "relative" tensorkeys of (name, LOCAL|GLOBAL, round_offset)
         # so we need to update these keys to their "absolute values"
         required_tensorkeys = []
-        for tname, origin, rnd_num in required_tensorkeys_relative:
+        for tname, origin, rnd_num, tags in required_tensorkeys_relative:
             if origin == 'GLOBAL':
                 origin = self.aggregator_uuid
             else:
                 origin = self.collaborator_name
             
             #rnd_num is the relative round. So if rnd_num is -1, get the tensor from the previous round
-            required_tensorkeys.append(TensorKey(tname, origin, rnd_num + round_number))
+            required_tensorkeys.append(TensorKey(tname, origin, rnd_num + round_number, tags))
         
         input_tensor_dict = self.get_numpy_dict_for_tensorkeys(required_tensorkeys)
+        print('input_tensor_dict = {}'.format(input_tensor_dict))
 
         # now we have whatever the model needs to do the task
         func = getattr(self.model, func_name)
-        output_tensor_dict = func(self.collaborator_name, round_number, input_tensor_dict, **kwargs)
+        output_tensor_dict = func(col_name=self.collaborator_name, round_num=round_number, input_tensor_dict=input_tensor_dict, **kwargs)
 
         # Save output_tensor_dict to TensorDB
         self.tensor_db.cache_tensor(output_tensor_dict)
@@ -99,7 +114,7 @@ class Collaborator(object):
         self.send_task_results(output_tensor_dict, round_number, task)
 
     def get_numpy_dict_for_tensorkeys(self, tensor_keys):
-        return {t.tensor_name: self.get_data_for_tensorkey(k) for k in tensor_keys}
+        return {k.tensor_name: self.get_data_for_tensorkey(k) for k in tensor_keys}
 
     def get_data_for_tensorkey(self, tensor_key):
         """
@@ -111,13 +126,16 @@ class Collaborator(object):
         extract_metadata:   The requested tensor may have metadata needed for decompression
         """
         # try to get from the store
+        self.logger.info('Attempting to get tensor {} from local store'.format(tensor_key))
         nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
 
         # if None and origin is our aggregator, request it from the aggregator
         if nparray is None:
+            self.logger.info('Unable to get tensor from local store...attempting to retrieve from aggregator')
             #Determine whether there are additional compression related dependencies. 
             #Typically, dependencies are only relevant to model layers
             tensor_dependencies = self.tensor_codec.find_dependencies(tensor_key,self.send_model_deltas)
+            self.logger.info('tensor_dependencies = {}'.format(tensor_dependencies))
             if len(tensor_dependencies) > 0:
                 #Resolve dependencies
                 #tensor_dependencies[0] corresponds to the prior version of the model. 
@@ -131,7 +149,7 @@ class Collaborator(object):
                     nparray = self.get_aggregated_tensor_from_aggregator(tensor_key)
             elif 'model' in tensor_key[3]:
                 #Pulling the model for the first time or 
-                nparray = self.get_aggregated_tensor_from_aggregator(tensor_name,require_lossless=True)
+                nparray = self.get_aggregated_tensor_from_aggregator(tensor_key,require_lossless=True)
 
         return nparray
 
@@ -159,19 +177,22 @@ class Collaborator(object):
                                 round_number=round_number,
                                 tags=tags,
                                 require_lossless=require_lossless)
+
+        self.logger.info('Getting aggregated tensor {}'.format(tensor_key))
         
         response = self.aggregator.GetAggregatedTensor(request)
 
         # also do other validation, like on the round_number
-        self.validate_reponse(response)
+        self.validate_response(response)
 
         # this translates to a numpy array and includes decompression, as necessary
-        nparray = self.named_tensor_to_nparray(response.named_tensor)
+        nparray = self.named_tensor_to_nparray(response.tensor)
         
         # cache this tensor
-        self.tensor_db.cache_tensor({tensor_key, nparray})
+        self.tensor_db.cache_tensor({tensor_key: nparray})
+        self.logger.info('Printing updated TensorDB: {}'.format(self.tensor_db))
 
-        return tensor
+        return nparray
     
     def send_task_results(self, tensor_dict, round_number, task_name):
         named_tensors = [self.nparray_to_named_tensor(k, v) for k, v in tensor_dict.items()]
@@ -187,8 +208,8 @@ class Collaborator(object):
                               task_name=task_name,
                               data_size=data_size,
                               tensors=named_tensors)
-        response = self.aggregator.SendLocalTaskResults(TaskResults)
-        self.validate_reponse(response)
+        response = self.aggregator.SendLocalTaskResults(request)
+        self.validate_response(response)
 
     def nparray_to_named_tensor(self,tensor_key, nparray):
         """
@@ -197,13 +218,13 @@ class Collaborator(object):
         """
 
         # if we have an aggregated tensor, we can make a delta
-        if('trained' in tensor_key['tags'] and self.send_model_deltas):
+        if('trained' in tensor_key[0] and self.send_model_deltas):
           #Should get the pretrained model to create the delta. If training has happened,
           #Model should already be stored in the TensorDB
-          model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_key['tensor_name'],\
-                                                                  tensor_key['origin'],\
-                                                                  tensor_key['round_num'],\
-                                                                  ('model'))) 
+          model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_key[0],\
+                                                                  tensor_key[1],\
+                                                                  tensor_key[2],\
+                                                                  ('model',))) 
         
           assert(model_nparray != None), "The original model layer should be present if the trained model is present"
           delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
@@ -213,12 +234,12 @@ class Collaborator(object):
         else:
             #Assume every other tensor requires lossless compression
             compressed_tensor_key, compressed_nparray, metadata = \
-                    self.tensor_codec.compress(tensorkey,nparray,require_lossless=True)
+                    self.tensor_codec.compress(tensor_key,nparray,require_lossless=True)
             named_tensor = construct_named_tensor(compressed_tensor_key,compressed_nparray,metadata,lossless=True)
         
         return named_tensor
 
-    def named_tensor_to_nparray(named_tensor):
+    def named_tensor_to_nparray(self, named_tensor):
         # do the stuff we do now for decompression and frombuffer and stuff
         # This should probably be moved back to protoutils
         raw_bytes = named_tensor.data_bytes
@@ -226,10 +247,10 @@ class Collaborator(object):
                      'int_list': proto.int_list,
                      'bool_list': proto.bool_list} for proto in named_tensor.transformer_metadata]
         #The tensor has already been transfered to collaborator, so the newly constructed tensor should have the collaborator origin
-        tensor_key = TensorKey(named_tensor.name, self.collaborator_name, named_tensor.round_number, named_tensor.tags)
+        tensor_key = TensorKey(named_tensor.name, self.collaborator_name, named_tensor.round_number, tuple(named_tensor.tags))
         if 'compressed' in tensor_key[3]:
             decompressed_tensor_key, decompressed_nparray =  \
-                    self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,override_with_lossless=True)
+                    self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,require_lossless=True)
         elif 'lossy_compressed' in tensor_key[3]:
             decompressed_tensor_key, decompressed_nparray =  \
                     self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata)

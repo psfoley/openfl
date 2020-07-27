@@ -25,7 +25,7 @@ class KerasFLModel(FLModel):
         self.model_tensor_names = []
 
         #This is a map of all of the required tensors for each of the public functions in KerasFLModel
-        self.required_tensorkeys_for_functions = {}
+        self.required_tensorkeys_for_function = {}
 
         NUM_PARALLEL_EXEC_UNITS = 1
         config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, 
@@ -46,15 +46,15 @@ class KerasFLModel(FLModel):
         None
         """
         #Must update all model weights. No guarantee that all of the tensors included in dict are part of model
-        base_tensor_dict = { tensor_key['tensor_name'] : value for key,value in input_tensor_dict.items()}
+        #base_tensor_dict = { tensor_key[0] : value for tensor_key,value in input_tensor_dict.items()}
         #If round > 0, always assume optimizer to be updated. The values could come from local or 
-        if round_num > 0:
-            self.set_tensor_dict(base_tensor_dict,with_opt_vars=True)
+        if round > 0:
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=True)
         else:
-            self.set_tensor_dict(base_tensor_dict,with_opt_vars=False)
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
 
 
-    def train(self, col_name, round_num, input_tensor_dict, num_batches, **kwargs):
+    def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
         """
         Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
         replacement until data is exausted. Then data is replaced and shuffled and draws continue.
@@ -66,37 +66,44 @@ class KerasFLModel(FLModel):
         """
         if 'metrics' not in kwargs:
             raise KeyError('metrics must be included in kwargs')
+        if 'batch_size' in kwargs:
+            batch_size = kwargs['batch_size']
+        else:
+            batch_size = self.data.batch_size
 
         #rebuild model with updated weights
         self.rebuild_model(round_num, input_tensor_dict)
 
         # keras model fit method allows for partial batches
-        batches_per_epoch = int(np.ceil(self.data.get_training_data_size()/self.data.batch_size))
+        #batches_per_epoch = int(np.ceil(self.data.get_training_data_size()/self.data.batch_size))
 
-        if num_batches % batches_per_epoch != 0:
-            raise ValueError('KerasFLModel does not support specifying a num_batches corresponding to partial epochs.')
-        else:
-            num_epochs = num_batches // batches_per_epoch
+        #if num_batches % batches_per_epoch != 0:
+        #    raise ValueError('KerasFLModel does not support specifying a num_batches corresponding to partial epochs.')
+        #else:
+        #    num_epochs = num_batches // batches_per_epoch
 
         history = self.model.fit(self.data.X_train, 
                                  self.data.y_train,
                                  batch_size=self.data.batch_size,
-                                 epochs=num_epochs,
+                                 epochs=epochs,
                                  verbose=0,)
 
         #TODO Currently assuming that all metrics are defined at initialization (build_model). If metrics are added (i.e.
         # not a subset of what was originally defined) then the model must be recompiled. 
-        model_metric_names = self.model.metrics_names
+        model_metrics_names = self.model.metrics_names
         param_metrics = kwargs['metrics']
         #TODO if there are new metrics in the flplan that were not included in the originally compiled model, that behavior
         #is not currently handled. 
-        if set.intersection(set(param_metrics),set(model_metric_names)) != set(model_metric_names):
-            raise ValueError('KerasFLModel does not support specifying new metrics after build')
+        for param in param_metrics:
+            if param not in model_metrics_names:
+                error = 'KerasFLModel does not support specifying new metrics. Param_metrics = {}, model_metrics_names = {}'.format(param_metrics,model_metrics_names)
+                raise ValueError(error)
+
 
         #Output metric tensors (scalar)
         origin = col_name 
-        tags = 'trained'
-        output_metric_dict = {TensorKey(metric,origin,round_num,('metric')): np.array(np.mean([history.history[metric]])) for metric in param_metrics}
+        tags = ('trained',)
+        output_metric_dict = {TensorKey(metric,origin,round_num,('metric',)): np.array(np.mean([history.history[metric]])) for metric in param_metrics}
 
         #output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
@@ -128,12 +135,14 @@ class KerasFLModel(FLModel):
 
         vals = self.model.evaluate(self.data.X_val, self.data.y_val,batch_size=batch_size, verbose=0)
         model_metrics_names = self.model.metrics_names
-        ret_dict = dict(zip(metrics_names, vals))
+        ret_dict = dict(zip(model_metrics_names, vals))
 
         #TODO if there are new metrics in the flplan that were not included in the originally compiled model, that behavior
         #is not currently handled. 
-        if set.intersection(set(param_metrics),set(model_metric_names)) != set(model_metric_names):
-            raise ValueError('KerasFLModel does not support specifying new metrics.')
+        for param in param_metrics:
+            if param not in model_metrics_names:
+                error = 'KerasFLModel does not support specifying new metrics. Param_metrics = {}, model_metrics_names = {}'.format(param_metrics,model_metrics_names)
+                raise ValueError(error)
         
         origin = col_name 
         suffix = 'validate'
@@ -292,7 +301,7 @@ class KerasFLModel(FLModel):
         """
 
         if func_name == 'validate':
-            local_model = 'local_model=' + kwargs['local_model']
+            local_model = 'local_model=' + str(kwargs['local_model'])
             return self.required_tensorkeys_for_function[func_name][local_model]
         else:
             return self.required_tensorkeys_for_function[func_name]
@@ -317,13 +326,13 @@ class KerasFLModel(FLModel):
 
         #Minimal required tensors for train function 
         tensor_names = self._get_weights_names(self.model) + self._get_weights_names(self.model.optimizer)
-        self.required_tensorkeys_for_functions['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,'model') for tensor_name in tensor_names]
+        self.required_tensorkeys_for_function['train'] = [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names]
 
         #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
-        self.required_tensorkeys_for_functions['validation'] = {}
-        self.required_tensorkeys_for_functions['validation']['local_model=true'] = \
-                [TensorKey(tensor_name,'LOCAL',0,'trained') for tensor_name in tensor_names]
-        self.required_tensorkeys_for_functions['validation']['local_model=false'] = \
-                [TensorKey(tensor_name,'GLOBAL',0,()) for tensor_name in tensor_names]
+        self.required_tensorkeys_for_function['validate'] = {}
+        self.required_tensorkeys_for_function['validate']['local_model=True'] = \
+                [TensorKey(tensor_name,'LOCAL',0,('trained',)) for tensor_name in tensor_names]
+        self.required_tensorkeys_for_function['validate']['local_model=False'] = \
+                [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names]
 
 

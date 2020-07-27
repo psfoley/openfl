@@ -4,7 +4,7 @@
 import numpy as np
 from tfedlrn import TensorKey
 #from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader, MetadataProto, DataStream, NamedTensor
-from tfedlrn.proto.lowlevelstrawman_pb2 import ModelProto, NamedTensor, MetadataProto
+from tfedlrn.proto.lowlevelstrawman_pb2 import ModelProto, NamedTensor, MetadataProto, DataStream
 
 def model_proto_to_bytes_and_metadata(model_proto):
     bytes_dict = {}

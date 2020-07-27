@@ -4,11 +4,16 @@
 import numpy as np
 import pandas as pd
 import tensorboardX
+import logging
 
+from .. import check_equal, check_not_equal, check_is_in, check_not_in
+from ..proto.lowlevelstrawman_pb2 import MessageHeader, MetadataProto, ModelProto
+from ..proto.lowlevelstrawman_pb2 import TasksRequest, TasksResponse, TensorRequest, TensorResponse, NamedTensor, Acknowledgement
 from tfedlrn import TensorKey,TaskResultKey
-from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
+from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline, TensorCodec
+from tfedlrn.tensor_db import TensorDB
 
-from tfedlrn.proto.protoutils import construct_proto, deconstruct_proto, construct_named_tensor
+from tfedlrn.proto.protoutils import load_proto, construct_proto, deconstruct_proto, construct_named_tensor, deconstruct_model_proto
 
 class Aggregator(object):
 
@@ -61,6 +66,7 @@ class Aggregator(object):
         self.uuid = aggregator_uuid
         self.federation_uuid = federation_uuid
         self.task_assigner = task_assigner
+        self.quit_job_sent_to = []
         self.tensor_db = TensorDB()
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline() 
         self.tensor_codec = TensorCodec(self.compression_pipeline)
@@ -92,9 +98,13 @@ class Aggregator(object):
         tensor_key_dict = {TensorKey(k,self.uuid,0,('model')):v for k,v in tensor_dict.items()}
         #All initial model tensors are loaded here
         self.tensor_db.cache_tensor(tensor_key_dict)
-        if custom_tensor_dir != None:
+        self.logger.info('This is the initial tensor_db: {}'.format(self.tensor_db))
+        if self.custom_tensor_dir != None:
             #Here is where the additional tensors should be loaded into the TensorDB
             pass
+
+    def all_quit_jobs_sent(self):
+        return set(self.quit_job_sent_to) == set(self.collaborator_common_names)
 
     def check_request(self, request):
         """
@@ -124,6 +134,14 @@ class Aggregator(object):
         Sleep 10 seconds
         """
         return 10
+
+    def time_to_quit(self):
+        """
+        If all rounds are complete, it's time to quit
+        """
+        if self.round_number > self.rounds_to_train:
+            return True
+        return False
         
     def GetTasks(self, request):
         # all messages get sanity checked
@@ -132,7 +150,8 @@ class Aggregator(object):
         collaborator_name = request.header.sender
 
         # first, if it is time to quit, inform the collaborator
-        if self.quitting_time():
+        if self.time_to_quit():
+            self.quit_job_sent_to.append(collaborator_name)
             return TasksResponse(header=self.get_header(collaborator_name),
                                  round_number=self.round_number,
                                  tasks=None,
@@ -403,7 +422,7 @@ class Aggregator(object):
             #Compute all validation related metrics
             all_tasks = self.task_assigner.get_all_tasks_for_round(self.round_number)
             for task_name in all_tasks:
-                self.logger.info('{} task metrics...'.format(task_name)
+                self.logger.info('{} task metrics...'.format(task_name))
                 #By default, print out all of the metrics that the validation task sent
                 #This handles getting the subset of collaborators that may be part of the validation task
                 collaborators_for_task = self.task_assigner.get_collaborators_for_task(task_name,self.round_number)
@@ -428,7 +447,8 @@ class Aggregator(object):
                     agg_results = self.tensor_db.get_aggregated_tensor(agg_tensor_key,collaborator_weight_dict)
                     if 'metric' == tensor_key[3][0]:
                         #Print the aggregated metric
-                        self.logger.info('{}:\t{}'.format(tensor_key[0],agg_results[0])
+                        self.logger.info('{}:\t{}'.format(tensor_key[0],agg_results[0]))
+                        #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
                     if 'trained' in tensor_key[3][0]:
                         #The aggregated tensorkey tags should have the form of 'trained' or 'trained.lossy_decompressed'
                         #They need to be relabeled to 'aggregated' and reinserted. Then delta performed, 
@@ -465,13 +485,18 @@ class Aggregator(object):
             #Once all of the task results have been processed
             #Increment the round number
             self.round_number += 1
-            self.logger.info('Starting round {}...'.format(self.round_number)
+
+            #TODO This needs to be fixed!
+            if not time_to_quit():
+                self.logger.info('Experiment Completed. Cleaning up...')
+            else:
+                self.logger.info('Starting round {}...'.format(self.round_number))
 
 
     def is_task_done(self, task_name):
         collaborators_needed = self.task_assigner.get_collaborators_for_task(task_name, self.round_number)
 
-        return all([self.collaborator_task_completed(c, task_name, self.round_number) for c in collaborators_needed]):
+        return all([self.collaborator_task_completed(c, task_name, self.round_number) for c in collaborators_needed])
 
     def is_round_done(self):
         tasks_for_round = self.task_assigner.get_all_tasks_for_round(self.round_number)

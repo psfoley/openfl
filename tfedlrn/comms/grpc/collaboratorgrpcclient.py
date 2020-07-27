@@ -5,8 +5,7 @@ import grpc
 import logging
 
 from ...proto import datastream_to_proto, proto_to_datastream
-from ...proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub
-from ...proto.collaborator_aggregator_interface_pb2 import GlobalModelUpdate
+from ...proto.lowlevelstrawman_pb2_grpc import AggregatorStub
 
 class CollaboratorGRPCClient():
     """Collaboration over gRPC-TLS."""
@@ -51,19 +50,31 @@ class CollaboratorGRPCClient():
         )
         return grpc.secure_channel(uri, credentials, options=self.channel_options)
 
-    def RequestJob(self, message):
-        return self.stub.RequestJob(message)
+    #def RequestJob(self, message):
+    #    return self.stub.RequestJob(message)
 
-    def DownloadModel(self, message):
-        stream = self.stub.DownloadModel(message)
-        # turn datastream into global model update
-        return datastream_to_proto(GlobalModelUpdate(), stream)
+    def GetTasks(self, message):
+        return self.stub.GetTasks(message)
 
-    def UploadLocalModelUpdate(self, message):
-        # turn local model update into datastream
+    def GetAggregatedTensors(self, message):
+        return self.stub.GetAggregatedTensors(message)
+
+    def SendLocalTaskResults(self, message):
+        #Convert (potentially) long list of tensors into stream
         stream = []
         stream += proto_to_datastream(message, self.logger)
-        return self.stub.UploadLocalModelUpdate(iter(stream))
+        return self.stub.SendLocalTaskResults(iter(stream))
 
-    def UploadLocalMetricsUpdate(self, message):
-        return self.stub.UploadLocalMetricsUpdate(message)
+    #def DownloadModel(self, message):
+    #    stream = self.stub.DownloadModel(message)
+    #    # turn datastream into global model update
+    #    return datastream_to_proto(GlobalModelUpdate(), stream)
+
+    #def UploadLocalModelUpdate(self, message):
+    #    # turn local model update into datastream
+    #    stream = []
+    #    stream += proto_to_datastream(message, self.logger)
+    #    return self.stub.UploadLocalModelUpdate(iter(stream))
+
+    #def UploadLocalMetricsUpdate(self, message):
+    #    return self.stub.UploadLocalMetricsUpdate(message)

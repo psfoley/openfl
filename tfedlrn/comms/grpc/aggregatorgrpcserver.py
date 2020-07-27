@@ -10,8 +10,7 @@ import logging
 import time
 
 from ...proto import datastream_to_proto, proto_to_datastream
-from ...proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate
-from ...proto.collaborator_aggregator_interface_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
+from ...proto.lowlevelstrawman_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
 
 class AggregatorGRPCServer(AggregatorServicer):
     def __init__(self, aggregator):
@@ -24,26 +23,42 @@ class AggregatorGRPCServer(AggregatorServicer):
             if not self.aggregator.valid_collaborator_CN_and_id(common_name, collaborator_common_name):
                 raise ValueError("Invalid collaborator. CN: |{}| collaborator_common_name: |{}|".format(common_name, collaborator_common_name))
 
-    def RequestJob(self, request, context):
-        self.validate_collaborator(request, context)
-        return self.aggregator.RequestJob(request)
+    #def RequestJob(self, request, context):
+    #    self.validate_collaborator(request, context)
+    #    return self.aggregator.RequestJob(request)
 
-    def DownloadModel(self, request, context):
+    def GetTasks(self, request, context):
         self.validate_collaborator(request, context)
-        # turn global model update into data stream
-        proto = self.aggregator.DownloadModel(request) 
-        return proto_to_datastream(proto, self.logger)
+        return self.aggregator.GetTasks(request)
 
-    def UploadLocalModelUpdate(self, request, context):
-        proto = LocalModelUpdate()
+    def GetAggregatedTensor(self, request, context):
+        self.validate_collaborator(request, context)
+        return self.aggregator.GetAggregatedTensor(request)
+
+    def SendLocalTaskResults(self, request, context):
+        proto = TasksResults()
         proto = datastream_to_proto(proto, request)
         self.validate_collaborator(proto, context)
         # turn data stream into local model update
         return self.aggregator.UploadLocalModelUpdate(proto)
 
-    def UploadLocalMetricsUpdate(self, request, context):
-        self.validate_collaborator(request, context)
-        return self.aggregator.UploadLocalMetricsUpdate(request)
+
+    #def DownloadModel(self, request, context):
+    #    self.validate_collaborator(request, context)
+    #    # turn global model update into data stream
+    #    proto = self.aggregator.DownloadModel(request) 
+    #    return proto_to_datastream(proto, self.logger)
+
+    #def UploadLocalModelUpdate(self, request, context):
+    #    proto = LocalModelUpdate()
+    #    proto = datastream_to_proto(proto, request)
+    #    self.validate_collaborator(proto, context)
+    #    # turn data stream into local model update
+    #    return self.aggregator.UploadLocalModelUpdate(proto)
+
+    #def UploadLocalMetricsUpdate(self, request, context):
+    #    self.validate_collaborator(request, context)
+    #    return self.aggregator.UploadLocalMetricsUpdate(request)
 
     def serve(self, 
               agg_port, 

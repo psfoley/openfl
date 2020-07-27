@@ -4,7 +4,13 @@
 service Aggregator {
     rpc GetTasks(TasksRequest)              returns (TasksResponse) {}
     rpc GetAggregatedTensor(TensorRequest)  returns (TensorResponse) {}
-    rpc SendLocalTaskResults(TaskResults)   returns (Acknowledgement) {}
+    rpc SendLocalTaskResults(stream DataStream)   returns (Acknowledgement) {}
+}
+
+// handles large size data
+message DataStream {
+	required uint32 size = 1; // size, in bytes, of the data sent in npbytes
+	required bytes npbytes = 2; //actual data
 }
 
 message MessageHeader {

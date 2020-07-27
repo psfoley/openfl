@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import lowlevelstrawman_pb2 as lowlevelstrawman__pb2
+import tfedlrn.proto.lowlevelstrawman_pb2 as lowlevelstrawman__pb2
 
 
 class AggregatorStub(object):
@@ -27,9 +27,9 @@ class AggregatorStub(object):
                 request_serializer=lowlevelstrawman__pb2.TensorRequest.SerializeToString,
                 response_deserializer=lowlevelstrawman__pb2.TensorResponse.FromString,
                 )
-        self.SendLocalTaskResults = channel.unary_unary(
+        self.SendLocalTaskResults = channel.stream_unary(
                 '/Aggregator/SendLocalTaskResults',
-                request_serializer=lowlevelstrawman__pb2.TaskResults.SerializeToString,
+                request_serializer=lowlevelstrawman__pb2.DataStream.SerializeToString,
                 response_deserializer=lowlevelstrawman__pb2.Acknowledgement.FromString,
                 )
 
@@ -52,7 +52,7 @@ class AggregatorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def SendLocalTaskResults(self, request, context):
+    def SendLocalTaskResults(self, request_iterator, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -71,9 +71,9 @@ def add_AggregatorServicer_to_server(servicer, server):
                     request_deserializer=lowlevelstrawman__pb2.TensorRequest.FromString,
                     response_serializer=lowlevelstrawman__pb2.TensorResponse.SerializeToString,
             ),
-            'SendLocalTaskResults': grpc.unary_unary_rpc_method_handler(
+            'SendLocalTaskResults': grpc.stream_unary_rpc_method_handler(
                     servicer.SendLocalTaskResults,
-                    request_deserializer=lowlevelstrawman__pb2.TaskResults.FromString,
+                    request_deserializer=lowlevelstrawman__pb2.DataStream.FromString,
                     response_serializer=lowlevelstrawman__pb2.Acknowledgement.SerializeToString,
             ),
     }
@@ -122,7 +122,7 @@ class Aggregator(object):
             call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def SendLocalTaskResults(request,
+    def SendLocalTaskResults(request_iterator,
             target,
             options=(),
             channel_credentials=None,
@@ -131,8 +131,8 @@ class Aggregator(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/Aggregator/SendLocalTaskResults',
-            lowlevelstrawman__pb2.TaskResults.SerializeToString,
+        return grpc.experimental.stream_unary(request_iterator, target, '/Aggregator/SendLocalTaskResults',
+            lowlevelstrawman__pb2.DataStream.SerializeToString,
             lowlevelstrawman__pb2.Acknowledgement.FromString,
             options, channel_credentials,
             call_credentials, compression, wait_for_ready, timeout, metadata)

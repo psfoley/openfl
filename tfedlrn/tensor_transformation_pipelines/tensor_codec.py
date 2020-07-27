@@ -70,9 +70,9 @@ class TensorCodec(object):
         """
 
         assert(len(metadata) > 0), 'metadata must be included for decompression'
-        assert('lossy_compressed' not in tensor_key[3] & lossless=True), \
+        assert('lossy_compressed' not in tensor_key[3] & lossless==True), \
                 "Cannot apply lossless decompression to lossy tensor"
-        assert('compressed' not in tensor_key[3] & lossless=False), \
+        assert('compressed' not in tensor_key[3] & lossless==False), \
                 "Cannot apply lossy decompression to lossless tensor"
 
         if lossless:
@@ -114,7 +114,10 @@ class TensorCodec(object):
         assert(nparray.shape == base_model_nparray.shape), \
                 'Shape of updated layer ({}) is not equal to base layer shape of ({})'.format(nparray.shape,base_model_nparray.shape)
         assert('model' not in tensor_key[3]), 'The tensorkey should be provided from the layer with new weights, not the base model'
-        new_tags = tuple(list[tensor_key[3] + ['delta'])
+        if type(tensor_key[3]) == str:
+            new_tags = tuple([tensor_key[3]] + ['delta'])
+        else:
+            new_tags = tuple(list(tensor_key[3]) + ['delta'])
         delta_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],new_tags)
         return delta_tensor_key,nparray - base_model_nparray
 

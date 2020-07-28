@@ -7,7 +7,6 @@ Manual
 
 .. toctree::
 
-   overview
-   install
+   overview/overview
+   install/install
    running_the_federation
-   

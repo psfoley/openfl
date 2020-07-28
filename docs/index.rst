@@ -32,7 +32,6 @@ Pytorch.
    :caption: Contents:
 
    manual
-   tutorial
    tfedlrn
    models
 

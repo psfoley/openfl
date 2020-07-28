@@ -7,9 +7,10 @@ import argparse
 import os
 import logging
 
-from tfedlrn import load_yaml, parse_fl_plan
-from single_proc_fed import federate
-from setup_logging import setup_logging
+from tfedlrn            import load_yaml
+from tfedlrn.flplan     import parse_fl_plan
+from single_proc_fed    import federate
+from setup_logging      import setup_logging
 
 
 def main(plan, collaborators_file, data_config_fname, logging_config_path, logging_default_level, **kwargs):
@@ -25,35 +26,18 @@ def main(plan, collaborators_file, data_config_fname, logging_config_path, loggi
     weights_dir = os.path.join(base_dir, 'weights')
     collaborators_dir = os.path.join(base_dir, 'collaborator_lists')
 
-    # parse configs from flplan
+    # load the flplan, local_config and collaborators file
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
-    by_col_data_names_to_paths = load_yaml(os.path.join(base_dir, data_config_fname))['collaborators']
-    agg_config = flplan['aggregator']
-    col_config = flplan['collaborator']
-    model_config = flplan['model']
-    data_config = flplan['data']
-    compression_config = flplan.get('compression_pipeline')
-
-    # patch in the collaborators file
-    agg_config['collaborator_common_names'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
-
-    init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
-    latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
-    best_model_fpath = os.path.join(weights_dir, agg_config['best_model_fname'])
-
+    local_config = load_yaml(os.path.join(base_dir, data_config_fname))
+    collaborator_common_names = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
   
     # TODO: Run a loop here over various parameter values and iterations
     # TODO: implement more than just saving init, best, and latest model
-    federate(data_config=data_config, 
-             col_config=col_config, 
-             agg_config=agg_config,
-             model_config=model_config,
-             compression_config=compression_config,
-             by_col_data_names_to_paths=by_col_data_names_to_paths, 
-             init_model_fpath = init_model_fpath, 
-             latest_model_fpath = latest_model_fpath, 
-             best_model_fpath = best_model_fpath, 
-             **kwargs)
+    federate(flplan,
+             local_config,
+             collaborator_common_names,
+             base_dir,
+             weights_dir)
 
 
 if __name__ == '__main__':

@@ -1,48 +1,34 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-
-# Compose an FL plan in JSON/YAML.
+# Compose an FL plan in YAML
 # The plan is consumed by bin/run_simulation_from_flplan.py,
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and
 # bin/create_initial_weights_file_from_plan.py
-# Note the use of yaml anchors and aliases in order to enforce dependencies
-# across portions of the config:
-# The anochor '&' assigns a name to a piece of the config
-# The alias '*' references an achor 
 
-# values for first level keys: model, aggregator, and collaborator
-# pass in the generic kwargs for those constructors
-# (ex. collaborator id will be collaborator specific)
+aggregator_object_init:
+  init_kwargs:
+    best_model_fname: tf_2dunet_brats_best.pbuf
+    init_model_fname: tf_2dunet_brats_init.pbuf
+    latest_model_fname: tf_2dunet_brats_latest.pbuf
+    rounds_to_train: 50
 
-# values for first level keys: model and data pass in the generic
-# kwargs for get_model and get_data functions
+collaborator_object_init:
+  init_kwargs:
+    epochs_per_round: 1.0
+    opt_treatment: RESET
+    polling_interval: 4
+    send_model_deltas: false
 
-# values for the first level key: hostnames is used in the creation of the public
-# key infrastructure
+data_object_init:
+  class_to_init: data.tensorflow.tfbrats_inmemory.TensorFlowBratsInMemory
+  data_name_in_local_config: brats
+  init_kwargs:
+    batch_size: 64
+    percent_train: 0.8
 
-# The model version is used to validate model updates
-# Aggregator, collaborator, and fed ids (as well as model version) are currently
-# used to validate message headers. Collaborator ids are also
-# used for identifying the data folder of each collaborator
-# (using the local_data_config yaml file)
+model_object_init:
+  class_to_init: models.tensorflow.tf_2dunet.tf_2dunet.TensorFlow2DUNet.TensorFlow2DUNet
 
-aggregator:
-  defaults_file   : defaults/aggregator_test_mode_whitelist.yaml
-  rounds_to_train : 50
-  init_model_fname  : tf_2dunet_brats_init.pbuf
-  latest_model_fname: tf_2dunet_brats_latest.pbuf
-  best_model_fname  : tf_2dunet_brats_best.pbuf
-
-model:
-  module_name : models.tensorflow.tf_2dunet.tf_2dunet
-  class_name  : TensorFlow2DUNet
-
-collaborator:
-  defaults_file: defaults/collaborator.yaml
-
-network:
+network_object_init:
   defaults_file: defaults/network.yaml
- 
-data:
-  defaults_file: defaults/data_tf_brats.yaml

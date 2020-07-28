@@ -7,11 +7,7 @@ import argparse
 import os
 import logging
 
-from tfedlrn.aggregator.aggregator import Aggregator
-from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
-from tfedlrn import parse_fl_plan, load_yaml
-from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 
-
+from tfedlrn.flplan import parse_fl_plan, load_yaml, create_aggregator_object_from_flplan, create_aggregator_server_from_flplan, get_serve_kwargs_from_flpan
 from setup_logging import setup_logging
 
 
@@ -26,39 +22,13 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
     collaborators_dir = os.path.join(base_dir, 'collaborator_lists')
 
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
-    agg_config = flplan['aggregator']
-    network_config = flplan['network']
+    collaborator_common_names = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
 
-    # patch in the collaborators file
-    agg_config['collaborator_common_names'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
-
-    init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
-    latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
-    best_model_fpath = os.path.join(weights_dir, agg_config['best_model_fname'])
-
-    if flplan.get('compression_pipeline') is not None:
-        compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
-    else:
-        compression_pipeline = None
+    agg             = create_aggregator_object_from_flplan(flplan, collaborator_common_names, single_col_cert_common_name, weights_dir)
+    server          = create_aggregator_server_from_flplan(agg, flplan)
+    serve_kwargs    = get_serve_kwargs_from_flpan(flplan, base_dir)
     
-    agg = Aggregator(init_model_fpath=init_model_fpath,
-                     latest_model_fpath=latest_model_fpath,
-                     best_model_fpath=best_model_fpath,
-                     compression_pipeline=compression_pipeline,
-                     single_col_cert_common_name=single_col_cert_common_name,
-                     **agg_config)
-
-    # default cert folder to pki
-    cert_dir = os.path.join(base_dir, network_config.pop('cert_folder', 'pki')) # default to 'pki'
-
-    cert_common_name = network_config['agg_addr']
-    agg_cert_path = os.path.join(cert_dir, "agg_{}".format(cert_common_name))
-
-    agg_grpc_server = AggregatorGRPCServer(agg)
-    agg_grpc_server.serve(ca=os.path.join(cert_dir, 'cert_chain.crt'),
-                          certificate=os.path.join(agg_cert_path, 'agg_{}.crt'.format(cert_common_name)),
-                          private_key=os.path.join(agg_cert_path, 'agg_{}.key'.format(cert_common_name)), 
-                          **network_config)
+    server.serve(**serve_kwargs)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

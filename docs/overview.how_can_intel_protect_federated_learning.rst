@@ -16,7 +16,9 @@ access to the CPU cannot access the enclave without the authorized key.
 
 
 .. figure:: images/sgx.png
+
    :alt: Intel\ :sup:`®` \ Software Guard Extensions
+   :scale: 50%
 
    Intel\ :sup:`®` \ Software Guard Extensions
 
@@ -39,7 +41,9 @@ based on Graphene have been created by our partners, including
 `Fortanix <https://fortanix.com>`_ and `SContain <https://scontain.com>`_.
 
 .. figure:: images/graphene.png
+
   :alt: graphene
+  :scale: 50%
 
   Graphene allows unmodified programs to be protected by SGX.
 

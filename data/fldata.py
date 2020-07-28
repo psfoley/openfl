@@ -44,6 +44,16 @@ class FLData(object):
         """
         raise NotImplementedError
 
+    def get_inference_loader(self):
+        """
+        Get inferencing data loader 
+
+        Returns
+        -------
+        loader object (class defined by inheritor)
+        """
+        return NotImplementedError
+
     def get_training_data_size(self):
         """
         Get total number of training samples 

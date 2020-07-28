@@ -73,18 +73,38 @@ class CollaboratorGRPCClient():
         return grpc.secure_channel(uri, credentials, options=self.channel_options)
 
     def RequestJob(self, message):
+        """Request Job
+
+        Args:
+            message: Message sent to the collaborator
+        """
         return self.stub.RequestJob(message)
 
     def DownloadModel(self, message):
+        """Download Model
+
+        Args:
+            message: Message sent to the collaborator
+        """
         stream = self.stub.DownloadModel(message)
         # turn datastream into global model update
         return datastream_to_proto(GlobalModelUpdate(), stream)
 
     def UploadLocalModelUpdate(self, message):
+        """Upload Local Model Update
+
+        Args:
+            message: Message sent to the collaborator
+        """
         # turn local model update into datastream
         stream = []
         stream += proto_to_datastream(message, self.logger)
         return self.stub.UploadLocalModelUpdate(iter(stream))
 
     def UploadLocalMetricsUpdate(self, message):
+        """Upload Local Metrics Update
+
+        Args:
+            message: Message sent to the collaborator
+        """
         return self.stub.UploadLocalMetricsUpdate(message)

@@ -16,7 +16,7 @@ class PyTorchFLDataInMemory(FLData):
         """Instantiate the data object
 
         Args:
-            batch_size(int): batch size for the data loader
+            batch_size (int): batch size for the data loader
 
         """
         self.batch_size = batch_size

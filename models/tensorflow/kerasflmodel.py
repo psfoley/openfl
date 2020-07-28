@@ -118,7 +118,7 @@ class KerasFLModel(FLModel):
         """Get the model weights as a tensor dictionary.
 
         Args:
-            with_opt_vars (boolean): True = include the optimizer's status.
+            with_opt_vars (bool): True = include the optimizer's status.
 
         Returns:
             dict: The tensor dictionary.
@@ -138,7 +138,7 @@ class KerasFLModel(FLModel):
 
         Args:
             tensor_dict: the tensor dictionary
-            with_opt_vars (boolean): True = include the optimizer's status.
+            with_opt_vars (bool): True = include the optimizer's status.
         """
 
         if with_opt_vars is False:

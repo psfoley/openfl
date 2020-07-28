@@ -95,7 +95,7 @@ class FLModel(object):
 
         Args:
             num_batches: Number of batches to train
-            use_tdqm(boolean): True = use tqdm progress bar (Default=False)
+            use_tdqm (bool): True = use tqdm progress bar (Default=False)
 
         Returns:
             dict: {<metric>: <value>}
@@ -103,7 +103,7 @@ class FLModel(object):
         raise NotImplementedError
 
     def validate(self):
-        """un validation.
+        """Run validation.
 
         Returns"
             dict: {<metric>: <value>}
@@ -114,7 +114,7 @@ class FLModel(object):
         """Get the weights.
 
         Args:
-            with_opt_vars(bool): Specify if we also want to get the variables of the optimizer.
+            with_opt_vars (bool): Specify if we also want to get the variables of the optimizer.
 
         Returns:
             dict: The weight dictionary {<tensor_name>: <value>}
@@ -125,8 +125,8 @@ class FLModel(object):
         """Set the model weights with a tensor dictionary: {<tensor_name>: <value>}.
 
         Args:
-            tensor_dict(dict): The model weights dictionary.
-            with_opt_vars(boolean): Specify if we also want to set the variables of the optimizer.
+            tensor_dict (dict): The model weights dictionary.
+            with_opt_vars (bool): Specify if we also want to set the variables of the optimizer.
 
         Returns:
             None

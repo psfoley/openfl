@@ -52,7 +52,7 @@ class Collaborator(object):
         compression_pipeline: The compression pipeline (Defaults to None)
         epochs_per_round (float): Number of epochs per round (Defaults to 1.0. Note it is possible to perform a fraction of an epoch.)
         num_batches_per_round (int): Number of batches per round (Defaults to None)
-        send_model_deltas (boolean): True = Only model delta gets sent. False = Whole model gets sent to collaborator. (Defaults to False)
+        send_model_deltas (bool): True = Only model delta gets sent. False = Whole model gets sent to collaborator. (Defaults to False)
         single_col_cert_common_name: (Defaults to None)
         **kwargs : Additional parameters to pass to collaborator object
     """
@@ -212,7 +212,7 @@ class Collaborator(object):
             reply: Message reply from collaborator.
 
         Returns:
-            boolean: True if reply is valid for this federation.
+            bool: True if reply is valid for this federation.
 
         """
         # check message is from my agg to me
@@ -227,7 +227,6 @@ class Collaborator(object):
 
     def run(self):
         """Runs the collaborator code in a loop until federation quits.
-
         """
         time_to_quit = False
         while True:
@@ -285,7 +284,7 @@ class Collaborator(object):
         """Determines optimizer operation to perform.
 
         Returns:
-           boolean: True means *AGG* method for optimizer.
+           bool: True means *AGG* method for optimizer.
 
         """
         if self.opt_treatment in (OptTreatment.EDGE, OptTreatment.RESET):

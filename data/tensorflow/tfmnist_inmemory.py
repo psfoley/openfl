@@ -15,7 +15,7 @@ class TensorFlowMNISTInMemory(TensorFlowFLDataInMemory):
 
         Args:
             data_path: File path for the dataset
-            batch_size(int): The batch size for the data loader
+            batch_size (int): The batch size for the data loader
             **kwargs: Additional arguments to pass to the function
         """
 

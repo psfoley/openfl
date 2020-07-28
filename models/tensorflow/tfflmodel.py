@@ -63,7 +63,7 @@ class TensorFlowFLModel(FLModel):
 
         Args:
             num_batches: Number of batches to train on
-            use_tqdm (boolean): True = use tqdm to print a progress bar (Default=False)
+            use_tqdm (bool): True = use tqdm to print a progress bar (Default=False)
         Returns:
             float: loss metric
         """
@@ -110,7 +110,7 @@ class TensorFlowFLModel(FLModel):
 
         Args:
             batch_size (int): Batch size to use for validation
-            use_tqdm (boolean): True = use tqdm to print a progress bar (Default=False)
+            use_tqdm (bool): True = use tqdm to print a progress bar (Default=False)
 
         Returns:
             dict: {<metric>: <value>}

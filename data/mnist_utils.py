@@ -28,8 +28,8 @@ def _load_raw_datashards(shard_num, nb_collaborators):
     Returns tuples of the dataset shard divided into training and validation.
 
     Args:
-        shard_num(int): The shard number to use
-        nb_collaborators(int): The number of collaborators in the federation
+        shard_num (int): The shard number to use
+        nb_collaborators (int): The number of collaborators in the federation
 
     Returns:
         2 tuples: (image, label) of the training, validation dataset
@@ -62,10 +62,10 @@ def load_mnist_shard(shard_num, nb_collaborators, categorical=True, channels_las
     Load the MNIST dataset.
 
     Args:
-        shard_num(int): The shard to use from the dataset
-        nb_collaborators(int): The number of collaborators in the federation
-        categorical(boolean): True = convert the labels to one-hot encoded vectors (Default = True)
-        channels_last(boolean): True = The input images have the channels last (Default = True)
+        shard_num (int): The shard to use from the dataset
+        nb_collaborators (int): The number of collaborators in the federation
+        categorical (bool): True = convert the labels to one-hot encoded vectors (Default = True)
+        channels_last (bool): True = The input images have the channels last (Default = True)
         **kwargs: Additional parameters to pass to the function
 
     Returns:

@@ -19,7 +19,7 @@ class PyTorchCIFAR10InMemory(PyTorchFLDataInMemory):
 
         Args:
             data_path: file path for the data
-            batch_size(int): batch size for the data loader
+            batch_size (int): batch size for the data loader
             **kwargs: Additional parameters to pass to function
         """
         super().__init__(batch_size)

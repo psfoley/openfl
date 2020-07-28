@@ -15,9 +15,9 @@ class TensorFlowBratsInMemory(TensorFlowFLDataInMemory):
 
         Args:
             data_path: The file path for the BraTS dataset
-            batch_size(int): The batch size to use
-            percent_train(float): The percentage of the data to use for training (Default=0.8)
-            pre_split_shuffle(boolean): True= shuffle the dataset before performing the train/validate split (Default=True)
+            batch_size (int): The batch size to use
+            percent_train (float): The percentage of the data to use for training (Default=0.8)
+            pre_split_shuffle (bool): True= shuffle the dataset before performing the train/validate split (Default=True)
             **kwargs: Additional arguments to pass to function
 
         Returns:

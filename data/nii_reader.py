@@ -56,15 +56,14 @@ def normalize_stack(imgs):
 
 
 def resize_data(dataset, new_size=128, rotate=3):
-    """
-    Resize 2D images within data by cropping equally from their boundaries.
+    """Resize 2D images within data by cropping equally from their boundaries.
 
-    dataset(np.array): Data containing 2D images whose dimensions are along the 1st
-    and 2nd axes.
-    new_size(int): Dimensions of square image to which resizing will occur. Assumed to be
-    an even distance away from both dimensions of the images within dataset. (default 128)
-    rotate(int): Number of counter clockwise 90 degree rotations to perform.
-
+    Args:
+        dataset (np.array): Data containing 2D images whose dimensions are along the 1st
+        and 2nd axes.
+        new_size (int): Dimensions of square image to which resizing will occur. Assumed to be
+        an even distance away from both dimensions of the images within dataset. (default 128)
+        rotate (int): Number of counter clockwise 90 degree rotations to perform.
 
     Returns:
         (np.array): resized data
@@ -94,17 +93,20 @@ def resize_data(dataset, new_size=128, rotate=3):
 
 # adapted from https://github.com/NervanaSystems/topologies
 def _update_channels(imgs, msks, img_channels_to_keep, msk_channels_to_keep, channels_last):
-    """
-    Filter the channels of images and move placement of channels in shape if desired.
+    """Filter the channels of images and move placement of channels in shape if desired.
 
-    imgs (np.array): A stack of images with channels (channels could be anywhere in number from
-    one to four. Images are indexed along first axis, with channels along fourth (last) axis.
-    msks (np.array): A stack of binary masks with channels (channels could be anywhere in number from
-    one to four. Images are indexed along first axis, with channels along fourth (last) axis.
-    img_channels_to_keep (flat np.ndarray): the channels to keep in the image (remove others)
-    msk_channels_to_keep (flat np.ndarray): the channels to sum in the mask (resulting in
-    a single channel array)
-    channels_last (bool): Return channels in last axis? otherwise just after first
+    Args:
+        imgs (np.array): A stack of images with channels (channels could be anywhere in number from
+        one to four. Images are indexed along first axis, with channels along fourth (last) axis.
+        msks (np.array): A stack of binary masks with channels (channels could be anywhere in number from
+        one to four. Images are indexed along first axis, with channels along fourth (last) axis.
+        img_channels_to_keep (flat np.ndarray): the channels to keep in the image (remove others)
+        msk_channels_to_keep (flat np.ndarray): the channels to sum in the mask (resulting in
+        a single channel array)
+        channels_last (bool): Return channels in last axis? otherwise just after first
+
+    Returns:
+        images, masks with selected channels
     """
 
     new_imgs = imgs[:,:,:,img_channels_to_keep]
@@ -127,8 +129,7 @@ def list_files(root, extension, parts):
 
 
 def nii_reader(brain_path, task, channels_last=True, numpy_type='float64', normalization='by_mode'):
-    """
-    Fetch a whole brain 3D image from disc.
+    """Fetch a whole brain 3D image from disc.
 
     Assumes data_dir contains only subdirectories, each containing exactly one
     of each of the following files: "<subdir>_<type>.nii.gz", where <subdir> is

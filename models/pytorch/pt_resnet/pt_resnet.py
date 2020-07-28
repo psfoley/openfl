@@ -272,7 +272,7 @@ class PyTorchResnet(PyTorchFLModel):
 
         Args:
             num_batches: The number of batches to train before returning
-            use_tdqm (boolean): True = use tqdm to print a progress bar (Default=False)
+            use_tdqm (bool): True = use tqdm to print a progress bar (Default=False)
 
         Returns:
             Loss metric

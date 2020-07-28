@@ -21,7 +21,7 @@ def train_val_split(features, labels, percent_train, shuffle):
         features: The input images
         labels: The ground truth labels
         percent_train (float): The percentage of the dataset that is training.
-        shuffle (boolean): True = shuffle the dataset before the split
+        shuffle (bool): True = shuffle the dataset before the split
 
     Returns:
         train_features: The input images for the training dataset
@@ -76,8 +76,8 @@ def load_from_NIfTY(parent_dir,
     Args:
         parent_dir: The parent directory for the BraTS data
         percent_train (float): The percentage of the data to make the training dataset
-        shuffle (boolean): True means shuffle the dataset order before the split
-        channels_last (boolean): Input tensor uses channels as last dimension (Default is True)
+        shuffle (bool): True means shuffle the dataset order before the split
+        channels_last (bool): Input tensor uses channels as last dimension (Default is True)
         task: Prediction task (Default is 'whole_tumor' prediction)
         **kwargs: Variable arguments to pass to the function
 

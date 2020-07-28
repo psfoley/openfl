@@ -95,7 +95,7 @@ class Aggregator(object):
             collaborator_common_name: Common name for collaborator
 
         Returns:
-            boolean: True means the collaborator common name matches the name in the security certificate.
+            bool: True means the collaborator common name matches the name in the security certificate.
 
         """
         # if self.test_mode_whitelist is None, then the common_name must match collaborator_common_name and be in collaborator_common_names
@@ -109,7 +109,7 @@ class Aggregator(object):
         """Determines if all collaborators have been sent the QUIT command.
 
         Returns:
-            boolean: True if all collaborators have been sent the QUIT command.
+            bool: True if all collaborators have been sent the QUIT command.
 
         """
         return sorted(self.quit_job_sent_to) == sorted(self.collaborator_common_names)
@@ -118,7 +118,7 @@ class Aggregator(object):
         """Validates the message is from valid collaborator in this federation.
 
         Returns:
-            boolean: True if the message is from a valid collaborator in this federation.
+            bool: True if the message is from a valid collaborator in this federation.
 
         """
 
@@ -147,7 +147,7 @@ class Aggregator(object):
             c: Collaborator name
 
         Returns:
-            boolean: True if collaborator c is done.
+            bool: True if collaborator c is done.
 
         """
         assert c in self.collaborator_common_names
@@ -171,7 +171,7 @@ class Aggregator(object):
     def straggler_time_expired(self):
         """Determines if there are still collaborators that have not returned past the expected round time.
         Returns:
-            boolean: True if training round limit has expired (i.e. there are straggler collaborators that have not returned in the expected time)
+            bool: True if training round limit has expired (i.e. there are straggler collaborators that have not returned in the expected time)
 
         """
         return self.round_start_time is not None and ((time.time() - self.round_start_time) > self.straggler_cutoff_time)
@@ -180,7 +180,7 @@ class Aggregator(object):
         """Determines if enough collaborators have returned to do the aggregation.
 
         Returns:
-            boolean: True if the number of collaborators that have finished is greater than the minimum threshold set.
+            bool: True if the number of collaborators that have finished is greater than the minimum threshold set.
 
         """
         return self.num_collaborators_done() >= self.minimum_reporting
@@ -192,7 +192,7 @@ class Aggregator(object):
             c: Collaborator name
 
         Returns:
-            boolean: True if collaborator c is done.
+            bool: True if collaborator c is done.
 
         """
         cutoff = self.straggler_time_expired() and self.minimum_collaborators_reported()
@@ -205,7 +205,7 @@ class Aggregator(object):
         """Determines if it is the end of a training round.
 
         Returns:
-            boolean: True if training round has ended.
+            bool: True if training round has ended.
 
         """
         # FIXME: find a nice, clean way to manage these values without having to manually ensure

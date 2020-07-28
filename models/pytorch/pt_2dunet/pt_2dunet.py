@@ -60,7 +60,7 @@ class PyTorch2DUNet(PyTorchFLModel):
             data: The data loader class
             device: The hardware device to use for training (Default = "cpu")
             optimizer: The deep learning optimizer (Default="SGD", stochastic gradient descent)
-            batch_norm (boolean): True uses the batch normalization layer (Default=True)
+            batch_norm (bool): True uses the batch normalization layer (Default=True)
             **kwargs: Additional arguments to pass to the function
 
         """
@@ -79,7 +79,7 @@ class PyTorch2DUNet(PyTorchFLModel):
 
         Args:
             num_batches: The number of batches to train on before returning
-            use_tqdm (boolean): Use tqdm to print a progress bar (Default=True)
+            use_tqdm (bool): Use tqdm to print a progress bar (Default=True)
 
         Returns:
             loss metric
@@ -124,7 +124,7 @@ class PyTorch2DUNet(PyTorchFLModel):
         Run validation of the model on the local data.
 
         Args:
-            use_tqdm (boolean): Use tqdm to print a progress bar (Default=True)
+            use_tqdm (bool): Use tqdm to print a progress bar (Default=True)
 
         """
 
@@ -167,7 +167,7 @@ class PyTorch2DUNet(PyTorchFLModel):
 
         Args:
             device: The hardware device to use for training
-            print_model (boolean): Print the model topology (Default=True)
+            print_model (bool): Print the model topology (Default=True)
             dropout_layers (list): (Default=[2, 3])
             initial_channels (int): Number of channels in the input layer (Default=1)
             depth_per_side (int): Number of max pooling layers in the encoder/decoder (Default=5)

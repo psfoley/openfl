@@ -151,16 +151,16 @@ def define_model(input_tensor,
 
     Args:
         input_tensor: input shape ot the model
-        use_upsampling (boolean): True = use bilinear interpolation; False = use transposed convolution (Default=False)
+        use_upsampling (bool): True = use bilinear interpolation; False = use transposed convolution (Default=False)
         n_cl_out (int): Number of channels in input layer (Default=1)
         dropout (float): Dropout percentage (Default=0.2)
-        print_summary (boolean): True = print the model summary (Default = True)
+        print_summary (bool): True = print the model summary (Default = True)
         activation_function: The activation function to use after convolutional layers (Default='relu')
         seed: random seed (Default=0xFEEDFACE)
         depth (int): Number of max pooling layers in encoder (Default=5)
         dropout_at: Layers to perform dropout after (Default=[2,3])
         initial_filters (int): Number of filters in first convolutional layer (Default=32)
-        batch_norm (boolean): True = use batch normalization (Default=True)
+        batch_norm (bool): True = use batch normalization (Default=True)
         **kwargs: Additional parameters to pass to the function
 
     """

@@ -21,7 +21,7 @@ def verify_file(path,
         public_key: Filename for the public key
 
     Returns:
-        boolean: True if public key is validated by certificate
+        bool: True if public key is validated by certificate
 
     """
     # Load the public key.

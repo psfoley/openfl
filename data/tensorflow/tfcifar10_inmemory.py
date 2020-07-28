@@ -15,7 +15,7 @@ class TensorFlowCIFAR10InMemory(TensorFlowFLDataInMemory):
 
         Args:
             data_path: The file path for the BraTS dataset
-            batch_size(int): The batch size to use
+            batch_size (int): The batch size to use
             **kwargs: Additional arguments to pass to function
 
         Returns:

@@ -32,7 +32,7 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_de
         bytes_dict: Dictionary of the bytes contained in the model protobuf
         model_id: The unique label for the model
         model_version: The version of the model
-        is_delta (boolean): If True, then only the model delta is encoded.
+        is_delta (bool): If True, then only the model delta is encoded.
         delta_from_version: Delta from version
         metadata_dict: Dictionary of the meta data in the model protobuf
 
@@ -75,7 +75,7 @@ def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_v
         tensor_dict: Dictionary of the tensors
         model_id: The unique label for the model
         model_version: The version of the model
-        is_delta (boolean): If True, then only the model delta is encoded.
+        is_delta (bool): If True, then only the model delta is encoded.
         delta_from_version: Delta from version
         compression_pipeline: The compression pipeline object
 

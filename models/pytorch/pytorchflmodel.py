@@ -19,7 +19,7 @@ class PyTorchFLModel(nn.Module, FLModel):
         """Initializer
 
         Args:
-            device(string): Compute device (default="cpu")
+            device (string): Compute device (default="cpu")
             **kwargs: Additional parameters to pass to the functions
         """
 
@@ -98,7 +98,7 @@ class PyTorchFLModel(nn.Module, FLModel):
         """Return the tensor dictionary
 
         Args:
-            with_opt_vars(boolean): Return the tensor dictionary including the optimizer tensors (Default=False)
+            with_opt_vars (bool): Return the tensor dictionary including the optimizer tensors (Default=False)
 
         Returns:
             dict: Tensor dictionary {**dict, **optimizer_dict}
@@ -123,7 +123,7 @@ class PyTorchFLModel(nn.Module, FLModel):
 
         Args:
             tensor_dict: The tensor dictionary
-            with_opt_vars(boolean): Return the tensor dictionary including the optimizer tensors (Default=False)
+            with_opt_vars (bool): Return the tensor dictionary including the optimizer tensors (Default=False)
 
         """
         # Sets tensors for model layers and optimizer state.

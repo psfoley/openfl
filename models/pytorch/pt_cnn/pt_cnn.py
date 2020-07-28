@@ -67,7 +67,7 @@ class PyTorchCNN(PyTorchFLModel):
 
         Args:
             device: The hardware device to use for training
-            print_model (boolean): Print the model topology (Default=True)
+            print_model (bool): Print the model topology (Default=True)
             pool_sqrkernel_size (int): Max pooling kernel size (Default=2), assumes square 2x2
             conv_sqrkernel_size (int): Convolutional filter size (Default=5), assumes square 5x5
             conv1_channels_out (int): Number of filters in first convolutional layer (Default=20)
@@ -136,7 +136,7 @@ class PyTorchCNN(PyTorchFLModel):
         Run validation of the model on the local data.
 
         Args:
-            use_tqdm (boolean): Use tqdm to print a progress bar (Default=True)
+            use_tqdm (bool): Use tqdm to print a progress bar (Default=True)
 
         """
         self.eval()
@@ -166,7 +166,7 @@ class PyTorchCNN(PyTorchFLModel):
 
         Args:
             num_batches: The number of batches to train on before returning
-            use_tqdm (boolean): Use tqdm to print a progress bar (Default=True)
+            use_tqdm (bool): Use tqdm to print a progress bar (Default=True)
 
         Returns:
             loss metric

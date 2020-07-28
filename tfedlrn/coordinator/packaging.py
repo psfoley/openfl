@@ -11,7 +11,7 @@ def get_src_fpaths(dir, sort=True):
 
     Args:
         dir : The path of the folder
-        sort (boolean): If we should sort the file paths
+        sort (bool): If we should sort the file paths
 
     Returns:
         list: A list of string of file path

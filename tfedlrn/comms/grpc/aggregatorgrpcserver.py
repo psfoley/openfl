@@ -32,7 +32,8 @@ class AggregatorGRPCServer(AggregatorServicer):
             request: The gRPC message request
             context: The gRPC context
 
-        :raises ValueError: If the collaborator or collaborator certificate is not valid then raises error.
+        Raises:
+            ValueError: If the collaborator or collaborator certificate is not valid then raises error.
 
         """
         if not self.disable_tls:
@@ -100,22 +101,14 @@ class AggregatorGRPCServer(AggregatorServicer):
               **kwargs):
         """Start an aggregator gRPC service.
 
-        Parameters
-        ----------
-        fltask              : FLtask
-            The gRPC service task.
-        disable_tls         : bool
-            To disable the TLS. (Default: False)
-        disable_client_auth : bool
-            To disable the client side authentication. (Default: False)
-        ca                  : str
-            File path to the CA certificate.
-        certificate         : str
-            File path to the server certificate.
-        private_key         : str
-            File path to the private key.
-        kwargs              : dict
-            Not currently used
+        Args:
+            fltask (FLtask): The gRPC service task.
+            disable_tls (bool): To disable the TLS. (Default: False)
+            disable_client_auth (bool): To disable the client side authentication. (Default: False)
+            ca (str): File path to the CA certificate.
+            certificate (str): File path to the server certificate.
+            private_key (str): File path to the private key.
+            kwargs (dict): Additional arguments to pass into function
         """
         logger = logging.getLogger(__name__)
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()),

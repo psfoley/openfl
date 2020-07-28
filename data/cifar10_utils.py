@@ -48,8 +48,8 @@ def load_cifar10_shard(shard_num, nb_collaborators, categorical=True, channels_l
     Args:
         shard_num (int): The index of the dataset shard
         nb_collaborators (int): The number of collaborators in the federation
-        categorical (boolean): True = return the categorical labels as one-hot encoded (Default = True)
-        channels_last (boolean): True = input images are channels first (Default = False)
+        categorical (bool): True = return the categorical labels as one-hot encoded (Default = True)
+        channels_last (bool): True = input images are channels first (Default = False)
         **kwargs: Variable parameters to pass to function
 
     Returns:

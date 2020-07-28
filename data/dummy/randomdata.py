@@ -17,8 +17,8 @@ class RandomData(FLData):
             feature_shape: shape of the input array
             label_shape: shape of the label array. If 'None' then label_shape is the same as feature_shape (Default=None)
             data_path: Not used
-            train_batches(int): The number of batches to create for the training dataset (Default = 1)
-            val_batches(int): The number of batches to create for the validation dataset (Default = 1)
+            train_batches (int): The number of batches to create for the training dataset (Default = 1)
+            val_batches (int): The number of batches to create for the validation dataset (Default = 1)
             batch_size (int): the batch size (Default=32)
             **kwargs: Variable parameter list to pass to method
 
@@ -82,8 +82,8 @@ class RandomData(FLData):
             X: input data
             y: label data
             idxs: Indices of dataset
-            batch_size(int): Batch size to return
-            num_batches(int): Number of batches to return
+            batch_size (int): Batch size to return
+            num_batches (int): Number of batches to return
 
         Yields:
             tuple: input data, label data
@@ -99,7 +99,7 @@ class RandomData(FLData):
         Args:
             X: The input data array
             y: The label data array
-            batch_size(int): The batch size
+            batch_size (int): The batch size
 
         Returns:
             A batch generator data object

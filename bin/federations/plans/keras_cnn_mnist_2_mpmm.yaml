@@ -32,3 +32,5 @@ model_object_init:
 
 network_object_init:
   defaults_file: defaults/network.yaml
+
+# this comment just changes our file hash to be different from keras_cnn_mnist_2.yaml

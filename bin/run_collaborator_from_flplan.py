@@ -15,6 +15,18 @@ from setup_logging import setup_logging
 
 
 def main(plan, collaborator_common_name, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level):
+    """Runs the collaborator client process from the federation (FL) plan
+
+    Args:
+        plan: The filename for the federation (FL) plan YAML file
+        collaborator_common_name: The common name for the collaborator node
+        single_col_cert_common_name: The SSL certificate for this collaborator
+        data_config_fname: The dataset configuration filename (YAML)
+        logging_config_fname: The log file
+        logging_default_level: The log level
+
+    """
+
     setup_logging(path=logging_config_fname, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)

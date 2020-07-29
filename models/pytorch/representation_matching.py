@@ -14,25 +14,26 @@ import copy
 
 
 class RepresentationMatchingWrapper(nn.Module):
-    r"""
-    Wraps a pytorch model in order to implement the representation matching scheme described in (https://arxiv.org/abs/1912.13075). 
+    """Robust Federated Learning via Representation Matching Algorithm
+
+    Wraps a pytorch model in order to implement the representation matching scheme described in (https://arxiv.org/abs/1912.13075).
     After wrapping, do not use the model's forward function but use this wrapper's forward function instead during training in order
-    to calculate the matching loss. The wrapper uses a lot of heuristics to automatically generate the matching networks. One caveat is 
+    to calculate the matching loss. The wrapper uses a lot of heuristics to automatically generate the matching networks. One caveat is
     that if you have maxpooling followed by a non-linearity, you should specify the maxpooling followed by the non-linearity in the layer stack, even though
-    the order should not matter as far as the model behavior is concerned. 
+    the order should not matter as far as the model behavior is concerned.
 
     Args:
-        model: Iterable of nn.Module representing the model's layer stack. The stack of layers should fully describe the model. 
+        model: Iterable of nn.Module representing the model's layer stack. The stack of layers should fully describe the model.
 
         input_shape: Shape of the model input (not including the batch dimension)
 
         layers_of_interest: iterable of nonlinearity layer types. In the collaborator copy of the model, the activations of layers with a type present in 'layers_of_interest'
-        will form the input to the matching network. 
-        In the aggregator(fixed) copy of the model, the activations of these layers will be the reconstruction targets. Note that we reconstruct the activations of a 
+        will form the input to the matching network.
+        In the aggregator(fixed) copy of the model, the activations of these layers will be the reconstruction targets. Note that we reconstruct the activations of a
         layer of interest in the aggregator copy from the activations of the next layer of interest above it in the collaborator copy. If there is an intervening
-        max pooling layer between two layers of interest, the activations of the collaborator layer of interest will be unpooled using the same pooling positions used 
+        max pooling layer between two layers of interest, the activations of the collaborator layer of interest will be unpooled using the same pooling positions used
         in the intervening pooling layer in the collaborator.
-        The virtual input layer (whose output is simply the input) and the top layer are automatically layers of interest. 
+        The virtual input layer (whose output is simply the input) and the top layer are automatically layers of interest.
            Default : [nn.ReLU,nn.Sigmoid,nn.Tanh]
 
         matching_kernel_size: kernel size of convolutional matching layers
@@ -41,11 +42,21 @@ class RepresentationMatchingWrapper(nn.Module):
     """
 
     def __init__(self,model,input_shape,layers_of_interest = [nn.ReLU,nn.Sigmoid,nn.Tanh],matching_kernel_size = 3):
+        """Initializer
+
+        Args:
+            model: model definition
+            input_shape: shape of the input to the model
+            layers_of_interest: [nn.ReLU,nn.Sigmoid,nn.Tanh]
+            matching_kernel_size (int): kernel size (Default = 3)
+
+        """
+
         super(RepresentationMatchingWrapper,self).__init__()
         self.collab_model = list(model)
         self.update_aggregator_model()
 
-        
+
         self.match_data = [[0,nn.Identity,input_shape]]
         x = torch.randn(1,*input_shape)
         for layer_idx,layer in enumerate(model):
@@ -64,8 +75,10 @@ class RepresentationMatchingWrapper(nn.Module):
                self.matching_layers.append(nn.Sequential(nn.Conv2d(src_size[0],tgt_size[0],matching_kernel_size,padding = matching_kernel_size //2),tgt_activation()))
 
         self.total_matching_loss = 0
+
     def update_aggregator_model(self):
-        r"""
+        """Update model on Aggregator
+
         Copies the collaborator model to the internal aggregator model. Call this function after the collaborator replaces
         its model by the aggregator-provided model at the beginning of the round
         """
@@ -73,13 +86,16 @@ class RepresentationMatchingWrapper(nn.Module):
 
 
     def pad_to_match(self,A,B,dim):
-        '''
-        Returns copies of A and B that are zero padded so that they have the same size in dimension dim. A and B should have the same number of dimensions
+        """Pad tensors A and B to the same size
+
         Args:
             A : pytorch tensor
             B : pytorch tensor
-            dim : integer specifying the dimension along which to pad. 
-        '''    
+            dim : integer specifying the dimension along which to pad.
+
+        Returns:
+            Copies of A and B that are zero padded so that they have the same size in dimension dim. A and B should have the same number of dimensions
+        """
 
         initial_pads = [0,0] * (A.ndim - 1 - dim)
         dim_diff = A.size(dim) - B.size(dim)
@@ -91,12 +107,12 @@ class RepresentationMatchingWrapper(nn.Module):
         return A,B
 
     def calculate_matching_loss(self,src_activations,target_activations,matching_layer,pooling_config):
-        '''
-        Uses a matching layer to map the src_activations to the target_activations, and calculate the L2 difference. For convolutional (n_dim=4)
-        activations, first unpools the src_activations if pooling_config is not None. Then uses zero padding to match the X and Y sizes of 
-        src_activations and target_activations
-        '''    
+        """ Calculate the matching loss
 
+        Uses a matching layer to map the src_activations to the target_activations, and calculate the L2 difference. For convolutional (n_dim=4)
+        activations, first unpools the src_activations if pooling_config is not None. Then uses zero padding to match the X and Y sizes of
+        src_activations and target_activations
+        """
 
         #print('matching {} to {} using {}'.format(src_activations.size(),target_activations.size(),matching_layer))
         if src_activations.ndim == 2 : #Non-convolutional source activation
@@ -108,22 +124,33 @@ class RepresentationMatchingWrapper(nn.Module):
                src_activations = F.max_unpool2d(src_activations,pooling_indices,kernel_size)
 
            src_activations,target_activations = self.pad_to_match(src_activations,target_activations,2)
-           src_activations,target_activations = self.pad_to_match(src_activations,target_activations,3)       
+           src_activations,target_activations = self.pad_to_match(src_activations,target_activations,3)
 
            reconstruction_error = matching_layer(src_activations) - target_activations
 
         matching_loss = (reconstruction_error.view(reconstruction_error.size(0),-1)**2).sum(-1).mean()
         return matching_loss
-        
+
 
     def get_matching_loss(self):
+        """Returns the matching loss
+
+        Returns:
+            total matching loss
+
+        """
         return self.total_matching_loss
-    
+
     def forward(self,x):
-        '''
-        Runs a forward pass on the collaborator model. If the collaborator model is in training mode, also does a forward pass in 
+        """Forward
+
+        Runs a forward pass on the collaborator model. If the collaborator model is in training mode, also does a forward pass in
         the aggregator model to calculate the matching loss
-        '''    
+
+        Args:
+            x : input to the model
+        """
+        
         self.total_matching_loss = 0
         if self.collab_model[0].training:
             x_aggregator = x_collaborator = x
@@ -139,7 +166,7 @@ class RepresentationMatchingWrapper(nn.Module):
                    collab_layer.return_indices = orig_return_indices
                    pooling_config = (pooling_indices,collab_layer.kernel_size)
                 else:
-                   x_collaborator = collab_layer(x_collaborator)   
+                   x_collaborator = collab_layer(x_collaborator)
 
                 with torch.no_grad():
                      x_aggregator = aggregator_layer(x_aggregator)

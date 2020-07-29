@@ -7,9 +7,21 @@ import numpy as np
 from models.tensorflow import TensorFlowFLModel
 
 class TensorFlow2DUNet(TensorFlowFLModel):
+    """Initializer
+
+    Args:
+        **kwargs: Additional parameters to pass to the function
+
+    """
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs) 
+        """Initializer
+
+        Args:
+            **kwargs: Additional parameters to pass to the function
+
+        """
+        super().__init__(**kwargs)
 
         self.create_model(**kwargs)
 
@@ -17,13 +29,22 @@ class TensorFlow2DUNet(TensorFlowFLModel):
                      training_smoothing=32.0,
                      validation_smoothing=1.0,
                      **kwargs):
+        """Create the TensorFlow 2D U-Net model
+
+        Args:
+            training_smoothing (float): (Default=32.0)
+            validation_smoothing (float): (Default=1.0)
+            **kwargs: Additional parameters to pass to the function
+
+        """
+
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.intra_op_parallelism_threads = 112
         config.inter_op_parallelism_threads = 1
         self.sess = tf.Session(config=config)
-              
+
         self.X = tf.placeholder(tf.float32, self.input_shape)
         self.y = tf.placeholder(tf.float32, self.input_shape)
         self.output = define_model(self.X, use_upsampling=True, **kwargs)
@@ -41,10 +62,10 @@ class TensorFlow2DUNet(TensorFlowFLModel):
         self.gvs = self.optimizer.compute_gradients(self.loss, self.tvars)
         self.train_step = self.optimizer.apply_gradients(self.gvs,
                                                          global_step=self.global_step)
-        
+
         self.opt_vars = self.optimizer.variables()
 
-        # FIXME: Do we really need to share the opt_vars? 
+        # FIXME: Do we really need to share the opt_vars?
         # Two opt_vars for one tvar: gradient and square sum for RMSprop.
         self.fl_vars = self.tvars + self.opt_vars
 
@@ -52,7 +73,20 @@ class TensorFlow2DUNet(TensorFlowFLModel):
 
 
 def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):
+    """Dice coefficient
 
+    Calculate the Dice Coefficient
+
+    Args:
+        y_true: Ground truth annotation array
+        y_pred: Prediction array from model
+        smooth (float): Laplace smoothing factor (Default=1.0)
+        **kwargs: Additional parameters to pass to the function
+
+    Returns:
+        float: Dice cofficient metric
+
+    """
     intersection = tf.reduce_sum(y_true * y_pred, axis=[1,2,3])
     coef = (tf.constant(2.) * intersection + tf.constant(smooth)) / \
            (tf.reduce_sum(y_true, axis=[1,2,3]) + tf.reduce_sum(y_pred, axis=(1,2,3)) + tf.constant(smooth))
@@ -60,16 +94,30 @@ def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):
 
 
 def dice_coef_loss(y_true, y_pred, smooth=1.0, **kwargs):
+    """Dice coefficient loss
+
+    Calculate the -log(Dice Coefficient) loss
+
+    Args:
+        y_true: Ground truth annotation array
+        y_pred: Prediction array from model
+        smooth (float): Laplace smoothing factor (Default=1.0)
+        **kwargs: Additional parameters to pass to the function
+
+    Returns:
+        float: -log(Dice cofficient) metric
+
+    """
 
     intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2, 3))
 
     term1 = -tf.log(tf.constant(2.0) * intersection + smooth)
     term2 = tf.log(tf.reduce_sum(y_true, axis=(1, 2, 3)) +
                    tf.reduce_sum(y_pred, axis=(1, 2, 3)) + smooth)
-    
+
     term1 = tf.reduce_mean(term1)
     term2 = tf.reduce_mean(term2)
-    
+
     loss = term1 + term2
 
     return loss
@@ -99,6 +147,24 @@ def define_model(input_tensor,
                  batch_norm=True,
                  **kwargs):
 
+    """Define the TensorFlow model
+
+    Args:
+        input_tensor: input shape ot the model
+        use_upsampling (bool): True = use bilinear interpolation; False = use transposed convolution (Default=False)
+        n_cl_out (int): Number of channels in input layer (Default=1)
+        dropout (float): Dropout percentage (Default=0.2)
+        print_summary (bool): True = print the model summary (Default = True)
+        activation_function: The activation function to use after convolutional layers (Default='relu')
+        seed: random seed (Default=0xFEEDFACE)
+        depth (int): Number of max pooling layers in encoder (Default=5)
+        dropout_at: Layers to perform dropout after (Default=[2,3])
+        initial_filters (int): Number of filters in first convolutional layer (Default=32)
+        batch_norm (bool): True = use batch normalization (Default=True)
+        **kwargs: Additional parameters to pass to the function
+
+    """
+
     # Set keras learning phase to train
     tf.keras.backend.set_learning_phase(True)
 
@@ -111,11 +177,11 @@ def define_model(input_tensor,
         activation = tf.nn.relu
     elif activation_function == 'leakyrelu':
         activation = tf.nn.leaky_relu
-            
+
     params = dict(kernel_size=(3, 3), activation=activation,
                   padding='same', data_format=data_format,
                   kernel_initializer=tf.keras.initializers.he_uniform(seed=seed))
-    
+
     convb_layers = {}
 
     net = inputs
@@ -138,9 +204,9 @@ def define_model(input_tensor,
 
     # do the up levels
     filters //= 2
-    for i in range(depth - 1):        
+    for i in range(depth - 1):
         if use_upsampling:
-            up = tf.keras.layers.UpSampling2D(name='up{}'.format(depth + i + 1), size=(2, 2))(net) 
+            up = tf.keras.layers.UpSampling2D(name='up{}'.format(depth + i + 1), size=(2, 2))(net)
         else:
             up = tf.keras.layers.Conv2DTranspose(name='transConv6', filters=filters, data_format=data_format, kernel_size=(2, 2), strides=(2, 2), padding='same')(net)
         net = tf.keras.layers.concatenate([up, convb_layers['conv{}b'.format(depth - i - 1)]], axis=concat_axis)

@@ -16,6 +16,21 @@ from setup_logging import setup_logging
 
 
 def main(plan, collaborators_file, feature_shape, data_config_fname, logging_config_path, logging_default_level):
+    """Creates a protobuf file of the initial weights for the model
+
+    Uses the federation (FL) plan to create an initial weights file
+    for the federation.
+
+    Args:
+        plan: The federation (FL) plan filename
+        collaborators_file:
+        feature_shape: The input shape to the model
+        data_config_fname: The data configuration file (defines where the datasets are located)
+        logging_config_path: The log path
+        logging_default_level (int): The default log level
+
+    """
+
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     logger = logging.getLogger(__name__)
@@ -55,22 +70,22 @@ def main(plan, collaborators_file, feature_shape, data_config_fname, logging_con
     compression_pipeline = create_compression_pipeline(flplan)
     
     tensor_dict_split_fn_kwargs = wrapped_model.tensor_dict_split_fn_kwargs or {}
-    
-    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, 
-                                                                 wrapped_model.get_tensor_dict(False), 
+
+    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger,
+                                                                 wrapped_model.get_tensor_dict(False),
                                                                  **tensor_dict_split_fn_kwargs)
     logger.warn('Following paramters omitted from global initial model, '\
                 'local initialization will determine values: {}'.format(list(holdout_params.keys())))
 
-    model_proto = construct_proto(tensor_dict=tensor_dict, 
-                                  model_id=wrapped_model.__class__.__name__, 
+    model_proto = construct_proto(tensor_dict=tensor_dict,
+                                  model_id=wrapped_model.__class__.__name__,
                                   model_version=0,
-                                  is_delta=False, 
-                                  delta_from_version=-1, 
+                                  is_delta=False,
+                                  delta_from_version=-1,
                                   compression_pipeline=compression_pipeline)
 
     dump_proto(model_proto=model_proto, fpath=fpath)
-    
+
     logger.info("Created initial weights file: {}".format(fpath))
 
 

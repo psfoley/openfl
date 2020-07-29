@@ -12,6 +12,17 @@ from setup_logging import setup_logging
 
 
 def main(plan, collaborators_file, single_col_cert_common_name, logging_config_path, logging_default_level):
+    """Runs the aggregator service from the Federation (FL) plan
+
+    Args:
+        plan: The Federation (FL) plan
+        collaborators_file: The file listing the collaborators
+        single_col_cert_common_name: The SSL certificate
+        logging_config_path: The log configuration file
+        logging_default_level: The log level
+
+    """
+
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)

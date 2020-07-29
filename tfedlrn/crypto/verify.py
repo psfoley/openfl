@@ -14,8 +14,18 @@ def verify_file(path,
                 sig_path,
                 public_key='public.pem',
                 ):
+    """Verify the certificate file
+
+    Args:
+        sig_path: Filename of the signed certificate
+        public_key: Filename for the public key
+
+    Returns:
+        bool: True if public key is validated by certificate
+
+    """
     # Load the public key.
-    with open('public.pem', 'rb') as f:
+    with open(public_key, 'rb') as f:
         public_key = load_pem_public_key(f.read(), default_backend())
 
     # Load the payload contents and the signature.

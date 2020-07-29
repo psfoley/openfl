@@ -34,7 +34,7 @@ pages:
 compile_pdf:
   stage: build
   tags: 
-  - pdf-runner-1
+  - alpine-runner-sh-1
   image: aergus/latex
   script:
   - export http_proxy=http://proxy-us.intel.com:911

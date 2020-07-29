@@ -48,7 +48,7 @@ class Collaborator(object):
         wrapped_model: The model
         channel (int): channel
         polling_interval (int) : The number of seconds to poll the network (Defaults to 4)
-        opt_treatment (string): The optimizer method (Defaults to "AGG", which is aggregation)
+        opt_treatment (string): The optimizer state treatment (Defaults to "CONTINUE_GLOBAL", which is aggreagated state from previous round.)
         compression_pipeline: The compression pipeline (Defaults to None)
         epochs_per_round (float): Number of epochs per round (Defaults to 1.0. Note it is possible to perform a fraction of an epoch.)
         num_batches_per_round (int): Number of batches per round (Defaults to None)
@@ -64,7 +64,7 @@ class Collaborator(object):
                  wrapped_model,
                  channel,
                  polling_interval=4,
-                 opt_treatment="AGG",
+                 opt_treatment="CONTINUE_GLOBAL",
                  compression_pipeline=None,
                  epochs_per_round=1.0,
                  num_batches_per_round=None,
@@ -99,7 +99,7 @@ class Collaborator(object):
         # pipeline translating tensor_dict to and from a list of tensor protos
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
 
-        # AGG/EDGE/RESET
+        # RESET/CONTINUE_LOCAL/CONTINUE_GLOBAL
         if hasattr(OptTreatment, opt_treatment):
             self.opt_treatment = OptTreatment[opt_treatment]
         else:
@@ -284,13 +284,13 @@ class Collaborator(object):
         """Determines optimizer operation to perform.
 
         Returns:
-           bool: True means *AGG* method for optimizer.
+           bool: True means *CONTINUE_GLOBAL* method for optimizer.
 
         """
-        if self.opt_treatment in (OptTreatment.EDGE, OptTreatment.RESET):
+        if self.opt_treatment in (OptTreatment.CONTINUE_LOCAL, OptTreatment.RESET):
             self.logger.debug("Not share the optimization variables.")
             return False
-        elif self.opt_treatment == OptTreatment.AGG:
+        elif self.opt_treatment == OptTreatment.CONTINUE_GLOBAL:
             self.logger.debug("Share the optimization variables.")
             return True
 
@@ -408,7 +408,7 @@ class Collaborator(object):
         tensor_dict = {**agg_tensor_dict, **self.holdout_tensors}
 
 
-        if self.opt_treatment == OptTreatment.AGG:
+        if self.opt_treatment == OptTreatment.CONTINUE_GLOBAL:
             with_opt_vars = True
         else:
             with_opt_vars = False
@@ -422,7 +422,7 @@ class Collaborator(object):
         self.wrapped_model.set_tensor_dict(tensor_dict, with_opt_vars=with_opt_vars)
         self.logger.debug("Loaded the model.")
 
-        # FIXME: for the EDGE treatment, we need to store the status in case of a crash.
+        # FIXME: for the CONTINUE_LOCAL treatment, we need to store the status in case of a crash.
         if self.opt_treatment == OptTreatment.RESET:
             try:
                 self.wrapped_model.reset_opt_vars()

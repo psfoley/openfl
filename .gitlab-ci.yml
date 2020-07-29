@@ -25,8 +25,8 @@ pages:
   - sphinx-apidoc -f -o . ../models
   - sphinx-apidoc -f -o . ../data
   - make html
-  #- make latex
-  #- make latexpdf
+  - make latex
+  - make latexpdf
   - mv _build/html/ ../public/
   artifacts:
     paths:

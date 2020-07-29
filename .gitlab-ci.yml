@@ -35,13 +35,11 @@ compile_pdf:
   stage: build
   tags: 
   - alpine-runner-sh-1
-  image: aergus/latex
+  image: dleprovost/latex-sphinx
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912
   - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-  - wget -L https://bootstrap.pypa.io/get-pip.py
-  - python get-pip.py
   - pip install sphinx guzzle_sphinx_theme recommonmark markdown m2r
   - make latex
   - make latexpdf

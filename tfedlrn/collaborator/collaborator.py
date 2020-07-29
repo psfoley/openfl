@@ -25,15 +25,15 @@ class OptTreatment(Enum):
 
     RESET = 1
     """
-    RESET tells each collaborator to reset to a freshly initialized optimizer at the beginning of each round.
+    RESET tells each collaborator to reset the optimizer state at the beginning of each round.
     """
-    EDGE = 2
+    CONTINUE_LOCAL = 2
     """
-    EDGE tells each collaborator (edge) continue with the optimizer state held from last round.
+    CONTINUE_LOCAL tells each collaborator to continue with the local optimizer state from the previous round.
     """
-    AGG = 3
+    CONTINUE_GLOBAL = 3
     """
-    AGG tells the aggregator to aggregate all collaborator states (e.g. weighted average of all shared optimizer parameters).
+    CONTINUE_GLOBAL tells each collaborator to continue with the federally averaged optimizer state from the previous round.
     """
 
 # FIXME: this is actually a tuple of a collaborator/flplan

@@ -16,11 +16,7 @@ def one_hot(labels, classes):
     Returns:
         np.array: Matrix of one-hot encoded labels
     """
-
-    one_hot = np.zeros((np.size(labels), classes))
-    one_hot[np.arange(np.size(labels)), vector] = 1
-
-    return one_hot
+    return np.eye(classes)[labels]
 
 def _load_raw_datashards(shard_num, nb_collaborators):
     """Load the raw data by shard

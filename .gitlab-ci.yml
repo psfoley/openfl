@@ -17,8 +17,8 @@ pages:
   - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
 
   - apk --no-cache add make 
-  - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev rst2pdf
-  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml
+  - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev 
+  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml rst2pdf
   
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn

@@ -36,6 +36,7 @@ make_pdf:
   image: aergus/latex
   script:
     - cd docs 
+    - apk latexmk
     - latexmk -output-directory=.. -pdf FLedge.tex
   artifacts:
     paths:

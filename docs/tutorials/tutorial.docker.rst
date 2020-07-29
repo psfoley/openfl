@@ -325,7 +325,7 @@ Find the keys in the federation config for the address ("agg_addr") and port ("a
   ...
   federation:
     fed_id: &fed_id 'fed_0'
-    opt_treatment: &opt_treatment 'AGG'
+    opt_treatment: &opt_treatment 'CONTINUE_GLOBAL'
     polling_interval: &polling_interval 4
     rounds_to_train: &rounds_to_train 50
     agg_id: &agg_id 'agg_0'

@@ -28,7 +28,7 @@ Pytorch.
 **FLEdge** is developed by Intel Labs and Intel Internet of Things Group.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
    manual

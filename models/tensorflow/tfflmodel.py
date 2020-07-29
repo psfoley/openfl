@@ -8,10 +8,18 @@ import tensorflow as tf
 
 from models import FLModel
 
-
 class TensorFlowFLModel(FLModel):
+    """Base class for TensorFlow models in the Federated Learning solution
 
+    """
     def __init__(self, **kwargs):
+        """Initializer
+
+        Args:
+            **kwargs: Additional parameters to pass to the function
+
+        """
+
         super().__init__(**kwargs)
 
         self.assign_ops = None
@@ -21,9 +29,9 @@ class TensorFlowFLModel(FLModel):
         self.tvar_placeholders = None
 
         # construct the shape needed for the input features
-        self.input_shape = (None,) + self.data.get_feature_shape() 
+        self.input_shape = (None,) + self.data.get_feature_shape()
 
-        # child classes should have __init__ function signature (self, data, kwargs), 
+        # child classes should have __init__ function signature (self, data, kwargs),
         # and should overwrite at least the following while defining the model
 
         # tensorflow session
@@ -44,18 +52,20 @@ class TensorFlowFLModel(FLModel):
         self.tvars = None
         # self.optimizer.variables() once self.optimizer is defined
         self.opt_vars = None
-        # self.tvars + self.opt_vars 
+        # self.tvars + self.opt_vars
         self.fl_vars = None
 
     def train_batches(self, num_batches, use_tqdm=False):
-        """
-        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        """Train the model on a specified number of batches
+
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without
         replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
-        Returns
-        -------
-        float
-            loss
+        Args:
+            num_batches: Number of batches to train on
+            use_tqdm (bool): True = use tqdm to print a progress bar (Default=False)
+        Returns:
+            float: loss metric
         """
         tf.keras.backend.set_learning_phase(True)
 
@@ -71,27 +81,39 @@ class TensorFlowFLModel(FLModel):
             for (X, y) in gen:
                 if batch_num >= num_batches:
                     break
-                else: 
+                else:
                     losses.append(self.train_batch(X, y))
                     batch_num += 1
 
         return np.mean(losses)
 
     def train_batch(self, X, y):
+        """Train the model on a single batch
+
+        Args:
+            X: Input to the model
+            y: Ground truth label to the model
+
+        Returns:
+            float: loss metric
+
+        """
+
         feed_dict = {self.X: X, self.y: y}
-        
+
         # run the train step and return the loss
         _, loss = self.sess.run([self.train_step, self.loss], feed_dict=feed_dict)
         return loss
 
     def validate(self, batch_size=None, use_tqdm=False):
-        """
-        Run validation.
+        """Run validation on local dataset
 
-        Returns
-        -------
-        dict
-            {<metric>: <value>}
+        Args:
+            batch_size (int): Batch size to use for validation
+            use_tqdm (bool): True = use tqdm to print a progress bar (Default=False)
+
+        Returns:
+            dict: {<metric>: <value>}
         """
         tf.keras.backend.set_learning_phase(False)
 
@@ -102,29 +124,38 @@ class TensorFlowFLModel(FLModel):
             gen = tqdm.tqdm(gen, desc="validating")
 
         for X, y in gen:
-            weight = X.shape[0] / self.data.get_validation_data_size()  
+            weight = X.shape[0] / self.data.get_validation_data_size()
             _, s = self.validate_batch(X, y)
             score += s * weight
 
         return score
 
     def validate_batch(self, X, y):
+        """Validate the model on a single local batch
+
+        Args:
+            X: Input to the model
+            y: Ground truth label to the model
+
+        Returns:
+            float: loss metric
+
+        """
         feed_dict = {self.X: X, self.y: y}
 
         return self.sess.run([self.output, self.validation_metric], feed_dict=feed_dict)
 
     def get_tensor_dict(self, with_opt_vars=True):
-        """
-        Get the weights.
-        Parameters
-        ----------
-        with_opt_vars : bool
-            Specify if we also want to get the variables of the optimizer.
+        """Get the dictionary weights
 
-        Returns
-        -------
-        dict
-            The weight dictionary {<tensor_name>: <value>}
+        Get the weights from the tensor
+
+        Args:
+            with_opt_vars (bool): Specify if we also want to get the variables of the optimizer
+
+        Returns:
+            dict: The weight dictionary {<tensor_name>: <value>}
+
         """
         if with_opt_vars is True:
             variables =  self.fl_vars
@@ -135,18 +166,16 @@ class TensorFlowFLModel(FLModel):
         return {var.name: val for var, val in zip(variables, self.sess.run(variables))}
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
-        """
-        Set the model weights with a tensor dictionary: {<tensor_name>: <value>}.
-        Parameters
-        ----------
-        tensor_dict : dict
-            The model weights dictionary.
-        with_opt_vars : bool
-            Specify if we also want to set the variables of the optimizer.
+        """Set the tensor dictionary
 
-        Returns
-        -------
-        None
+        Set the model weights with a tensor dictionary: {<tensor_name>: <value>}.
+
+        Args:
+            tensor_dict (dict): The model weights dictionary
+            with_opt_vars (bool): Specify if we also want to set the variables of the optimizer
+
+        Returns:
+            None
         """
         if with_opt_vars:
             self.assign_ops, self.placeholders = \
@@ -157,21 +186,19 @@ class TensorFlowFLModel(FLModel):
 
     def reset_opt_vars(self):
         """Reinitialize the optimizer variables."""
+
         for v in self.opt_vars:
             v.initializer.run(session=self.sess)
 
     def initialize_globals(self):
-        """
-        Initialize all global variables
-        ----------
+        """Initialize Global Variables
 
-        Returns
-        -------
-        None
+        Initialize all global variables
+
+        Returns:
+            None
         """
         self.sess.run(tf.global_variables_initializer())
-
-
 
 
 # FIXME: what's a nicer construct than this? ugly interface. Perhaps we get an object with an assumed interface that lets is set/get these?
@@ -180,6 +207,19 @@ class TensorFlowFLModel(FLModel):
 # to avoid inflating the graph, caller should keep these and pass them back
 # What if we want to set a different group of vars in the middle? It is good if it is the subset of the original variables.
 def tf_set_tensor_dict(tensor_dict, session, variables, assign_ops=None, placeholders=None):
+    """TensorFlow set tensor dictionary
+
+    Args:
+        tensor_dict: Dictionary of tensors
+        session: TensorFlow session
+        variables: TensorFlow variables
+        assign_ops: TensorFlow operations (Default=None)
+        placeholders: TensorFlow placeholders (Default=None)
+
+    Returns:
+        assign_ops, placeholders
+
+    """
     if placeholders is None:
         placeholders = {v.name: tf.placeholder(v.dtype, shape=v.shape) for v in variables}
     if assign_ops is None:
@@ -187,6 +227,5 @@ def tf_set_tensor_dict(tensor_dict, session, variables, assign_ops=None, placeho
 
     for k, v in tensor_dict.items():
         session.run(assign_ops[k], feed_dict={placeholders[k]:v})
-    
-    return assign_ops, placeholders
 
+    return assign_ops, placeholders

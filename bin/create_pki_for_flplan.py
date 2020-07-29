@@ -10,6 +10,15 @@ from subprocess import call
 import yaml
 
 def load_yaml(path):
+    """Parses the Federation Plan (FL plan) from the YAML file.
+
+    Args:
+        path: The directory path for the FL plan YAML file.
+
+    Returns:
+        A YAMLObject with the Federation plan (FL Plan)
+
+    """
     plan = None
     with open(path, 'r') as f:
         plan = yaml.safe_load(f.read())
@@ -17,14 +26,31 @@ def load_yaml(path):
 
 
 def create_if_needed(path, args):
+    """Create the output path if it doesn't exist
+
+    Args:
+        path: The output path for the PKI
+        args: Additional commandline arguments
+
+    """
     if not os.path.exists(path):
         call(args)
-        print('created', path)
+        print('created', path)  # FIXME: Convert to logger
     else:
-        print('no need to create', path)
+        print('no need to create', path) # FIXME: Convert to logger
 
 
 def create_certs_for(cert_dir, name, full_hostname, ca_key_path, ca_crt_path):
+    """Create the SSL certificates
+
+    Args:
+        cert_dir: The directory to save the certificates
+        name: The name of the node
+        full_hostname: The fully-qualified domain name
+        ca_key_path: The path to the Certificate Authority key
+        ca_crt_path: The path to the Certificate Authority crt
+
+    """
     # compute cert file paths
     key_path = os.path.join(cert_dir, '{}.key'.format(name))
     csr_path = os.path.join(cert_dir, '{}.csr'.format(name))
@@ -36,12 +62,12 @@ def create_certs_for(cert_dir, name, full_hostname, ca_key_path, ca_crt_path):
     # create csr
     create_if_needed(csr_path, ['openssl', 'req', '-new', '-key', key_path, '-out',
                                 csr_path, '-subj', '/CN={}'.format(full_hostname)])
-    
+
     # create crt by signing csr
     create_if_needed(crt_path, ['openssl', 'x509', '-req', '-in', csr_path, '-CA',
                                 ca_crt_path, '-CAkey', ca_key_path, '-CAcreateserial', '-out', crt_path])
 
-def main(plan):    
+def main(plan):
     # FIXME: consistent filesystem (#15)
     script_dir = os.path.dirname(os.path.realpath(__file__))
     base_dir = os.path.join(script_dir, 'federations')
@@ -65,7 +91,7 @@ def main(plan):
     create_if_needed(ca_key_path, ['openssl', 'genrsa', '-out', ca_key_path, '3072'])
 
     # create ca.crt
-    create_if_needed(ca_crt_path, ['openssl', 'req', '-new', '-x509', '-key', ca_key_path, '-out', ca_crt_path, 
+    create_if_needed(ca_crt_path, ['openssl', 'req', '-new', '-x509', '-key', ca_key_path, '-out', ca_crt_path,
                                    '-subj', "/CN=Trusted Federated Learning Test Cert Authority"])
 
     # create the agg cert

@@ -10,6 +10,17 @@ from . import load_yaml
 
 
 def parse_fl_plan(plan_path, logger=None):
+    """Parses the Federation Plan (FL plan).
+
+    Args:
+        plan_path: The directory path for the FL plan YAML file.
+        logger: The log object.
+
+    Returns:
+        A YAMLObject with the Federation plan (FL Plan)
+
+    """
+
     if logger is None:
         logger = logging.getLogger(__name__)
 
@@ -55,6 +66,17 @@ def parse_fl_plan(plan_path, logger=None):
 
 
 def hash_files(paths, logger=None):
+    """Creates an MD5 hash of the files
+
+    Args:
+        paths: The directory path for the federation plan (FL Plan)
+        logger: The log object.
+
+    Returns:
+        A MD5 hex digest of the FL plan
+
+    """
+
     md5 = hashlib.md5()
     for p in paths:
         with open(p, 'rb') as f:

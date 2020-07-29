@@ -25,7 +25,7 @@ def resnet_layer(inputs,
                  conv_first=True):
     """2D Convolution-Batch Normalization-Activation stack builder
 
-    # Arguments
+    Args:
         inputs (tensor): input tensor from input image or previous layer
         num_filters (int): Conv2D number of filters
         kernel_size (int): Conv2D square kernel dimensions
@@ -35,7 +35,7 @@ def resnet_layer(inputs,
         conv_first (bool): conv-bn-activation (True) or
             bn-activation-conv (False)
 
-    # Returns
+    Returns:
         x (tensor): tensor as input to the next layer
     """
     conv = Conv2D(num_filters,
@@ -80,12 +80,12 @@ def resnet_v1(input_shape, depth, num_classes=10):
     ResNet56 0.85M
     ResNet110 1.7M
 
-    # Arguments
+    Args:
         input_shape (tensor): shape of input image tensor
         depth (int): number of core convolutional layers
         num_classes (int): number of classes (CIFAR10 has 10)
 
-    # Returns
+    Returns:
         model (Model): Keras model instance
     """
     if (depth - 2) % 6 != 0:
@@ -141,25 +141,36 @@ class KerasResnet(KerasFLModel):
         Args:
           mode: One of 'train' and 'eval'.
         """
-        super(KerasResnet, self).__init__(**kwargs)                                                                                                       
+        super(KerasResnet, self).__init__(**kwargs)
         #TODO: set the mode
         mode = 'train'
         #mode = 'eval'
         self.mode = mode
-        self.logger = logging.getLogger(__name__)                                                                                                        
-        self.model = self.build_model(self.data.get_feature_shape(), self.data.num_classes)                                                                        
+        self.logger = logging.getLogger(__name__)
+        self.model = self.build_model(self.data.get_feature_shape(), self.data.num_classes)
         print(self.model.summary())
-        if self.data.y_train is not None and self.data.y_val is not None:                                                                                
-            print("Training set size: %d; Validation set size: %d" % (len(self.data.y_train), len(self.data.y_val)))                                     
-                                                                                                                                                         
-        self.is_initial = True                                                                                                                           
-                                                                                                                                                         
-        self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)  
+        if self.data.y_train is not None and self.data.y_val is not None:
+            print("Training set size: %d; Validation set size: %d" % (len(self.data.y_train), len(self.data.y_val)))
+
+        self.is_initial = True
+
+        self.initial_opt_weights = self._get_weights_dict(self.model.optimizer)
 
     @staticmethod
     def build_model(input_shape, num_classes, depth=20):
+        """Build the model
+
+        Args:
+            input_shape (numpy.ndarray): shape of the input to the model
+            num_classes (int): Number of classes in the output
+            depth (int): Depth of the model (Default = 20)
+
+        Returns:
+            model
+
+        """
         model = resnet_v1(input_shape=input_shape, depth=depth)
-        model.compile(loss=keras.losses.categorical_crossentropy,                                                                                        
-                        optimizer=keras.optimizers.Adam(),                                                                                               
-                        metrics=['accuracy'])                                                                                                            
+        model.compile(loss=keras.losses.categorical_crossentropy,
+                        optimizer=keras.optimizers.Adam(),
+                        metrics=['accuracy'])
         return model

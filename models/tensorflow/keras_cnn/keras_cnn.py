@@ -15,8 +15,14 @@ class KerasCNN(KerasFLModel):
 
     """
     def __init__(self, **kwargs):
+        """Initializer
+
+        Args:
+            **kwargs: Additional parameters to pass to the function
+            
+        """
         super().__init__(**kwargs)
-        
+
         self.model = self.build_model(self.feature_shape, self.data.num_classes, **kwargs)
 
         self.set_logger()
@@ -25,28 +31,23 @@ class KerasCNN(KerasFLModel):
         if self.data is not None:
             print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size(), self.get_validation_data_size()))
 
-    def build_model(self, 
-                    input_shape, 
-                    num_classes, 
-                    conv_kernel_size=(4, 4), 
-                    conv_strides = (2, 2), 
+    def build_model(self,
+                    input_shape,
+                    num_classes,
+                    conv_kernel_size=(4, 4),
+                    conv_strides = (2, 2),
                     conv1_channels_out=16,
                     conv2_channels_out=32,
-                    final_dense_inputsize=100, 
+                    final_dense_inputsize=100,
                     **kwargs):
-        """
-        Define the model architecture.
-        Parameters
-        ----------
-        input_shape : numpy.ndarray
-            The shape of the data.
-        num_classes : int
-            The number of classes of the dataset.
+        """Define the model architecture.
 
-        Returns
-        -------
-        tensorflow.python.keras.engine.sequential.Sequential
-            The model defined in Keras.
+        Args:
+            input_shape (numpy.ndarray): The shape of the data
+            num_classes (int): The number of classes of the dataset
+
+        Returns:
+            tensorflow.python.keras.engine.sequential.Sequential: The model defined in Keras
 
         """
         model = Sequential()
@@ -73,6 +74,3 @@ class KerasCNN(KerasFLModel):
             v.initializer.run(session=self.sess)
 
         return model
-
-
-    

@@ -4,13 +4,13 @@
 #!/usr/bin/env python3
 
 """
-Tasks: 
+Tasks:
 1. Load FL plans, check which ones are active/completed;
 2. Generate parameters for aggregators and start them. (e.g. simple_fl_agg.py)
-3. Create and run an aggregator. 
+3. Create and run an aggregator.
 4. Receive query from collaborators and reply with an FL plan.
     Query: I have [dataset] and collaborator software [version].
-    Reply 1: You should join [federation] with [aggregator] at [url]. 
+    Reply 1: You should join [federation] with [aggregator] at [url].
     Reply 2: I have nothing for you. Come back later.
     Reply 3: I have something for you but your software is outdated. Please update to tfedlrn v2.5.
 
@@ -50,6 +50,18 @@ Compose an FL plan in JSON/YAML.
 """
 
 def start_aggregator(addr, port, agg_id, fed_id, num_collaborators, initial_weights_fpath, latest_weights_fpath):
+    """Sets an secure gRPC channel (i.e. TLS)
+
+    Args:
+        addr: URL of the aggregator
+        port: Communications port of the aggregator
+        agg_id: Unique ID label for the aggregator
+        fed_id: Unique ID label for the federation
+        num_collaborators (int): Number of collaborators for this aggregator
+        initial_weights_fpath (string): Filename for the protobuf of the initial model weights (at the start of the federation)
+        latest_weights_fpath (string): Filename for the protof of the latest model weights (the weights at the end of the last round)
+
+    """
     col_ids = ["{}".format(i) for i in range(num_collaborators)]
     connection = ZMQServer('{} connection'.format(agg_id), server_addr=addr, server_port=port)
     agg = Aggregator(agg_id, fed_id, col_ids, connection, initial_weights_fpath, latest_weights_fpath)
@@ -58,20 +70,28 @@ def start_aggregator(addr, port, agg_id, fed_id, num_collaborators, initial_weig
 class Server(object):
     """ The server-side coordinator for loading plans and starting aggregators.
 
-    Parameters
-    ----------
-    connection : ZMQServer
-        An established ZMQ server socket.
-    plans_path : str
-        Location of a file or a folder.
+    Args:
+        connection (ZMQServer): An established ZMQ server socket.
+        plans_path (string): Location of a file or a folder.
     """
     def __init__(self, connection, plans_path):
+        """Initializer for Server object
+
+        Args:
+            connection: Network connection
+            plans_path (string): Path to federation (FL) plans
+        """
+
         self.connection = connection
         self.logger = logging.getLogger(__name__)
         self.plans = self.search_and_load_plans(plans_path)
         self.code_dir = "models"
 
     def run(self):
+        """Runs the server code
+
+        Starts the coordinator. Starts the aggregators. Reads the federation and code plans.
+        """
         self.logger.debug("Start the coordinator.")
         self.aggregators = self.start_aggregators()
         while True:
@@ -88,14 +108,25 @@ class Server(object):
             self.connection.send(reply)
 
     def handle_plan_request(self, msg):
+        """Parse the federation plan.
+
+        Parse the federation plan for the aggregator ID, address, port,
+        optimizer treatment, and model code.
+
+        Args:
+            msg: The message to the coordinator.
+
+        Returns:
+            reply: The reply to the message.
+        """
         reply = None
         for _, plan in self.plans.items():
             # import pdb; pdb.set_trace()
             if plan['dataset'] == msg.dataset and plan['software_version'] == msg.software_version:
-                reply = PlanReply(fed_id=plan['federation'], 
-                        agg_id=plan['aggregator']['id'], 
-                        agg_addr=socket.gethostbyname(socket.gethostname()), 
-                        agg_port=plan['aggregator']['port'], 
+                reply = PlanReply(fed_id=plan['federation'],
+                        agg_id=plan['aggregator']['id'],
+                        agg_addr=socket.gethostbyname(socket.gethostname()),
+                        agg_port=plan['aggregator']['port'],
                         opt_treatment=plan['collaborator']['opt_vars_treatment'],
                         code=plan['model']['name']
                 )
@@ -108,6 +139,17 @@ class Server(object):
         return reply
 
     def handle_code_request(self, msg):
+        """Get the model code
+
+        Get the code for the model.
+
+        Args:
+            msg: The message to the coordinator.
+
+        Returns:
+            reply: The reply to the message.
+        """
+
         if msg.fed_id not in self.plans:
             return CodeReply(size=0)
         else:
@@ -127,11 +169,19 @@ class Server(object):
                 os.chdir(cur_dir)
             checksum = hashlib.sha256(bytes).hexdigest()
             size = len(bytes)
-            return CodeReply(size=size, 
+            return CodeReply(size=size,
                         checksum=checksum,
                         code_zip=bytes)
 
     def load_plan(self, path):
+        """Load the federation plan.
+
+        Args:
+            path (string): Filename for the federation (FL) plan.
+
+        Returns:
+            plan (YAMLObject): The federation (FL) plan
+        """
         plan = None
         with open(path, 'r') as f:
             try:
@@ -143,15 +193,11 @@ class Server(object):
     def search_and_load_plans(self, path):
         """Load plans from a file or a folder.
 
-        Parameters
-        ----------
-        path : str
-            Path to a folder or a file.
+        Args:
+            path (string): Path to a folder or a file.
 
-        Returns
-        -------
-        list
-            A list of loaded plans.
+        Returns:
+            list (list of YAMLObject): A list of loaded plans.
         """
         plans = {}
         if os.path.isdir(path):
@@ -176,10 +222,8 @@ class Server(object):
     def start_aggregators(self):
         """Start an aggregator for each FL plan.
 
-        Returns
-        -------
-        list
-            A list of aggregator processes.
+        Returns:
+            list: A list of aggregator processes.
         """
         aggregators = []
         for fed_id,plan in self.plans.items():
@@ -215,26 +259,21 @@ class Server(object):
 
 class Client(object):
     """The client side coordinator to request a plan and join the federated learning.
-
-    Parameters
-    ----------
-    connection : ZMQClient
-        The pyzmq client side socket.
-    col_id : str
-        The collaborator ID.
-    dataset_name : str
-        The dataset name used to match with available FL plans.
-    software_version : str
-        The software version to match with available FL plans.
-    models_folder : str
-        The path to a folder that serves as temporary code storage.
-
-    splits : list
-        [Debug only] A list of integers to represent the size of data shards.
-    split_idx : int
-        [Debug only] Specify to load which data shard.
     """
     def __init__(self, connection, col_id, dataset_name, software_version, models_folder, splits=None, split_idx=None):
+        """Initializer of the Client object
+
+        Args:
+            connection (ZMQClient): The pyzmq client side socket.
+            col_id (string): The collaborator ID.
+            dataset_name (string): The dataset name used to match with available FL plans.
+            software_version (string): The software version to match with available FL plans.
+            models_folder (string): The path to a folder that serves as temporary code storage.
+
+            splits (list): [Debug only] A list of integers to represent the size of data shards.
+            split_idx (int): [Debug only] Specify to load which data shard.
+
+        """
         self.logger = logging.getLogger(__name__)
         self.connection = connection
         self.col_id = col_id
@@ -251,6 +290,10 @@ class Client(object):
         self.split_idx = split_idx
 
     def init_models_folder(self):
+        """Initialize models folder
+
+            Creates the models folder if none exists.
+        """
         models_folder = self.models_folder
         if not os.path.isdir(models_folder):
             os.makedirs(models_folder)
@@ -259,15 +302,11 @@ class Client(object):
     def download_code(self, fed_id):
         """ Download and extract the code from the server.
 
-        Parameters
-        ----------
-        fed_id : str
-            The federation ID
+        Args:
+            fed_id (string): The federation ID
 
-        Returns
-        -------
-        bool
-            If the download succeeds.
+        Returns:
+            bool: True if the download succeeds.
         """
         reply = self.send_and_receive(CodeRequest(fed_id=fed_id))
 
@@ -281,6 +320,12 @@ class Client(object):
         return False
 
     def run(self):
+        """Run the client object
+
+        Starts the client object. Gets and parses the federation plan.
+
+        """
+
         self.logger.debug("Client coordinator connects to Server coordinator at [%s]." % (self.connection.server_addr))
         while True:
             # query for plan
@@ -321,6 +366,14 @@ class Client(object):
         col.run()
 
     def send_and_receive(self, message):
+        """Send and receive message
+
+        Args:
+            message: Received message
+
+        Returns:
+            reply: Message reply
+        """
         self.connection.send(message)
         reply = self.connection.receive()
         return reply

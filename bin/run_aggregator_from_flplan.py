@@ -10,12 +10,23 @@ import logging
 from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
 from tfedlrn import parse_fl_plan, load_yaml
-from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 
+from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 
 from setup_logging import setup_logging
 
 
 def main(plan, collaborators_file, single_col_cert_common_name, logging_config_path, logging_default_level):
+    """Runs the aggregator service from the Federation (FL) plan
+
+    Args:
+        plan: The Federation (FL) plan
+        collaborators_file: The file listing the collaborators
+        single_col_cert_common_name: The SSL certificate
+        logging_config_path: The log configuration file
+        logging_default_level: The log level
+
+    """
+
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
@@ -40,7 +51,7 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
         compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
     else:
         compression_pipeline = None
-    
+
     agg = Aggregator(init_model_fpath=init_model_fpath,
                      latest_model_fpath=latest_model_fpath,
                      best_model_fpath=best_model_fpath,
@@ -57,7 +68,7 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
     agg_grpc_server = AggregatorGRPCServer(agg)
     agg_grpc_server.serve(ca=os.path.join(cert_dir, 'cert_chain.crt'),
                           certificate=os.path.join(agg_cert_path, 'agg_{}.crt'.format(cert_common_name)),
-                          private_key=os.path.join(agg_cert_path, 'agg_{}.key'.format(cert_common_name)), 
+                          private_key=os.path.join(agg_cert_path, 'agg_{}.key'.format(cert_common_name)),
                           **network_config)
 
 if __name__ == '__main__':

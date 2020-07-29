@@ -13,11 +13,27 @@ from setup_logging import setup_logging
 
 
 def main(plan, collaborators_file, data_config_fname, logging_config_path, logging_default_level, **kwargs):
+    """Run the federation simulation from the federation (FL) plan.
+
+    Runs a federated training from the federation (FL) plan but creates the
+    aggregator and collaborators on the same compute node. This allows
+    the developer to test the model and data loaders before running
+    on the remote collaborator nodes.
+
+    Args:
+        plan: The Federation (FL) plan (YAML file)
+        collaborators_file: The file listing the collaborators
+        data_config_fname: The file describing where the dataset is located on the collaborators
+        logging_config_path: The log file
+        logging_default_level: The log level
+        **kwargs: Variable parameters to pass to the function
+
+    """
 
     setup_logging(path=logging_config_path, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
-    # establish location for fl plan as well as 
+    # establish location for fl plan as well as
     # where to get and write model protobufs
     script_dir = os.path.dirname(os.path.realpath(__file__))
     base_dir = os.path.join(script_dir, 'federations')
@@ -41,18 +57,18 @@ def main(plan, collaborators_file, data_config_fname, logging_config_path, loggi
     latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
     best_model_fpath = os.path.join(weights_dir, agg_config['best_model_fname'])
 
-  
+
     # TODO: Run a loop here over various parameter values and iterations
     # TODO: implement more than just saving init, best, and latest model
-    federate(data_config=data_config, 
-             col_config=col_config, 
+    federate(data_config=data_config,
+             col_config=col_config,
              agg_config=agg_config,
              model_config=model_config,
              compression_config=compression_config,
-             by_col_data_names_to_paths=by_col_data_names_to_paths, 
-             init_model_fpath = init_model_fpath, 
-             latest_model_fpath = latest_model_fpath, 
-             best_model_fpath = best_model_fpath, 
+             by_col_data_names_to_paths=by_col_data_names_to_paths,
+             init_model_fpath = init_model_fpath,
+             latest_model_fpath = latest_model_fpath,
+             best_model_fpath = best_model_fpath,
              **kwargs)
 
 

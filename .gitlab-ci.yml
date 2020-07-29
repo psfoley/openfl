@@ -17,7 +17,7 @@ pages:
   - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
 
   - apk --no-cache add make 
-  - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev
+  - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev latexmk
   - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml
   
   - cd docs
@@ -31,16 +31,6 @@ pages:
     - public
   only:
   - master
-
-make_pdf:
-  image: aergus/latex
-  script:
-    - cd docs 
-    - apk latexmk
-    - latexmk -output-directory=.. -pdf FLedge.tex
-  artifacts:
-    paths:
-      - docs/FLedge.pdf
 
 
 test_spsm_gpu:

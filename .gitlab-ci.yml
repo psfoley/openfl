@@ -25,14 +25,21 @@ pages:
   - sphinx-apidoc -f -o . ../models
   - sphinx-apidoc -f -o . ../data
   - make html
-  - make latex
-  - make latexpdf
   - mv _build/html/ ../public/
   artifacts:
     paths:
     - public
   only:
   - master
+
+make_pdf:
+  image: aergus/latex
+  script:
+    - cd docs 
+    - latexmk -output-directory=.. -pdf FLedge.tex
+  artifacts:
+    paths:
+      - docs/FLedge.pdf
 
 
 test_spsm_gpu:

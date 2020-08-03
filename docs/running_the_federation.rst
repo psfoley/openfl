@@ -39,7 +39,9 @@ random model weights and putting it into that file by running the command:
    
 .. note::
 
-    :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
+    :code:`--collaborators_file cols_2.yaml` needs to be changed to the names in your collaborator list. 
+    A good practice is to create a new YAML file for each of your federations. This file is only needed by the aggregator.
+    These YAML files can be found in :code:`bin/federations/collaborator_lists/`
 
 
 2.	Now we’re ready to start the aggregator by running the Python script. Note that we will need to pass in the fully-qualified domain name (FQDN) for the aggregator node address in order to present the correct certificate.
@@ -50,7 +52,9 @@ random model weights and putting it into that file by running the command:
 
 .. note::
 
-    :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
+    :code:`--collaborators_file cols_2.yaml` needs to be changed to the names in your collaborator list. 
+    A good practice is to create a new YAML file for each of your federations. This file is only needed by the aggregator.
+    These YAML files can be found in :code:`bin/federations/collaborator_lists/`
 
 At this point, the aggregator is running and waiting
 for the collaborators to connect. When all of the collaborators
@@ -135,7 +139,9 @@ running the command:
 
 .. note::
 
-    :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
+    :code:`--collaborators_file cols_2.yaml` needs to be changed to the names in your collaborator list. 
+    A good practice is to create a new YAML file for each of your federations. This file is only needed by the aggregator.
+    These YAML files can be found in :code:`bin/federations/collaborator_lists/`
 
 
 4.	Now we’re ready to start the aggregator by running the Python script:
@@ -146,7 +152,9 @@ running the command:
 
 .. note::
 
-    :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
+    :code:`--collaborators_file cols_2.yaml` needs to be changed to the names in your collaborator list. 
+    A good practice is to create a new YAML file for each of your federations. This file is only needed by the aggregator.
+    These YAML files can be found in :code:`bin/federations/collaborator_lists/`
 
 Notice we have to pass the `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ so that
 the correct certificate can be presented. At this point, the aggregator

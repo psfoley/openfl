@@ -111,8 +111,9 @@ class TensorCodec(object):
         delta:              Difference between the provided tensors
 
         """
-        assert(nparray.shape == base_model_nparray.shape), \
-                'Shape of updated layer ({}) is not equal to base layer shape of ({})'.format(nparray.shape,base_model_nparray.shape)
+        if not np.isscalar(nparray):
+            assert(nparray.shape == base_model_nparray.shape), \
+                    'Shape of updated layer ({}) is not equal to base layer shape of ({})'.format(nparray.shape,base_model_nparray.shape)
         assert('model' not in tensor_key[3]), 'The tensorkey should be provided from the layer with new weights, not the base model'
         if type(tensor_key[3]) == str:
             new_tags = tuple([tensor_key[3]] + ['delta'])
@@ -137,8 +138,9 @@ class TensorCodec(object):
         new_model_nparray:      Latest layer weights
 
         """
-        assert(delta.shape == base_model_nparray.shape), \
-                'Shape of delta ({}) is not equal to shape of model layer ({})'.format(delta.shape,base_model_nparray.shape)
+        if not np.isscalar(base_model_nparray):
+            assert(delta.shape == base_model_nparray.shape), \
+                    'Shape of delta ({}) is not equal to shape of model layer ({})'.format(delta.shape,base_model_nparray.shape)
         #assert('model' in tensor_key[3]), 'The tensorkey should be provided from the base model'
         #Aggregator UUID has the prefix 'aggregator'
         if 'aggregator' in tensor_key[1]: 

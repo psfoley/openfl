@@ -148,7 +148,7 @@ class Aggregator(object):
         """
         If all rounds are complete, it's time to quit
         """
-        if self.round_number > self.rounds_to_train:
+        if self.round_number >= self.rounds_to_train:
             return True
         return False
         
@@ -161,6 +161,7 @@ class Aggregator(object):
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():
+            self.logger.info('Telling collaborator {} to quit...'.format(collaborator_name))
             self.quit_job_sent_to.append(collaborator_name)
             return TasksResponse(header=self.get_header(collaborator_name),
                                  round_number=self.round_number,
@@ -341,7 +342,7 @@ class Aggregator(object):
             self.collaborator_task_weight[task_key] = data_size
         
         self.end_of_task_check(task_name)
-        self.logger.info('TensorDB updated with task results: {}'.format(self.tensor_db))
+        #self.logger.info('TensorDB updated with task results: {}'.format(self.tensor_db))
 
         return Acknowledgement(header=self.get_header(collaborator_name))
 
@@ -478,11 +479,16 @@ class Aggregator(object):
                         #Create delta
                         base_model_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model',))
                         base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tk)
-                        self.logger.info('base_model_tensor_key = {}'.format(base_model_tk))
-                        self.logger.info('base_model_nparray = {}'.format(base_model_nparray))
-                        self.logger.info('agg_tag_tensor_key = {}'.format(agg_tag_tk))
-                        self.logger.info('agg_results = {}'.format(agg_results))
-                        delta_tk,delta_nparray = self.tensor_codec.generate_delta(agg_tag_tk,agg_results,base_model_nparray)
+                        if base_model_nparray is not None:
+                            #self.logger.info('base_model_tensor_key = {}'.format(base_model_tk))
+                            #self.logger.info('base_model_nparray = {}'.format(base_model_nparray))
+                            #self.logger.info('agg_tag_tensor_key = {}'.format(agg_tag_tk))
+                            #self.logger.info('agg_results = {}'.format(agg_results))
+                            delta_tk,delta_nparray = self.tensor_codec.generate_delta(agg_tag_tk,agg_results,base_model_nparray)
+                        else:
+                            #This condition is possible for base model optimizer states (i.e. Adam/iter:0, SGD, etc.)
+                            #These values couldn't be present for the base model because no training occurs on the aggregator
+                            delta_tk,delta_nparray = agg_tag_tk,agg_results
 
                         #Compress lossless/lossy
                         compressed_delta_tk,compressed_delta_nparray,metadata = \
@@ -495,12 +501,19 @@ class Aggregator(object):
                         decompressed_delta_tk,decompressed_delta_nparray = \
                                 self.tensor_codec.decompress(compressed_delta_tk,compressed_delta_nparray,metadata)
 
-                        #Apply delta
-                        new_model_tk,new_model_nparray = \
-                                self.tensor_codec.apply_delta(decompressed_delta_tk,decompressed_delta_nparray,base_model_nparray)
+                        #Apply delta (unless delta couldn't be created)
+                        if base_model_nparray is not None:
+                            new_model_tk,new_model_nparray = \
+                                    self.tensor_codec.apply_delta(decompressed_delta_tk,decompressed_delta_nparray,base_model_nparray)
+                        else:
+                            new_model_tk,new_model_nparray = decompressed_delta_tk, decompressed_delta_nparray
+
+                        #Now that the model has been compressed/decompressed with delta operations,
+                        #Relabel the tags to 'model'
+                        final_model_tk = TensorKey(new_model_tk[0],new_model_tk[1],new_model_tk[2],('model',))
 
                         #Finally, cache the updated model tensor
-                        self.tensor_db.cache_tensor({new_model_tk:new_model_nparray})
+                        self.tensor_db.cache_tensor({final_model_tk:new_model_nparray})
 
            
             #Once all of the task results have been processed
@@ -508,7 +521,7 @@ class Aggregator(object):
             self.round_number += 1
 
             #TODO This needs to be fixed!
-            if not time_to_quit():
+            if self.time_to_quit():
                 self.logger.info('Experiment Completed. Cleaning up...')
             else:
                 self.logger.info('Starting round {}...'.format(self.round_number))

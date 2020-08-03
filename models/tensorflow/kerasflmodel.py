@@ -49,7 +49,8 @@ class KerasFLModel(FLModel):
         #base_tensor_dict = { tensor_key[0] : value for tensor_key,value in input_tensor_dict.items()}
         #If round > 0, always assume optimizer to be updated. The values could come from local or 
         if round > 0:
-            self.set_tensor_dict(input_tensor_dict,with_opt_vars=True)
+            #TODO: Fix this so that optimizer state is actually dealt with
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
         else:
             self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
 
@@ -112,6 +113,11 @@ class KerasFLModel(FLModel):
         output_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in output_model_dict.items()}
 
         output_tensor_dict = {**output_metric_dict,**output_tensorkey_model_dict}
+
+        #Update the required tensors so that the optimizer state is pulled globally
+        #opt_names = self._get_weights_names(self.model.optimizer)
+        #for tensor_name in opt_names:
+        #    self.set_TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in self.model]
         
         return output_tensor_dict
 

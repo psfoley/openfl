@@ -11,7 +11,8 @@ class TensorDB(object):
         self.tensor_db = pd.DataFrame([], columns=['tensor_name','origin','round','tags','nparray'])
 
     def __repr__(self):
-        return 'TensorDB contents:\n{}'.format(self.tensor_db)
+        with pd.option_context('display.max_rows', None):
+            return 'TensorDB contents:\n{}'.format(self.tensor_db[['tensor_name','origin','round','tags']])
 
     def __str__(self):
         return self.__repr__()
@@ -88,14 +89,14 @@ class TensorDB(object):
         for col in collaborator_names:
             if(type(tensor_key[3]) == str):
                 new_tags = tuple([tensor_key[3]] + [col])
-                print(new_tags)
+                #print(new_tags)
             else:
                 new_tags = tuple(list(tensor_key[3]) + [col])
             raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_key[0]) & \
                                     (self.tensor_db['origin'] == tensor_key[1]) & \
                                     (self.tensor_db['round'] == tensor_key[2]) & \
                                     (self.tensor_db['tags'] == new_tags)]['nparray']
-            print(raw_df)
+            #print(raw_df)
             if len(raw_df) == 0:
                 return None
             else:

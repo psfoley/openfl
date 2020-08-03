@@ -69,6 +69,7 @@ class Collaborator(object):
             elif tasks.sleep_time > 0:
                 time.sleep(tasks.sleep_time) # some sleep function
             else:
+                self.logger.info('Received the following tasks: {}'.format(tasks.tasks))
                 for task in tasks.tasks:
                     self.do_task(task, tasks.round_number)
         self.logger.info('End of experiment reached. Exiting...')
@@ -101,7 +102,7 @@ class Collaborator(object):
             required_tensorkeys.append(TensorKey(tname, origin, rnd_num + round_number, tags))
         
         input_tensor_dict = self.get_numpy_dict_for_tensorkeys(required_tensorkeys)
-        print('input_tensor_dict = {}'.format(input_tensor_dict))
+        #print('input_tensor_dict = {}'.format(input_tensor_dict))
 
         # now we have whatever the model needs to do the task
         func = getattr(self.model, func_name)
@@ -135,7 +136,7 @@ class Collaborator(object):
             #Determine whether there are additional compression related dependencies. 
             #Typically, dependencies are only relevant to model layers
             tensor_dependencies = self.tensor_codec.find_dependencies(tensor_key,self.send_model_deltas)
-            self.logger.info('tensor_dependencies = {}'.format(tensor_dependencies))
+            #self.logger.info('tensor_dependencies = {}'.format(tensor_dependencies))
             if len(tensor_dependencies) > 0:
                 #Resolve dependencies
                 #tensor_dependencies[0] corresponds to the prior version of the model. 
@@ -190,7 +191,7 @@ class Collaborator(object):
         
         # cache this tensor
         self.tensor_db.cache_tensor({tensor_key: nparray})
-        self.logger.info('Printing updated TensorDB: {}'.format(self.tensor_db))
+        #self.logger.info('Printing updated TensorDB: {}'.format(self.tensor_db))
 
         return nparray
     
@@ -203,6 +204,11 @@ class Collaborator(object):
             data_size = self.model.get_training_data_size()
         if 'valid' in task_name:
             data_size = self.model.get_validation_data_size()
+        self.logger.info('Data size = {}'.format(data_size))
+        for tensor in tensor_dict:
+            if 'metric' in tensor[3]:
+                self.logger.info('Sending metric for task {}, round number {}: {}\t{}'.format(\
+                        task_name,round_number,tensor[0],tensor_dict[tensor]))
         request = TaskResults(header=self.header,
                               round_number=round_number,
                               task_name=task_name,

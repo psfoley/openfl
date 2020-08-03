@@ -37,7 +37,7 @@ random model weights and putting it into that file by running the command:
 
    $ ./venv/bin/python3 ./bin/create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml -dc local_data_config.yaml --collaborators_file cols_2.yaml
    
-.. note:
+.. note::
 
     :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
 
@@ -48,7 +48,7 @@ random model weights and putting it into that file by running the command:
 
    $ ./venv/bin/python3 ./bin/run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml -ccn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME --collaborators_file cols_2.yaml
 
-.. note:
+.. note::
 
     :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
 
@@ -133,7 +133,7 @@ running the command:
 
    $ ./create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml -dc docker_data_config.yaml --collaborators_file cols_2.yaml
 
-.. note:
+.. note::
 
     :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
 
@@ -144,7 +144,7 @@ running the command:
 
    $ python3 run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml -ccn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME --collaborators_file cols_2.yaml
 
-.. note:
+.. note::
 
     :code:`--collaborators_file cols_2.yaml` needs to be changed to your collaborator list. These can be found in :code:`bin/federations/collaborator_lists/`
 

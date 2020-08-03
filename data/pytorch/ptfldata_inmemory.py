@@ -104,7 +104,6 @@ class PyTorchFLDataInMemory(FLData):
                                                batch_size=self.batch_size, 
                                                shuffle=shuffle)
         else:
-<<<<<<< HEAD
             if isinstance(y[0], np.ndarray):
                 ty = torch.stack([torch.Tensor(i) for i in y])
             else:
@@ -117,9 +116,3 @@ class PyTorchFLDataInMemory(FLData):
 
 
         
-=======
-            ty = torch.Tensor(y)
-        return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX, ty),
-                                           batch_size=self.batch_size,
-                                           shuffle=True)
->>>>>>> c832d751d7e2b77ca64307c4eab46fa30046e0db

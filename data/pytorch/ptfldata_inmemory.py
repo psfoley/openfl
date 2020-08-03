@@ -84,22 +84,17 @@ class PyTorchFLDataInMemory(FLData):
         return self.validation_data_size
 
 
-<<<<<<< HEAD
     def create_loader(self, X, y, shuffle):
-=======
-    def create_loader(self, X, y):
         """Create the data loader using the Torch Tensor methods
 
         Args:
             X: the input data
             y: the label data
+            shuffle: whether to shuffle in-between batch draws
 
         Returns:
             A `PyTorch DataLoader object <https://pytorch.org/docs/1.1.0/_modules/torch/utils/data/dataloader.html`_
         """
-        # DEBUG
-        print('\nlength of data: ', len(X))
->>>>>>> c832d751d7e2b77ca64307c4eab46fa30046e0db
         if isinstance(X[0], np.ndarray):
             tX = torch.stack([torch.Tensor(i) for i in X])
         else:

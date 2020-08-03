@@ -24,7 +24,6 @@ class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
         self.training_data_size = len(X_train)
         self.validation_data_size = len(X_val)
         self.num_classes = num_classes
-<<<<<<< HEAD
         self.train_loader = self.create_loader(X=X_train, y=y_train, shuffle=True)
         self.val_loader = self.create_loader(X=X_val, y=y_val, shuffle=False)
     
@@ -33,7 +32,3 @@ class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
 
 
         
-=======
-        self.train_loader = self.create_loader(X=X_train, y=y_train)
-        self.val_loader = self.create_loader(X=X_val, y=y_val)
->>>>>>> c832d751d7e2b77ca64307c4eab46fa30046e0db

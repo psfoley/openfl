@@ -70,12 +70,12 @@ class TensorCodec(object):
         """
 
         assert(len(transformer_metadata) > 0), 'metadata must be included for decompression'
-        #assert(('lossy_compressed' not in tensor_key[3]) & require_lossless==True), \
-        #        "Cannot apply lossless decompression to lossy tensor"
-        assert(('compressed' not in tensor_key[3]) & require_lossless==False), \
-                "Cannot apply lossy decompression to lossless tensor"
-
+        assert(('compressed' in tensor_key[3]) or ('lossy_compressed' in tensor_key[3])),\
+                "Cannot decompress an uncompressed tensor"
         if require_lossless:
+            assert(('compressed' in tensor_key[3])), "Cannot losslessly decompress lossy tensor"
+
+        if require_lossless or 'compressed' in tensor_key[3]:
             decompressed_nparray = self.lossless_pipeline.backward(data,transformer_metadata,**kwargs)
         else:
             decompressed_nparray = self.compression_pipeline.backward(data,transformer_metadata,**kwargs)

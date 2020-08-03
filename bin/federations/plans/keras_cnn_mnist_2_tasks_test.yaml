@@ -76,11 +76,11 @@ task_assigner:
   class_name      : RandomGroupedTaskAssigner
   task_groups     :
   - name: validation_only
-    percentage: 0.0
+    percentage: 0.5
     tasks:
     - aggregated_model_validation
   - name: train_and_validate
-    percentage: 1.0
+    percentage: 0.5
     tasks:
     - aggregated_model_validation
     - train

@@ -144,3 +144,28 @@ class FLModel(object):
             None
         """
         raise NotImplementedError
+
+    def load_native(self, filepath, **kwargs):
+        """Loads model state from a filepath in ML-framework "native" format, e.g. PyTorch pickled models. May load from multiple files. Other filepaths may be derived from the passed filepath, or they may be in the kwargs.
+
+        Args:
+            filepath (string): Path to frame-work specific file to load. For frameworks that use multiple files, this string must be used to derive the other filepaths.
+            kwargs           : For future-proofing 
+
+        Returns:
+            None
+        """
+        raise NotImplementedError
+
+    def save_native(self, filepath, **kwargs):
+        """Saves model state in ML-framework "native" format, e.g. PyTorch pickled models. May save one file or multiple files, depending on the framework.
+
+        Args:
+            filepath (string): If framework stores a single file, this should be a single file path. Frameworks that store multiple files may need to derive the other paths from this path.
+            kwargs           : For future-proofing
+
+        Returns:
+            None
+        """
+        raise NotImplementedError
+

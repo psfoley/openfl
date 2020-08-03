@@ -17,18 +17,57 @@ from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
 from setup_logging import setup_logging
 
 def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
+    """Get the data object for the collaborator
+
+    Args:
+        data_names_to_paths: Translate the dataset name to the actual file path for the dataset
+        data_name: The dataset name
+        module_name: The Python module name
+        class_name: The Python class
+        **kwargs: Variable arguments to pass to function
+
+    Returns:
+        Data object
+
+    """
+
+    # FIXME: I think this method exists in another Python file. Probably could refactor it to single place.
     data_path = data_names_to_paths[data_name]
     return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 def get_channel(base_dir, cert_common_name, **col_grpc_client_config):
+    """Gets the gRPC channel for the collaborator client
+
+    Args:
+        base_dir:  The base directory for this collaborator's certificates
+        cert_common_name: The certificate name
+        **col_grpc_client_config: Additional gRPC config parameters
+
+    Returns:
+        A gRPC client object for this collaborator
+
+    """
+
     cert_dir = os.path.join(base_dir, col_grpc_client_config.pop('cert_folder', 'pki')) # default to 'pki
 
     return CollaboratorGRPCClient(ca=os.path.join(cert_dir, 'cert_chain.crt'),
                                   certificate=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.crt'.format(cert_common_name)),
-                                  private_key=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.key'.format(cert_common_name)), 
+                                  private_key=os.path.join(cert_dir, 'col_{}'.format(cert_common_name), 'col_{}.key'.format(cert_common_name)),
                                   **col_grpc_client_config)
 
 def main(plan, collaborator_common_name, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level):
+    """Runs the collaborator client process from the federation (FL) plan
+
+    Args:
+        plan: The filename for the federation (FL) plan YAML file
+        collaborator_common_name: The common name for the collaborator node
+        single_col_cert_common_name: The SSL certificate for this collaborator
+        data_config_fname: The dataset configuration filename (YAML)
+        logging_config_fname: The log file
+        logging_default_level: The log level
+
+    """
+
     setup_logging(path=logging_config_fname, default_level=logging_default_level)
 
     # FIXME: consistent filesystem (#15)
@@ -53,14 +92,14 @@ def main(plan, collaborator_common_name, single_col_cert_common_name, data_confi
         compression_pipeline = None
 
     network_config = flplan['network']
-    
+
     # if a single cert common name is in use, then that is the certificate we must use
     if single_col_cert_common_name is None:
         cert_common_name = collaborator_common_name
     else:
         cert_common_name = single_col_cert_common_name
 
-    channel = get_channel(base_dir=base_dir, 
+    channel = get_channel(base_dir=base_dir,
                           cert_common_name=cert_common_name,
                           **network_config)
 
@@ -69,10 +108,10 @@ def main(plan, collaborator_common_name, single_col_cert_common_name, data_confi
     wrapped_model = get_object(data=data, **model_config)
 
     collaborator = Collaborator(collaborator_common_name=collaborator_common_name,
-                                wrapped_model=wrapped_model, 
+                                wrapped_model=wrapped_model,
                                 channel=channel,
                                 compression_pipeline = compression_pipeline,
-                                single_col_cert_common_name=single_col_cert_common_name,  
+                                single_col_cert_common_name=single_col_cert_common_name,
                                 **col_config)
 
 

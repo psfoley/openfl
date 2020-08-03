@@ -8,6 +8,20 @@ import coloredlogs
 import yaml
 
 def setup_logging(path="logging.yaml", default_level='info'):
+    """Defines the various log levels
+
+    * 'notset': logging.NOTSET
+    * 'debug': logging.DEBUG
+    * 'info': logging.INFO
+    * 'warning': logging.WARNING
+    * 'error': logging.ERROR
+    * 'critical': logging.CRITICAL
+
+    Args:
+        path: path for logging file configuration (Default = "logging.yaml")
+        default_level: Default level for logging (Default = "info")
+
+    """
     logging_level_dict = {
      'notset': logging.NOTSET,
      'debug': logging.DEBUG,
@@ -34,7 +48,7 @@ def setup_logging(path="logging.yaml", default_level='info'):
                         logdir_path = os.path.dirname(file_path)
                         if not os.path.exists(logdir_path):
                             print("Creating log directory: ", logdir_path)
-                            os.makedirs(logdir_path) 
+                            os.makedirs(logdir_path)
                 logging.config.dictConfig(config)
                 coloredlogs.install()
                 print("Loaded logging configuration: %s" % path)

@@ -11,6 +11,15 @@ from cryptography.hazmat.primitives.asymmetric import padding, rsa
 
 def gen_keys(public_path='public.pem',
              private_path='private.key'):
+    """Generate SSL encryption keys
+
+    Creates the private and public SSL files and saves them.
+
+    Args:
+        public_path: Filename for the public key file (Default: public.pem)
+        private_path: Filename for the private key file (Default: private.key)
+
+    """
     # Generate the public/private key pair.
     private_key = rsa.generate_private_key(
         public_exponent = 65537,
@@ -19,7 +28,7 @@ def gen_keys(public_path='public.pem',
     )
 
     # Save the private key to a file.
-    with open('private.key', 'wb') as f:
+    with open(private_path, 'wb') as f:
         f.write(
             private_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -29,7 +38,7 @@ def gen_keys(public_path='public.pem',
         )
 
     # Save the public key to a file.
-    with open('public.pem', 'wb') as f:
+    with open(public_path, 'wb') as f:
         f.write(
             private_key.public_key().public_bytes(
                 encoding = serialization.Encoding.PEM,
@@ -41,9 +50,18 @@ def gen_keys(public_path='public.pem',
 def sign_file(path,
               sig_path,
               private_key='private.key'):
+      """Generate SSL encryption keys
 
-    # Load the private key. 
-    with open(private_key, 'rb') as key_file: 
+      Creates the private and public SSL files and saves them.
+
+      Args:
+          public_path: Filename for the public key file (Default: public.pem)
+          private_path: Filename for the private key file (Default: private.key)
+
+      """
+
+    # Load the private key.
+    with open(private_key, 'rb') as key_file:
         private_key = serialization.load_pem_private_key(
             key_file.read(),
             password = None,

@@ -70,10 +70,6 @@ tasks:
       epochs    : 1
       metrics :
       - loss
-  demo_dummy_function:
-    function  : dummy_function
-    kwargs    :
-      metric_name_prefix : 'lorem_ipsum'
 
 task_assigner:
   module_name     : tfedlrn.task_assigner.random_grouped_task_assigner
@@ -83,11 +79,9 @@ task_assigner:
     percentage: 0.5
     tasks:
     - aggregated_model_validation
-    - demo_dummy_function
   - name: train_and_validate
     percentage: 0.5
     tasks:
     - aggregated_model_validation
     - train
     - locally_tuned_model_validation
-    - demo_dummy_function

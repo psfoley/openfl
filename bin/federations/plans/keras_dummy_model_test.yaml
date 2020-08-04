@@ -28,8 +28,8 @@
 # (using the local_data_config yaml file)
 
 model:
-  module_name   : models.tensorflow.keras_cnn.keras_cnn
-  class_name    : KerasCNN 
+  module_name   : models.tensorflow.keras_test.keras_test
+  class_name    : KerasTest 
 
 data:
   defaults_file     : defaults/data_tf_mnist.yaml
@@ -37,7 +37,7 @@ data:
   batch_size        : 256
 
 aggregator:
-  rounds_to_train   : 6
+  rounds_to_train   : 10
   init_model_fname  : keras_cnn_mnist_init.pbuf
   latest_model_fname: keras_cnn_mnist_latest.pbuf
   best_model_fname  : keras_cnn_mnist_best.pbuf
@@ -49,45 +49,16 @@ network:
   defaults_file : defaults/network.yaml
 
 tasks:
-  aggregated_model_validation:
-    function  : validate
-    kwargs    :
-      metrics :
-      - acc
-      batch_size: 32
-      local_model: false
-  locally_tuned_model_validation:
-    function  : validate
-    kwargs    :
-      metrics :
-      - acc
-      batch_size: 32
-      local_model: true
-  train:
-    function  : train
-    kwargs    :
-      batch_size: 32
-      epochs    : 1
-      metrics :
-      - loss
   demo_dummy_function:
     function  : dummy_function
     kwargs    :
-      metric_name_prefix : 'lorem_ipsum'
+      metric_name_prefix : 'basic_metric'
 
 task_assigner:
   module_name     : tfedlrn.task_assigner.random_grouped_task_assigner
   class_name      : RandomGroupedTaskAssigner
   task_groups     :
-  - name: validation_only
-    percentage: 0.5
+  - name: dummy_group
+    percentage: 1.0
     tasks:
-    - aggregated_model_validation
-    - demo_dummy_function
-  - name: train_and_validate
-    percentage: 0.5
-    tasks:
-    - aggregated_model_validation
-    - train
-    - locally_tuned_model_validation
     - demo_dummy_function

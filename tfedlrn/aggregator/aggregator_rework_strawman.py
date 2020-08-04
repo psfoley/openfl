@@ -98,7 +98,7 @@ class Aggregator(object):
         tensor_key_dict = {TensorKey(k,self.uuid,0,('model',)):v for k,v in tensor_dict.items()}
         #All initial model tensors are loaded here
         self.tensor_db.cache_tensor(tensor_key_dict)
-        self.logger.info('This is the initial tensor_db: {}'.format(self.tensor_db))
+        self.logger.debug('This is the initial tensor_db: {}'.format(self.tensor_db))
         if self.custom_tensor_dir != None:
             #Here is where the additional tensors should be loaded into the TensorDB
             pass
@@ -157,11 +157,11 @@ class Aggregator(object):
         self.check_request(request)
 
         collaborator_name = request.header.sender
-        self.logger.info('GetTasks reached for collaborator {}'.format(collaborator_name))
+        self.logger.info('Sending tasks to collaborator {} for round {}'.format(collaborator_name,self.round_number))
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():
-            self.logger.info('Telling collaborator {} to quit...'.format(collaborator_name))
+            self.logger.info('Sending signal to collaborator {} to shutdown...'.format(collaborator_name))
             self.quit_job_sent_to.append(collaborator_name)
             return TasksResponse(header=self.get_header(collaborator_name),
                                  round_number=self.round_number,
@@ -209,13 +209,7 @@ class Aggregator(object):
         round_number        = request.round_number
         tags                = request.tags
 
-        #TODO This is a hack. Until the rest of the code is changed to support single element tuples (i.e. (value,)
-        #The value needs to be converted to a string :(
-        #if type(tags) != str and len(tags) == 1:
-        #    tags = tags[0]
- 
-
-        self.logger.info('Getting aggregated tensor {} for collaborator {}'.format(tensor_name,collaborator_name))
+        self.logger.debug('Retrieving aggregated tensor {} for collaborator {}'.format(tensor_name,collaborator_name))
 
         tensor_key = TensorKey(tensor_name, self.uuid, round_number,tuple(tags))
         send_model_deltas = False
@@ -342,7 +336,6 @@ class Aggregator(object):
             self.collaborator_task_weight[task_key] = data_size
         
         self.end_of_task_check(task_name)
-        #self.logger.info('TensorDB updated with task results: {}'.format(self.tensor_db))
 
         return Acknowledgement(header=self.get_header(collaborator_name))
 
@@ -458,7 +451,7 @@ class Aggregator(object):
                 task_key = TaskResultKey(task_name,collaborators_for_task[0],self.round_number)
                 for tensor_key in self.collaborator_tasks_results[task_key]:
                     assert(tensor_key[3][-1] == collaborators_for_task[0]), \
-                            'Tensor {} in task {} have not been processed correctly'.format(tensor_key,task_name)
+                            'Tensor {} in task {} has not been processed correctly'.format(tensor_key,task_name)
                     #Strip the collaborator label, and lookup aggregated tensor
                     new_tags = tuple(list(tensor_key[3][:-1]))
                     agg_tensor_key = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],new_tags)
@@ -480,10 +473,6 @@ class Aggregator(object):
                         base_model_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model',))
                         base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tk)
                         if base_model_nparray is not None:
-                            #self.logger.info('base_model_tensor_key = {}'.format(base_model_tk))
-                            #self.logger.info('base_model_nparray = {}'.format(base_model_nparray))
-                            #self.logger.info('agg_tag_tensor_key = {}'.format(agg_tag_tk))
-                            #self.logger.info('agg_results = {}'.format(agg_results))
                             delta_tk,delta_nparray = self.tensor_codec.generate_delta(agg_tag_tk,agg_results,base_model_nparray)
                         else:
                             #This condition is possible for base model optimizer states (i.e. Adam/iter:0, SGD, etc.)

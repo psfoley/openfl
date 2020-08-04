@@ -75,7 +75,7 @@ class Collaborator(object):
         self.logger.info('End of experiment reached. Exiting...')
 
     def get_tasks(self):
-        self.logger.info('Calling get_tasks...')
+        self.logger.info('Waiting for tasks...')
         request = TasksRequest(header=self.header)
         response = self.aggregator.GetTasks(request)
         self.validate_response(response) # sanity checks and validation
@@ -127,12 +127,12 @@ class Collaborator(object):
         extract_metadata:   The requested tensor may have metadata needed for decompression
         """
         # try to get from the store
-        self.logger.info('Attempting to get tensor {} from local store'.format(tensor_key))
+        self.logger.debug('Attempting to retrieve tensor {} from local store'.format(tensor_key))
         nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
 
         # if None and origin is our aggregator, request it from the aggregator
         if nparray is None:
-            self.logger.info('Unable to get tensor from local store...attempting to retrieve from aggregator')
+            self.logger.debug('Unable to get tensor from local store...attempting to retrieve from aggregator')
             #Determine whether there are additional compression related dependencies. 
             #Typically, dependencies are only relevant to model layers
             tensor_dependencies = self.tensor_codec.find_dependencies(tensor_key,self.send_model_deltas)
@@ -179,7 +179,7 @@ class Collaborator(object):
                                 tags=tags,
                                 require_lossless=require_lossless)
 
-        self.logger.info('Getting aggregated tensor {}'.format(tensor_key))
+        self.logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
         
         response = self.aggregator.GetAggregatedTensor(request)
 
@@ -204,7 +204,7 @@ class Collaborator(object):
             data_size = self.model.get_training_data_size()
         if 'valid' in task_name:
             data_size = self.model.get_validation_data_size()
-        self.logger.info('Data size = {}'.format(data_size))
+        self.logger.debug('{} data size = {}'.format(task_name,data_size))
         for tensor in tensor_dict:
             if 'metric' in tensor[3]:
                 self.logger.info('Sending metric for task {}, round number {}: {}\t{}'.format(\
@@ -262,7 +262,7 @@ class Collaborator(object):
                     self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata)
         else:
             #There could be a case where the compression pipeline is bypassed entirely
-            print('Bypassing tensor codec...') 
+            self.logger.warning('Bypassing tensor codec...') 
             decompressed_tensor_key = tensor_key
             decompressed_nparray = raw_bytes
 

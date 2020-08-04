@@ -25,7 +25,8 @@ class RandomGroupedTaskAssigner(TaskAssigner):
         """
         All of the logic to set up the map of tasks to collaborators is done here
         """
-        assert(sum([group['percentage'] for group in self.task_groups]) == 1.0), 'Task group percentages must sum to 100%'
+        assert(sum([group['percentage'] for group in self.task_groups]) > 0.99 and \
+                sum([group['percentage'] for group in self.task_groups]) < 1.01), 'Task group percentages must sum to 100%'
         #assert(group['percentage']*len(self.collaborator_list for group in self.task_groups) != int(group['percentage']*len(self.collaborator_list))), \
         #        "Task group percentages must divide into collaborators evenly"
 

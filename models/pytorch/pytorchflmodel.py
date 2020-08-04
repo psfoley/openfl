@@ -153,6 +153,38 @@ class PyTorchFLModel(nn.Module, FLModel):
     def get_optimizer(self):
         return self.optimizer
 
+    def load_native(self, filepath, model_state_dict_key='model_state_dict', optimizer_state_dict_key='optimizer_state_dict', **kwargs):
+        """Loads model and optimizer states from a pickled file specified by filepath. model_/optimizer_state_dict args can be specified if needed. Uses torch.load().
+
+        Args:
+            filepath (string)                   : Path to pickle file created by torch.save().
+            model_state_dict_key (string)       : key for model state dict in pickled file.
+            optimizer_state_dict_key (string)   : key for optimizer state dict in picked file.
+            kwargs                              : unused 
+
+        Returns:
+            None
+        """
+        pickle_dict = torch.load(filepath)
+        self.load_state_dict(pickle_dict[model_state_dict_key])
+        self.optimizer.load_state_dict(pickle_dict[optimizer_state_dict_key])
+
+    def save_native(self, filepath, model_state_dict_key='model_state_dict', optimizer_state_dict_key='optimizer_state_dict', **kwargs):
+        """Saves model and optimizer states in a picked file specified by the filepath. model_/optimizer_state_dicts are stored in the keys provided. Uses torch.save().
+
+        Args:
+            filepath (string)                   : Path to pickle file to be created by torch.save().
+            model_state_dict_key (string)       : key for model state dict in pickled file.
+            optimizer_state_dict_key (string)   : key for optimizer state dict in picked file.
+            kwargs                              : unused 
+
+        Returns:
+            None
+        """
+        pickle_dict = {model_state_dict_key: self.state_dict(), optimizer_state_dict_key: self.optimizer.state_dict()}
+        torch.save(pickle_dict, filepath)
+
+
 def _derive_opt_state_dict(opt_state_dict):
     """Separate optimizer tensors from the tensor dictionary
 

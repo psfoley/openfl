@@ -63,7 +63,7 @@ test_spsm_gpu:
 test_spsm_cpu:
     stage: test
     tags: 
-    - sdp-cpu-runner1
+    - sdp-cpu-runner2
     #- shell-runner-1
     before_script:
     - whoami

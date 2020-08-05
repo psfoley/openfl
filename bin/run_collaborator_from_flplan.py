@@ -14,7 +14,7 @@ from tfedlrn.flplan import create_collaborator_object_from_flplan, parse_fl_plan
 from setup_logging import setup_logging
 
 
-def main(plan, collaborator_common_name, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level, logging_directory):
+def main(plan, collaborator_common_name, single_col_cert_common_name, data_config_fname, logging_config_path, logging_default_level, logging_directory):
     """Runs the collaborator client process from the federation (FL) plan
 
     Args:
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     parser.add_argument('--collaborator_common_name', '-col', type=str, required=True)
     parser.add_argument('--single_col_cert_common_name', '-scn', type=str, default=None)
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
-    parser.add_argument('--logging_config_fname', '-lc', type=str, default="logging.yaml")
+    parser.add_argument('--logging_config_path', '-lcp', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
     parser.add_argument('--logging_directory', '-ld', type=str, default="logs")
     args = parser.parse_args()

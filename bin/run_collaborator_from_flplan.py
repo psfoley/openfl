@@ -26,13 +26,14 @@ def main(plan, collaborator_common_name, single_col_cert_common_name, data_confi
         logging_default_level: The log level
 
     """
-
-    setup_logging(path=logging_config_fname, default_level=logging_default_level)
-
     # FIXME: consistent filesystem (#15)
     script_dir = os.path.dirname(os.path.realpath(__file__))
     base_dir = os.path.join(script_dir, 'federations')
     plan_dir = os.path.join(base_dir, 'plans')
+    logging_config_path = os.path.join(script_dir, logging_config_path)
+    logging_directory = os.path.join(script_dir, logging_directory)
+
+    setup_logging(path=logging_config_path, default_level=logging_default_level, logging_directory=logging_directory)
 
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
 
@@ -51,5 +52,6 @@ if __name__ == '__main__':
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
     parser.add_argument('--logging_config_fname', '-lc', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
+    parser.add_argument('--logging_directory', '-ld', type=str, default="logs")
     args = parser.parse_args()
     main(**vars(args))

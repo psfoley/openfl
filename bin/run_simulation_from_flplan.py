@@ -13,7 +13,7 @@ from single_proc_fed    import federate
 from setup_logging      import setup_logging
 
 
-def main(plan, collaborators_file, data_config_fname, logging_config_path, logging_default_level, **kwargs):
+def main(plan, collaborators_file, data_config_fname, logging_config_path, logging_default_level, logging_directory, **kwargs):
     """Run the federation simulation from the federation (FL) plan.
 
     Runs a federated training from the federation (FL) plan but creates the
@@ -30,9 +30,6 @@ def main(plan, collaborators_file, data_config_fname, logging_config_path, loggi
         **kwargs: Variable parameters to pass to the function
 
     """
-
-    setup_logging(path=logging_config_path, default_level=logging_default_level)
-
     # FIXME: consistent filesystem (#15)
     # establish location for fl plan as well as
     # where to get and write model protobufs
@@ -41,6 +38,10 @@ def main(plan, collaborators_file, data_config_fname, logging_config_path, loggi
     plan_dir = os.path.join(base_dir, 'plans')
     weights_dir = os.path.join(base_dir, 'weights')
     collaborators_dir = os.path.join(base_dir, 'collaborator_lists')
+    logging_config_path = os.path.join(script_dir, logging_config_path)
+    logging_directory = os.path.join(script_dir, logging_directory)
+
+    setup_logging(path=logging_config_path, default_level=logging_default_level, logging_directory=logging_directory)
 
     # load the flplan, local_config and collaborators file
     flplan = parse_fl_plan(os.path.join(plan_dir, plan))
@@ -63,5 +64,6 @@ if __name__ == '__main__':
     parser.add_argument('--data_config_fname', '-dc', type=str, default="local_data_config.yaml")
     parser.add_argument('--logging_config_path', '-lcp', type=str, default="logging.yaml")
     parser.add_argument('--logging_default_level', '-l', type=str, default="info")
+    parser.add_argument('--logging_directory', '-ld', type=str, default="logs")
     args = parser.parse_args()
     main(**vars(args))

@@ -17,8 +17,41 @@ from tfedlrn import TensorKey
 
 from tfedlrn.proto.protoutils import construct_proto, deconstruct_proto, construct_named_tensor
 
+from enum import Enum
+
+class OptTreatment(Enum):
+    """Optimizer methods
+    """
+
+    RESET = 1
+    """
+    RESET tells each collaborator to reset the optimizer state at the beginning of each round.
+    """
+    CONTINUE_LOCAL = 2
+    """
+    CONTINUE_LOCAL tells each collaborator to continue with the local optimizer state from the previous round.
+    """
+    CONTINUE_GLOBAL = 3
+    """
+    CONTINUE_GLOBAL tells each collaborator to continue with the federally averaged optimizer state from the previous round.
+    """
+
 
 class Collaborator(object):
+    """The Collaborator object class
+
+    Args:
+        collaborator_name (string): The common name for the collaborator
+        aggregator_uuid: The unique id for the aggregator
+        federation_uuid: The unique id for the federation
+        model: The model
+        opt_treatment (string): The optimizer state treatment (Defaults to "CONTINUE_GLOBAL", which is aggreagated state from previous round.)
+        compression_pipeline: The compression pipeline (Defaults to None)
+        num_batches_per_round (int): Number of batches per round (Defaults to None)
+        send_model_deltas (bool): True = Only model delta gets sent. False = Whole model gets sent to collaborator. (Defaults to False)
+        single_col_cert_common_name: (Defaults to None)
+        **kwargs : Additional parameters to pass to collaborator object
+    """
 
     def __init__(self, 
                  aggregator, 
@@ -28,6 +61,7 @@ class Collaborator(object):
                  aggregator_uuid, 
                  federation_uuid, 
                  tasks_config,
+                 opt_treatment="RESET",
                  send_model_deltas = False,
                  single_col_cert_common_name = None,
                  **kwargs):
@@ -49,9 +83,32 @@ class Collaborator(object):
                                     federation_uuid=federation_uuid, single_col_cert_common_name=self.single_col_cert_common_name)
         self.tasks_config = tasks_config # pulled from flplan
 
-        # Check that the message was intended to go to this collaborator
+        # RESET/CONTINUE_LOCAL/CONTINUE_GLOBAL
+        if hasattr(OptTreatment, opt_treatment):
+            self.opt_treatment = OptTreatment[opt_treatment]
+        else:
+            self.logger.error("Unknown opt_treatment: %s." % opt_treatment)
+            raise NotImplementedError("Unknown opt_treatment: %s." % opt_treatment)
+        
+        self.model.set_optimizer_treatment(self.opt_treatment.name)
+
+    def _with_opt_vars(self):
+        """Determines optimizer operation to perform.
+
+        Returns:
+           bool: True means *CONTINUE_GLOBAL* method for optimizer.
+
+        """
+        if self.opt_treatment in (OptTreatment.CONTINUE_LOCAL, OptTreatment.RESET):
+            self.logger.debug("Do not share the optimization variables.")
+            return False
+        elif self.opt_treatment == OptTreatment.CONTINUE_GLOBAL:
+            self.logger.debug("Share the optimization variables.")
+            return True
+
 
     def validate_response(self, reply):
+        # Check that the message was intended to go to this collaborator
         check_equal(reply.header.receiver, self.collaborator_name, self.logger)
         check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
 
@@ -151,6 +208,8 @@ class Collaborator(object):
             elif 'model' in tensor_key[3]:
                 #Pulling the model for the first time or 
                 nparray = self.get_aggregated_tensor_from_aggregator(tensor_key,require_lossless=True)
+        else:
+            self.logger.debug('Found tensor {} in local TensorDB'.format(tensor_key))
 
         return nparray
 

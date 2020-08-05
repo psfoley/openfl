@@ -32,6 +32,9 @@ class FLModel(object):
     def set_logger(self):
         self.logger = logging.getLogger(__name__)
 
+    def set_optimizer_treatment(self,opt_treatment):
+        self.opt_treatment = opt_treatment
+
     def get_data(self):
         """
         Get the data object.

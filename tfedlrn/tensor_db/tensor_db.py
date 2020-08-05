@@ -56,7 +56,7 @@ class TensorDB(object):
 
         if len(df) == 0:
             return None
-        return df['nparray'].iloc[0]  
+        return np.array(df['nparray'].iloc[0])
 
     def get_aggregated_tensor(self, tensor_key, collaborator_weight_dict):
         """
@@ -84,7 +84,7 @@ class TensorDB(object):
                                 (self.tensor_db['round'] == tensor_key[2]) & \
                                 (self.tensor_db['tags'] == tensor_key[3])]['nparray']
         if len(raw_df) > 0:
-            return raw_df.iloc[0]
+            return np.array(raw_df.iloc[0])
 
         for col in collaborator_names:
             if(type(tensor_key[3]) == str):
@@ -107,4 +107,4 @@ class TensorDB(object):
         #Cache aggregated tensor in TensorDB
         self.cache_tensor({tensor_key: agg_nparray})
 
-        return agg_nparray            
+        return np.array(agg_nparray)            

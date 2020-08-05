@@ -458,7 +458,7 @@ class Aggregator(object):
                     agg_results = self.tensor_db.get_aggregated_tensor(agg_tensor_key,collaborator_weight_dict)
                     if 'metric' == tensor_key[3][0]:
                         #Print the aggregated metric
-                        self.logger.info('{}:\t{}'.format(tensor_key[0],agg_results))
+                        self.logger.info('{0}:\t{1:.4f}'.format(tensor_key[0],agg_results))
                         #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
                     if 'trained' in tensor_key[3][0]:
                         #The aggregated tensorkey tags should have the form of 'trained' or 'trained.lossy_decompressed'

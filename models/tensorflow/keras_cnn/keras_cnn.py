@@ -20,9 +20,9 @@ class KerasCNN(KerasFLModel):
         
         self.model = self.build_model(self.feature_shape, self.data.num_classes, **kwargs)
 
-        self.initialize_tensorkeys_for_functions()
-
         self.set_logger()
+
+        self.initialize_tensorkeys_for_functions()
 
         print(self.model.summary())
         if self.data is not None:

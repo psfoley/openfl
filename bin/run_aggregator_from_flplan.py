@@ -11,7 +11,7 @@ from tfedlrn.flplan import parse_fl_plan, load_yaml, create_aggregator_object_fr
 from setup_logging import setup_logging
 
 
-def main(plan, collaborators_file, single_col_cert_common_name, logging_config_path, logging_default_level):
+def main(plan, collaborators_file, single_col_cert_common_name, logging_config_path, logging_default_level, logging_directory):
     """Runs the aggregator service from the Federation (FL) plan
 
     Args:

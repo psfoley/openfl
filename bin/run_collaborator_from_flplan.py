@@ -14,7 +14,7 @@ from tfedlrn.flplan import create_collaborator_object_from_flplan, parse_fl_plan
 from setup_logging import setup_logging
 
 
-def main(plan, collaborator_common_name, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level):
+def main(plan, collaborator_common_name, single_col_cert_common_name, data_config_fname, logging_config_fname, logging_default_level, logging_directory):
     """Runs the collaborator client process from the federation (FL) plan
 
     Args:

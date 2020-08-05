@@ -36,9 +36,8 @@ fname="col_$FQDN"
 echo "Creating collaborator key pair with following settings: CN=$FQDN SAN=$subject_alt_name"
 
 SAN=$subject_alt_name openssl req -new -config config/client.conf -out $fname.csr -keyout $fname.key -subj "/CN=$FQDN" -reqexts $extensions
+openssl ca -config config/signing-ca.conf -batch -in $fname.csr -out $fname.crt
 
 mkdir -p $fname
-mv $fname.csr $fname.key $fname
-
-echo "Send the following 6 hex values to the signing party to confirm your CSR:"
-openssl sha256 $fname/$fname.csr | sed 's/.*\(......\)/\1/'
+mv $fname.crt $fname.key $fname
+rm $fname.csr

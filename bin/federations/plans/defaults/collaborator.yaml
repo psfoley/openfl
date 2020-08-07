@@ -2,4 +2,4 @@
 # Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
 
 opt_treatment     : 'CONTINUE_LOCAL'
-send_model_deltas : False
+send_model_deltas : True

@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from threading import Lock
 from tfedlrn import TensorKey
 
 class TensorDB(object):
@@ -9,6 +10,7 @@ class TensorDB(object):
     """
     def __init__(self):
         self.tensor_db = pd.DataFrame([], columns=['tensor_name','origin','round','tags','nparray'])
+        self.mutex = Lock()
 
     def __repr__(self):
         with pd.option_context('display.max_rows', None):
@@ -31,14 +33,18 @@ class TensorDB(object):
 	None
         """
 
-        for tensor_key,nparray in tensor_key_dict.items():
-            tensor_name = tensor_key[0]
-            origin = tensor_key[1]
-            round = tensor_key[2]
-            tags = tensor_key[3]
-            df = pd.DataFrame([[tensor_name,origin,round,tags,nparray]], \
-                              columns=['tensor_name','origin','round','tags','nparray'])
-            self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)
+        self.mutex.acquire(blocking=True)
+        try:
+            for tensor_key,nparray in tensor_key_dict.items():
+                tensor_name = tensor_key[0]
+                origin = tensor_key[1]
+                round = tensor_key[2]
+                tags = tensor_key[3]
+                df = pd.DataFrame([[tensor_name,origin,round,tags,nparray]], \
+                                  columns=['tensor_name','origin','round','tags','nparray'])
+                self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)
+        finally:
+            self.mutex.release()
 
 
     def get_tensor_from_cache(self, tensor_key):
@@ -98,6 +104,8 @@ class TensorDB(object):
                                     (self.tensor_db['tags'] == new_tags)]['nparray']
             #print(raw_df)
             if len(raw_df) == 0:
+                print('No results for collaborator {}, TensorKey={}'.format(\
+                        col,TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],new_tags)))
                 return None
             else:
                 agg_tensor_dict[col] = raw_df.iloc[0]

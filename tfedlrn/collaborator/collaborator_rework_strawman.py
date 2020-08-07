@@ -199,9 +199,10 @@ class Collaborator(object):
                 #tensor_dependencies[0] corresponds to the prior version of the model. 
                 #If it exists locally, should pull the remote delta because this is the least costly path
                 prior_model_layer = self.tensor_db.get_tensor_from_cache(tensor_dependencies[0])
-                if prior_model_layer != None:
+                if prior_model_layer is not None:
                     uncompressed_delta = self.get_aggregated_tensor_from_aggregator(tensor_dependencies[1])
-                    nparray = self.tensor_codec.apply_delta(tensor_dependencies[1],uncompressed_delta,prior_model_layer)
+                    new_model_tk, nparray = self.tensor_codec.apply_delta(tensor_dependencies[1],uncompressed_delta,prior_model_layer)
+                    self.logger.debug('Applied delta to tensor {}'.format(tensor_dependencies[0][0]))
                 else:
                     #The original model tensor should be fetched from aggregator
                     nparray = self.get_aggregated_tensor_from_aggregator(tensor_key)

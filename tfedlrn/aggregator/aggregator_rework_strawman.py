@@ -211,12 +211,18 @@ class Aggregator(object):
 
         self.logger.debug('Retrieving aggregated tensor {} for collaborator {}'.format(tensor_name,collaborator_name))
 
+        if 'compressed' in tags or require_lossless:
+            compress_lossless=True
+
+        #TODO the TensorDB doesn't support compressed data yet. The returned tensor will
+        #be recompressed anyway.
+        if 'compressed' in tags:
+            tags.remove('compressed')
+
         tensor_key = TensorKey(tensor_name, self.uuid, round_number,tuple(tags))
         send_model_deltas = False
         compress_lossless = False
 
-        if 'compressed' in tensor_key[3] or require_lossless:
-            compress_lossless=True
 
         if 'aggregated' in tensor_key[3] and 'delta' in tensor_key[3] and round_number != 0:
             send_model_deltas = True
@@ -306,7 +312,7 @@ class Aggregator(object):
         data_size           = request.data_size
         named_tensors       = request.tensors
         
-        self.logger.info('Collaborator {} is sending task results for round {}'.format(collaborator_name,round_number))
+        self.logger.info('Collaborator {} is sending task results for {}, round {}'.format(collaborator_name,task_name,round_number))
 
         # TODO: do we drop these on the floor?
         # if round_number != self.round_number:
@@ -319,7 +325,9 @@ class Aggregator(object):
             raise ValueError("Aggregator already has task results from collaborator {} for task {}".format(collaborator_name, task_key))
 
         # initialize the list of tensors that go with this task
-        self.collaborator_tasks_results[task_key] = []
+        #Setting these incrementally is leading to missing values
+        #self.collaborator_tasks_results[task_key] = []
+        task_results = []
 
         # go through the tensors and add them to the tensor dictionary and the task dictionary
         for named_tensor in named_tensors:
@@ -330,10 +338,12 @@ class Aggregator(object):
             # quite a bit happens in here, including decompression, delta handling, etc...
             tensor_key, nparray = self.process_named_tensor(named_tensor,collaborator_name)
 
-            self.collaborator_tasks_results[task_key].append(tensor_key)
+            task_results.append(tensor_key)
             #By giving task_key it's own weight, we can support different training/validation weights
             #As well as eventually supporting weights that change by round (if more data is added)
             self.collaborator_task_weight[task_key] = data_size
+
+        self.collaborator_tasks_results[task_key] = task_results
         
         self.end_of_task_check(task_name)
 
@@ -356,6 +366,7 @@ class Aggregator(object):
                      'bool_list': proto.bool_list} for proto in named_tensor.transformer_metadata]
         #The tensor has already been transfered to aggregator, so the newly constructed tensor should have the aggregator origin
         tensor_key = TensorKey(named_tensor.name, self.uuid, named_tensor.round_number, tuple(named_tensor.tags))
+        assert('compressed' in tensor_key[3] or 'lossy_decompressed' in tensor_key[3]), 'Named tensor {} is not compressed'.format(tensor_key)
         if 'compressed' in tensor_key[3]:
             temp_tk, decompressed_nparray =  \
                     self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,require_lossless=True)
@@ -387,7 +398,9 @@ class Aggregator(object):
             final_nparray = decompressed_nparray
 
 
+        assert(final_nparray is not None), 'Could not create tensorkey {}'.format(final_tensor_key)
         self.tensor_db.cache_tensor({final_tensor_key: final_nparray})
+        self.logger.debug('Created TensorKey: {}'.format(final_tensor_key))
         
         return final_tensor_key, final_nparray
 
@@ -406,7 +419,7 @@ class Aggregator(object):
                                                                   tensor_key[2]-1,\
                                                                   ('model',))) 
         
-          assert(model_nparray != None), "The original model layer should be present if the latest aggregated model is present"
+          assert(model_nparray is not None), "The original model layer should be present if the latest aggregated model is present"
           delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
           delta_comp_tensor_key,delta_comp_nparray,metadata = \
                   self.tensor_codec.compress(delta_tensor_key,delta_nparray,lossless=compress_lossless)
@@ -423,8 +436,6 @@ class Aggregator(object):
 
     def end_of_task_check(self, task_name):
         if self.is_task_done(task_name):
-            #self.aggregate_task_results(task_name)
-            
             # now check for the end of the round
             self.end_of_round_check()
 
@@ -458,6 +469,8 @@ class Aggregator(object):
                     agg_results = self.tensor_db.get_aggregated_tensor(agg_tensor_key,collaborator_weight_dict)
                     if 'metric' == tensor_key[3][0]:
                         #Print the aggregated metric
+                        if agg_results is None:
+                            self.logger.warning('Aggregated metric {} could not be collect for round {}. Skipping reporting for this round'.format(agg_tensor_key[0],self.round_number))
                         self.logger.info('{0}:\t{1:.4f}'.format(tensor_key[0],agg_results))
                         #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
                     if 'trained' in tensor_key[3][0]:
@@ -469,11 +482,12 @@ class Aggregator(object):
                         agg_tag_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2]+1,('aggregated',))
                         self.tensor_db.cache_tensor({agg_tag_tk:agg_results})
 
-                        #Create delta
+                        #Create delta and save it in TensorDB
                         base_model_tk = TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],('model',))
                         base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tk)
                         if base_model_nparray is not None:
                             delta_tk,delta_nparray = self.tensor_codec.generate_delta(agg_tag_tk,agg_results,base_model_nparray)
+                            self.tensor_db.cache_tensor({delta_tk:delta_nparray})
                         else:
                             #This condition is possible for base model optimizer states (i.e. Adam/iter:0, SGD, etc.)
                             #These values couldn't be present for the base model because no training occurs on the aggregator
@@ -503,6 +517,7 @@ class Aggregator(object):
 
                         #Finally, cache the updated model tensor
                         self.tensor_db.cache_tensor({final_model_tk:new_model_nparray})
+                        #self.logger.debug('TensorDB contents after training round {}: {}'.format(self.round_number,self.tensor_db))
 
            
             #Once all of the task results have been processed

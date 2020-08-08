@@ -10,6 +10,13 @@ import json
 
 
 def main(brats_base, symlink_base):
+    """Create symbolic directory links to the BraTS dataset
+
+    Args:
+        brats_base: The path to the BraTS dataset directory
+        symlink_base: The path to symbolically link the BraTS paths
+
+    """
     
     script_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -31,7 +38,7 @@ def main(brats_base, symlink_base):
         if not os.path.isdir(src):
             raise FileNotFoundError("Brain dir " + src + " not found!")
         os.symlink(src, dst, target_is_directory=True)
-    
+
     print("Be sure when removing links that you don't remove the target!")
 
 

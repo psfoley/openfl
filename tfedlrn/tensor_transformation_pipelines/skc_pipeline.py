@@ -8,20 +8,26 @@ from tfedlrn.tensor_transformation_pipelines import TransformationPipeline, Tran
 class SparsityTransformer(Transformer):
     """ A transformer class to sparsify input data.
     """
-    
+
     def __init__(self, p=0.01):
-        """ 
-        p: sparsity ratio
+        """Initializer
+
+        Args:
+            p (float): sparsity ratio (Default=0.01)
         """
         self.p = p
         return
 
     def forward(self, data, **kwargs):
-        """ Sparsify data and pass over only non-sparsified elements by reducing the array size.                                               
-        data: an numpy array from the model tensor_dict.
-        condensed_data: an numpy array being sparsified.
-        metadata: dictionary to store a list of meta informaiton.                                                                              
-        """ 
+        """ Sparsify data and pass over only non-sparsified elements by reducing the array size.
+
+        Args:
+            data: an numpy array from the model tensor_dict.
+
+        Returns:
+            condensed_data: an numpy array being sparsified.
+            metadata: dictionary to store a list of meta information.
+        """
         self.p = 1
         metadata = {}
         metadata['int_list'] = list(data.shape)
@@ -34,32 +40,40 @@ class SparsityTransformer(Transformer):
         #
         condensed_data = topk
         sparse_data = np.zeros(flatten_data.shape)
-        sparse_data[topk_indices] = topk 
+        sparse_data[topk_indices] = topk
         nonzero_element_bool_indices = sparse_data != 0.0
         metadata['bool_list'] = list(nonzero_element_bool_indices)
         return condensed_data, metadata
 
     def backward(self, data, metadata, **kwargs):
         """ Recover data array with the right shape and numerical type.
-        data: an numpy array with non-zero values.
-        metadata: dictionary to contain information for recovering back to original data array.
-        recovered_data: an numpy array with original shape.
-        """ 
+
+        Args:
+            data: an numpy array with non-zero values.
+            metadata: dictionary to contain information for recovering back to original data array.
+
+        Returns:
+            recovered_data: an numpy array with original shape.
+        """
         data = data.astype(np.float32)
         data_shape = metadata['int_list']
         nonzero_element_bool_indices = list(metadata['bool_list'])
         recovered_data = np.zeros(data_shape).reshape(-1).astype(np.float32)
         recovered_data[nonzero_element_bool_indices] = data
-        recovered_data = recovered_data.reshape(data_shape) 
+        recovered_data = recovered_data.reshape(data_shape)
         return recovered_data
-        
+
 
     def _topk_func(self, x, k):
-        """ Select top k values.                                                                                                               
-        x: an numpy array to be sorted out for top-k components.                                                                               
-        k: k most maximum values.
-        topk_mag: components with top-k values.                                                                                                
-        indices: indices of the top-k components.                                                                                              
+        """ Select top k values.
+
+        Args:
+            x: an numpy array to be sorted out for top-k components.
+            k: k most maximum values.
+
+        Returns:
+            topk_mag: components with top-k values.
+            indices: indices of the top-k components.
         """
         # quick sort as default on magnitude
         idx = np.argsort(np.abs(x))
@@ -75,23 +89,27 @@ class SparsityTransformer(Transformer):
 
 class KmeansTransformer(Transformer):
     """ A transformer class to quantize input data.
-    """ 
+    """
     def __init__(self, n_cluster=6):
         self.n_cluster = n_cluster
         return
 
     def forward(self, data, **kwargs):
         """ Quantize data into n_cluster levels of values.
-        data: an flattened numpy array. 
-        int_data: an numpy array being quantized.
-        metadata: dictionary to store a list of meta information.
+
+        Args:
+            data: an flattened numpy array.
+
+        Returns:
+            int_data: an numpy array being quantized.
+            metadata: dictionary to store a list of meta information.
         """
         # clustering
         data = data.reshape((-1,1))
         k_means = cluster.KMeans(n_clusters=self.n_cluster, n_init=self.n_cluster)
         k_means.fit(data)
         quantized_values = k_means.cluster_centers_.squeeze()
-        indices = k_means.labels_ 
+        indices = k_means.labels_
         quant_array = np.choose(indices, quantized_values)
         int_array, int2float_map = self._float_to_int(quant_array)
         metadata = {}
@@ -101,9 +119,13 @@ class KmeansTransformer(Transformer):
 
     def backward(self, data, metadata, **kwargs):
         """ Recover data array back to the original numerical type.
-        data: an numpy array with non-zero values.
-        metadata: dictionary to contain information for recovering back to original data array.
-        data (return): an numpy array with original numerical type.
+
+        Args:
+            data: an numpy array with non-zero values
+            metadata: dictionary to contain information for recovering back to original data array
+
+        Returns:
+            data: an numpy array with original numerical type
         """
         # convert back to float
         data = copy.deepcopy(data)
@@ -115,6 +137,12 @@ class KmeansTransformer(Transformer):
 
     def _float_to_int(self, np_array):
         """ Creating look-up table for conversion between floating and integer types.
+
+        Args:
+            np_array
+
+        Returns:
+            int_array, int_to_float_map
         """
         flatten_array = np_array.reshape(-1)
         unique_value_array = np.unique(flatten_array)
@@ -130,7 +158,7 @@ class KmeansTransformer(Transformer):
             int_array[indices] = idx
         int_array = int_array.reshape(np_array.shape)
         return int_array, int_to_float_map
-            
+
 class GZIPTransformer(Transformer):
     """ A transformer class to losslessly compress data.
     """
@@ -139,6 +167,9 @@ class GZIPTransformer(Transformer):
 
     def forward(self, data, **kwargs):
         """ Compress data into bytes.
+
+        Args:
+            data: an numpy array with non-zero values
         """
         bytes_ = data.astype(np.float32).tobytes()
         compressed_bytes_ = gzip.compress(bytes_)
@@ -147,6 +178,13 @@ class GZIPTransformer(Transformer):
 
     def backward(self, data, metadata, **kwargs):
         """ Decompress data into numpy of float32.
+
+        Args:
+            data: an numpy array with non-zero values
+            metadata: dictionary to contain information for recovering back to original data array
+
+        Returns:
+            data:
         """
         decompressed_bytes_ = gzip.decompress(data)
         data = np.frombuffer(decompressed_bytes_, dtype=np.float32)
@@ -155,9 +193,16 @@ class GZIPTransformer(Transformer):
 class SKCPipeline(TransformationPipeline):
     """ A pipeline class to compress data lossly using sparsity and k-means methods.
     """
-    
+
     def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
-        """ Initializing a pipeline of transformers. 
+        """ Initializing a pipeline of transformers.
+
+        Args:
+            p_sparsity (float): Sparsity factor (Default=0.01)
+            n_cluster (int): Number of K-Means clusters (Default=6)
+
+        Returns:
+            Data compression transformer pipeline object
         """
         # instantiate each transformer
         self.p = p_sparsity

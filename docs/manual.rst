@@ -10,4 +10,3 @@ Manual
    overview
    install
    running_the_federation
-   

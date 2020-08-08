@@ -3,6 +3,7 @@
 
 import time
 import os
+import shutil
 import logging
 import time
 
@@ -86,6 +87,14 @@ class Aggregator(object):
         self.mutex = Lock()
 
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
+        # if collaborators are sending model deltas, aggregator side tracking of non-delta global model is needed (restoration & saving models)
+        self.non_delta_dict = None
+
+    def update_non_delta_dict(self, tensor_dict):
+        if set(self.non_delta_dict.keys()) != set(tensor_dict.keys()):
+            raise ValueError("Attempting to update base with tensors whose names do not match current base names.")
+        self.non_delta_dict = {key: (self.non_delta_dict[key] + tensor_dict[key]) for key in tensor_dict}
+
 
     def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
         """Determine if the collaborator certificate and ID are valid for this federation.
@@ -242,38 +251,66 @@ class Aggregator(object):
         round_loss = self.get_weighted_average_of_collaborators(self.per_col_round_stats["loss_results"],
                                                                 self.per_col_round_stats["collaborator_training_sizes"])
 
-        # compute the weighted validation average
-        round_val = self.get_weighted_average_of_collaborators(self.per_col_round_stats["agg_validation_results"],
-                                                                self.per_col_round_stats["collaborator_validation_sizes"])
+        # compute the weighted average of collaborator pre-train validation (valiation of this round's initial global model)
+        round_initial_global_val = self.get_weighted_average_of_collaborators(self.per_col_round_stats["agg_validation_results"],
+                                                                              self.per_col_round_stats["collaborator_validation_sizes"])
+
+        # if this round initial global is best global seen so far, save it as such
+        if self.best_model_score is None or self.best_model_score < round_initial_global_val:
+            if self.best_model_score is None:
+                # The inital global model being evaluated here is the very first global model (and is self.model)
+                dump_proto(self.model, self.best_model_fpath)
+            else:
+                # The inital global model being evaluated here resides at the latest model fpath (self.model may be a delta)
+                shutil.copyfile(self.latest_model_fpath, self.best_model_fpath)
+            self.best_model_score = round_initial_global_val
+            self.logger.info("Saved the best model with score {:f}.".format(round_initial_global_val))
+            
 
         # FIXME: proper logging
-        self.logger.info('round results for model id/version {}/{}'.format(self.model.header.id, self.model.header.version))
-        self.logger.info('\tvalidation: {}'.format(round_val))
-        self.logger.info('\tloss: {}'.format(round_loss))
+        self.logger.info(20*'#')
+        self.logger.info('round {} results for model id/version {}/{}'.format(self.round_num, self.model.header.id, self.model.header.version))
+        self.logger.info('\tround {} initial global validation: {}'.format(self.round_num, round_initial_global_val))
+        self.logger.info('\tweighted average of end of round {} local training loss: {}'.format(self.round_num, round_loss))
+        self.logger.info(20*'#')
 
         self.tb_writer.add_scalars('training/loss', {**self.per_col_round_stats["loss_results"], "federation": round_loss}, global_step=self.round_num)
         self.tb_writer.add_scalars('training/size', self.per_col_round_stats["collaborator_training_sizes"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/preagg_result', self.per_col_round_stats["preagg_validation_results"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num-1)
-        self.tb_writer.add_scalars('validation/agg_result', {**self.per_col_round_stats["agg_validation_results"], "federation": round_val}, global_step=self.round_num-1)
+        self.tb_writer.add_scalars('validation/preagg_results', self.per_col_round_stats["preagg_validation_results"], global_step=self.round_num)
+        self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num)
+        self.tb_writer.add_scalars('validation/global_val_results', {**self.per_col_round_stats["agg_validation_results"], "federation": round_initial_global_val}, global_step=self.round_num-1)
 
-        # construct the model protobuf from in progress tensors (with incremented version number)
-        self.model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"],
-                                     model_id=self.model.header.id,
-                                     model_version=self.model.header.version + 1,
-                                     is_delta=self.model_update_in_progress["is_delta"],
-                                     delta_from_version=self.model_update_in_progress["delta_from_version"],
+        # prepare an initial global model for next round (not yet setting it as self.model)
+        temp_model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
+                                     model_id=self.model.header.id, 
+                                     model_version=self.model.header.version + 1, 
+                                     is_delta=self.model_update_in_progress["is_delta"], 
                                      compression_pipeline=self.compression_pipeline)
+        
+        
+        # create and/or update the non delta dict
+        if self.model_update_in_progress['is_delta']:
+            if self.model.header.version == 0:
+                # set up tracking of non-delta global model using the exact version 0 all collaborators use 
+                self.non_delta_dict = deconstruct_proto(self.model, self.compression_pipeline)
+            # we update here with a delta that has passed through compression/decompression, so as to exactly match next round collaborator initial global models
+            self.update_non_delta_dict(tensor_dict=deconstruct_proto(temp_model, self.compression_pipeline))
+        
+        # set the initial global model for next round
+        self.model = temp_model
 
+        # determine the model protobuf for saving to disk (exactly matching next round collaborator initial global models)
+        if self.model_update_in_progress['is_delta']:
+            model_to_save = construct_proto(tensor_dict=self.non_delta_dict, 
+                                            model_id=self.model.header.id, 
+                                            model_version=self.model.header.version + 1, 
+                                            is_delta=False, 
+                                            compression_pipeline=NoCompressionPipeline())
+        else:
+            model_to_save = self.model
+       
         # Save the new model as latest model.
-        dump_proto(self.model, self.latest_model_fpath)
-
-        model_score = round_val
-        if self.best_model_score is None or self.best_model_score < model_score:
-            self.logger.info("Saved the best model with score {:f}.".format(model_score))
-            self.best_model_score = model_score
-            # Save a model proto version to file as current best model.
-            dump_proto(self.model, self.best_model_fpath)
+        dump_proto(model_to_save, self.latest_model_fpath)
 
         # clear the update pointer
         self.model_update_in_progress = None
@@ -305,7 +342,6 @@ class Aggregator(object):
             # Get the model parameters from the model proto and additional model info
             model_tensors = deconstruct_proto(model_proto=message.model, compression_pipeline=self.compression_pipeline)
             is_delta = message.model.header.is_delta
-            delta_from_version = message.model.header.delta_from_version
 
             # validate this model header
             check_equal(message.model.header.id, self.model.header.id, self.logger)
@@ -320,8 +356,7 @@ class Aggregator(object):
             # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
             if self.model_update_in_progress is None:
                 self.model_update_in_progress = {"tensor_dict": model_tensors,
-                                                 "is_delta": is_delta,
-                                                 "delta_from_version": delta_from_version}
+                                                 "is_delta": is_delta}
 
             # otherwise, we compute the streaming weighted average
             else:
@@ -339,10 +374,9 @@ class Aggregator(object):
                 # FIXME: right now we're really using names just to sanity check consistent ordering
 
                 # check that the models include the same number of tensors, and that whether or not
-                # it is a delta and from what version is the same
+                # it is a delta is the same
                 check_equal(len(self.model_update_in_progress["tensor_dict"]), len(model_tensors), self.logger)
                 check_equal(self.model_update_in_progress["is_delta"], is_delta, self.logger)
-                check_equal(self.model_update_in_progress["delta_from_version"], delta_from_version, self.logger)
 
                 # aggregate all the model tensors in the tensor_dict
                 # (weighted average of local update l and global tensor g for all l, g)
@@ -520,9 +554,10 @@ class Aggregator(object):
                 raise RuntimeError('First collaborator model download, and we only have a delta.')
         elif message.model_header.is_delta != self.model.header.is_delta:
             raise RuntimeError('Collaborator requesting non-initial download should hold a model with the same is_delta as aggregated model.')
-        elif message.model_header.is_delta and (message.model_header.delta_from_version != self.model.header.delta_from_version):
-            # TODO: In the future we could send non-delta model here to restore base model.
-            raise NotImplementedError('Base of download model delta does not match current collaborator base, and aggregator restoration of base model not implemented.')
+        elif message.model_header.is_delta and (self.model.header.version - message.model_header.version) > 1:
+            # TODO: Here we could provide the collaborator with a non-delta version 
+            #       (Note: we should only apply lossless compression in this case)
+            raise NotImplementedError('Collaborator is too far behind global model to make use of a delta.')
 
         reply = GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
 

@@ -66,9 +66,9 @@ class Collaborator(object):
                  polling_interval=4,
                  opt_treatment="CONTINUE_GLOBAL",
                  compression_pipeline=None,
-                 epochs_per_round=1.0,
-                 num_batches_per_round=None,
-                 send_model_deltas = False,
+                 epochs_per_round=1.0, 
+                 num_batches_per_round=None, 
+                 send_model_deltas = True,
                  single_col_cert_common_name=None,
                  **kwargs):
         self.logger = logging.getLogger(__name__)
@@ -84,6 +84,7 @@ class Collaborator(object):
             self.single_col_cert_common_name = '' # FIXME: this is just for protobuf compatibility. Cleaner solution?
         self.counter = 0
         self.model_header = ModelHeader(id=wrapped_model.__class__.__name__,
+                                        is_delta=send_model_deltas,
                                         version=-1)
         # number of epochs to perform per round of FL (is a float that is converted
         # to num_batches before calling the wrapped model train_batches method).
@@ -111,9 +112,9 @@ class Collaborator(object):
         self._remove_and_save_holdout_tensors(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
         # when sending model deltas, baseline values for shared tensors must be kept
         self.send_model_deltas = send_model_deltas
-        # the base_for_deltas attibute is only accessed in the case that model deltas are being sent
+        # the base_dict_for_deltas attibute is only used in the case that model deltas are being sent
         if self.send_model_deltas:
-            self.base_for_deltas = {"tensor_dict": None, "version": None}
+            self.base_dict_for_deltas = None
 
     def _remove_and_save_holdout_tensors(self, tensor_dict):
         """Removes tensors from the tensor dictionary
@@ -132,55 +133,29 @@ class Collaborator(object):
             self.logger.debug("{} removed {} from tensor_dict".format(self, list(self.holdout_tensors.keys())))
         return shared_tensors
 
-    def create_deltas(self, tensor_dict):
-        """Calculates the model delta from the tensor dictionary
-
-        Args:
-            tensor_dict: Dictionary of tensors
-
-        Returns:
-            A dictionary of the delta between the tensor_dict and the base tensor_dict
-        """
-
+    def create_delta_dict(self, tensor_dict):
         if not self.send_model_deltas:
             raise ValueError("Should not be creating deltas when not sending deltas.")
-        base_tensors = self.base_for_deltas["tensor_dict"]
-        base_version = self.base_for_deltas["version"]
-        if base_tensors is None:
+        if self.base_dict_for_deltas is None:
             raise ValueError("Attempting to create deltas when no base tensors are known.")
-        elif set(base_tensors.keys()) != set(tensor_dict.keys()):
+        elif set(self.base_dict_for_deltas.keys()) != set(tensor_dict.keys()):
             raise ValueError("Attempting to convert to deltas when base tensor names do not match ones to convert.")
-        else:
-            deltas = {"tensor_dict": {key: (tensor_dict[key] - base_tensors[key]) for key in base_tensors},
-                      "delta_from_version": base_version}
-        return deltas
+        delta_dict = {key: (tensor_dict[key] - self.base_dict_for_deltas[key]) for key in self.base_dict_for_deltas}
+        return delta_dict
 
-    def update_base_for_deltas(self, tensor_dict, delta_from_version, version, is_delta=True):
-        """Update the base model weights with the delta weights from the aggregator
-
-        Args:
-            tensor_dict: Dictionary of tensors
-            delta_from_version: The delta tensors for the update
-            version: The new version of the model
-
-        """
-
+    def update_base_for_deltas(self, tensor_dict, is_delta):
         if not self.send_model_deltas:
             raise ValueError("Should not be handing a base for deltas when not sending deltas.")
-        if self.base_for_deltas["tensor_dict"] is None:
+        if self.base_dict_for_deltas is None:
             if is_delta:
                 raise ValueError("Attempting to update undefined base tensors with a delta.")
             else:
-                self.base_for_deltas["tensor_dict"] = tensor_dict
-                self.base_for_deltas["version"] = version
+                self.base_dict_for_deltas = tensor_dict
         else:
             if is_delta:
-                if set(self.base_for_deltas["tensor_dict"].keys()) != set(tensor_dict.keys()):
+                if set(self.base_dict_for_deltas.keys()) != set(tensor_dict.keys()):
                     raise ValueError("Attempting to update base with tensors whose names do not match current base names.")
-                if delta_from_version != self.base_for_deltas["version"]:
-                    raise ValueError("Attempting update of base with delta measured against different base.")
-                self.base_for_deltas["tensor_dict"] = {key: (self.base_for_deltas["tensor_dict"][key] + tensor_dict[key]) for key in tensor_dict}
-                self.base_for_deltas["version"] = version
+                self.base_dict_for_deltas = {key: (self.base_dict_for_deltas[key] + tensor_dict[key]) for key in tensor_dict}
             else:
                 raise NotImplementedError("Non-delta updates of base tensors currrently only expected for first update.")
 
@@ -320,23 +295,19 @@ class Collaborator(object):
 
         # get the trained tensor dict and store any designated to be held out from aggregation
         shared_tensors = self._remove_and_save_holdout_tensors(self.wrapped_model.get_tensor_dict(with_opt_vars=self._with_opt_vars()))
-
-        # create the model proto
+        
+        # prep the model proto info
         if self.send_model_deltas:
-            deltas = self.create_deltas(tensor_dict=shared_tensors)
-            model_proto = construct_proto(tensor_dict=deltas["tensor_dict"],
-                                          model_id=self.model_header.id,
-                                          model_version=self.model_header.version,
-                                          compression_pipeline=self.compression_pipeline,
-                                          is_delta=True,
-                                          delta_from_version=deltas["delta_from_version"])
+            tensor_dict = self.create_delta_dict(tensor_dict=shared_tensors)
         else:
-            model_proto = construct_proto(tensor_dict=shared_tensors,
-                                          model_id=self.model_header.id,
-                                          model_version=self.model_header.version,
-                                          compression_pipeline=self.compression_pipeline,
-                                          is_delta=False,
-                                          delta_from_version=-1)
+            tensor_dict = shared_tensors
+
+        # create the model proto    
+        model_proto = construct_proto(tensor_dict=tensor_dict, 
+                                      model_id=self.model_header.id, 
+                                      model_version=self.model_header.version, 
+                                      compression_pipeline=self.compression_pipeline, 
+                                      is_delta=self.send_model_deltas)
 
         self.logger.debug("{} - Sending the model to the aggregator.".format(self))
 
@@ -375,9 +346,8 @@ class Collaborator(object):
 
         # handling possability that the recieved model is delta
         received_model_is_delta = received_model_proto.header.is_delta
-        received_model_delta_from_version = received_model_proto.header.delta_from_version
-
-
+        
+    
         self.logger.info("{} took {} seconds to download the model".format(self, round(time.time() - download_start, 3)))
 
         self.validate_header(reply)
@@ -387,22 +357,20 @@ class Collaborator(object):
 
         # ensure we actually got a new model version
         check_not_equal(received_model_version, self.model_header.version, self.logger)
-
-        # set our model header
-        self.model_header = received_model_proto.header
+        
+        # set our model header using the locally defined is_delta attribute and shared model id and version
+        self.model_header = ModelHeader(id=received_model_proto.header.id,
+                                        is_delta=self.send_model_deltas,
+                                        version=received_model_proto.header.version)
 
         # compute the aggregated tensors dict from the model proto
         agg_tensor_dict = deconstruct_proto(model_proto=received_model_proto, compression_pipeline=self.compression_pipeline)
-
-        # TODO: If updating of base is not done every round, we will no longer be able to use the base to get
-        #       the current global values of the shared tensors.
+        
         if self.send_model_deltas:
-            self.update_base_for_deltas(tensor_dict=agg_tensor_dict,
-                                        delta_from_version=received_model_delta_from_version,
-                                        version=received_model_version,
+            self.update_base_for_deltas(tensor_dict=agg_tensor_dict, 
                                         is_delta=received_model_is_delta)
-            # base_for_deltas can provide the global shared tensor values here
-            agg_tensor_dict = self.base_for_deltas["tensor_dict"]
+            # base_dict_for_deltas can be used to replace the aggregated delta tensor dict with non delta values
+            agg_tensor_dict = self.base_dict_for_deltas
 
         # restore any tensors held out from aggregation
         tensor_dict = {**agg_tensor_dict, **self.holdout_tensors}

@@ -25,23 +25,10 @@ def model_proto_to_bytes_and_metadata(model_proto):
     return bytes_dict, metadata_dict
 
 
-def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_delta, delta_from_version, metadata_dict):
-    """Convert the bytes and meta data into a model protobuf
+def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_delta, metadata_dict):
 
-    Args:
-        bytes_dict: Dictionary of the bytes contained in the model protobuf
-        model_id: The unique label for the model
-        model_version: The version of the model
-        is_delta (bool): If True, then only the model delta is encoded.
-        delta_from_version: Delta from version
-        metadata_dict: Dictionary of the meta data in the model protobuf
-
-    Returns:
-        protobuf: A protobuf of the model
-    """
-
-    model_header = ModelHeader(id=model_id, version=model_version, is_delta=is_delta, delta_from_version=delta_from_version)
-
+    model_header = ModelHeader(id=model_id, version=model_version, is_delta=is_delta)
+    
     tensor_protos = []
     for key, data_bytes in bytes_dict.items():
         transformer_metadata = metadata_dict[key]
@@ -68,21 +55,7 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_de
     return ModelProto(header=model_header, tensors=tensor_protos)
 
 
-def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_version, compression_pipeline):
-    """Construct the protobuf
-
-    Args:
-        tensor_dict: Dictionary of the tensors
-        model_id: The unique label for the model
-        model_version: The version of the model
-        is_delta (bool): If True, then only the model delta is encoded.
-        delta_from_version: Delta from version
-        compression_pipeline: The compression pipeline object
-
-    Returns:
-        protobuf: A protobuf of the model
-    """
-
+def construct_proto(tensor_dict, model_id, model_version, is_delta, compression_pipeline):
     # compress the arrays in the tensor_dict, and form the model proto
     # TODO: Hold-out tensors from the compression pipeline.
     bytes_dict = {}
@@ -94,8 +67,7 @@ def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_v
     model_proto = bytes_and_metadata_to_model_proto(bytes_dict=bytes_dict,
                                                     model_id=model_id,
                                                     model_version=model_version,
-                                                    is_delta=is_delta,
-                                                    delta_from_version=delta_from_version,
+                                                    is_delta=is_delta, 
                                                     metadata_dict=metadata_dict)
     return model_proto
 

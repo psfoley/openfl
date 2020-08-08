@@ -18,7 +18,7 @@ collaborator_object_init:
     epochs_per_round: 1.0
     opt_treatment: RESET
     polling_interval: 4
-    send_model_deltas: false
+    send_model_deltas: True
 
 data_object_init:
   class_to_init: data.pytorch.ptmnist_inmemory.PyTorchMNISTInMemory

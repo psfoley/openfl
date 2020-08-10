@@ -1,53 +1,37 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-# Compose an FL plan in JSON/YAML.
+# Compose an FL plan in YAML
 # The plan is consumed by bin/run_simulation_from_flplan.py,
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and
 # bin/create_initial_weights_file_from_plan.py
 
-# Note the use of yaml anchors and aliases in order to enforce dependencies
-# across portions of the config:
-# The anochor '&' assigns a name to a piece of the config
-# The alias '*' references an achor 
+aggregator_object_init:
+  init_kwargs:
+    best_model_fname: keras_cnn_mnist_best.pbuf
+    init_model_fname: keras_cnn_mnist_init.pbuf
+    latest_model_fname: keras_cnn_mnist_latest.pbuf
+    rounds_to_train: 16
 
-# values for first level keys: model, aggregator, and collaborator
-# pass in the generic kwargs for those constructors
-# (ex. collaborator id will be collaborator specific)
-
-# values for first level keys: model and data pass in the generic
-# kwargs for get_model and get_data functions
-
-# values for the first level key: hostnames is used in the creation of the public
-# key infrastructure
-
-# The model version is used to validate model updates
-# Aggregator, collaborator, and fed ids (as well as model version) are currently
-# used to validate message headers. Collaborator ids are also
-# used for identifying the data folder of each collaborator
-# (using the local_data_config yaml file)
-
-aggregator:
-  rounds_to_train: 16
-  init_model_fname: keras_cnn_mnist_init.pbuf
-  latest_model_fname: keras_cnn_mnist_latest.pbuf
-  best_model_fname: keras_cnn_mnist_best.pbuf
+collaborator_object_init:
+  init_kwargs:
+    epochs_per_round: 1.0
+    opt_treatment: RESET
+    polling_interval: 4
+    send_model_deltas: false
 
 compression_pipeline:
-    module_name: tfedlrn.tensor_transformation_pipelines
-    class_name: RandomShiftPipeline
+  class_to_init: tfedlrn.tensor_transformation_pipelines.RandomShiftPipeline
 
-model:
-  module_name: models.tensorflow.keras_cnn.keras_cnn
-  class_name: KerasCNN
+data_object_init:
+  class_to_init: data.tensorflow.tfmnist_inmemory.TensorFlowMNISTInMemory
+  data_name_in_local_config: mnist_shard
+  init_kwargs:
+    batch_size: 256
+    nb_collaborators: 10
 
-collaborator:
-  defaults_file: defaults/collaborator.yaml
+model_object_init:
+  class_to_init: models.tensorflow.keras_cnn.keras_cnn.KerasCNN
 
-network:
+network_object_init:
   defaults_file: defaults/network.yaml
-
-data:
-  defaults_file: defaults/data_tf_mnist.yaml
-  nb_collaborators: 10
-  batch_size: 256

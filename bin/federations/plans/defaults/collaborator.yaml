@@ -3,5 +3,5 @@
 
 polling_interval  : 4
 opt_treatment     : 'RESET'
-send_model_deltas : False
+send_model_deltas : True
 epochs_per_round  : 1.0

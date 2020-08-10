@@ -54,9 +54,8 @@ message MessageHeader {
 message ModelHeader {
     string id = 1;
     bool is_delta = 2;
-    int32 delta_from_version = 3;
     // FIXME: is this version or rounds trained? We need to know rounds trained somewhere, and this currently does track that
-    int32 version = 4;
+    int32 version = 3;
 }
 
 message ModelProto {

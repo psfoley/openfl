@@ -27,7 +27,7 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     level: DEBUG
     formatter: simple
-    filename: ./logs/aggregator.log
+    filename: aggregator.log
     maxBytes: 10000000
     backupCount: 20
     encoding: utf8
@@ -35,7 +35,7 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     level: DEBUG
     formatter: simple
-    filename: ./logs/collaborator.log
+    filename: collaborator.log
     maxBytes: 10000000
     backupCount: 20
     encoding: utf8

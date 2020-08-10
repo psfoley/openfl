@@ -7,7 +7,7 @@ import logging.config
 import coloredlogs
 import yaml
 
-def setup_logging(path="logging.yaml", default_level='info'):
+def setup_logging(path="logging.yaml", default_level='info', logging_directory=None):
     """Defines the various log levels
 
     * 'notset': logging.NOTSET
@@ -44,6 +44,9 @@ def setup_logging(path="logging.yaml", default_level='info'):
                 for handler_name in config["handlers"]:
                     handler_config = config["handlers"][handler_name]
                     if "filename" in handler_config:
+                        # FIXME: quick fix to enable overriding the log directory. This is a near-term hack. We need to rethink logging in general.
+                        if logging_directory is not None:
+                            handler_config['filename'] = os.path.join(logging_directory, os.path.basename(handler_config['filename']))
                         file_path = os.path.abspath(handler_config["filename"])
                         logdir_path = os.path.dirname(file_path)
                         if not os.path.exists(logdir_path):

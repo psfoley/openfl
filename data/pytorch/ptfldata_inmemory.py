@@ -22,6 +22,7 @@ class PyTorchFLDataInMemory(FLData):
         self.batch_size = batch_size
         self.train_loader = None
         self.val_loader = None
+        self.inference_loader = None
         self.training_data_size = None
         self.validation_data_size = None
 
@@ -56,6 +57,16 @@ class PyTorchFLDataInMemory(FLData):
         # If so will have to decide whether to replace the loader.
         return self.val_loader
 
+    def get_inference_loader(self):
+        """
+        Get inferencing data loader 
+
+        Returns
+        -------
+        loader object (class defined by inheritor)
+        """
+        return self.inference_loader
+
     def get_training_data_size(self):
         """Get total number of training samples
 
@@ -73,26 +84,35 @@ class PyTorchFLDataInMemory(FLData):
         return self.validation_data_size
 
 
-    def create_loader(self, X, y):
+    def create_loader(self, X, y, shuffle):
         """Create the data loader using the Torch Tensor methods
 
         Args:
             X: the input data
             y: the label data
+            shuffle: whether to shuffle in-between batch draws
 
         Returns:
             A `PyTorch DataLoader object <https://pytorch.org/docs/1.1.0/_modules/torch/utils/data/dataloader.html`_
         """
-        # DEBUG
-        print('\nlength of data: ', len(X))
         if isinstance(X[0], np.ndarray):
             tX = torch.stack([torch.Tensor(i) for i in X])
         else:
             tX = torch.Tensor(X)
-        if isinstance(y[0], np.ndarray):
-            ty = torch.stack([torch.Tensor(i) for i in y])
+        if y is None:
+            return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX), 
+                                               batch_size=self.batch_size, 
+                                               shuffle=shuffle)
         else:
-            ty = torch.Tensor(y)
-        return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX, ty),
-                                           batch_size=self.batch_size,
-                                           shuffle=True)
+            if isinstance(y[0], np.ndarray):
+                ty = torch.stack([torch.Tensor(i) for i in y])
+            else:
+                ty = torch.Tensor(y)
+            return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX, ty), 
+                                               batch_size=self.batch_size, 
+                                               shuffle=shuffle)
+
+
+
+
+        

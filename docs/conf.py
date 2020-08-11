@@ -39,7 +39,7 @@ extensions = [
 
 # This will replace the |variables| within the rST documents automatically
 
-OPENSOURCE_VERSION=True
+OPENSOURCE_VERSION=False
 
 if OPENSOURCE_VERSION:
     

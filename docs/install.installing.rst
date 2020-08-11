@@ -32,7 +32,7 @@ Initial Steps
 .. code-block:: console
    :substitutions:
 
-   $ cd |productZip|
+   $ cd |productDir|
 
 3. Install Python 3 and the Python `virtual environment <https://docs.python.org/3.6/library/venv.html#module-venv>`_.
 

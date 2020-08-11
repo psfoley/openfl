@@ -16,9 +16,9 @@ pages:
   - export https_proxy=http://proxy-us.intel.com:912
   - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
 
-  - apk --no-cache add make build-essential libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev python-dev python3-dev python-pip
+  - apk --no-cache add make 
   - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev 
-  - pip install pillow sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm rst2pdf
+  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm
   
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn
@@ -26,14 +26,11 @@ pages:
   - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
-  - sphinx-build -b pdf . _build/pdf
-  - mv _build/pdf/ ../public/
   artifacts:
     paths:
     - public
   only:
   - master
-
 
 test_spsm_gpu:
     stage: test

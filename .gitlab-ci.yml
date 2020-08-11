@@ -26,6 +26,7 @@ pages:
   - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
+  - rst2pdf index.rst ../public/pdf/
   artifacts:
     paths:
     - public

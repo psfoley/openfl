@@ -36,9 +36,19 @@ import sphinxcontrib.napoleon
 extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autosectionlabel',
+    'sphinx_substitution_extensions',
     "sphinxcontrib.napoleon",
     "rinoh.frontend.sphinx"
 ]
+
+# Global variables for rST
+rst_prolog = """
+.. |productName| replace:: Open Federated Learning
+.. |productZip| replace:: OpenFederatedLearning.zip
+.. |productDir| replace:: OpenFederatedLearning
+
+.. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
+"""
 
 rinoh_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
 

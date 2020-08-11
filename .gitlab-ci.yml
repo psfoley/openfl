@@ -27,7 +27,7 @@ pages:
   - make html
   - mv _build/html/ ../public/
   - sphinx-build -b rinoh . _build/rinoh
-  - mv _build/rinoh/ ../public/
+  - mv _build/rinoh/*.pdf ../public/pdf/
   
   artifacts:
     paths:

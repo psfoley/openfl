@@ -26,6 +26,8 @@ pages:
   - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
+  - sphinx-build -b pdf . _build/pdf
+  - mv _build/pdf/ ../public/
   artifacts:
     paths:
     - public

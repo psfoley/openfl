@@ -26,7 +26,8 @@ pages:
   - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
-  - rst2pdf index.rst ../public/pdf/
+  - rst2pdf index.rst ../public/intel_fledge_manual.pdf
+  
   artifacts:
     paths:
     - public

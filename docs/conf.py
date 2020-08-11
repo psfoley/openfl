@@ -60,16 +60,16 @@ if OPENSOURCE_VERSION:
 
 else:
     
-    project = 'FLedge'
+    project = 'FL.edge'
     copyright = '2020, Intel'
     author = 'Secure Intelligence Team'
     master_doc = 'index'
     
     # Global variables for rST
     rst_prolog = """
-    .. |productName| replace:: Open Federated Learning
-    .. |productZip| replace:: OpenFederatedLearning.zip
-    .. |productDir| replace:: OpenFederatedLearning
+    .. |productName| replace:: Intel FL.Edge
+    .. |productZip| replace:: intel_fledge.zip
+    .. |productDir| replace:: intel_fledge
     
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """

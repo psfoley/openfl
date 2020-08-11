@@ -37,10 +37,10 @@ extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autosectionlabel',
     "sphinxcontrib.napoleon",
-    "rst2pdf.pdfbuilder"
+    "rinoh.frontend.sphinx"
 ]
 
-pdf_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
+rinoh_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
 
 napoleon_google_docstring = True
 

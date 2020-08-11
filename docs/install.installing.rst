@@ -1,11 +1,10 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-.. # .. |productName| replace:: Intel FLedge
-.. # .. |productZip| replace:: spr_secure_intelligence-trusted_federated_learning.zip
 
 .. |productName| replace:: Open Federated Learning
 .. |productZip| replace:: OpenFederatedLearning.zip
+.. |productDir| replace:: OpenFederatedLearning
 
 
 ***********************
@@ -19,7 +18,6 @@ is used to isolate the packages.
 The basic installation is via the `Makefile`__ included in the root directory of the repository.
 
 .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
-.. # .. _Makefile: https://gitlab.devtools.intel.com/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning/-/blob/master/Makefile
 
 Initial Steps
 #############
@@ -31,13 +29,13 @@ Initial Steps
 
 .. code-block:: console
 
-   $ unzip spr_secure_intelligence-trusted_federated_learning.zip
+   $ unzip |productZip|__
 
 2.	Change into the project directory.
 
 .. code-block:: console
 
-   $ cd spr_secure_intelligence-trusted_federated_learning
+   $ cd |productZip|__
 
 3. Install Python 3 and the Python `virtual environment <https://docs.python.org/3.6/library/venv.html#module-venv>`_.
 

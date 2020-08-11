@@ -23,12 +23,14 @@ Initial Steps
 1.	Unzip the source code |productZip|
 
 .. code-block:: console
+   :substitutions:
 
    $ unzip |productZip|
 
 2.	Change into the project directory.
 
 .. code-block:: console
+   :substitutions:
 
    $ cd |productZip|
 
@@ -157,10 +159,3 @@ the output would be:
 
    $ Successfully tagged tfl_agg_keras_cnn_abc123:0.1
    $ Successfully tagged tfl_col_cpu_keras_cnn_abc123:0.1
-   
-.. |productName| replace:: Open Federated Learning
-.. |productZip| replace:: OpenFederatedLearning.zip
-.. |productDir| replace:: OpenFederatedLearning
-
-.. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
-

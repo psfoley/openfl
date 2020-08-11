@@ -18,13 +18,6 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../'))
 
-# -- Project information -----------------------------------------------------
-
-project = 'FLedge'
-copyright = '2020, Intel'
-author = 'Secure Intelligence Team'
-master_doc = 'index'
-
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -42,16 +35,47 @@ extensions = [
     'sphinx_substitution_extensions',
 ]
 
-# Global variables for rST
-rst_prolog = """
-.. |productName| replace:: Open Federated Learning
-.. |productZip| replace:: OpenFederatedLearning.zip
-.. |productDir| replace:: OpenFederatedLearning
+# -- Project information -----------------------------------------------------
 
-.. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
-"""
+# This will replace the |variables| within the rST documents automatically
 
-rinoh_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
+OPENSOURCE_VERSION=True
+
+if OPENSOURCE_VERSION:
+    
+    project = 'Open Federated Learning'
+    author = 'FeTS'
+    master_doc = 'index'
+    
+    # Global variables for rST
+    rst_prolog = """
+    .. |productName| replace:: Open Federated Learning
+    .. |productZip| replace:: OpenFederatedLearning.zip
+    .. |productDir| replace:: OpenFederatedLearning
+    
+    .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
+    """
+
+    rinoh_documents = [('index', u'open_fl_manual', u'Open Federated Learning Manual', u'FeTS')]
+
+else:
+    
+    project = 'FLedge'
+    copyright = '2020, Intel'
+    author = 'Secure Intelligence Team'
+    master_doc = 'index'
+    
+    # Global variables for rST
+    rst_prolog = """
+    .. |productName| replace:: Open Federated Learning
+    .. |productZip| replace:: OpenFederatedLearning.zip
+    .. |productDir| replace:: OpenFederatedLearning
+    
+    .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
+    """
+
+    rinoh_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
+
 
 napoleon_google_docstring = True
 

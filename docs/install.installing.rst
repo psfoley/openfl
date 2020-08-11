@@ -2,11 +2,6 @@
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 
-.. |productName| replace:: Open Federated Learning
-.. |productZip| replace:: OpenFederatedLearning.zip
-.. |productDir| replace:: OpenFederatedLearning
-
-
 ***********************
 Installing the Software
 ***********************
@@ -17,7 +12,7 @@ A Python 3 `virtual environment (venv) <https://docs.python-guide.org/dev/virtua
 is used to isolate the packages.
 The basic installation is via the `Makefile`__ included in the root directory of the repository.
 
-.. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
+
 
 Initial Steps
 #############
@@ -162,3 +157,10 @@ the output would be:
 
    $ Successfully tagged tfl_agg_keras_cnn_abc123:0.1
    $ Successfully tagged tfl_col_cpu_keras_cnn_abc123:0.1
+   
+.. |productName| replace:: Open Federated Learning
+.. |productZip| replace:: OpenFederatedLearning.zip
+.. |productDir| replace:: OpenFederatedLearning
+
+.. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
+

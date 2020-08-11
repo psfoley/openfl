@@ -36,9 +36,9 @@ import sphinxcontrib.napoleon
 extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autosectionlabel',
-    'sphinx_substitution_extensions',
     "sphinxcontrib.napoleon",
-    "rinoh.frontend.sphinx"
+    "rinoh.frontend.sphinx",
+    'sphinx_substitution_extensions',
 ]
 
 # Global variables for rST

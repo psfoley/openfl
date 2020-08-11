@@ -7,6 +7,7 @@ import tqdm
 import tensorflow as tf
 
 from models import FLModel
+from tfedlrn import TensorKey
 
 
 class TensorFlowFLModel(FLModel):
@@ -22,6 +23,9 @@ class TensorFlowFLModel(FLModel):
 
         # construct the shape needed for the input features
         self.input_shape = (None,) + self.data.get_feature_shape() 
+        
+        #Required tensorkeys for all public functions in TensorFlowFLModel
+        self.required_tensorkeys_for_function = {}
 
         # child classes should have __init__ function signature (self, data, kwargs), 
         # and should overwrite at least the following while defining the model
@@ -47,7 +51,23 @@ class TensorFlowFLModel(FLModel):
         # self.tvars + self.opt_vars 
         self.fl_vars = None
 
-    def train_batches(self, num_batches, use_tqdm=False):
+    def rebuild_model(self, round, input_tensor_dict):
+        """
+        Parse tensor names and update weights of model. Handles the optimizer treatment
+
+        Returns
+        -------
+        None
+        """
+        if self.opt_treatment == 'RESET':
+            self.reset_opt_vars()
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
+        elif round > 0 and self.opt_treatment == 'CONTINUE_GLOBAL':
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=True)
+        else:
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
+
+    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches, use_tqdm=False,**kwargs):
         """
         Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
         replacement until data is exausted. Then data is replaced and shuffled and draws continue.
@@ -57,6 +77,14 @@ class TensorFlowFLModel(FLModel):
         float
             loss
         """
+        batch_size = self.data.batch_size
+
+        if kwargs['batch_size']:
+            batch_size = kwargs['batch_size']
+
+        #rebuild model with updated weights
+        self.rebuild_model(round_num, input_tensor_dict)
+
         tf.keras.backend.set_learning_phase(True)
 
         losses = []
@@ -64,7 +92,7 @@ class TensorFlowFLModel(FLModel):
 
         while batch_num < num_batches:
             # get iterator for batch draws (shuffling happens here)
-            gen = self.data.get_train_loader()
+            gen = self.data.get_train_loader(batch_size)
             if use_tqdm:
                 gen = tqdm.tqdm(gen, desc="training epoch")
 
@@ -75,7 +103,29 @@ class TensorFlowFLModel(FLModel):
                     losses.append(self.train_batch(X, y))
                     batch_num += 1
 
-        return np.mean(losses)
+        #Output metric tensors (scalar)
+        origin = col_name
+        output_metric_dict = {TensorKey(self.loss_name,origin,round_num,('metric',)): np.array(np.mean(losses))}
+
+        #output model tensors (Doesn't include TensorKey)
+        output_model_dict = self.get_tensor_dict(with_opt_vars=True)
+
+        #Create new dict with TensorKey (this could be moved to get_tensor_dict potentially)
+        tags = ('trained',)
+        output_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in output_model_dict.items()}
+
+        output_tensor_dict = {**output_metric_dict,**output_tensorkey_model_dict}
+
+        #Update the required tensors if they need to be pulled from the aggregator
+        #TODO this logic can break if different collaborators have different roles between rounds.
+        #For example, if a collaborator only performs validation in the first round but training
+        #in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
+        #because these are only created after training occurs. A work around could involve doing a single epoch of training
+        #on random data to get the optimizer names, and then throwing away the model.
+        if self.opt_treatment == 'CONTINUE_GLOBAL':
+            self.initialize_tensorkeys_for_functions(with_opt_vars=True)
+
+        return output_tensor_dict
 
     def train_batch(self, X, y):
         feed_dict = {self.X: X, self.y: y}
@@ -84,7 +134,7 @@ class TensorFlowFLModel(FLModel):
         _, loss = self.sess.run([self.train_step, self.loss], feed_dict=feed_dict)
         return loss
 
-    def validate(self, batch_size=None, use_tqdm=False):
+    def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
         """
         Run validation.
 
@@ -93,11 +143,17 @@ class TensorFlowFLModel(FLModel):
         dict
             {<metric>: <value>}
         """
+        batch_size = self.data.batch_size
+
+        if kwargs['batch_size']:
+            batch_size = kwargs['batch_size']
+
+        self.rebuild_model(round_num, input_tensor_dict)
         tf.keras.backend.set_learning_phase(False)
 
         score = 0
 
-        gen = self.data.get_val_loader()
+        gen = self.data.get_val_loader(batch_size)
         if use_tqdm:
             gen = tqdm.tqdm(gen, desc="validating")
 
@@ -106,7 +162,16 @@ class TensorFlowFLModel(FLModel):
             _, s = self.validate_batch(X, y)
             score += s * weight
 
-        return score
+        origin = col_name
+        suffix = 'validate'
+        if kwargs['local_model'] == True:
+            suffix += '_local'
+        else:
+            suffix += '_agg'
+        tags = ('metric',suffix)
+        output_tensor_dict = {TensorKey(self.validation_metric_name,origin,round_num,tags): np.array(score)}
+
+        return output_tensor_dict
 
     def validate_batch(self, X, y):
         feed_dict = {self.X: X, self.y: y}
@@ -170,6 +235,75 @@ class TensorFlowFLModel(FLModel):
         None
         """
         self.sess.run(tf.global_variables_initializer())
+
+    def _get_weights_names(self, with_opt_vars=True):
+        """
+        Get the weights.
+        Parameters
+        ----------
+        with_opt_vars : bool
+            Specify if we also want to get the variables of the optimizer.
+
+        Returns
+        -------
+        list
+            The weight names list
+        """
+        if with_opt_vars is True:
+            variables =  self.fl_vars
+        else:
+            variables = self.tvars
+
+        return [var.name for var in variables]
+
+    def get_required_tensorkeys_for_function(self, func_name, **kwargs):
+        """
+        Get the required tensors for specified function that could be called as part of a task.
+        By default, this is just all of the layers and optimizer of the model. 
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        List
+            [TensorKey]
+        """
+
+        if func_name == 'validate':
+            local_model = 'local_model=' + str(kwargs['local_model'])
+            return self.required_tensorkeys_for_function[func_name][local_model]
+        else:
+            return self.required_tensorkeys_for_function[func_name]
+
+
+    def initialize_tensorkeys_for_functions(self,with_opt_vars=False):
+        """
+        Set the required tensors for all publicly accessible methods that could be called as part of a task.
+        By default, this is just all of the layers and optimizer of the model. Custom tensors should be added to this function
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+
+        #Minimal required tensors for train function
+        tensor_names = self._get_weights_names(with_opt_vars=with_opt_vars)
+        self.logger.debug('Initial model tensor names: {}'.format(tensor_names))
+        self.required_tensorkeys_for_function['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names]
+
+        #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
+        self.required_tensorkeys_for_function['validate'] = {}
+        #TODO This is not stateless. The optimizer will not be
+        self.required_tensorkeys_for_function['validate']['local_model=True'] = \
+                [TensorKey(tensor_name,'LOCAL',0,('trained',)) for tensor_name in tensor_names]
+        self.required_tensorkeys_for_function['validate']['local_model=False'] = \
+                [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names] 
 
 
 

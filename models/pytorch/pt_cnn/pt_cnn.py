@@ -92,7 +92,9 @@ class PyTorchCNN(PyTorchFLModel):
         x = self.fc2(x)
         return F.log_softmax(x, dim=1)
 
-    def validate(self, use_tqdm=False):
+    def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
+
+        self.rebuild_model(round_num, input_tensor_dict) 
         self.eval()
         val_score = 0
         total_samples = 0
@@ -110,10 +112,21 @@ class PyTorchCNN(PyTorchFLModel):
                 pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
                 target_categorical = target.argmax(dim=1, keepdim=True)
                 val_score += pred.eq(target_categorical).sum().cpu().numpy()
-                
-        return val_score / total_samples
 
-    def train_batches(self, num_batches, use_tqdm=False): 
+        origin = col_name
+        suffix = 'validate'
+        if kwargs['local_model'] == True:
+            suffix += '_local'
+        else:
+            suffix += '_agg'
+        tags = ('metric',suffix)
+        output_tensor_dict = {TensorKey('Accuracy',origin,round_num,tags): np.array(val_score/total_samples)} 
+                
+        return output_tensor_dict
+
+    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches, use_tqdm=False): 
+
+        self.rebuild_model(round_num,input_tensor_dict)
         # set to "training" mode
         self.train()
         
@@ -141,7 +154,29 @@ class PyTorchCNN(PyTorchFLModel):
 
                     batch_num += 1
 
-        return np.mean(losses)
+        #Output metric tensors (scalar)
+        origin = col_name
+        tags = ('trained',)
+        output_metric_dict = {TensorKey(self.loss_fn.__name__,origin,round_num,('metric',)): np.array(np.mean(losses))}
+
+        #output model tensors (Doesn't include TensorKey)
+        output_model_dict = self.get_tensor_dict(with_opt_vars=True)
+
+        #Create new dict with TensorKey (this could be moved to get_tensor_dict potentially)
+        output_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in output_model_dict.items()}
+
+        output_tensor_dict = {**output_metric_dict,**output_tensorkey_model_dict}
+
+        #Update the required tensors if they need to be pulled from the aggregator
+        #TODO this logic can break if different collaborators have different roles between rounds.
+        #For example, if a collaborator only performs validation in the first round but training
+        #in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
+        #because these are only created after training occurs. A work around could involve doing a single epoch of training
+        #on random data to get the optimizer names, and then throwing away the model.
+        if self.opt_treatment == 'CONTINUE_GLOBAL':
+            self.initialize_tensorkeys_for_functions()
+
+        return output_tensor_dict
 
     def reset_opt_vars(self):
         self._init_optimizer()

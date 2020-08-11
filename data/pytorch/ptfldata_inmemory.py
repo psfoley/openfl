@@ -82,7 +82,7 @@ class PyTorchFLDataInMemory(FLData):
         return self.validation_data_size
 
 
-    def create_loader(self, X, y):
+    def create_loader(self, X, y, batch_size=self.batch_size):
         # DEBUG
         print('\nlength of data: ', len(X))
         if isinstance(X[0], np.ndarray):
@@ -94,7 +94,7 @@ class PyTorchFLDataInMemory(FLData):
         else:
             ty = torch.Tensor(y)
         return torch.utils.data.DataLoader(dataset=torch.utils.data.TensorDataset(tX, ty), 
-                                           batch_size=self.batch_size, 
+                                           batch_size=batch_size, 
                                            shuffle=True)
 
 

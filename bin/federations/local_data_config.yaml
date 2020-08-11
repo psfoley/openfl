@@ -11,11 +11,11 @@ collaborators:
   col_one_big:
     brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0-9'
   col_0:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/0'
+    brats: '/home/pfoley1/brats/0'
     mnist_shard: 0
     cifar10_shard: 0
   col_1:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
+    brats: '/home/pfoley1/brats/1'
     mnist_shard: 1
     cifar10_shard: 1
   col_2:

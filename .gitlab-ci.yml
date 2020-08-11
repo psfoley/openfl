@@ -18,7 +18,7 @@ pages:
 
   - apk --no-cache add make 
   - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev  zlib-dev jpeg-dev
-  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm rst2pdf
+  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm rinohtype
   
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn
@@ -26,8 +26,8 @@ pages:
   - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
-#  - rst2pdf index.rst ../public/intel_fledge_manual.pdf
-  - sphinx-build -b pdf . ../public/pdf/
+  - sphinx-build -b rinoh . _build/rinoh
+  - mv _build/rinoh/ ../public/
   
   artifacts:
     paths:

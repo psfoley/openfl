@@ -17,29 +17,20 @@ The basic installation is via the `Makefile`_ included in the root directory of 
 Initial Steps
 #############
 
-|RST|_ is a little annoying to type over and over, especially
-when writing about |RST| itself, and spelling out the
-bicapitalized word |RST| every time isn't really necessary for
-|RST| source readability.
-
-.. |RST| replace:: reStructuredText
-.. _RST: http://docutils.sourceforge.net/rst.html
-
-
 .. note::
    You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.
 
-1.	Unzip the source code |productZip|_
+1.	Unzip the source code |productZip|
 
 .. code-block:: console
 
-   $ unzip |productZip|_
+   $ unzip |productZip|
 
 2.	Change into the project directory.
 
 .. code-block:: console
 
-   $ cd |productZip|_
+   $ cd |productZip|
 
 3. Install Python 3 and the Python `virtual environment <https://docs.python.org/3.6/library/venv.html#module-venv>`_.
 

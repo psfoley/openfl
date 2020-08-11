@@ -10,7 +10,7 @@ Intel has tested the installation on `Ubuntu 18.04 <https://releases.ubuntu.com/
 and `Centos 7.6 <https://www.centos.org/>`_ systems.
 A Python 3 `virtual environment (venv) <https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv>`_
 is used to isolate the packages.
-The basic installation is via the `Makefile`__ included in the root directory of the repository.
+The basic installation is via the `Makefile`_ included in the root directory of the repository.
 
 
 
@@ -24,13 +24,13 @@ Initial Steps
 
 .. code-block:: console
 
-   $ unzip |productZip|__
+   $ unzip |productZip|_
 
 2.	Change into the project directory.
 
 .. code-block:: console
 
-   $ cd |productZip|__
+   $ cd |productZip|_
 
 3. Install Python 3 and the Python `virtual environment <https://docs.python.org/3.6/library/venv.html#module-venv>`_.
 
@@ -39,9 +39,9 @@ You can find the instructions on the official
 `Python website <https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#installing-virtualenv>`_.
 You may need to log out and back in for the changes to take effect.
 
-   .. code-block:: console
-
-     $ python3 -m pip install --user virtualenv
+.. code-block:: console
+   
+   $ python3 -m pip install --user virtualenv
 
 
 4.	Use a text editor to open the YAML file for the federation plan.

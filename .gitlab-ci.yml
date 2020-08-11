@@ -18,7 +18,7 @@ pages:
 
   - apk --no-cache add make 
   - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev 
-  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm
+  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm rst2pdf
   
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn

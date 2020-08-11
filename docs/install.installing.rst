@@ -1,6 +1,13 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
+.. # .. |productName| replace:: Intel FLedge
+.. # .. |productZip| replace:: spr_secure_intelligence-trusted_federated_learning.zip
+
+.. |productName| replace:: Open Federated Learning
+.. |productZip| replace:: OpenFederatedLearning.zip
+
+
 ***********************
 Installing the Software
 ***********************
@@ -9,10 +16,10 @@ Intel has tested the installation on `Ubuntu 18.04 <https://releases.ubuntu.com/
 and `Centos 7.6 <https://www.centos.org/>`_ systems.
 A Python 3 `virtual environment (venv) <https://docs.python-guide.org/dev/virtualenvs/#lower-level-virtualenv>`_
 is used to isolate the packages.
-The basic installation is via the `Makefile <https://gitlab.devtools.intel.com/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning/-/blob/master/Makefile>`_
-included in the root directory
-of the repository.
+The basic installation is via the `Makefile`__ included in the root directory of the repository.
 
+.. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
+.. # .. _Makefile: https://gitlab.devtools.intel.com/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning/-/blob/master/Makefile
 
 Initial Steps
 #############
@@ -99,7 +106,8 @@ the aggregator and the collaborators. Note that you can add custom
 Python packages by editing this section in the Makefile.
 
 .. figure:: images/custom_packages.png
-   :scale: 80 %
+
+   :scale: 50 %
 
    How to install a custom package in the virtual environment.
 
@@ -107,7 +115,7 @@ Just add your own line. For example,
 
 .. code-block:: console
 
-   venv/bin/pip3 install my_package 
+   venv/bin/pip3 install my_package
 
 
 .. _install_docker:
@@ -149,10 +157,10 @@ For example,
 This should create the Docker containers that are used by the aggregator
 and the collaborators. It will append the *$DOCKER_LABEL* and the
 name of the user that created the container. For example,
-if user **intel123** ran the command using the Docker label *keras_cnn* then
+if user **abc123** ran the command using the Docker label *keras_cnn* then
 the output would be:
 
 .. code-block:: console
 
-   $ Successfully tagged tfl_agg_keras_cnn_intel123:0.1
-   $ Successfully tagged tfl_col_cpu_keras_cnn_intel123:0.1
+   $ Successfully tagged tfl_agg_keras_cnn_abc123:0.1
+   $ Successfully tagged tfl_col_cpu_keras_cnn_abc123:0.1

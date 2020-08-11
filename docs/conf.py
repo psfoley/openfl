@@ -38,6 +38,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     "sphinxcontrib.napoleon",
     "rinoh.frontend.sphinx",
+    "sphinx-prompt",
     'sphinx_substitution_extensions',
 ]
 

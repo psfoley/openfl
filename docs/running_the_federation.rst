@@ -91,7 +91,7 @@ will see log messages describing the progress of the federated training.
 
 .. only:: Intel
 
-.. _running_docker:
+  .. _running_docker:
 
     Running on Docker
     #################

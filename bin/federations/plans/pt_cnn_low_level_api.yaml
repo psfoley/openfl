@@ -53,13 +53,13 @@ tasks:
     kwargs    :
       metrics :
       - acc
-      local_model: false
+      apply: global
   locally_tuned_model_validation:
     function  : validate
     kwargs    :
       metrics :
       - acc
-      local_model: true
+      apply: local
   train:
     function  : train_batches
     kwargs    :

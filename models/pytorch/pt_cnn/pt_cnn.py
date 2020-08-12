@@ -118,7 +118,7 @@ class PyTorchCNN(PyTorchFLModel):
 
         origin = col_name
         suffix = 'validate'
-        if kwargs['local_model'] == True:
+        if kwargs['apply'] == 'local':
             suffix += '_local'
         else:
             suffix += '_agg'

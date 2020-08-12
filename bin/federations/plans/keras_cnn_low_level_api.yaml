@@ -55,14 +55,14 @@ tasks:
       metrics :
       - acc
       batch_size: 32
-      local_model: false
+      apply: global
   locally_tuned_model_validation:
     function  : validate
     kwargs    :
       metrics :
       - acc
       batch_size: 32
-      local_model: true
+      apply: local
   train:
     function  : train
     kwargs    :

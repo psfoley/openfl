@@ -177,7 +177,7 @@ class PyTorchFLModel(nn.Module, FLModel):
         """
 
         if func_name == 'validate':
-            local_model = 'local_model=' + str(kwargs['local_model'])
+            local_model = 'apply=' + str(kwargs['apply'])
             return self.required_tensorkeys_for_function[func_name][local_model]
         else:
             return self.required_tensorkeys_for_function[func_name]
@@ -208,9 +208,9 @@ class PyTorchFLModel(nn.Module, FLModel):
         #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
         self.required_tensorkeys_for_function['validate'] = {}
         #TODO This is not stateless. The optimizer will not be
-        self.required_tensorkeys_for_function['validate']['local_model=True'] = \
+        self.required_tensorkeys_for_function['validate']['apply=local'] = \
                 [TensorKey(tensor_name,'LOCAL',0,('trained',)) for tensor_name in tensor_names]
-        self.required_tensorkeys_for_function['validate']['local_model=False'] = \
+        self.required_tensorkeys_for_function['validate']['apply=global'] = \
                 [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names]
 
 def _derive_opt_state_dict(opt_state_dict):

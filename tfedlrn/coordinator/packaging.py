@@ -55,7 +55,7 @@ def get_sha256_hash_from_files(fpaths):
 
 
 def get_sha256_digest(bytes):
-    """ Get sha256 digest from binary bytes.
+    """Get sha256 digest from binary bytes.
 
     Args:
         bytes (bytes): Binary byte string
@@ -87,12 +87,12 @@ def check_bytes_sha256(bytes, ref_digest):
         return False
 
 def get_code_hash(dir):
-    """ Get the hash string of a folder of Python source code.
+    """Get the hash string of a folder of Python source code.
 
     We traverse all files except *.pyc, sort the files and calcualte sha256.
 
     Args:
-    dir (str): The folder path of the code
+        dir (str): The folder path of the code
 
     Returns:
         str: A hash string
@@ -107,11 +107,11 @@ def zip_files(dir, compression = zipfile.ZIP_DEFLATED):
     """Zip a folder of files.
 
     Args:
-        dir (str) : The folder containing subfolders and files
+        dir (str): The folder containing subfolders and files
         compression (int): The compression lever from 0(fast) to 9(small). ZIP_DEFLATED==6 by default
 
     Returns:
-    bytes: The byte stream of the zip file
+        bytes: The byte stream of the zip file
 
     """
     fpaths = get_src_fpaths(dir, sort=True)

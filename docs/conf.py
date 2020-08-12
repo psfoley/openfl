@@ -16,6 +16,8 @@
 #
 import os
 import sys
+from datetime import datetime
+
 sys.path.insert(0, os.path.abspath('../'))
 
 # -- General configuration ---------------------------------------------------
@@ -49,9 +51,9 @@ def setup(app):
 if PRODUCT_VERSION in ("Intel"):
     
     project = 'FL.edge'
-    copyright = '{now.year}, Intel'
+    copyright = '{}, Intel'.format(datetime.now().year)
     author = 'Secure Intelligence Team'
-    version = "{now.year}.{now.month:02}"
+    version = "{}.{}".format(datetime.now().year, datetime.now().month)
     master_doc = 'index'
     
     # Global variables for rST
@@ -70,7 +72,7 @@ else:
     project = 'Open Federated Learning'
     author = 'FeTS'
     master_doc = 'index'
-    version = "{now.year}.{now.month:02}"
+    version = "{}.{}".format(datetime.now().year, datetime.now().month)
     
     # Global variables for rST
     rst_prolog = """

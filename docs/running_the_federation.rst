@@ -14,7 +14,7 @@ First make sure you've installed the software :ref:`using these instructions <in
 Running on Baremetal
 ####################
 
-We will show you how to set up |ProductName| using a simple `MNIST <https://en.wikipedia.org/wiki/MNIST_database>`_
+We will show you how to set up |productName| using a simple `MNIST <https://en.wikipedia.org/wiki/MNIST_database>`_
 dataset and a `TensorFlow/Keras <https://www.tensorflow.org/>`_
 CNN model as an example.
 
@@ -95,7 +95,7 @@ will see log messages describing the progress of the federated training.
 Running on Docker
 #################
 
-We will show you how to set up |ProductName| on
+We will show you how to set up |productName| on
 Docker using a simple `MNIST <https://en.wikipedia.org/wiki/MNIST_database>`_
 dataset and a `TensorFlow/Keras <https://www.tensorflow.org/>`_
 CNN model as

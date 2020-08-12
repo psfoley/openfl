@@ -19,14 +19,14 @@ Initial Steps
 .. note::
    You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.
 
-1.	Unzip the source code |productZip|
+1.	Unzip the source code **|productZip|**
 
 .. code-block:: console
    :substitutions:
 
    $ unzip |productZip|
 
-2.	Change into the project directory.
+2.	Change into the project directory **|productDir|**.
 
 .. code-block:: console
    :substitutions:
@@ -43,6 +43,14 @@ You may need to log out and back in for the changes to take effect.
 .. code-block:: console
    
    $ python3 -m pip install --user virtualenv
+   
+   
+.. note::
+   If you have trouble installing the virtual environment, make sure you have Python 3 installed on your OS. For example, on Ubuntu:
+
+   .. code-block:: console
+
+     $ sudo apt-get install python3-pip
 
 
 4.	Use a text editor to open the YAML file for the federation plan.

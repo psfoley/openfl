@@ -41,8 +41,8 @@ extensions = [
 # This will replace the |variables| within the rST documents automatically
 
 def setup(app):
-    app.add_config_value('PRODUCT_VERSION', 'Intel', 'env')
-
+    app.add_config_value('PRODUCT_VERSION', 'Intel', True)
+    
 if PRODUCT_VERSION in ("Intel"):
     
     project = 'FL.edge'

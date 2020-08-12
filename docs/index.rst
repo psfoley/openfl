@@ -7,9 +7,9 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-*********************************
+***************************************
 Welcome to |productName| documentation!
-*********************************
+***************************************
 
 |productName| is a Python3 library for federated learning.
 It enables organizations to collaborately train a
@@ -28,8 +28,7 @@ Pytorch.
 |productName| is developed by Intel Labs and Intel Internet of Things Group.
 
 .. toctree::
-
-   :maxdepth: 8
+   :maxdepth: 4
    :caption: Contents:
 
    manual

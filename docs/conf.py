@@ -42,8 +42,8 @@ extensions = [
 
 # This will replace the |variables| within the rST documents automatically
 
-#PRODUCT_VERSION = "Intel"
-PRODUCT_VERSION = "OFL"
+PRODUCT_VERSION = "Intel"
+#PRODUCT_VERSION = "OFL"
 
 tags.add(PRODUCT_VERSION)
     

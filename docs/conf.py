@@ -40,14 +40,17 @@ extensions = [
 
 # This will replace the |variables| within the rST documents automatically
 
+PRODUCT_VERSION = "Intel"
+
 def setup(app):
-    app.add_config_value('PRODUCT_VERSION', 'Intel', True)
+    app.add_config_value('PRODUCT_VERSION', PRODUCT_VERSION, True)
     
 if PRODUCT_VERSION in ("Intel"):
     
     project = 'FL.edge'
     copyright = '2020, Intel'
     author = 'Secure Intelligence Team'
+    version = "2020.8"
     master_doc = 'index'
     
     # Global variables for rST
@@ -66,6 +69,7 @@ else:
     project = 'Open Federated Learning'
     author = 'FeTS'
     master_doc = 'index'
+    version = "2020.8"
     
     # Global variables for rST
     rst_prolog = """

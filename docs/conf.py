@@ -33,6 +33,7 @@ extensions = [
     "rinoh.frontend.sphinx",
     "sphinx-prompt",
     'sphinx_substitution_extensions',
+    "sphinx.ext.ifconfig",
 ]
 
 # -- Project information -----------------------------------------------------

@@ -52,7 +52,7 @@ if PRODUCT_VERSION in ("Intel"):
     
     # Global variables for rST
     rst_prolog = """
-    .. |productName| replace:: Intel FL.Edge
+    .. |productName| replace:: Intel\ :sup:`®` \ Federated Learning (FL.Edge) 
     .. |productZip| replace:: intel_fledge.zip
     .. |productDir| replace:: intel_fledge
     

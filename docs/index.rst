@@ -11,7 +11,7 @@
 Welcome to |productName| documentation!
 *********************************
 
-**|productName|** is a Python3 library for federated learning.
+|productName| is a Python3 library for federated learning.
 It enables organizations to collaborately train a
 model without sharing sensitive information with each other.
 
@@ -25,7 +25,7 @@ The *aggregator* is framework-anostic, while the *collaborator*
 can use any deep learning frameworks, such as Tensorflow or
 Pytorch.
 
-**|productName|** is developed by Intel Labs and Intel Internet of Things Group.
+|productName| is developed by Intel Labs and Intel Internet of Things Group.
 
 .. toctree::
 

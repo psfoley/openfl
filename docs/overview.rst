@@ -9,7 +9,7 @@ Overview
 
    overview.what_is_federated_learning
    
-.. ifconfig:: OPENSOURCE_VERSION == false
+.. ifconfig:: PRODUCT_VERSION in ("Intel")
    overview.how_can_intel_protect_federated_learning
    overview.what_is_intel_federated_learning
 

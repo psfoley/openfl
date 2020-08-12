@@ -42,13 +42,12 @@ extensions = [
 
 # This will replace the |variables| within the rST documents automatically
 
-#PRODUCT_VERSION = "Intel"
-PRODUCT_VERSION = "OFL"
+PRODUCT_VERSION = "Intel"
+#PRODUCT_VERSION = "OFL"
 
-def setup(app):
-    app.add_config_value('PRODUCT_VERSION', PRODUCT_VERSION, True)
+tags.add(PRODUCT_VERSION)
     
-if PRODUCT_VERSION in ("Intel"):
+if PRODUCT_VERSION == "Intel":
     
     project = 'FL.edge'
     copyright = '{}, Intel'.format(datetime.now().year)

@@ -48,9 +48,9 @@ def setup(app):
 if PRODUCT_VERSION in ("Intel"):
     
     project = 'FL.edge'
-    copyright = '2020, Intel'
+    copyright = '{now.year}, Intel'
     author = 'Secure Intelligence Team'
-    version = "2020.8"
+    version = "{now.year}.{now.month:02}"
     master_doc = 'index'
     
     # Global variables for rST
@@ -69,7 +69,7 @@ else:
     project = 'Open Federated Learning'
     author = 'FeTS'
     master_doc = 'index'
-    version = "2020.8"
+    version = "{now.year}.{now.month:02}"
     
     # Global variables for rST
     rst_prolog = """

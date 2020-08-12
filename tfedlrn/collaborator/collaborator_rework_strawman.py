@@ -186,6 +186,7 @@ class Collaborator(object):
         extract_metadata:   The requested tensor may have metadata needed for decompression
         """
         # try to get from the store
+        tensor_name,origin,round_number,tags = tensor_key
         self.logger.debug('Attempting to retrieve tensor {} from local store'.format(tensor_key))
         nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
 
@@ -208,7 +209,7 @@ class Collaborator(object):
                 else:
                     #The original model tensor should be fetched from aggregator
                     nparray = self.get_aggregated_tensor_from_aggregator(tensor_key)
-            elif 'model' in tensor_key[3]:
+            elif 'model' in tags:
                 #Pulling the model for the first time or 
                 nparray = self.get_aggregated_tensor_from_aggregator(tensor_key,require_lossless=True)
         else:
@@ -232,9 +233,7 @@ class Collaborator(object):
         -------
         nparray     : The decompressed tensor associated with the requested tensor key
         """
-        tensor_name = tensor_key[0]
-        round_number = tensor_key[2]
-        tags = tensor_key[3]
+        tensor_name,origin,round_number,tags = tensor_key
         request = TensorRequest(header=self.header,
                                 tensor_name=tensor_name,
                                 round_number=round_number,
@@ -286,24 +285,26 @@ class Collaborator(object):
         """
 
         # if we have an aggregated tensor, we can make a delta
-        if('trained' in tensor_key[0] and self.send_model_deltas):
+        tensor_name,origin,round_number,tags = tensor_key
+        if('trained' in tags and self.send_model_deltas):
           #Should get the pretrained model to create the delta. If training has happened,
           #Model should already be stored in the TensorDB
-          model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_key[0],\
-                                                                  tensor_key[1],\
-                                                                  tensor_key[2],\
+          model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_name,\
+                                                                  origin,\
+                                                                  round_number,\
                                                                   ('model',))) 
         
-          assert(model_nparray != None), "The original model layer should be present if the trained model is present"
-          delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
-          delta_comp_tensor_key,delta_comp_nparray,metadata = self.tensor_codec.compress(delta_tensor_key,delta_nparray)
-          named_tensor = construct_named_tensor(delta_comp_tensor_key,delta_comp_nparray,metadata,lossless=False)
+          #The original model will not be present for the optimizer on the first round.
+          if model_nparray is not None:
+            delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
+            delta_comp_tensor_key,delta_comp_nparray,metadata = self.tensor_codec.compress(delta_tensor_key,delta_nparray)
+            named_tensor = construct_named_tensor(delta_comp_tensor_key,delta_comp_nparray,metadata,lossless=False)
+            return named_tensor
 
-        else:
-            #Assume every other tensor requires lossless compression
-            compressed_tensor_key, compressed_nparray, metadata = \
-                    self.tensor_codec.compress(tensor_key,nparray,require_lossless=True)
-            named_tensor = construct_named_tensor(compressed_tensor_key,compressed_nparray,metadata,lossless=True)
+        #Assume every other tensor requires lossless compression
+        compressed_tensor_key, compressed_nparray, metadata = \
+            self.tensor_codec.compress(tensor_key,nparray,require_lossless=True)
+        named_tensor = construct_named_tensor(compressed_tensor_key,compressed_nparray,metadata,lossless=True)
         
         return named_tensor
 
@@ -316,10 +317,11 @@ class Collaborator(object):
                      'bool_list': proto.bool_list} for proto in named_tensor.transformer_metadata]
         #The tensor has already been transfered to collaborator, so the newly constructed tensor should have the collaborator origin
         tensor_key = TensorKey(named_tensor.name, self.collaborator_name, named_tensor.round_number, tuple(named_tensor.tags))
-        if 'compressed' in tensor_key[3]:
+        tensor_name,origin,round_number,tags = tensor_key
+        if 'compressed' in tags:
             decompressed_tensor_key, decompressed_nparray =  \
                     self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,require_lossless=True)
-        elif 'lossy_compressed' in tensor_key[3]:
+        elif 'lossy_compressed' in tags:
             decompressed_tensor_key, decompressed_nparray =  \
                     self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata)
         else:

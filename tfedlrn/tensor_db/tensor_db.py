@@ -36,10 +36,7 @@ class TensorDB(object):
         self.mutex.acquire(blocking=True)
         try:
             for tensor_key,nparray in tensor_key_dict.items():
-                tensor_name = tensor_key[0]
-                origin = tensor_key[1]
-                round = tensor_key[2]
-                tags = tensor_key[3]
+                tensor_name,origin,round,tags = tensor_key
                 df = pd.DataFrame([[tensor_name,origin,round,tags,nparray]], \
                                   columns=['tensor_name','origin','round','tags','nparray'])
                 self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)
@@ -53,12 +50,13 @@ class TensorDB(object):
         Otherwise, it returns 'None'
         """
 
-        #TODO come up with easy way to ignore compression
+        tensor_name,origin,round,tags = tensor_key
 
-        df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_key[0]) & \
-                            (self.tensor_db['origin'] == tensor_key[1]) & \
-                            (self.tensor_db['round'] == tensor_key[2]) & \
-                            (self.tensor_db['tags'] == tensor_key[3])]
+        #TODO come up with easy way to ignore compression
+        df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name) & \
+                            (self.tensor_db['origin'] == origin) & \
+                            (self.tensor_db['round'] == round) & \
+                            (self.tensor_db['tags'] == tags)]
 
         if len(df) == 0:
             return None
@@ -80,32 +78,35 @@ class TensorDB(object):
         None if not all values are present
         
         """
-        assert(sum(collaborator_weight_dict.values()) == 1.0), "Collaborator weights are not normalized"
+        assert(sum(collaborator_weight_dict.values()) >= 0.99 and \
+               sum(collaborator_weight_dict.values()) <= 1.01), \
+               "Collaborator weights are not normalized"
         collaborator_names = collaborator_weight_dict.keys()
         agg_tensor_dict = {}
         
         #Check if the aggregated tensor is already present in TensorDB
-        raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_key[0]) & \
-                                (self.tensor_db['origin'] == tensor_key[1]) & \
-                                (self.tensor_db['round'] == tensor_key[2]) & \
-                                (self.tensor_db['tags'] == tensor_key[3])]['nparray']
+        tensor_name,origin,round,tags = tensor_key
+
+        raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name) & \
+                                (self.tensor_db['origin'] == origin) & \
+                                (self.tensor_db['round'] == round) & \
+                                (self.tensor_db['tags'] == tags)]['nparray']
         if len(raw_df) > 0:
             return np.array(raw_df.iloc[0])
 
         for col in collaborator_names:
-            if(type(tensor_key[3]) == str):
-                new_tags = tuple([tensor_key[3]] + [col])
-                #print(new_tags)
+            if(type(tags) == str):
+                new_tags = tuple([tags] + [col])
             else:
-                new_tags = tuple(list(tensor_key[3]) + [col])
-            raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_key[0]) & \
-                                    (self.tensor_db['origin'] == tensor_key[1]) & \
-                                    (self.tensor_db['round'] == tensor_key[2]) & \
+                new_tags = tuple(list(tags) + [col])
+            raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name) & \
+                                    (self.tensor_db['origin'] == origin) & \
+                                    (self.tensor_db['round'] == round) & \
                                     (self.tensor_db['tags'] == new_tags)]['nparray']
             #print(raw_df)
             if len(raw_df) == 0:
                 print('No results for collaborator {}, TensorKey={}'.format(\
-                        col,TensorKey(tensor_key[0],tensor_key[1],tensor_key[2],new_tags)))
+                        col,TensorKey(tensor_name,origin,round,new_tags)))
                 return None
             else:
                 agg_tensor_dict[col] = raw_df.iloc[0]

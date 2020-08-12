@@ -40,26 +40,9 @@ extensions = [
 
 # This will replace the |variables| within the rST documents automatically
 
-OPENSOURCE_VERSION=False
+PRODUCT_VERSION="Intel"
 
-if OPENSOURCE_VERSION:
-    
-    project = 'Open Federated Learning'
-    author = 'FeTS'
-    master_doc = 'index'
-    
-    # Global variables for rST
-    rst_prolog = """
-    .. |productName| replace:: Open Federated Learning
-    .. |productZip| replace:: OpenFederatedLearning.zip
-    .. |productDir| replace:: OpenFederatedLearning
-    
-    .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
-    """
-
-    rinoh_documents = [('index', u'open_fl_manual', u'Open Federated Learning Manual', u'FeTS')]
-
-else:
+if PRODUCT_VERSION in ("Intel"):
     
     project = 'FL.edge'
     copyright = '2020, Intel'
@@ -77,6 +60,22 @@ else:
 
     rinoh_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
 
+else:
+    
+    project = 'Open Federated Learning'
+    author = 'FeTS'
+    master_doc = 'index'
+    
+    # Global variables for rST
+    rst_prolog = """
+    .. |productName| replace:: Open Federated Learning
+    .. |productZip| replace:: OpenFederatedLearning.zip
+    .. |productDir| replace:: OpenFederatedLearning
+    
+    .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
+    """
+
+    rinoh_documents = [('index', u'open_fl_manual', u'Open Federated Learning Manual', u'FeTS')]
 
 napoleon_google_docstring = True
 

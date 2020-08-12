@@ -163,13 +163,15 @@ class Collaborator(object):
 
         # now we have whatever the model needs to do the task
         func = getattr(self.model, func_name)
-        output_tensor_dict = func(col_name=self.collaborator_name, round_num=round_number, input_tensor_dict=input_tensor_dict, **kwargs)
+        global_output_tensor_dict,local_output_tensor_dict = \
+                func(col_name=self.collaborator_name, round_num=round_number, input_tensor_dict=input_tensor_dict, **kwargs)
 
-        # Save output_tensor_dict to TensorDB
-        self.tensor_db.cache_tensor(output_tensor_dict)
+        # Save global and local output_tensor_dicts to TensorDB
+        self.tensor_db.cache_tensor(global_output_tensor_dict)
+        self.tensor_db.cache_tensor(local_output_tensor_dict)
 
         # send the results for this tasks; delta and compression will occur in this function
-        self.send_task_results(output_tensor_dict, round_number, task)
+        self.send_task_results(global_output_tensor_dict, round_number, task)
 
     def get_numpy_dict_for_tensorkeys(self, tensor_keys):
         return {k.tensor_name: self.get_data_for_tensorkey(k) for k in tensor_keys}

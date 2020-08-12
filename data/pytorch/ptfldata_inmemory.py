@@ -82,7 +82,9 @@ class PyTorchFLDataInMemory(FLData):
         return self.validation_data_size
 
 
-    def create_loader(self, X, y, batch_size=self.batch_size):
+    def create_loader(self, X, y, batch_size=None):
+        if batch_size is None:
+            batch_size = self.batch_size
         # DEBUG
         print('\nlength of data: ', len(X))
         if isinstance(X[0], np.ndarray):

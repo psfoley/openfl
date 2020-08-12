@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 
 from models import FLModel
+from tfedlrn import TensorKey
 
 
 class PyTorchFLModel(nn.Module, FLModel):
@@ -118,6 +119,20 @@ class PyTorchFLModel(nn.Module, FLModel):
 
         return state
 
+    def _get_weights_names(self, with_opt_vars=False):
+        # Gets information regarding tensor model layers and optimizer state.
+        # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
+        # for now, state dict gives us names which is good
+        # FIXME: do both and sanity check each time?
+
+        state = self.state_dict().keys()
+
+        if with_opt_vars:
+            opt_state = _get_optimizer_state(self.optimizer)
+            state += opt_state.keys()
+
+        return state
+
     def set_tensor_dict(self, tensor_dict, with_opt_vars=False):
         # Sets tensors for model layers and optimizer state.
         # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
@@ -146,7 +161,29 @@ class PyTorchFLModel(nn.Module, FLModel):
     def get_optimizer(self):
         return self.optimizer
 
-    def initialize_tensorkeys_for_functions(self):
+    def get_required_tensorkeys_for_function(self, func_name, **kwargs):
+        """
+        Get the required tensors for specified function that could be called as part of a task.
+        By default, this is just all of the layers and optimizer of the model. 
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        List
+            [TensorKey]
+        """
+
+        if func_name == 'validate':
+            local_model = 'local_model=' + str(kwargs['local_model'])
+            return self.required_tensorkeys_for_function[func_name][local_model]
+        else:
+            return self.required_tensorkeys_for_function[func_name]
+
+
+    def initialize_tensorkeys_for_functions(self,with_opt_vars=False):
         """
         Set the required tensors for all publicly accessible methods that could be called as part of a task.
         By default, this is just all of the layers and optimizer of the model. Custom tensors should be added to this function
@@ -164,7 +201,7 @@ class PyTorchFLModel(nn.Module, FLModel):
         #For now this is done manually
 
         #Minimal required tensors for train function
-        tensor_names = self._get_weights_names(self.model) + self._get_weights_names(self.model.optimizer)
+        tensor_names = self._get_weights_names(with_opt_vars=with_opt_vars)
         self.logger.debug('Initial model tensor names: {}'.format(tensor_names))
         self.required_tensorkeys_for_function['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names]
 

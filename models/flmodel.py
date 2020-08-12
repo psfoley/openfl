@@ -14,7 +14,7 @@ import logging
 
 class FLModel(object):
 
-    def __init__(self, data, tensor_dict_split_fn_kwargs=None, **kwargs):
+    def __init__(self, data, tensor_dict_split_fn_kwargs={}, **kwargs):
         self.data = data
         self.feature_shape = self.data.get_feature_shape()
 

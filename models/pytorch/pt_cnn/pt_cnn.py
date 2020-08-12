@@ -13,6 +13,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from models.pytorch import PyTorchFLModel
+from tfedlrn import TensorKey,split_tensor_dict_for_holdouts
 
 def cross_entropy(output, target):
     return F.binary_cross_entropy_with_logits(input=output, target=target)
@@ -31,6 +32,8 @@ class PyTorchCNN(PyTorchFLModel):
         self.init_network(device=self.device, **kwargs)
         self._init_optimizer()        
         self.loss_fn = cross_entropy
+        self.set_logger()
+        self.initialize_tensorkeys_for_functions()
 
     def _init_optimizer(self):
         self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
@@ -120,11 +123,13 @@ class PyTorchCNN(PyTorchFLModel):
         else:
             suffix += '_agg'
         tags = ('metric',suffix)
-        output_tensor_dict = {TensorKey('Accuracy',origin,round_num,tags): np.array(val_score/total_samples)} 
+        #TODO figure out a better way to pass in metric for this pytorch validate function
+        output_tensor_dict = {TensorKey('acc',origin,round_num,tags): np.array(val_score/total_samples)} 
                 
-        return output_tensor_dict
+        #Empty list represents metrics that should only be stored locally
+        return output_tensor_dict,{}
 
-    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches, use_tqdm=False): 
+    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches, use_tqdm=False,**kwargs): 
 
         self.rebuild_model(round_num,input_tensor_dict)
         # set to "training" mode
@@ -161,11 +166,19 @@ class PyTorchCNN(PyTorchFLModel):
 
         #output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
+        global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
 
-        #Create new dict with TensorKey (this could be moved to get_tensor_dict potentially)
-        output_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in output_model_dict.items()}
+        #Create global tensorkeys
+        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in global_model_dict.items()}
+        #Create tensorkeys that should stay local
+        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in local_model_dict.items()}
+        #The train/validate aggregated function of the next round will look for the updated model parameters. 
+        #This ensures they will be resolved locally
+        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
 
-        output_tensor_dict = {**output_metric_dict,**output_tensorkey_model_dict}
+
+        global_tensor_dict = {**output_metric_dict,**global_tensorkey_model_dict}
+        local_tensor_dict = {**local_tensorkey_model_dict,**next_local_tensorkey_model_dict}
 
         #Update the required tensors if they need to be pulled from the aggregator
         #TODO this logic can break if different collaborators have different roles between rounds.
@@ -176,7 +189,8 @@ class PyTorchCNN(PyTorchFLModel):
         if self.opt_treatment == 'CONTINUE_GLOBAL':
             self.initialize_tensorkeys_for_functions()
 
-        return output_tensor_dict
+        #Return global_tensor_dict, local_tensor_dict
+        return global_tensor_dict,local_tensor_dict
 
     def reset_opt_vars(self):
         self._init_optimizer()

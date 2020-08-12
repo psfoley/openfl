@@ -157,7 +157,6 @@ class Aggregator(object):
         self.check_request(request)
 
         collaborator_name = request.header.sender
-        self.logger.info('Sending tasks to collaborator {} for round {}'.format(collaborator_name,self.round_number))
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():
@@ -191,7 +190,7 @@ class Aggregator(object):
                                  sleep_time=self.get_sleep_time(), # this could be an extensible function if we want
                                  quit=False)
 
-
+        self.logger.info('Sending tasks to collaborator {} for round {}'.format(collaborator_name,self.round_number))
         return TasksResponse(header=self.get_header(collaborator_name),
                              round_number=self.round_number,
                              tasks=tasks,

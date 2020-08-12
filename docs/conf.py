@@ -45,7 +45,7 @@ extensions = [
 PRODUCT_VERSION = "Intel"
 #PRODUCT_VERSION = "OFL"
 
-tags.add(PRODUCT_VERSION)
+tags.add("Intel")
     
 if PRODUCT_VERSION == "Intel":
     

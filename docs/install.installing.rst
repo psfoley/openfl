@@ -119,7 +119,7 @@ Just add your own line. For example,
 
    venv/bin/pip3 install my_package
 
-.. ifconfig:: OPENSOURCE_VERSION == false
+.. only:: Intel
 
     .. _install_docker:
     

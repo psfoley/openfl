@@ -19,14 +19,14 @@ Initial Steps
 .. note::
    You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.
 
-1.	Unzip the source code **|productZip|**
+1.	Unzip the source code |productZip|
 
 .. code-block:: console
    :substitutions:
 
    $ unzip |productZip|
 
-2.	Change into the project directory **|productDir|**.
+2.	Change into the project directory |productDir|.
 
 .. code-block:: console
    :substitutions:

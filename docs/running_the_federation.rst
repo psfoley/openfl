@@ -89,7 +89,8 @@ order to present the correct certificate.
 collaborators have joined, the aggregator will start and you
 will see log messages describing the progress of the federated training.
 
-
+$$PRODUCT_VERSION=="Intel"$$
+   
 .. _running_docker:
 
 Running on Docker
@@ -187,5 +188,4 @@ for the collaborator node to present the correct certificate.
 collaborators have joined, the aggregator will start and
 you will see log messages describing the progress of the federated training.
 
-
- 
+$$$

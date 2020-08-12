@@ -40,7 +40,8 @@ extensions = [
 
 # This will replace the |variables| within the rST documents automatically
 
-PRODUCT_VERSION = "Intel"
+#PRODUCT_VERSION = "Intel"
+PRODUCT_VERSION = "OFL"
 
 def setup(app):
     app.add_config_value('PRODUCT_VERSION', PRODUCT_VERSION, True)

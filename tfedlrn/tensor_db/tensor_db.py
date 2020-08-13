@@ -78,9 +78,10 @@ class TensorDB(object):
         None if not all values are present
         
         """
-        assert(sum(collaborator_weight_dict.values()) >= 0.99 and \
-               sum(collaborator_weight_dict.values()) <= 1.01), \
-               "Collaborator weights are not normalized"
+        if len(collaborator_weight_dict) != 0:
+            assert(sum(collaborator_weight_dict.values()) >= 0.99 and \
+                   sum(collaborator_weight_dict.values()) <= 1.01), \
+                   "Collaborator weights are not normalized"
         collaborator_names = collaborator_weight_dict.keys()
         agg_tensor_dict = {}
         

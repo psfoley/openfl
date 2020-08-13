@@ -36,6 +36,8 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
     agg_config['collaborator_common_names'] = load_yaml(os.path.join(collaborators_dir, collaborators_file))['collaborator_common_names']
 
     init_model_fpath = os.path.join(weights_dir, agg_config['init_model_fname'])
+    latest_model_fpath = os.path.join(weights_dir, agg_config['latest_model_fname'])
+    best_model_fpath = os.path.join(weights_dir, agg_config['best_model_fname'])
 
     if flplan.get('compression_pipeline') is not None:
         compression_pipeline = get_compression_pipeline(**flplan.get('compression_pipeline'))
@@ -49,7 +51,9 @@ def main(plan, collaborators_file, single_col_cert_common_name, logging_config_p
                                rounds=agg_config['rounds_to_train'])
 
     #custom_tensor_dir has any other custom tensors that the user wants present on the aggregator on initialization 
-    agg = Aggregator(initial_model_file_path=init_model_fpath,
+    agg = Aggregator(initial_model_fpath=init_model_fpath,
+                     latest_model_fpath=latest_model_fpath,
+                     best_model_fpath=best_model_fpath,
                      custom_tensor_dir=None,
                      compression_pipeline=compression_pipeline,
                      task_assigner=task_assigner,

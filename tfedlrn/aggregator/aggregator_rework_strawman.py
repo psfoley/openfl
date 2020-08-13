@@ -13,7 +13,7 @@ from tfedlrn import TensorKey,TaskResultKey
 from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline, TensorCodec
 from tfedlrn.tensor_db import TensorDB
 
-from tfedlrn.proto.protoutils import load_proto, construct_proto, deconstruct_proto, construct_named_tensor, deconstruct_model_proto
+from tfedlrn.proto.protoutils import load_proto, dump_proto, construct_proto, deconstruct_proto, construct_named_tensor, construct_model_proto, deconstruct_model_proto
 
 class Aggregator(object):
 
@@ -41,7 +41,9 @@ class Aggregator(object):
                  aggregator_uuid,
                  federation_uuid,
                  collaborator_common_names,
-                 initial_model_file_path,
+                 initial_model_fpath,
+                 latest_model_fpath,
+                 best_model_fpath,
                  custom_tensor_dir,
                  task_assigner,
                  rounds_to_train=256,
@@ -70,7 +72,10 @@ class Aggregator(object):
         self.tensor_db = TensorDB()
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline() 
         self.tensor_codec = TensorCodec(self.compression_pipeline)
-        self.initial_model_file_path = initial_model_file_path
+        self.initial_model_fpath = initial_model_fpath
+        self.best_model_fpath = best_model_fpath
+        self.latest_model_fpath = latest_model_fpath
+        self.best_model_score = None
         self.custom_tensor_dir = custom_tensor_dir
         self.load_initial_tensors() # keys are TensorKeys
         log_dir = './logs/tensorboardX/{}_{}'.format(self.uuid,self.federation_uuid)
@@ -93,15 +98,42 @@ class Aggregator(object):
         ----------
         """
         #If the collaborator requests a delta, this value is set to true
-        self.model = load_proto(self.initial_model_file_path)
-        tensor_dict = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
-        tensor_key_dict = {TensorKey(k,self.uuid,0,('model',)):v for k,v in tensor_dict.items()}
+        self.model = load_proto(self.initial_model_fpath)
+        tensor_dict,round_number = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
+        if round_number > self.round_number:
+            self.logger.info('Starting training from round {} of previously saved model'.format(round_number))
+            self.round_number = round_number
+        tensor_key_dict = {TensorKey(k,self.uuid,self.round_number,('model',)):v for k,v in tensor_dict.items()}
         #All initial model tensors are loaded here
         self.tensor_db.cache_tensor(tensor_key_dict)
         self.logger.debug('This is the initial tensor_db: {}'.format(self.tensor_db))
         if self.custom_tensor_dir != None:
             #Here is where the additional tensors should be loaded into the TensorDB
             pass
+
+    def save_model(self,round_number,file_path):
+        """
+        Save the best or latest model
+
+        Params
+        ------
+        round_number:   Model round to be saved
+        file_path:      Either the best model or latest model file path
+
+        Returns
+        -------
+        None
+        """
+        #Extract the model from TensorDB and set it to the new model
+        og_tensor_dict,_ = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
+        tensor_keys = [TensorKey(k,self.uuid,round_number,('model',)) for k,v in og_tensor_dict.items()]
+        best_tensor_dict = {}
+        for tk in tensor_keys:
+            tk_name,_,_,_ = tk
+            best_tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
+        self.model = construct_model_proto(best_tensor_dict,round_number,self.compression_pipeline)
+        dump_proto(self.model, file_path)
+
 
     def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
         # if self.test_mode_whitelist is None, then the common_name must match collaborator_common_name and be in collaborator_common_names
@@ -231,14 +263,8 @@ class Aggregator(object):
         else:
             agg_tensor_key = tensor_key
         
-        if self.round_number == 0:
-            #We cannot get the relative weights from each of the collaborators because they haven't
-            #Been sent yet. The contents of the weight_dict shouldn't matter because the aggregated model
-            #(i.e. the initialized model loaded from disk) should be found in TensorDB
+        nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
 
-            self.collaborator_weight_dict = {col: 1.0/len(self.collaborator_common_names) for col in self.collaborator_common_names}
-
-        nparray = self.tensor_db.get_aggregated_tensor(tensor_key,self.collaborator_weight_dict)
         if nparray is None:
             raise ValueError("Aggregator does not have an aggregated tensor for {}".format(tensor_key))
 
@@ -475,13 +501,19 @@ class Aggregator(object):
                     agg_tensor_key = TensorKey(tensor_name,origin,round_number,new_tags)
                     agg_tensor_name,agg_origin,agg_round_number,agg_tags = agg_tensor_key
                     agg_results = self.tensor_db.get_aggregated_tensor(agg_tensor_key,collaborator_weight_dict)
-                    if 'metric' == tags[0]:
+                    if 'metric' in tags:
                         #Print the aggregated metric
                         if agg_results is None:
                             self.logger.warning('Aggregated metric {} could not be collect for round {}. Skipping reporting for this round'.format(agg_tensor_name,self.round_number))
                         self.logger.info('{0}:\t{1:.4f}'.format(agg_tensor_name,agg_results))
                         #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
-                    if 'trained' in tags[0]:
+                        if 'validate_agg' in tags:
+                            #Compare the accuracy of the model, and potentially save it
+                            if self.best_model_score is None or self.best_model_score < agg_results:
+                                self.logger.info('Saved the best model with score {:f}'.format(agg_results))
+                                self.best_model_score = agg_results
+                                self.save_model(round_number,self.best_model_fpath)
+                    if 'trained' in tags:
                         #The aggregated tensorkey tags should have the form of 'trained' or 'trained.lossy_decompressed'
                         #They need to be relabeled to 'aggregated' and reinserted. Then delta performed, 
                         #compressed, etc. then reinserted to TensorDB with 'model' tag
@@ -532,6 +564,11 @@ class Aggregator(object):
             #Once all of the task results have been processed
             #Increment the round number
             self.round_number += 1
+            
+            #Save the latest model
+            self.logger.info('Saving round {} model...'.format(self.round_number))
+            self.save_model(self.round_number,self.latest_model_fpath)
+
 
             #TODO This needs to be fixed!
             if self.time_to_quit():

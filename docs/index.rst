@@ -27,11 +27,27 @@ Pytorch.
 
 |productName| is developed by Intel Labs and Intel Internet of Things Group.
 
+test
+
 .. toctree::
    :maxdepth: 4
    :caption: Contents:
 
-   manual
+   .. toctree::
+
+      overview
+      .. toctree::
+
+         install.design
+         install.certificates
+         .. toctree::
+
+            install.initial
+            install.baremetal
+
+
+      running_the_federation
+
    tfedlrn
    models
 

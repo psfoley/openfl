@@ -7,7 +7,7 @@ import argparse
 import os
 import logging
 
-from tfedlrn.aggregator.aggregator_rework_strawman import Aggregator
+from tfedlrn.aggregator.aggregator import Aggregator
 from tfedlrn.comms.grpc.aggregatorgrpcserver import AggregatorGRPCServer
 from tfedlrn import parse_fl_plan, load_yaml, get_object
 from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline 

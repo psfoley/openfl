@@ -10,8 +10,8 @@ import logging
 import time
 
 from ...proto import datastream_to_proto, proto_to_datastream
-from ...proto.lowlevelstrawman_pb2 import TaskResults
-from ...proto.lowlevelstrawman_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
+from ...proto.collaborator_aggregator_interface_pb2 import TaskResults
+from ...proto.collaborator_aggregator_interface_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
 
 class AggregatorGRPCServer(AggregatorServicer):
     def __init__(self, aggregator):
@@ -23,10 +23,6 @@ class AggregatorGRPCServer(AggregatorServicer):
             collaborator_common_name = request.header.sender
             if not self.aggregator.valid_collaborator_CN_and_id(common_name, collaborator_common_name):
                 raise ValueError("Invalid collaborator. CN: |{}| collaborator_common_name: |{}|".format(common_name, collaborator_common_name))
-
-    #def RequestJob(self, request, context):
-    #    self.validate_collaborator(request, context)
-    #    return self.aggregator.RequestJob(request)
 
     def GetTasks(self, request, context):
         self.validate_collaborator(request, context)
@@ -42,24 +38,6 @@ class AggregatorGRPCServer(AggregatorServicer):
         self.validate_collaborator(proto, context)
         # turn data stream into local model update
         return self.aggregator.SendLocalTaskResults(proto)
-
-
-    #def DownloadModel(self, request, context):
-    #    self.validate_collaborator(request, context)
-    #    # turn global model update into data stream
-    #    proto = self.aggregator.DownloadModel(request) 
-    #    return proto_to_datastream(proto, self.logger)
-
-    #def UploadLocalModelUpdate(self, request, context):
-    #    proto = LocalModelUpdate()
-    #    proto = datastream_to_proto(proto, request)
-    #    self.validate_collaborator(proto, context)
-    #    # turn data stream into local model update
-    #    return self.aggregator.UploadLocalModelUpdate(proto)
-
-    #def UploadLocalMetricsUpdate(self, request, context):
-    #    self.validate_collaborator(request, context)
-    #    return self.aggregator.UploadLocalMetricsUpdate(request)
 
     def serve(self, 
               agg_port, 

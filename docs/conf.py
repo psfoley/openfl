@@ -46,7 +46,6 @@ PRODUCT_VERSION = "Intel"
 #PRODUCT_VERSION = "OFL"
 
 tags.add(PRODUCT_VERSION)
-exclude_patterns = []
 
 if PRODUCT_VERSION == "Intel":
 
@@ -55,8 +54,6 @@ if PRODUCT_VERSION == "Intel":
     author = 'Secure Intelligence Team'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
     master_doc = 'index'
-
-    exclude_patterns += ["*_ofl*"]
 
     # Global variables for rST
     rst_prolog = """
@@ -70,13 +67,11 @@ if PRODUCT_VERSION == "Intel":
     rinoh_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
 
 else:
-    
+
     project = 'Open Federated Learning'
     author = 'FeTS'
     master_doc = 'index'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
-
-    exclude_patterns += ["*_intel*"]
 
     # Global variables for rST
     rst_prolog = """
@@ -97,7 +92,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns += ['_build', 'Thumbs.db', '.DS_Store', "tutorials/*", "graveyard/*"]
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "tutorials/*", "graveyard/*"]
 
 
 # -- Options for HTML output -------------------------------------------------

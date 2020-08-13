@@ -75,7 +75,7 @@ address (required for security). For example:
 
    .. code-block:: console
 
-     $ hostname –-all-fqdn
+     $ hostname --fqdn-all | awk '{print $1}'
 
 
 5.	If pyyaml is not installed, then use pip to install it:
@@ -87,83 +87,3 @@ address (required for security). For example:
 6.	Make sure that you followed the steps in :ref:`Configure the Federation <install_certs>` and
 have copied the keys and certificates onto the federation nodes.
 
-.. _install_baremetal:
-
-Baremetal Installation
-######################
-
-.. note::
-
-   Make sure you've run the :ref:`install.installing:Initial Steps` section first.
-
-1.	Build the virtual environment using the command:
-
-.. code-block:: console
-
-   $ make install
-
-This should create a Python 3 virtual environment with the required
-packages (e.g. TensorFlow, PyTorch, OpenCV, nibabel) that are used by
-the aggregator and the collaborators. Note that you can add custom
-Python packages by editing this section in the Makefile.
-
-.. figure:: images/custom_packages.png
-
-   :scale: 50 %
-
-   How to install a custom package in the virtual environment.
-
-Just add your own line. For example,
-
-.. code-block:: console
-
-   venv/bin/pip3 install my_package
-
-.. only:: Intel
-  
-    .. _install_docker:
-    
-    Docker Installation
-    ###################
-    
-    .. note::
-    
-       Make sure you've run the :ref:`install.installing:Initial Steps` section first.
-    
-    .. note::
-        You'll need Docker installed on all nodes. To check
-        that Docker is installed and running properly, you
-        can run the Docker *Hello World* command like this:
-    
-        .. code-block:: console
-    
-          $ docker run hello-world
-          Hello from Docker!
-          This message shows that your installation appears to be working correctly.
-          ...
-          ...
-          ...
-    
-    1.	Build the Docker containers using the command:
-    
-    .. code-block:: console
-    
-       $ make build_containers model_name=$DOCKER_LABEL
-    
-    replacing *$DOCKER_LABEL* with whatever label you wish to give the Docker container.
-    For example,
-    
-    .. code-block:: console
-    
-       $ make build_containers model_name=keras_cnn
-    
-    This should create the Docker containers that are used by the aggregator
-    and the collaborators. It will append the *$DOCKER_LABEL* and the
-    name of the user that created the container. For example,
-    if user **abc123** ran the command using the Docker label *keras_cnn* then
-    the output would be:
-    
-    .. code-block:: console
-    
-       $ Successfully tagged tfl_agg_keras_cnn_abc123:0.1
-       $ Successfully tagged tfl_col_cpu_keras_cnn_abc123:0.1

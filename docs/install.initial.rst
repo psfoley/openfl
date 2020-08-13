@@ -75,7 +75,7 @@ address (required for security). For example:
 
    .. code-block:: console
 
-     $ hostname –-all-fqdn
+     $ hostname --fqdn-all | awk '{print $1}'
 
 
 5.	If pyyaml is not installed, then use pip to install it:

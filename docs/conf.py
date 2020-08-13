@@ -46,21 +46,24 @@ PRODUCT_VERSION = "Intel"
 #PRODUCT_VERSION = "OFL"
 
 tags.add(PRODUCT_VERSION)
-    
+exclude_patterns = []
+
 if PRODUCT_VERSION == "Intel":
-    
+
     project = 'FL.edge'
     copyright = '{}, Intel'.format(datetime.now().year)
     author = 'Secure Intelligence Team'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
     master_doc = 'index'
-    
+
+    exclude_patterns += ["*_ofl*"]
+
     # Global variables for rST
     rst_prolog = """
-    .. |productName| replace:: Intel\ :sup:`®` \ Federated Learning (FL.Edge) 
+    .. |productName| replace:: Intel\ :sup:`®` \ Federated Learning (FL.Edge)
     .. |productZip| replace:: intel_fledge.zip
     .. |productDir| replace:: intel_fledge
-    
+
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """
 
@@ -72,13 +75,15 @@ else:
     author = 'FeTS'
     master_doc = 'index'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
-    
+
+    exclude_patterns += ["*_intel*"]
+
     # Global variables for rST
     rst_prolog = """
     .. |productName| replace:: Open Federated Learning
     .. |productZip| replace:: OpenFederatedLearning.zip
     .. |productDir| replace:: OpenFederatedLearning
-    
+
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """
 
@@ -92,7 +97,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "tutorials/*", "graveyard/*"]
+exclude_patterns += ['_build', 'Thumbs.db', '.DS_Store', "tutorials/*", "graveyard/*"]
 
 
 # -- Options for HTML output -------------------------------------------------

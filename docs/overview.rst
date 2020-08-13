@@ -5,15 +5,10 @@
 Overview
 ********
 
-.. only:: Intel
-    This is the test for Intel
-    
-    
-
 .. toctree::
 
    overview.what_is_federated_learning
-  
+
    .. only:: Intel
       overview.how_can_intel_protect_federated_learning
       overview.what_is_intel_federated_learning

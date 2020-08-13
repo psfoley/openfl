@@ -66,7 +66,7 @@ IP address for the aggregator, replacing [IP_ADDRESS].
 
    .. code-block:: console
 
-     $ hostname –-all-fqdn
+     $ hostname --fqdn" -> "hostname --fqdn-all | awk '{print $1}'
 
 4.	For each test machine you want to run collaborators on, we create a collaborator
 certificate, replacing TEST.MACHINE.NAME with the actual test machine name.

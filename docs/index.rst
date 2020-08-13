@@ -33,21 +33,7 @@ test
    :maxdepth: 4
    :caption: Contents:
 
-   .. toctree::
-
-      overview
-      .. toctree::
-
-         install.design
-         install.certificates
-         .. toctree::
-
-            install.initial
-            install.baremetal
-
-
-      running_the_federation
-
+   manual
    tfedlrn
    models
 

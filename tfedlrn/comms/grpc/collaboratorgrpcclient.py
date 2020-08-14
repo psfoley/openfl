@@ -24,12 +24,33 @@ class CollaboratorGRPCClient():
 
         self.logger.debug("Connecting to gRPC at %s" % uri)
         self.stub = AggregatorStub(self.channel)
-        
+
     def create_insecure_channel(self, uri):
+        """Sets an insecure gRPC channel (i.e. no TLS) if desired (warns user that this is not recommended)
+
+        Args:
+            uri: The uniform resource identifier fo the insecure channel
+
+        Returns:
+            An insecure gRPC channel object
+
+        """
         self.logger.warn("gRPC is running on insecure channel with TLS disabled.")
         return grpc.insecure_channel(uri, options=self.channel_options)
 
     def create_tls_channel(self, uri, ca, disable_client_auth, certificate, private_key):
+        """Sets an secure gRPC channel (i.e. TLS)
+
+        Args:
+            uri: The uniform resource identifier fo the insecure channel
+            ca: The Certificate Authority filename
+            disable_client_auth (boolean): True disabled client-side authentication (not recommended, throws warning to user)
+            certificate: The client certficate filename from the collaborator (signed by the certificate authority)
+
+        Returns:
+            An insecure gRPC channel object
+        """
+
         with open(ca, 'rb') as f:
             root_certificates = f.read()
 

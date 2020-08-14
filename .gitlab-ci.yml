@@ -8,24 +8,27 @@ stages:
 
 pages:
   stage: build
-  tags: 
+  tags:
   - alpine-runner-sh-1
-  image: python:3.6-alpine
+  image: python:3.7-alpine
   script:
   - export http_proxy=http://proxy-us.intel.com:911
   - export https_proxy=http://proxy-us.intel.com:912
   - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
 
-  - apk --no-cache add make 
-  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark 
-  
+  - apk --no-cache add make
+  - apk --no-cache --update-cache add gcc gfortran build-base wget freetype-dev libpng-dev openblas-dev  zlib-dev jpeg-dev
+  - pip install numpy pyyaml nibabel tqdm
+  - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm rinohtype Sphinx-Substitution-Extensions
+
   - cd docs
   - sphinx-apidoc -f -o . ../tfedlrn
   - sphinx-apidoc -f -o . ../models
   - sphinx-apidoc -f -o . ../data
   - make html
-#  - make latexpdf
   - mv _build/html/ ../public/
+  - mv _build/rinoh/ ../public/pdf/
+
   artifacts:
     paths:
     - public
@@ -34,7 +37,7 @@ pages:
 
 test_spsm_gpu:
     stage: test
-    tags: 
+    tags:
     - docker-gpu
     image: docker-gpu:v3
     before_script:
@@ -53,7 +56,7 @@ test_spsm_gpu:
     - make clean
     - make install
     - ./venv/bin/python3 -m pip --version
-    script: 
+    script:
     - cd test_fl/
     - ./test_spsm_gpu.sh
     timeout: 10m
@@ -61,13 +64,13 @@ test_spsm_gpu:
 
 test_spsm_cpu:
     stage: test
-    tags: 
-    - sdp-cpu-runner1
+    tags:
+    - sdp-cpu-runner2
     #- shell-runner-1
     before_script:
     - whoami
     - pwd
-    - ls -al 
+    - ls -al
     - cd /home/gitlab-runner/workspace/tmp_spsm_cpu
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
@@ -84,7 +87,7 @@ test_spsm_cpu:
     - make clean
     - make install
     - ./venv/bin/python3 -m pip --version
-    script: 
+    script:
     - cd test_fl/
     - ./test_spsm.sh
     timeout: 5h 30m
@@ -92,13 +95,13 @@ test_spsm_cpu:
 
 test_spsm_cpu_compression:
     stage: test
-    tags: 
+    tags:
     - shell-runner-1
     #- alpine-runner-sh-1
     before_script:
     - whoami
     - pwd
-    - ls -al 
+    - ls -al
     - cd /home/gitlab-runner/workspace/tmp_spsm_cpu_compression
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
@@ -114,19 +117,19 @@ test_spsm_cpu_compression:
     - make clean
     - make install
     - ./venv/bin/python3 -m pip --version
-    script: 
+    script:
     - cd test_fl/
     - ./test_spsm_compression.sh
     timeout: 5h 30m
     when: manual
 
 test_mpsm_shell_1:
-    stage: test 
-    tags: 
+    stage: test
+    tags:
     - shell-runner-1
     before_script:
     - whoami
-    - pwd 
+    - pwd
     - ls
     - cd /home/gitlab-runner/workspace/tmp_mpsm
     - echo "remove the directory ..."
@@ -159,11 +162,11 @@ test_mpsm_shell_1:
 
 test_mpmm_shell_1:
     stage: test
-    tags: 
+    tags:
     - shell-runner-1
     before_script:
     - whoami
-    - pwd 
+    - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
@@ -196,7 +199,7 @@ test_mpmm_shell_1:
 
 test_mpmm_shell_2:
     stage: test
-    tags: 
+    tags:
     - shell-runner-2
     before_script:
     - whoami
@@ -230,4 +233,3 @@ test_mpmm_shell_2:
     - jobs
     - echo "cleaning ...... $$"
     - kill -15 $$
-

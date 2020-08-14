@@ -136,6 +136,16 @@ class Aggregator(object):
 
 
     def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
+        """Determine if the collaborator certificate and ID are valid for this federation.
+
+        Args:
+            cert_common_name: Common name for security certificate
+            collaborator_common_name: Common name for collaborator
+
+        Returns:
+            bool: True means the collaborator common name matches the name in the security certificate.
+
+        """
         # if self.test_mode_whitelist is None, then the common_name must match collaborator_common_name and be in collaborator_common_names
         if self.single_col_cert_common_name == '':  # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
             return cert_common_name == collaborator_common_name and collaborator_common_name in self.collaborator_common_names

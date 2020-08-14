@@ -18,17 +18,19 @@ so these configuration steps just need to be done once on that machine.
 All Nodes
 #########
 
-1.	 Unzip the source code
+1.	Unzip the source code |productZip|
 
 .. code-block:: console
+   :substitutions:
 
-  $ unzip spr_secure_intelligence-trusted_federated_learning.zip
+   $ unzip |productZip|
 
 2.	Change into the project directory.
 
 .. code-block:: console
+   :substitutions:
 
-  $ cd spr_secure_intelligence-trusted_federated_learning
+   $ cd |productDir|
 
 On the Aggregator Node
 ######################
@@ -64,7 +66,7 @@ IP address for the aggregator, replacing [IP_ADDRESS].
 
    .. code-block:: console
 
-     $ hostname –-fqdn
+     $ hostname --all-fqdns | awk '{print $1}'
 
 4.	For each test machine you want to run collaborators on, we create a collaborator
 certificate, replacing TEST.MACHINE.NAME with the actual test machine name.
@@ -100,12 +102,14 @@ to participate in any future federations run by this aggregator.
 
 6.	On the aggregator machine you should have the files:
 
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
-| File Type                 | Filename                                                                                                         |
-+===========================+==================================================================================================================+
-| Certificate chain         | bin/federations/pki/cert_chain.crt                                                                               |
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
-| Aggregator certificate    | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.crt    |
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
-| Aggregator key            | bin/federations/pki/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME/agg_AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME.key    |
-+---------------------------+------------------------------------------------------------------------------------------------------------------+
++---------------------------+--------------------------------------------------+
+| File Type                 | Filename                                         |
++===========================+==================================================+
+| Certificate chain         | bin/federations/pki/cert_chain.crt               |
++---------------------------+--------------------------------------------------+
+| Aggregator certificate    | bin/federations/pki/agg_$AFQDN/agg_$AFQDN.crt    |
++---------------------------+--------------------------------------------------+
+| Aggregator key            | bin/federations/pki/agg_$AFQDN/agg_$AFQDN.key    |
++---------------------------+--------------------------------------------------+
+
+where $AFQDN is the fully-qualified domain name of the aggregator node.

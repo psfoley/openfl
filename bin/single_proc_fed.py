@@ -4,88 +4,48 @@
 from enum import Enum
 import os
 
-from tfedlrn import get_object
-from tfedlrn.aggregator.aggregator import Aggregator
-from tfedlrn.collaborator import Collaborator
-
-from tfedlrn.tensor_transformation_pipelines import get_compression_pipeline
+from tfedlrn.flplan import create_data_object, create_model_object, create_compression_pipeline, create_aggregator_object_from_flplan, create_collaborator_object_from_flplan
 
 
-def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
-    data_path = data_names_to_paths[data_name]
-    return get_object(module_name, class_name, data_path=data_path, **kwargs)
+def federate(flplan,
+             local_config,
+             collaborator_common_names,
+             base_dir,
+             weights_dir):   
 
-
-def get_collaborators(model, aggregator, tasks_config, collaborator_common_names, compression_pipeline, **kwargs):
-    collaborators = {} 
-    for collaborator_common_name in collaborator_common_names:
-        collaborators[collaborator_common_name] = Collaborator(collaborator_name=collaborator_common_name, 
-                                             model=model, 
-                                             aggregator=aggregator,
-                                             tasks_config=tasks_config,
-                                             compression_pipeline=compression_pipeline, 
-                                             **kwargs)
-    return collaborators  
-    
-
-def federate(data_config, 
-             col_config,
-             agg_config,
-             model_config, 
-             compression_config, 
-             tasks_config,
-             task_assigner_config,
-             by_col_data_names_to_paths, 
-             init_model_fpath, 
-             latest_model_fpath, 
-             best_model_fpath, 
-             **kwargs):
-
-    # get the number of collaborators
-    collaborator_common_names = agg_config['collaborator_common_names']
-
-    # get the BraTS data objects for each collaborator
-    col_data = {collaborator_common_name: get_data(by_col_data_names_to_paths[collaborator_common_name], **data_config) for collaborator_common_name in collaborator_common_names}
-    
+    # create the data objects for each collaborator
+    data_objects = {collaborator_common_name: create_data_object(flplan, collaborator_common_name, local_config)  for collaborator_common_name in collaborator_common_names}
     
     # instantiate the model (using the first collaborator dataset for now)
-    model = get_object(data=col_data[collaborator_common_names[0]], **model_config)
-
-    rounds_to_train = agg_config['rounds_to_train']
-
-    task_assigner = get_object(**task_assigner_config,
-                               tasks=tasks_config,
-                               collaborator_list=collaborator_common_names,
-                               rounds=rounds_to_train)
+    model = create_model_object(flplan, data_objects[collaborator_common_names[0]])
     
     # FL collaborators are statefull. Since this single process script utilizes one
     # shared model for all collaborators, model states need to be tracked.
     model_states = {collaborator_common_name: None for collaborator_common_name in collaborator_common_names}
 
-    if compression_config is not None:
-        compression_pipeline = get_compression_pipeline(**compression_config)
-    else:
-        compression_pipeline = None
+    # create the compressor
+    compression_pipeline = create_compression_pipeline(flplan)
 
     # create the aggregator
-    aggregator = Aggregator(initial_model_fpath=init_model_fpath, 
-                            latest_model_fpath=latest_model_fpath, 
-                            best_model_fpath=best_model_fpath,
-                            custom_tensor_dir=None,
-                            compression_pipeline=compression_pipeline, 
-                            task_assigner=task_assigner,
-                            **agg_config)
+    aggregator = create_aggregator_object_from_flplan(flplan,
+                                                      collaborator_common_names,
+                                                      None,
+                                                      weights_dir)
 
-    # create the collaborataors
-    collaborators = get_collaborators(model=model, 
-                                      aggregator=aggregator, 
-                                      tasks_config=tasks_config,
-                                      collaborator_common_names=collaborator_common_names,
-                                      compression_pipeline=compression_pipeline,
-                                      **col_config)
+    # create the collaborators
+    collaborators = {} 
+    for collaborator_common_name in collaborator_common_names:
+        collaborators[collaborator_common_name] = \
+            create_collaborator_object_from_flplan(flplan,
+                                                   collaborator_common_name,
+                                                   local_config,
+                                                   base_dir,
+                                                   data_object=data_objects[collaborator_common_name],
+                                                   model_object=model,
+                                                   compression_pipeline=compression_pipeline,
+                                                   network_object=aggregator)
 
-
-
+    rounds_to_train = flplan['aggregator_object_init']['init_kwargs']['rounds_to_train']
 
     # TODO: Enable flat score detection, minimum accept, etc.
     for round in range(rounds_to_train):
@@ -94,8 +54,7 @@ def federate(data_config,
             collaborator = collaborators[collaborator_common_name]
 
             # overwrite the model's data using current insitution
-            model.set_data(col_data[collaborator_common_name])
-
+            model.set_data(data_objects[collaborator_common_name])
             
             if round != 0:
                 # restore model state from when this collaborator last held the model
@@ -105,9 +64,3 @@ def federate(data_config,
             collaborator.run_simulation()
 
             model_states[collaborator_common_name] = model.get_tensor_dict(with_opt_vars=True)
-
-                
-
-
-
-       

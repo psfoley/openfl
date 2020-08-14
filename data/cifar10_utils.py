@@ -12,47 +12,53 @@ from tensorflow.keras.datasets import cifar10
 
 
 def _load_raw_datashards(shard_num, nb_collaborators):
-    #origin_link = 'https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
-    #hash_value = 'c58f30108f718f92721af3b95e74349a'
-    #path = get_file('cifar10.tar.gz', origin=origin_link, file_hash=hash_value)
+    """Load the raw CIFAR10 dataset from the web
+
+    origin_link = 'https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz'
+    hash_value = 'c58f30108f718f92721af3b95e74349a'
+    path = get_file('cifar10.tar.gz', origin=origin_link, file_hash=hash_value)
+
+    Args:
+        shard_num (int): The index of the dataset shard
+        nb_collaborators (int): The number of collaborators in the federation
+
+    Returns:
+        Two tuples (images, labels) for the training and validation datasets for this shard
+
+    """
+
     img_rows, img_cols, img_channel = 32, 32, 3
     num_classes = 10
     (x_train, y_train), (x_test, y_test) = cifar10.load_data()
     # fix the label dimension to be (N,)
     y_train = y_train.reshape(-1)
     y_test = y_test.reshape(-1)
-    
+
     # create the shards
     X_train_shards = x_train[shard_num::nb_collaborators]
     y_train_shards = y_train[shard_num::nb_collaborators]
-    
+
     X_test_shards = x_test[shard_num::nb_collaborators]
     y_test_shards  = y_test[shard_num::nb_collaborators]
     return (X_train_shards, y_train_shards), (X_test_shards, y_test_shards)
 
 def load_cifar10_shard(shard_num, nb_collaborators, categorical=True, channels_last=False, **kwargs):
-    """
-    Load the CIFAR10 dataset.
+    """Load the CIFAR10 dataset.
 
-    Params
-    ------
-    raw_path: str
-        The path to the raw npz file.
+    Args:
+        shard_num (int): The index of the dataset shard
+        nb_collaborators (int): The number of collaborators in the federation
+        categorical (bool): True = return the categorical labels as one-hot encoded (Default = True)
+        channels_last (bool): True = input images are channels first (Default = False)
+        **kwargs: Variable parameters to pass to function
 
-    Returns
-    -------
-    list
-        The input shape.
-    int
-        The number of classes.
-    numpy.ndarray
-        The training data.
-    numpy.ndarray
-        The training labels.
-    numpy.ndarray
-        The validation data.
-    numpy.ndarray
-        The validation labels.
+    Returns:
+        list: The input shape.
+        int: The number of classes
+        numpy.ndarray: The training data
+        numpy.ndarray: The training labels
+        numpy.ndarray: The validation data
+        numpy.ndarray: The validation labels
     """
     img_rows, img_cols, img_channel = 32, 32, 3
     num_classes = 10
@@ -79,4 +85,3 @@ def load_cifar10_shard(shard_num, nb_collaborators, categorical=True, channels_l
         y_test = keras.utils.to_categorical(y_test, num_classes)
 
     return input_shape, num_classes, X_train, y_train, X_test, y_test
-

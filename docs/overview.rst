@@ -8,8 +8,9 @@ Overview
 .. toctree::
 
    overview.what_is_federated_learning
-   overview.how_can_intel_protect_federated_learning
-   overview.what_is_intel_federated_learning
 
+   .. only:: Intel
+      overview.how_can_intel_protect_federated_learning
+      overview.what_is_intel_federated_learning
 
 .. figure:: images/hls_fl_graphic.png

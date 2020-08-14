@@ -17,7 +17,15 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 
 class KerasFLModel(FLModel):
+    """The base model for Keras models in the federation.
+    """
     def __init__(self, **kwargs):
+        """Initializer
+
+        Args:
+            **kwargs: Additional parameters to pass to the function
+
+        """
         super().__init__(**kwargs)
 
         self.model = keras.Model()
@@ -28,12 +36,12 @@ class KerasFLModel(FLModel):
         self.required_tensorkeys_for_function = {}
 
         NUM_PARALLEL_EXEC_UNITS = 1
-        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS, 
-                                inter_op_parallelism_threads=1, 
-                                allow_soft_placement=True, 
+        config = tf.ConfigProto(intra_op_parallelism_threads=NUM_PARALLEL_EXEC_UNITS,
+                                inter_op_parallelism_threads=1,
+                                allow_soft_placement=True,
                                 device_count = {'CPU': NUM_PARALLEL_EXEC_UNITS })
         config.gpu_options.allow_growth=True
-        
+
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
@@ -74,7 +82,7 @@ class KerasFLModel(FLModel):
         #rebuild model with updated weights
         self.rebuild_model(round_num, input_tensor_dict)
 
-        history = self.model.fit(self.data.X_train, 
+        history = self.model.fit(self.data.X_train,
                                  self.data.y_train,
                                  batch_size=self.data.batch_size,
                                  epochs=epochs,
@@ -209,24 +217,24 @@ class KerasFLModel(FLModel):
 
     @staticmethod
     def _set_weights_dict(obj, weights_dict):
-        """
-        Set the object weights with a dictionary. The obj can be a model or an optimizer.
-        Parameters
-        ----------
-        obj : Model or Optimizer
-            The target object that we want to set the weights.
-        weights_dict : dict
-            The weight dictionary.
+        """Set the object weights with a dictionary.
 
-        Returns
-        -------
-        None
+        The obj can be a model or an optimizer.
+
+        Args:
+            obj (Model or Optimizer): The target object that we want to set the weights.
+            weights_dict (dict): The weight dictionary.
+
+        Returns:
+            None
         """
         weight_names = [weight.name for weight in obj.weights]
         weight_values = [weights_dict[name] for name in weight_names]
         obj.set_weights(weight_values)
 
     def initialize_globals(self):
+        """Initialize global variables
+        """
         self.sess.run(tf.global_variables_initializer())
 
     def get_tensor_dict(self, with_opt_vars, suffix=''):
@@ -240,10 +248,8 @@ class KerasFLModel(FLModel):
         suffix : string 
             Universally 
 
-        Returns
-        -------
-        dict
-            The tensor dictionary.
+        Returns:
+            dict: The tensor dictionary.
         """
         model_weights = self._get_weights_dict(self.model,suffix)
 
@@ -256,7 +262,13 @@ class KerasFLModel(FLModel):
         return model_weights
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
-        
+        """Sets the model weights with a tensor dictionary.
+
+        Args:
+            tensor_dict: the tensor dictionary
+            with_opt_vars (bool): True = include the optimizer's status.
+        """
+
         if with_opt_vars is False:
             #self._set_weights_dict(self.model, tensor_dict)
             #It is possible to pass in opt variables from the input tensor dict
@@ -273,6 +285,11 @@ class KerasFLModel(FLModel):
             self._set_weights_dict(self.model.optimizer, opt_weights_dict)
 
     def reset_opt_vars(self):
+        """Reset optimizer variables
+
+        Resets the optimizer variables
+
+        """
         for weight in self.model.optimizer.weights:
             weight.initializer.run(session=self.sess)
 

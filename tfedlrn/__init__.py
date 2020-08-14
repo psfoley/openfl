@@ -2,7 +2,6 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 from .utils import load_yaml, get_object, split_tensor_dict_for_holdouts,TensorKey,TaskResultKey
-from .flplanparsing import parse_fl_plan
 
 def check_type(obj, expected_type, logger):
     if not isinstance(obj, expected_type):

@@ -27,25 +27,29 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-model:
-  module_name   : models.tensorflow.keras_cnn.keras_cnn
-  class_name    : KerasCNN 
+model_object_init:
+  class_to_init: models.tensorflow.keras_cnn.keras_cnn.KerasCNN
 
-data:
-  defaults_file     : defaults/data_tf_mnist.yaml
-  nb_collaborators  : 2
-  batch_size        : 256
+data_object_init:
+  class_to_init: data.tensorflow.tfmnist_inmemory.TensorFlowMNISTInMemory 
+  data_name_in_local_config: mnist_shard
+  init_kwargs:
+    nb_collaborators  : 2
+    batch_size        : 256
 
-aggregator:
-  rounds_to_train   : 6
-  init_model_fname  : keras_cnn_mnist_init.pbuf
-  latest_model_fname: keras_cnn_mnist_latest.pbuf
-  best_model_fname  : keras_cnn_mnist_best.pbuf
+aggregator_object_init:
+  init_kwargs:
+    rounds_to_train   : 6
+    init_model_fname  : keras_cnn_mnist_init.pbuf
+    latest_model_fname: keras_cnn_mnist_latest.pbuf
+    best_model_fname  : keras_cnn_mnist_best.pbuf
 
-collaborator:
-  defaults_file : defaults/collaborator.yaml
+collaborator_object_init:
+  init_kwargs:
+    opt_treatment: RESET
+    send_model_deltas: true
 
-network:
+network_object_init:
   defaults_file : defaults/network.yaml
 
 tasks:

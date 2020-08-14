@@ -11,7 +11,7 @@ class RandomGroupedTaskAssigner(TaskAssigner):
                                  should be carried out each round (no reassignment between rounds)
     GroupedTaskAssigner - Given task groups and a list of collaborators that belong to that task group, carry out tasks for each                                    round of experiment 
     """
-    def __init__(self,task_groups,tasks,collaborator_list,rounds):
+    def __init__(self,task_groups,tasks,collaborator_list,rounds,**kwargs):
         self.task_groups = task_groups
         self.tasks = tasks
         self.rounds = rounds

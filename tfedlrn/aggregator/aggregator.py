@@ -41,10 +41,9 @@ class Aggregator(object):
                  aggregator_uuid,
                  federation_uuid,
                  collaborator_common_names,
-                 initial_model_fpath,
+                 init_model_fpath,
                  latest_model_fpath,
                  best_model_fpath,
-                 custom_tensor_dir,
                  task_assigner,
                  rounds_to_train=256,
                  minimum_reporting=-1,
@@ -72,11 +71,10 @@ class Aggregator(object):
         self.tensor_db = TensorDB()
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline() 
         self.tensor_codec = TensorCodec(self.compression_pipeline)
-        self.initial_model_fpath = initial_model_fpath
+        self.init_model_fpath = init_model_fpath
         self.best_model_fpath = best_model_fpath
         self.latest_model_fpath = latest_model_fpath
         self.best_model_score = None
-        self.custom_tensor_dir = custom_tensor_dir
         self.load_initial_tensors() # keys are TensorKeys
         log_dir = './logs/tensorboardX/{}_{}'.format(self.uuid,self.federation_uuid)
         self.tb_writer = tensorboardX.SummaryWriter(log_dir, flush_secs=10)
@@ -92,13 +90,12 @@ class Aggregator(object):
         Load all of the tensors required to begin federated learning:
 
         1. Initial model
-        2. Any custom tensors. These are previously serialized named tensors
 
         Parameters
         ----------
         """
         #If the collaborator requests a delta, this value is set to true
-        self.model = load_proto(self.initial_model_fpath)
+        self.model = load_proto(self.init_model_fpath)
         tensor_dict,round_number = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
         if round_number > self.round_number:
             self.logger.info('Starting training from round {} of previously saved model'.format(round_number))
@@ -107,9 +104,6 @@ class Aggregator(object):
         #All initial model tensors are loaded here
         self.tensor_db.cache_tensor(tensor_key_dict)
         self.logger.debug('This is the initial tensor_db: {}'.format(self.tensor_db))
-        if self.custom_tensor_dir != None:
-            #Here is where the additional tensors should be loaded into the TensorDB
-            pass
 
     def save_model(self,round_number,file_path):
         """
@@ -131,6 +125,9 @@ class Aggregator(object):
         for tk in tensor_keys:
             tk_name,_,_,_,_ = tk
             best_tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
+            if best_tensor_dict[tk_name] is None:
+              self.logger.info('Cannot save model for round {}. Continuing...'.format(round_number))
+              return
         self.model = construct_model_proto(best_tensor_dict,round_number,self.compression_pipeline)
         dump_proto(self.model, file_path)
 

@@ -27,25 +27,31 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
-aggregator:
-  rounds_to_train: 10
-  init_model_fname: pytorch_cnn_init.pbuf
-  latest_model_fname: pytorch_cnn_latest.pbuf
-  best_model_fname: pytorch_cnn_best.pbuf
+aggregator_object_init:
+  init_kwargs:
+    rounds_to_train: 10
+    init_model_fname: pytorch_cnn_init.pbuf
+    latest_model_fname: pytorch_cnn_latest.pbuf
+    best_model_fname: pytorch_cnn_best.pbuf
 
-model:
-  module_name: models.pytorch.pt_cnn.pt_cnn
-  class_name: PyTorchCNN
+model_object_init:
+  class_to_init: models.pytorch.pt_cnn.pt_cnn.PyTorchCNN
 
-collaborator:
-  defaults_file: defaults/collaborator.yaml
+collaborator_object_init:
+  init_kwargs:
+    opt_treatment: CONTINUE_LOCAL
+    send_model_deltas: true
 
-network:
+network_object_init:
   defaults_file: defaults/network.yaml
  
-data:
-  defaults_file: defaults/data_pt_mnist.yaml
-  nb_collaborators: 2
+data_object_init:
+  class_to_init: data.pytorch.ptmnist_inmemory.PyTorchMNISTInMemory
+  data_name_in_local_config: mnist_shard
+  init_kwargs:
+    batch_size: 256
+    channels_last: false
+    nb_collaborators: 2
 
 tasks:
   aggregated_model_validation:

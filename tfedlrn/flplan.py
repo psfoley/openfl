@@ -92,7 +92,7 @@ def resolve_autoport(flplan):
     flplan_hash_8 = flplan['hash'][:8]
  
     # check for auto_port convenience settings
-    if config.get('auto_port', False) == True:
+    if config.get('auto_port',False) == True or config.get('agg_port') == 'auto':
         # replace the port number with something in the range of min-max
         # default is 49152 to 60999
         port_range = config.get('auto_port_range', (49152, 60999))
@@ -107,6 +107,9 @@ def create_aggregator_server_from_flplan(agg, flplan):
 
 def get_serve_kwargs_from_flpan(flplan, base_dir):
     config = flplan['network_object_init']
+
+    if len(config['init_kwargs']) == 0:
+      config['init_kwargs'] = flplan['network_object_init']
 
     resolve_autoport(flplan)
 
@@ -132,10 +135,18 @@ def get_serve_kwargs_from_flpan(flplan, base_dir):
 
 def create_aggregator_object_from_flplan(flplan, collaborator_common_names, single_col_cert_common_name, weights_dir):
     init_kwargs = flplan['aggregator_object_init']['init_kwargs']
+    task_assigner_config = flplan['task_assigner']
+    tasks = flplan['tasks']
+    task_assigner = get_object(**task_assigner_config,
+                               tasks=tasks,
+                               collaborator_list=collaborator_common_names,
+                               rounds=init_kwargs['rounds_to_train'])
+
 
     # patch in the collaborators file and single_col_cert_common_name
     init_kwargs['collaborator_common_names']    = collaborator_common_names
     init_kwargs['single_col_cert_common_name']  = single_col_cert_common_name
+    init_kwargs['task_assigner'] = task_assigner
 
     # path in the full model filepaths
     model_prefixes = ['init', 'latest', 'best']
@@ -150,6 +161,9 @@ def create_aggregator_object_from_flplan(flplan, collaborator_common_names, sing
 
 def create_collaborator_network_object(flplan, collaborator_common_name, single_col_cert_common_name, base_dir):
     config = flplan['network_object_init']
+
+    if len(config['init_kwargs']) == 0:
+      config['init_kwargs'] = flplan['network_object_init']
 
     resolve_autoport(flplan)
 
@@ -194,10 +208,13 @@ def create_collaborator_object_from_flplan(flplan,
     if network_object is None:
         network_object = create_collaborator_network_object(flplan, collaborator_common_name, single_col_cert_common_name, base_dir)
 
-    return Collaborator(collaborator_common_name=collaborator_common_name,
-                        wrapped_model=model_object, 
-                        channel=network_object,
+    tasks_config = flplan['tasks']
+
+    return Collaborator(collaborator_name=collaborator_common_name,
+                        model=model_object, 
+                        aggregator=network_object,
                         compression_pipeline=compression_pipeline,
+                        tasks_config=tasks_config,
                         single_col_cert_common_name=single_col_cert_common_name,  
                         **flplan['collaborator_object_init']['init_kwargs'])
 

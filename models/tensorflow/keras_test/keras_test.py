@@ -18,19 +18,23 @@ class KerasTest(KerasFLModel):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         
-        self.model = self.build_model()
+        self.model = self.build_model(self.feature_shape)
 
-        self.initialize_tensorkeys_for_functions()
         self.initialize_tensorkeys_for_custom_functions()
         self.internal_count = np.random.randint(10)
 
         self.set_logger()
 
-    def build_model(self):
+    def build_model(self,input_feature_shape):
         """
-        Empty model architecture.
+        Minimal model architecture.
         """
         model = Sequential()
+        model.add(Dense(100, activation='softmax',kernel_initializer='random_normal',bias_initializer='zeros',input_shape=input_feature_shape))
+
+        model.compile(loss=keras.losses.categorical_crossentropy,
+                        optimizer=keras.optimizers.Adam(),
+                        metrics=['accuracy'])
         return model
 
 

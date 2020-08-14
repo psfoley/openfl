@@ -16,12 +16,13 @@ def get_data(data_names_to_paths, data_name, module_name, class_name, **kwargs):
     return get_object(module_name, class_name, data_path=data_path, **kwargs)
 
 
-def get_collaborators(model, aggregator, collaborator_common_names, compression_pipeline, **kwargs):
+def get_collaborators(model, aggregator, tasks_config, collaborator_common_names, compression_pipeline, **kwargs):
     collaborators = {} 
     for collaborator_common_name in collaborator_common_names:
-        collaborators[collaborator_common_name] = Collaborator(collaborator_common_name=collaborator_common_name, 
-                                             wrapped_model=model, 
-                                             channel=aggregator,
+        collaborators[collaborator_common_name] = Collaborator(collaborator_name=collaborator_common_name, 
+                                             model=model, 
+                                             aggregator=aggregator,
+                                             tasks_config=tasks_config,
                                              compression_pipeline=compression_pipeline, 
                                              **kwargs)
     return collaborators  
@@ -32,6 +33,8 @@ def federate(data_config,
              agg_config,
              model_config, 
              compression_config, 
+             tasks_config,
+             task_assigner_config,
              by_col_data_names_to_paths, 
              init_model_fpath, 
              latest_model_fpath, 
@@ -47,6 +50,13 @@ def federate(data_config,
     
     # instantiate the model (using the first collaborator dataset for now)
     model = get_object(data=col_data[collaborator_common_names[0]], **model_config)
+
+    rounds_to_train = agg_config['rounds_to_train']
+
+    task_assigner = get_object(**task_assigner_config,
+                               tasks=tasks_config,
+                               collaborator_list=collaborator_common_names,
+                               rounds=rounds_to_train)
     
     # FL collaborators are statefull. Since this single process script utilizes one
     # shared model for all collaborators, model states need to be tracked.
@@ -58,20 +68,22 @@ def federate(data_config,
         compression_pipeline = None
 
     # create the aggregator
-    aggregator = Aggregator(init_model_fpath=init_model_fpath, 
+    aggregator = Aggregator(initial_model_fpath=init_model_fpath, 
                             latest_model_fpath=latest_model_fpath, 
                             best_model_fpath=best_model_fpath,
+                            custom_tensor_dir=None,
                             compression_pipeline=compression_pipeline, 
+                            task_assigner=task_assigner,
                             **agg_config)
 
     # create the collaborataors
     collaborators = get_collaborators(model=model, 
                                       aggregator=aggregator, 
+                                      tasks_config=tasks_config,
                                       collaborator_common_names=collaborator_common_names,
                                       compression_pipeline=compression_pipeline,
                                       **col_config)
 
-    rounds_to_train = agg_config['rounds_to_train']
 
 
 
@@ -90,7 +102,7 @@ def federate(data_config,
                 model.set_tensor_dict(model_states[collaborator_common_name], with_opt_vars=True)
 
             # run the collaborator jobs for this round
-            collaborator.run_to_yield_or_quit()
+            collaborator.run_simulation()
 
             model_states[collaborator_common_name] = model.get_tensor_dict(with_opt_vars=True)
 

@@ -131,6 +131,26 @@ class Collaborator(object):
                     self.do_task(task, tasks.round_number)
         self.logger.info('End of experiment reached. Exiting...')
 
+    def run_simulation(self):
+        """
+        This function is specifically for the simulation. After the tasks have been performed for a round
+        quit, and then the collaborator object will be reinitialized after the next round
+        """
+        while True:
+            tasks = self.get_tasks()
+            if tasks.quit:
+                self.logger.info('End of experiment reached. Exiting...')
+                break
+            elif tasks.sleep_time > 0:
+                time.sleep(tasks.sleep_time) # some sleep function
+            else:
+                self.logger.info('Received the following tasks: {}'.format(tasks.tasks))
+                for task in tasks.tasks:
+                    self.do_task(task, tasks.round_number)
+                self.logger.info('All tasks completed on {} for round {}...'.format(self.collaborator_name,tasks.round_number))
+                break
+
+
     def get_tasks(self):
         self.logger.info('Waiting for tasks...')
         request = TasksRequest(header=self.header)

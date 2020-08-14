@@ -32,6 +32,8 @@ def main(plan, collaborators_file, data_config_fname, logging_config_path, loggi
     col_config = flplan['collaborator']
     model_config = flplan['model']
     data_config = flplan['data']
+    tasks_config = flplan['tasks']
+    task_assigner_config = flplan['task_assigner']
     compression_config = flplan.get('compression_pipeline')
 
     # patch in the collaborators file
@@ -48,6 +50,8 @@ def main(plan, collaborators_file, data_config_fname, logging_config_path, loggi
              col_config=col_config, 
              agg_config=agg_config,
              model_config=model_config,
+             tasks_config=tasks_config,
+             task_assigner_config=task_assigner_config,
              compression_config=compression_config,
              by_col_data_names_to_paths=by_col_data_names_to_paths, 
              init_model_fpath = init_model_fpath, 

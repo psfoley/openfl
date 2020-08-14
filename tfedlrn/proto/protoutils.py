@@ -70,9 +70,9 @@ def construct_named_tensor(tensor_key, nparray, transformer_metadata, lossless):
             bool_list = []
         metadata_protos.append(MetadataProto(int_to_float=int_to_float, int_list=int_list, bool_list=bool_list))
  
-    tensor_name,origin,round_number,tags = tensor_key
+    tensor_name,origin,round_number,report,tags = tensor_key
 
-    return NamedTensor(name=tensor_name,round_number=round_number,lossless=lossless,tags=tags,transformer_metadata=metadata_protos,data_bytes=nparray)
+    return NamedTensor(name=tensor_name,round_number=round_number,lossless=lossless,report=report,tags=tags,transformer_metadata=metadata_protos,data_bytes=nparray)
 
 
 def construct_proto(tensor_dict, model_id, model_version, is_delta, delta_from_version, compression_pipeline):
@@ -98,7 +98,7 @@ def construct_model_proto(tensor_dict, round_number, compression_pipeline):
     named_tensors = []
     for key, nparray in tensor_dict.items():
         bytes, transformer_metadata = compression_pipeline.forward(data=nparray)
-        tensor_key = TensorKey(key,'agg',round_number,('model',))
+        tensor_key = TensorKey(key,'agg',round_number,False,('model',))
         named_tensors.append(construct_named_tensor(tensor_key, bytes, transformer_metadata, lossless=True))
 
     return ModelProto(tensors=named_tensors)

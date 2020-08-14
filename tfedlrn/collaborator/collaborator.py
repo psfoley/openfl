@@ -149,14 +149,14 @@ class Collaborator(object):
         # models actually return "relative" tensorkeys of (name, LOCAL|GLOBAL, round_offset)
         # so we need to update these keys to their "absolute values"
         required_tensorkeys = []
-        for tname, origin, rnd_num, tags in required_tensorkeys_relative:
+        for tname, origin, rnd_num, report, tags in required_tensorkeys_relative:
             if origin == 'GLOBAL':
                 origin = self.aggregator_uuid
             else:
                 origin = self.collaborator_name
             
             #rnd_num is the relative round. So if rnd_num is -1, get the tensor from the previous round
-            required_tensorkeys.append(TensorKey(tname, origin, rnd_num + round_number, tags))
+            required_tensorkeys.append(TensorKey(tname, origin, rnd_num + round_number, report, tags))
         
         input_tensor_dict = self.get_numpy_dict_for_tensorkeys(required_tensorkeys)
         #print('input_tensor_dict = {}'.format(input_tensor_dict))
@@ -186,7 +186,7 @@ class Collaborator(object):
         extract_metadata:   The requested tensor may have metadata needed for decompression
         """
         # try to get from the store
-        tensor_name,origin,round_number,tags = tensor_key
+        tensor_name,origin,round_number,report,tags = tensor_key
         self.logger.debug('Attempting to retrieve tensor {} from local store'.format(tensor_key))
         nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
 
@@ -233,11 +233,12 @@ class Collaborator(object):
         -------
         nparray     : The decompressed tensor associated with the requested tensor key
         """
-        tensor_name,origin,round_number,tags = tensor_key
+        tensor_name,origin,round_number,report,tags = tensor_key
         request = TensorRequest(header=self.header,
                                 tensor_name=tensor_name,
                                 round_number=round_number,
                                 tags=tags,
+                                report=report,
                                 require_lossless=require_lossless)
 
         self.logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
@@ -267,9 +268,10 @@ class Collaborator(object):
             data_size = self.model.get_validation_data_size()
         self.logger.debug('{} data size = {}'.format(task_name,data_size))
         for tensor in tensor_dict:
-            if 'metric' in tensor[3]:
+            tensor_name,origin,round,report,tags = tensor
+            if report:
                 self.logger.info('Sending metric for task {}, round number {}: {}\t{}'.format(\
-                        task_name,round_number,tensor[0],tensor_dict[tensor]))
+                        task_name,round_number,tensor_name,tensor_dict[tensor]))
         request = TaskResults(header=self.header,
                               round_number=round_number,
                               task_name=task_name,
@@ -285,13 +287,14 @@ class Collaborator(object):
         """
 
         # if we have an aggregated tensor, we can make a delta
-        tensor_name,origin,round_number,tags = tensor_key
+        tensor_name,origin,round_number,report,tags = tensor_key
         if('trained' in tags and self.send_model_deltas):
           #Should get the pretrained model to create the delta. If training has happened,
           #Model should already be stored in the TensorDB
           model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_name,\
                                                                   origin,\
                                                                   round_number,\
+                                                                  report,\
                                                                   ('model',))) 
         
           #The original model will not be present for the optimizer on the first round.
@@ -316,8 +319,8 @@ class Collaborator(object):
                      'int_list': proto.int_list,
                      'bool_list': proto.bool_list} for proto in named_tensor.transformer_metadata]
         #The tensor has already been transfered to collaborator, so the newly constructed tensor should have the collaborator origin
-        tensor_key = TensorKey(named_tensor.name, self.collaborator_name, named_tensor.round_number, tuple(named_tensor.tags))
-        tensor_name,origin,round_number,tags = tensor_key
+        tensor_key = TensorKey(named_tensor.name, self.collaborator_name, named_tensor.round_number, named_tensor.report, tuple(named_tensor.tags))
+        tensor_name,origin,round_number,report,tags = tensor_key
         if 'compressed' in tags:
             decompressed_tensor_key, decompressed_nparray =  \
                     self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,require_lossless=True)

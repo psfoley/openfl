@@ -124,7 +124,7 @@ class PyTorchCNN(PyTorchFLModel):
             suffix += '_agg'
         tags = ('metric',suffix)
         #TODO figure out a better way to pass in metric for this pytorch validate function
-        output_tensor_dict = {TensorKey('acc',origin,round_num,tags): np.array(val_score/total_samples)} 
+        output_tensor_dict = {TensorKey('acc',origin,round_num,True,tags): np.array(val_score/total_samples)} 
                 
         #Empty list represents metrics that should only be stored locally
         return output_tensor_dict,{}
@@ -162,19 +162,19 @@ class PyTorchCNN(PyTorchFLModel):
         #Output metric tensors (scalar)
         origin = col_name
         tags = ('trained',)
-        output_metric_dict = {TensorKey(self.loss_fn.__name__,origin,round_num,('metric',)): np.array(np.mean(losses))}
+        output_metric_dict = {TensorKey(self.loss_fn.__name__,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
 
         #output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
         global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
 
         #Create global tensorkeys
-        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in global_model_dict.items()}
+        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in global_model_dict.items()}
         #Create tensorkeys that should stay local
-        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in local_model_dict.items()}
+        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in local_model_dict.items()}
         #The train/validate aggregated function of the next round will look for the updated model parameters. 
         #This ensures they will be resolved locally
-        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
+        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,False,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
 
 
         global_tensor_dict = {**output_metric_dict,**global_tensorkey_model_dict}

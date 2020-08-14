@@ -69,6 +69,7 @@ def main(plan, collaborators_file, feature_shape, data_config_fname, logging_con
                 'local initialization will determine values: {}'.format(list(holdout_params.keys())))
 
     model_proto = construct_model_proto(tensor_dict=tensor_dict, 
+                                        round_number=0,
                                         compression_pipeline=compression_pipeline)
 
     dump_proto(model_proto=model_proto, fpath=fpath)

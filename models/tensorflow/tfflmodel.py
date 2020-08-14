@@ -106,19 +106,19 @@ class TensorFlowFLModel(FLModel):
         #Output metric tensors (scalar)
         origin = col_name
         tags = ('trained',)
-        output_metric_dict = {TensorKey(self.loss_name,origin,round_num,('metric',)): np.array(np.mean(losses))}
+        output_metric_dict = {TensorKey(self.loss_name,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
 
         #output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
         global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
 
         #Create global tensorkeys
-        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in global_model_dict.items()}
+        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in global_model_dict.items()}
         #Create tensorkeys that should stay local
-        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,tags): nparray for tensor_name,nparray in local_model_dict.items()}
+        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in local_model_dict.items()}
         #The train/validate aggregated function of the next round will look for the updated model parameters. 
         #This ensures they will be resolved locally
-        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
+        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,False,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
 
 
         global_tensor_dict = {**output_metric_dict,**global_tensorkey_model_dict}
@@ -179,7 +179,7 @@ class TensorFlowFLModel(FLModel):
         else:
             suffix += '_agg'
         tags = ('metric',suffix)
-        output_tensor_dict = {TensorKey(self.validation_metric_name,origin,round_num,tags): np.array(score)}
+        output_tensor_dict = {TensorKey(self.validation_metric_name,origin,round_num,True,tags): np.array(score)}
 
         #Return empty dict for local metrics
         return output_tensor_dict,{}
@@ -306,15 +306,15 @@ class TensorFlowFLModel(FLModel):
         #Minimal required tensors for train function
         tensor_names = self._get_weights_names(with_opt_vars=with_opt_vars)
         self.logger.debug('Initial model tensor names: {}'.format(tensor_names))
-        self.required_tensorkeys_for_function['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names]
+        self.required_tensorkeys_for_function['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names]
 
         #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
         self.required_tensorkeys_for_function['validate'] = {}
         #TODO This is not stateless. The optimizer will not be
         self.required_tensorkeys_for_function['validate']['apply=local'] = \
-                [TensorKey(tensor_name,'LOCAL',0,('trained',)) for tensor_name in tensor_names]
+                [TensorKey(tensor_name,'LOCAL',0,False,('trained',)) for tensor_name in tensor_names]
         self.required_tensorkeys_for_function['validate']['apply=global'] = \
-                [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names] 
+                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names] 
 
 
 

@@ -115,6 +115,8 @@ clean:
 ifndef plan
 build_containers: venv/bin/python3
 	$(error plan needs to be defined in order to run this recipe)
+build_singularity: venv/bin/python3
+	$(error plan needs to be defined in order to run this recipe)
 run_agg_container: venv/bin/python3
 	$(error plan needs to be defined in order to run this recipe)
 run_col_container: venv/bin/python3
@@ -123,7 +125,7 @@ else
 build_containers: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	            -p $(plan) -kl model module_name) )
+	            -p $(plan) -kl model_object_init class_to_init) )
 	$(eval model_dir=$(shell echo $(module_name) | awk '{FS="." ; OFS="/"; $$0=$$0}  { print $$1,$$2,$$3}'))
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo building agg and coll containers for model whose module is named: $(model), and located in: $(model_dir)
@@ -149,12 +151,25 @@ build_containers: venv/bin/python3
 	-f ./$(model_dir)/$(device).dockerfile \
 	.
 
+_create_singularity_image: venv/bin/python3
+	# Not intended to be run independently
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan) -kl model_object_init class_to_init) )
+	$(eval model_dir=$(shell echo $(module_name) | awk '{FS="." ; OFS="/"; $$0=$$0}  { print $$1,$$2,$$3}'))
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@singularity build singularity/tfl_agg_$(model)_$(shell whoami).sif docker-daemon://tfl_agg_$(model)_$(shell whoami):0.1
+	@singularity build singularity/tfl_col_$(model)_$(shell whoami).sif docker-daemon://tfl_col_$(device)_$(model)_$(shell whoami):0.1
+
+build_singularity: build_containers _create_singularity_image
+
 run_agg_container: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	            -p $(plan) -kl model module_name) )
+	            -p $(plan) -kl model_object_init class_to_init) )
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo running agg container for model contained in module named: $(model)
+
 
 	@docker run \
 	--net=host \
@@ -166,11 +181,20 @@ run_agg_container: venv/bin/python3
 	tfl_agg_$(model)_$(shell whoami):0.1 \
 	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mAggregator\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
 
+run_agg_singularity: venv/bin/python3
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan) -kl model_object_init class_to_init) )
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@echo running agg singularity container for model contained in module named: $(model)
+
+	@export SINGULARITYENV_PS1='[FL Singularity for Aggregator] \w$ > ' && singularity shell singularity/tfl_agg_$(model)_$(shell whoami).sif 
+
 
 run_col_container: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	  -p $(plan) -kl model module_name) )
+	  -p $(plan) -kl model_object_init class_to_init) )
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo running coll container for model $(model) and collaborator col_$(col_num)
 
@@ -185,4 +209,15 @@ run_col_container: venv/bin/python3
 	-w /home/$(shell whoami)/tfl/bin \
 	tfl_col_$(device)_$(model)_$(shell whoami):0.1 \
 	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mCollaborator $(col_num)\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
+
+run_col_singularity: venv/bin/python3
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan) -kl model_object_init class_to_init) )
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@echo running col singularity container for model contained in module named: $(model)
+
+	@export SINGULARITYENV_PS1='[FL Singularity for Collaborator $(col_num)] \w$ > ' && singularity shell singularity/tfl_col_$(device)_$(model)_$(shell whoami).sif
+
+
 endif

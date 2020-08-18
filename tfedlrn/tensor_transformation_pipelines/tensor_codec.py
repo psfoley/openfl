@@ -25,18 +25,17 @@ class TensorCodec(object):
         """
         Wrapper around the tensor_pipeline.forward function, but it also keeps track of the tensorkeys associated with the
         compressed nparray
-        Args
-        ----
-        tensor_key:             TensorKey is provided to verify it should be compressed, 
-                                and new TensorKeys returned will be derivatives of the existing tensor_name
-        data:                   (uncompressed) numpy array associated with the tensor_key
-        require_lossless:       boolean. Does tensor require lossless compression
 
-        Returns
-        -------
-        compressed_tensor_key:  Tensorkey corresponding to the decompressed tensor
-        compressed_nparray:     The compressed tensor
-        metadata:               metadata associated with compressed tensor       
+        Args:
+            tensor_key:             TensorKey is provided to verify it should be compressed,
+                                    and new TensorKeys returned will be derivatives of the existing tensor_name
+            data:                   (uncompressed) numpy array associated with the tensor_key
+            require_lossless:       boolean. Does tensor require lossless compression
+
+        Returns:
+            compressed_tensor_key:  Tensorkey corresponding to the decompressed tensor
+            compressed_nparray:     The compressed tensor
+            metadata:               metadata associated with compressed tensor
         """
 
         if require_lossless:
@@ -56,18 +55,17 @@ class TensorCodec(object):
         """
         Wrapper around the tensor_pipeline.backward function, but it also keeps track of the tensorkeys associated with the
         decompressed nparray
-        Args
-        ----
-        tensor_key:             TensorKey is provided to verify it should be decompressed, 
-                                and new TensorKeys returned will be derivatives of the existing tensor_name
-        data:                   (compressed) numpy array associated with the tensor_key
-        transformer_metadata:   metadata associated with the compressed tensor
-        require_lossless:       boolean, does data require lossless decompression
 
-        Returns
-        -------
-        decompressed_tensor_key:    Tensorkey corresponding to the decompressed tensor
-        decompressed_nparray:       The decompressed tensor
+        Args:
+            tensor_key:             TensorKey is provided to verify it should be decompressed,
+                                    and new TensorKeys returned will be derivatives of the existing tensor_name
+            data:                   (compressed) numpy array associated with the tensor_key
+            transformer_metadata:   metadata associated with the compressed tensor
+            require_lossless:       boolean, does data require lossless decompression
+
+        Returns:
+            decompressed_tensor_key:    Tensorkey corresponding to the decompressed tensor
+            decompressed_nparray:       The decompressed tensor
         """
         tensor_name,origin,round_number,report,tags = tensor_key
 
@@ -101,16 +99,14 @@ class TensorCodec(object):
         """
         Create delta from the updated layer and base layer
 
-        Args
-        ----
-        tensor_key:         This is the tensor_key associated with the nparray. Should have a tag of 'trained' or 'aggregated'
-        nparray:            The nparray that corresponds to the tensorkey
-        base_model_nparray: The base model tensor that will be subtracted from the new weights
+        Args:
+            tensor_key:         This is the tensor_key associated with the nparray. Should have a tag of 'trained' or 'aggregated'
+            nparray:            The nparray that corresponds to the tensorkey
+            base_model_nparray: The base model tensor that will be subtracted from the new weights
 
-        Returns
-        -------
-        delta_tensor_key:   Tensorkey that corresponds to the delta weight array
-        delta:              Difference between the provided tensors
+        Returns:
+            delta_tensor_key:   Tensorkey that corresponds to the delta weight array
+            delta:              Difference between the provided tensors
 
         """
         tensor_name,origin,round_number,report,tags = tensor_key
@@ -127,18 +123,16 @@ class TensorCodec(object):
 
     def apply_delta(self,tensor_key,delta,base_model_nparray):
         """
-        Adds delta to the nparray 
+        Adds delta to the nparray
 
-        Args
-        ----
-        tensor_key:             This is the tensor_key associated with the delta. Should have a tag of 'trained' or 'aggregated'
-        delta:                  Weight delta between the new model and old model
-        base_model_nparray:     The nparray that corresponds to the prior weights
+        Args:
+            tensor_key:             This is the tensor_key associated with the delta. Should have a tag of 'trained' or 'aggregated'
+            delta:                  Weight delta between the new model and old model
+            base_model_nparray:     The nparray that corresponds to the prior weights
 
-        Returns
-        -------
-        new_model_tensor_key:   Latest model layer tensorkey
-        new_model_nparray:      Latest layer weights
+        Returns:
+            new_model_tensor_key:   Latest model layer tensorkey
+            new_model_nparray:      Latest layer weights
 
         """
         tensor_name,origin,round_number,report,tags = tensor_key
@@ -147,7 +141,7 @@ class TensorCodec(object):
                     'Shape of delta ({}) is not equal to shape of model layer ({})'.format(delta.shape,base_model_nparray.shape)
         #assert('model' in tensor_key[3]), 'The tensorkey should be provided from the base model'
         #Aggregator UUID has the prefix 'aggregator'
-        if 'aggregator' in origin: 
+        if 'aggregator' in origin:
             tags = list(tags)
             tags.remove('delta')
             new_tags = tuple(tags)

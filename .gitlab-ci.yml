@@ -22,9 +22,6 @@ pages:
   - pip install sphinx sphinx_rtd_theme sphinxcontrib.napoleon recommonmark numpy pyyaml nibabel tqdm rinohtype Sphinx-Substitution-Extensions
 
   - cd docs
-  - sphinx-apidoc -f -o . ../tfedlrn
-  - sphinx-apidoc -f -o . ../models
-  - sphinx-apidoc -f -o . ../data
   - make html
   - mv _build/html/ ../public/
   - mv _build/rinoh/ ../public/pdf/

@@ -30,8 +30,8 @@ class TensorFlowFLModel(FLModel):
         self.tvar_placeholders = None
 
         # construct the shape needed for the input features
-        self.input_shape = (None,) + self.data.get_feature_shape() 
-        
+        self.input_shape = (None,) + self.data.get_feature_shape()
+
         #Required tensorkeys for all public functions in TensorFlowFLModel
         self.required_tensorkeys_for_function = {}
 
@@ -63,9 +63,8 @@ class TensorFlowFLModel(FLModel):
         """
         Parse tensor names and update weights of model. Handles the optimizer treatment
 
-        Returns
-        -------
-        None
+        Returns:
+            None
         """
         if self.opt_treatment == 'RESET':
             self.reset_opt_vars()
@@ -77,7 +76,7 @@ class TensorFlowFLModel(FLModel):
 
     def train_batches(self, col_name, round_num, input_tensor_dict, num_batches, use_tqdm=False,**kwargs):
         """
-        Perform the training for a specified number of batches. Is expected to perform draws randomly, without 
+        Perform the training for a specified number of batches. Is expected to perform draws randomly, without
         replacement until data is exausted. Then data is replaced and shuffled and draws continue.
 
         Args:
@@ -125,7 +124,7 @@ class TensorFlowFLModel(FLModel):
         global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in global_model_dict.items()}
         #Create tensorkeys that should stay local
         local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in local_model_dict.items()}
-        #The train/validate aggregated function of the next round will look for the updated model parameters. 
+        #The train/validate aggregated function of the next round will look for the updated model parameters.
         #This ensures they will be resolved locally
         next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,False,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
 
@@ -165,8 +164,7 @@ class TensorFlowFLModel(FLModel):
         return loss
 
     def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
-        """
-        Run validation.
+        """Run validation.
 
         Returns:
             dict: {<metric>: <value>}
@@ -273,17 +271,13 @@ class TensorFlowFLModel(FLModel):
         self.sess.run(tf.global_variables_initializer())
 
     def _get_weights_names(self, with_opt_vars=True):
-        """
-        Get the weights.
-        Parameters
-        ----------
-        with_opt_vars : bool
-            Specify if we also want to get the variables of the optimizer.
+        """Get the weights.
 
-        Returns
-        -------
-        list
-            The weight names list
+        Args:
+            with_opt_vars (bool): Specify if we also want to get the variables of the optimizer.
+
+        Returns:
+            list : The weight names list
         """
         if with_opt_vars is True:
             variables =  self.fl_vars
@@ -293,18 +287,12 @@ class TensorFlowFLModel(FLModel):
         return [var.name for var in variables]
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
-        """
-        Get the required tensors for specified function that could be called as part of a task.
-        By default, this is just all of the layers and optimizer of the model. 
+        """Get the required tensors for specified function that could be called as part of a task.
+        By default, this is just all of the layers and optimizer of the model.
 
-        Parameters
-        ----------
-        None
+        Returns:
 
-        Returns
-        -------
-        List
-            [TensorKey]
+            list : [TensorKey]
         """
 
         if func_name == 'validate':
@@ -319,13 +307,6 @@ class TensorFlowFLModel(FLModel):
         Set the required tensors for all publicly accessible methods that could be called as part of a task.
         By default, this is just all of the layers and optimizer of the model. Custom tensors should be added to this function
 
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
         """
 
         #Minimal required tensors for train function
@@ -339,7 +320,7 @@ class TensorFlowFLModel(FLModel):
         self.required_tensorkeys_for_function['validate']['apply=local'] = \
                 [TensorKey(tensor_name,'LOCAL',0,False,('trained',)) for tensor_name in tensor_names]
         self.required_tensorkeys_for_function['validate']['apply=global'] = \
-                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names] 
+                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names]
 
 
 # FIXME: what's a nicer construct than this? ugly interface. Perhaps we get an object with an assumed interface that lets is set/get these?

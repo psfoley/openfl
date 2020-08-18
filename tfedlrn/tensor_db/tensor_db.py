@@ -24,13 +24,11 @@ class TensorDB(object):
         """
         Insert tensor into TensorDB (dataframe)
 
-	Parameters:
-	-----------
-        tensor_key_dict:	{tensor_key: nparray}
+	    Args:
+            tensor_key_dict:	{tensor_key: nparray}
 
-        Returns
-	-------
-	None
+        Returns:
+	       None
         """
 
         self.mutex.acquire(blocking=True)
@@ -65,18 +63,16 @@ class TensorDB(object):
 
     def get_aggregated_tensor(self, tensor_key, collaborator_weight_dict):
         """
-        Determines whether all of the collaborator tensors are present for a given tensor key, and returns their weighted average 
+        Determines whether all of the collaborator tensors are present for a given tensor key, and returns their weighted average
 
-        Parameters
-        ----------
-        tensor_key:		        The tensor key to be resolved. If origin 'agg_uuid' is present, 
+        Args:
+            tensor_key: The tensor key to be resolved. If origin 'agg_uuid' is present,
                                         can be returned directly. Otherwise must compute weighted average of all collaborators
-        collaborator_weight_dict:	List of collaborator names in federation and their respective weights
+                                        collaborator_weight_dict:	List of collaborator names in federation and their respective weights
 
-        Returns
-        -------
-        weighted_nparray if all collaborator values are present
-        None if not all values are present
+        Returns:
+            weighted_nparray if all collaborator values are present
+            None if not all values are present
         
         """
         if len(collaborator_weight_dict) != 0:
@@ -84,7 +80,7 @@ class TensorDB(object):
                     'Collaborator weights do not sum to 1.0: {}'.format(collaborator_weight_dict)
         collaborator_names = collaborator_weight_dict.keys()
         agg_tensor_dict = {}
-        
+
         #Check if the aggregated tensor is already present in TensorDB
         tensor_name,origin,fl_round,report,tags = tensor_key
 
@@ -113,10 +109,10 @@ class TensorDB(object):
                 return None
             else:
                 agg_tensor_dict[col] = raw_df.iloc[0]
-            agg_tensor_dict[col] = agg_tensor_dict[col] * collaborator_weight_dict[col] 
+            agg_tensor_dict[col] = agg_tensor_dict[col] * collaborator_weight_dict[col]
         agg_nparray = np.sum([agg_tensor_dict[col] for col in collaborator_names],axis=0)
-        
+
         #Cache aggregated tensor in TensorDB
         self.cache_tensor({tensor_key: agg_nparray})
 
-        return np.array(agg_nparray)            
+        return np.array(agg_nparray)

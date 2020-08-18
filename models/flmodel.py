@@ -16,7 +16,7 @@ class FLModel(object):
     """Federated Learning Model Base Class
     """
 
-    def __init__(self, data, tensor_dict_split_fn_kwargs=None,**kwargs):
+    def __init__(self, data, tensor_dict_split_fn_kwargs={}, **kwargs):
         """Intializer
 
         Args:
@@ -43,6 +43,9 @@ class FLModel(object):
         """Sets up the log object
         """
         self.logger = logging.getLogger(__name__)
+
+    def set_optimizer_treatment(self,opt_treatment):
+        self.opt_treatment = opt_treatment
 
     def get_data(self):
         """Get the data object.
@@ -107,6 +110,17 @@ class FLModel(object):
 
         Returns"
             dict: {<metric>: <value>}
+        """
+        raise NotImplementedError
+
+    def get_required_tensorkeys_for_function(self, func_name, **kwargs):
+        """
+        When running a task, a map of named tensorkeys must be provided to the function as dependencies. 
+        
+        Returns
+        -------
+        list
+            (TensorKey(tensor_name, origin, round_number))
         """
         raise NotImplementedError
 

@@ -10,9 +10,10 @@ import sys
 import logging
 import importlib
 
+
 from tfedlrn import load_yaml, get_object, split_tensor_dict_for_holdouts
 from tfedlrn.flplan import parse_fl_plan, create_data_object, create_model_object, create_compression_pipeline
-from tfedlrn.proto.protoutils import dump_proto, construct_proto
+from tfedlrn.proto.protoutils import dump_proto, construct_proto, construct_model_proto
 from setup_logging import setup_logging
 
 
@@ -78,11 +79,9 @@ def main(plan, collaborators_file, feature_shape, data_config_fname, logging_con
     logger.warn('Following paramters omitted from global initial model, '\
                 'local initialization will determine values: {}'.format(list(holdout_params.keys())))
 
-    model_proto = construct_proto(tensor_dict=tensor_dict,
-                                  model_id=wrapped_model.__class__.__name__,
-                                  model_version=0,
-                                  is_delta=False, 
-                                  compression_pipeline=compression_pipeline)
+    model_proto = construct_model_proto(tensor_dict=tensor_dict, 
+                                        round_number=0,
+                                        compression_pipeline=compression_pipeline)
 
     dump_proto(model_proto=model_proto, fpath=fpath)
 

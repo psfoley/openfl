@@ -5,6 +5,11 @@ import yaml
 import importlib
 import hashlib
 import numpy as np
+from collections import namedtuple
+
+TensorKey = namedtuple('TensorKey', ['tensor_name', 'origin', 'round_number', 'report', 'tags'])
+TaskResultKey = namedtuple('TaskResultKey', ['task_name', 'owner', 'round_number'])
+
 
 def load_yaml(path):
     """Load a YAML file

@@ -8,8 +8,10 @@ class RandomShiftTransformer(Transformer):
     """
 
     def __init__(self):
-        """Intializer
+        """Initializer
         """
+        self.lossy = False
+
         return
 
     def forward(self, data, **kwargs):

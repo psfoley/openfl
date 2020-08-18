@@ -8,7 +8,6 @@ class Transformer(object):
         """
         raise NotImplementedError
 
-
     def forward(self, data, **kwargs):
         """Forward pass data transformation
 
@@ -103,3 +102,10 @@ class TransformationPipeline(object):
         for transformer in self.transformers[::-1]:
             data = transformer.backward(data=data, metadata=transformer_metadata.pop(), **kwargs)
         return data
+            
+    def is_lossy(self):
+        """
+        If any of the transformers are lossy, then the pipeline is lossy
+        """
+        return any([transformer.lossy for transformer in self.transformers])
+

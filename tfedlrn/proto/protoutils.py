@@ -2,7 +2,8 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
-from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, TensorProto, ModelHeader, MetadataProto, DataStream
+from tfedlrn import TensorKey
+from tfedlrn.proto.collaborator_aggregator_interface_pb2 import ModelProto, NamedTensor, MetadataProto, DataStream
 
 def model_proto_to_bytes_and_metadata(model_proto):
     """Converts the model protobuf to bytes and metadata
@@ -17,12 +18,17 @@ def model_proto_to_bytes_and_metadata(model_proto):
 
     bytes_dict = {}
     metadata_dict = {}
+    round_number = None
     for tensor_proto in model_proto.tensors:
         bytes_dict[tensor_proto.name] = tensor_proto.data_bytes
         metadata_dict[tensor_proto.name] = [{'int_to_float': proto.int_to_float,
                                              'int_list': proto.int_list,
                                              'bool_list': proto.bool_list} for proto in tensor_proto.transformer_metadata]
-    return bytes_dict, metadata_dict
+        if round_number is None:
+            round_number = tensor_proto.round_number
+        else:
+            assert(round_number == tensor_proto.round_number), 'Round numbers in model are inconsistent: {} and {}'.format(round_number,tensor_proto.round_number)
+    return bytes_dict, metadata_dict, round_number
 
 
 def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_delta, metadata_dict):
@@ -54,6 +60,30 @@ def bytes_and_metadata_to_model_proto(bytes_dict, model_id, model_version, is_de
                                          transformer_metadata=metadata_protos))
     return ModelProto(header=model_header, tensors=tensor_protos)
 
+def construct_named_tensor(tensor_key, nparray, transformer_metadata, lossless):
+    
+    metadata_protos = []
+    for metadata in transformer_metadata:
+        if metadata.get('int_to_float') is not None:
+            int_to_float = metadata.get('int_to_float')
+        else:
+            int_to_float = {}
+
+        if metadata.get('int_list') is not None:
+            int_list = metadata.get('int_list')
+        else:
+            int_list = []
+
+        if metadata.get('bool_list') is not None:
+            bool_list = metadata.get('bool_list')
+        else:
+            bool_list = []
+        metadata_protos.append(MetadataProto(int_to_float=int_to_float, int_list=int_list, bool_list=bool_list))
+ 
+    tensor_name,origin,round_number,report,tags = tensor_key
+
+    return NamedTensor(name=tensor_name,round_number=round_number,lossless=lossless,report=report,tags=tags,transformer_metadata=metadata_protos,data_bytes=nparray)
+
 
 def construct_proto(tensor_dict, model_id, model_version, is_delta, compression_pipeline):
     # compress the arrays in the tensor_dict, and form the model proto
@@ -70,6 +100,31 @@ def construct_proto(tensor_dict, model_id, model_version, is_delta, compression_
                                                     is_delta=is_delta, 
                                                     metadata_dict=metadata_dict)
     return model_proto
+
+def construct_model_proto(tensor_dict, round_number, compression_pipeline):
+    # compress the arrays in the tensor_dict, and form the model proto
+    # TODO: Hold-out tensors from the compression pipeline.
+    named_tensors = []
+    for key, nparray in tensor_dict.items():
+        bytes, transformer_metadata = compression_pipeline.forward(data=nparray)
+        tensor_key = TensorKey(key,'agg',round_number,False,('model',))
+        named_tensors.append(construct_named_tensor(tensor_key, bytes, transformer_metadata, lossless=True))
+
+    return ModelProto(tensors=named_tensors)
+
+
+def deconstruct_model_proto(model_proto, compression_pipeline):
+    # extract the tensor_dict and metadata
+    bytes_dict, metadata_dict, round_number = model_proto_to_bytes_and_metadata(model_proto)
+            
+    # decompress the tensors
+    # TODO: Handle tensors meant to be held-out from the compression pipeline (currently none are held out).
+    tensor_dict = {} 
+    for key in bytes_dict:
+        tensor_dict[key] = compression_pipeline.backward(data=bytes_dict[key], 
+                                                         transformer_metadata=metadata_dict[key])
+    return tensor_dict, round_number
+
 
 
 def deconstruct_proto(model_proto, compression_pipeline):

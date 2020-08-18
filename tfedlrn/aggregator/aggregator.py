@@ -1,45 +1,42 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-import time
-import os
-import shutil
-import logging
-import time
-
 import numpy as np
+import pandas as pd
 import tensorboardX
-from threading import Lock
+import logging
 
 from .. import check_equal, check_not_equal, check_is_in, check_not_in
-from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader
-from ..proto.collaborator_aggregator_interface_pb2 import Job, JobRequest, JobReply
-from ..proto.collaborator_aggregator_interface_pb2 import JOB_DOWNLOAD_MODEL, JOB_QUIT, JOB_TRAIN, JOB_VALIDATE, JOB_YIELD
-from ..proto.collaborator_aggregator_interface_pb2 import ModelProto, ModelHeader, TensorProto
-from ..proto.collaborator_aggregator_interface_pb2 import ModelDownloadRequest, GlobalModelUpdate
-from ..proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate, LocalValidationResults, LocalModelUpdateAck, LocalValidationResultsAck
+from ..proto.collaborator_aggregator_interface_pb2 import MessageHeader, MetadataProto, ModelProto
+from ..proto.collaborator_aggregator_interface_pb2 import TasksRequest, TasksResponse, TensorRequest, TensorResponse, NamedTensor, Acknowledgement
+from tfedlrn import TensorKey,TaskResultKey
+from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline, TensorCodec
+from tfedlrn.tensor_db import TensorDB
 
+from tfedlrn.proto.protoutils import load_proto, dump_proto, construct_proto, deconstruct_proto, construct_named_tensor, construct_model_proto, deconstruct_model_proto
 
-from tfedlrn.proto.protoutils import dump_proto, load_proto, construct_proto, deconstruct_proto
-from tfedlrn.tensor_transformation_pipelines import NoCompressionPipeline
-
-# FIXME: simpler "stats" collection/handling
-# FIXME: remove the round tracking/job-result tracking stuff from this?
-# Feels like it conflates model aggregation with round management
-# FIXME: persistence of the trained weights.
 class Aggregator(object):
-    """An Aggregator is the central node in federated learning.
 
-    Args:
-        id (string): Aggregation ID.
-        federation_uuid (string): Federation ID
-        collaborator_common_names (list of str): The list of IDs of enrolled collaborators.
-        connection : Used to be ZMQ connection, but deprecated in gRPC.
-        init_model_fpath (string): The location of the initial weight file.
-        latest_model_fpath (string): The file location to store the latest weight.
-        best_model_fpath (string): The file location to store the weight of the best model.
+    """An Aggregator is the central node in federated learning
+
+    Parameters
+    ----------
+    aggregator_uuid : str
+        Aggregation ID.
+    federation_uuid : str
+        Federation ID.
+    collaborator_common_names : list of str
+        The list of IDs of enrolled collaborators.
+    connection : ?
+        Used to be ZMQ connection, but deprecated in gRPC.
+    init_model_fpath : str
+        The location of the initial weight file.
+    latest_model_fpath : str
+        The file location to store the latest weight.
+    best_model_fpath : str
+        The file location to store the weight of the best model.
     """
-    # FIXME: no selector logic is in place
+
     def __init__(self,
                  aggregator_uuid,
                  federation_uuid,
@@ -47,6 +44,7 @@ class Aggregator(object):
                  init_model_fpath,
                  latest_model_fpath,
                  best_model_fpath,
+                 task_assigner,
                  rounds_to_train=256,
                  minimum_reporting=-1,
                  straggler_cutoff_time=np.inf,
@@ -54,46 +52,84 @@ class Aggregator(object):
                  single_col_cert_common_name=None,
                  compression_pipeline=None,
                  **kwargs):
-        self.logger = logging.getLogger(__name__)
-        self.uuid = aggregator_uuid
-        self.federation_uuid = federation_uuid
-        #FIXME: Should we do anything to insure the intial model is compressed?
-        self.model = load_proto(init_model_fpath)
-        self.latest_model_fpath = latest_model_fpath
-        self.best_model_fpath = best_model_fpath
-        self.collaborator_common_names = collaborator_common_names
-        self.round_num = 1
-        self.rounds_to_train = rounds_to_train
-        self.quit_job_sent_to = []
-        self.disable_equality_check = disable_equality_check
-        self.minimum_reporting = minimum_reporting
-        self.straggler_cutoff_time = straggler_cutoff_time
-        self.round_start_time = None
+        self.round_number = 0
         self.single_col_cert_common_name = single_col_cert_common_name
+        self.logger = logging.getLogger(__name__)
 
         if self.single_col_cert_common_name is not None:
             self.log_big_warning()
         else:
             self.single_col_cert_common_name = '' # FIXME: '' instead of None is just for protobuf compatibility. Cleaner solution?
 
-        #FIXME: close the handler before termination.
-        log_dir = './logs/tensorboardX/%s_%s' % (self.uuid, self.federation_uuid)
+        self.rounds_to_train = rounds_to_train
+        #If the collaborator requests a delta, this value is set to true
+        self.collaborator_common_names = collaborator_common_names
+        self.uuid = aggregator_uuid
+        self.federation_uuid = federation_uuid
+        self.task_assigner = task_assigner
+        self.quit_job_sent_to = []
+        self.tensor_db = TensorDB()
+        self.compression_pipeline = compression_pipeline or NoCompressionPipeline() 
+        self.tensor_codec = TensorCodec(self.compression_pipeline)
+        self.init_model_fpath = init_model_fpath
+        self.best_model_fpath = best_model_fpath
+        self.latest_model_fpath = latest_model_fpath
+        self.best_model_score = None
+        self.load_initial_tensors() # keys are TensorKeys
+        log_dir = './logs/tensorboardX/{}_{}'.format(self.uuid,self.federation_uuid)
         self.tb_writer = tensorboardX.SummaryWriter(log_dir, flush_secs=10)
 
-        self.model_update_in_progress = None
+        self.collaborator_tensor_results = {} # {TensorKey: nparray}}
 
-        self.init_per_col_round_stats()
-        self.best_model_score = None
-        self.mutex = Lock()
+        # these enable getting all tensors for a task
+        self.collaborator_tasks_results = {} # {TaskResultKey: list of TensorKeys}
+        self.collaborator_task_weight = {} # {TaskResultKey: data_size}
 
-        self.compression_pipeline = compression_pipeline or NoCompressionPipeline()
-        # if collaborators are sending model deltas, aggregator side tracking of non-delta global model is needed (restoration & saving models)
-        self.non_delta_dict = None
+    def load_initial_tensors(self):
+        """
+        Load all of the tensors required to begin federated learning:
 
-    def update_non_delta_dict(self, tensor_dict):
-        if set(self.non_delta_dict.keys()) != set(tensor_dict.keys()):
-            raise ValueError("Attempting to update base with tensors whose names do not match current base names.")
-        self.non_delta_dict = {key: (self.non_delta_dict[key] + tensor_dict[key]) for key in tensor_dict}
+        1. Initial model
+
+        Parameters
+        ----------
+        """
+        #If the collaborator requests a delta, this value is set to true
+        self.model = load_proto(self.init_model_fpath)
+        tensor_dict,round_number = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
+        if round_number > self.round_number:
+            self.logger.info('Starting training from round {} of previously saved model'.format(round_number))
+            self.round_number = round_number
+        tensor_key_dict = {TensorKey(k,self.uuid,self.round_number,False,('model',)):v for k,v in tensor_dict.items()}
+        #All initial model tensors are loaded here
+        self.tensor_db.cache_tensor(tensor_key_dict)
+        self.logger.debug('This is the initial tensor_db: {}'.format(self.tensor_db))
+
+    def save_model(self,round_number,file_path):
+        """
+        Save the best or latest model
+
+        Params
+        ------
+        round_number:   Model round to be saved
+        file_path:      Either the best model or latest model file path
+
+        Returns
+        -------
+        None
+        """
+        #Extract the model from TensorDB and set it to the new model
+        og_tensor_dict,_ = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
+        tensor_keys = [TensorKey(k,self.uuid,round_number,False,('model',)) for k,v in og_tensor_dict.items()]
+        best_tensor_dict = {}
+        for tk in tensor_keys:
+            tk_name,_,_,_,_ = tk
+            best_tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
+            if best_tensor_dict[tk_name] is None:
+              self.logger.info('Cannot save model for round {}. Continuing...'.format(round_number))
+              return
+        self.model = construct_model_proto(best_tensor_dict,round_number,self.compression_pipeline)
+        dump_proto(self.model, file_path)
 
 
     def valid_collaborator_CN_and_id(self, cert_common_name, collaborator_common_name):
@@ -114,556 +150,524 @@ class Aggregator(object):
         else:
             return cert_common_name == self.single_col_cert_common_name and collaborator_common_name in self.collaborator_common_names
 
+
     def all_quit_jobs_sent(self):
-        """Determines if all collaborators have been sent the QUIT command.
+        return set(self.quit_job_sent_to) == set(self.collaborator_common_names)
 
-        Returns:
-            bool: True if all collaborators have been sent the QUIT command.
+    def check_request(self, request):
+        """
+        Validate request header matches expected values
+        """
+        #TODO improve this check. The sender name could be spoofed
+        check_is_in(request.header.sender, self.collaborator_common_names, self.logger) 
+
+        #Validate the message is for me
+        check_equal(request.header.receiver, self.uuid, self.logger)
+
+        #Validate message is for my federation
+        check_equal(request.header.federation_uuid, self.federation_uuid, self.logger)
+
+        #Check that we agree on the single cert common name
+        check_equal(request.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
+
+
+    def get_header(self,collaborator_name):
+        """
+        Compose and return MessageHeader
+        """
+        return MessageHeader(sender=self.uuid, receiver=collaborator_name, federation_uuid=self.federation_uuid, single_col_cert_common_name=self.single_col_cert_common_name)
+
+    def get_sleep_time(self):
+        """
+        Sleep 10 seconds
+        """
+        return 10
+
+    def time_to_quit(self):
+        """
+        If all rounds are complete, it's time to quit
+        """
+        if self.round_number >= self.rounds_to_train:
+            return True
+        return False
+        
+    def GetTasks(self, request):
+        # all messages get sanity checked
+        self.check_request(request)
+
+        collaborator_name = request.header.sender
+
+        # first, if it is time to quit, inform the collaborator
+        if self.time_to_quit():
+            self.logger.info('Sending signal to collaborator {} to shutdown...'.format(collaborator_name))
+            self.quit_job_sent_to.append(collaborator_name)
+            return TasksResponse(header=self.get_header(collaborator_name),
+                                 round_number=self.round_number,
+                                 tasks=None,
+                                 sleep_time=0,
+                                 quit=True)
+        
+        # otherwise, get the tasks from our task assigner
+        tasks = self.task_assigner.get_tasks_for_collaborator(collaborator_name,self.round_number) # fancy task assigners may want aggregator state
+        
+        # if no tasks, tell the collaborator to sleep
+        if len(tasks) == 0:
+            return TasksResponse(header=self.get_header(collaborator_name),
+                                 round_number=self.round_number,
+                                 tasks=None,
+                                 sleep_time=self.get_sleep_time(), # this could be an extensible function if we want
+                                 quit=False)
+
+        # if we do have tasks, remove any that we already have results for
+        tasks = [t for t in tasks if not self.collaborator_task_completed(collaborator_name, t, self.round_number)]
+
+        #Do the check again because it's possible that all tasks have been completed
+        if len(tasks) == 0:
+            return TasksResponse(header=self.get_header(collaborator_name),
+                                 round_number=self.round_number,
+                                 tasks=None,
+                                 sleep_time=self.get_sleep_time(), # this could be an extensible function if we want
+                                 quit=False)
+
+        self.logger.info('Sending tasks to collaborator {} for round {}'.format(collaborator_name,self.round_number))
+        return TasksResponse(header=self.get_header(collaborator_name),
+                             round_number=self.round_number,
+                             tasks=tasks,
+                             sleep_time=0,
+                             quit=False)
+
+    def GetAggregatedTensor(self, request):
+        # all messages get sanity checked
+        self.check_request(request)
+
+        # get the values we need from the protobuf
+        collaborator_name   = request.header.sender
+        tensor_name         = request.tensor_name
+        require_lossless    = request.require_lossless
+        round_number        = request.round_number
+        report              = request.report
+        tags                = request.tags
+
+        self.logger.debug('Retrieving aggregated tensor {} for collaborator {}'.format(tensor_name,collaborator_name))
+
+        if 'compressed' in tags or require_lossless:
+            compress_lossless=True
+
+        #TODO the TensorDB doesn't support compressed data yet. The returned tensor will
+        #be recompressed anyway.
+        if 'compressed' in tags:
+            tags.remove('compressed')
+
+        tensor_key = TensorKey(tensor_name, self.uuid, round_number, report, tuple(tags))
+        tensor_name,origin,round_number, report, tags = tensor_key
+
+        send_model_deltas = False
+        compress_lossless = False
+
+
+        if 'aggregated' in tags and 'delta' in tags and round_number != 0:
+            send_model_deltas = True
+            agg_tensor_key = TensorKey(tensor_name,origin,round_number,report,('aggregated',))
+        else:
+            agg_tensor_key = tensor_key
+        
+        nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
+
+        if nparray is None:
+            raise ValueError("Aggregator does not have an aggregated tensor for {}".format(tensor_key))
+
+        # quite a bit happens in here, including compression, delta handling, etc...
+        # we might want to cache these as well
+        named_tensor = self.nparray_to_named_tensor(agg_tensor_key,nparray,send_model_deltas=True,compress_lossless=compress_lossless)
+
+        return TensorResponse(header=self.get_header(collaborator_name),
+                              round_number=round_number,
+                              tensor=named_tensor)
+
+    def nparray_to_named_tensor(self,tensor_key, nparray,send_model_deltas,compress_lossless):
+        """
+        This function constructs the NamedTensor Protobuf and also includes logic to create delta, 
+        compress tensors with the TensorCodec, etc.
+        """
+
+        # if we have an aggregated tensor, we can make a delta
+        tensor_name,origin,round_number,report,tags = tensor_key
+        if('aggregated' in tags and send_model_deltas):
+          #Should get the pretrained model to create the delta. If training has happened,
+          #Model should already be stored in the TensorDB
+          model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_name,\
+                                                                  origin,\
+                                                                  round_number-1,\
+                                                                  report,\
+                                                                  ('model',))) 
+        
+          assert(model_nparray != None), "The original model layer should be present if the latest aggregated model is present"
+          delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
+          delta_comp_tensor_key,delta_comp_nparray,metadata = \
+                  self.tensor_codec.compress(delta_tensor_key,delta_nparray,lossless=compress_lossless)
+          named_tensor = construct_named_tensor(delta_comp_tensor_key,delta_comp_nparray,metadata,lossless=compress_lossless)
+
+        else:
+            #Assume every other tensor requires lossless compression
+            compressed_tensor_key, compressed_nparray, metadata = \
+                    self.tensor_codec.compress(tensorkey,nparray,require_lossless=True)
+            named_tensor = construct_named_tensor(compressed_tensor_key,compressed_nparray,metadata,lossless=compress_lossless)
+        
+        return named_tensor
+
+
+
+    def collaborator_task_completed(self, collaborator, task, round_num):
+        """
+        Check if the collaborator has completed the task for the round. 
+        The aggregator doesn't actually know which tensors should be sent from the collaborator
+        so it must to rely specifically on the presence of previous results
+
+        Parameters
+        ----------
+        collaborator
+        task_name
+        round_number
+
+        Returns
+        -------
+        bool
 
         """
-        return sorted(self.quit_job_sent_to) == sorted(self.collaborator_common_names)
+        task_key = TaskResultKey(task, collaborator, round_num)
+        return task_key in self.collaborator_tasks_results
 
-    def validate_header(self, message):
-        """Validates the message is from valid collaborator in this federation.
 
-        Returns:
-            bool: True if the message is from a valid collaborator in this federation.
+    def SendLocalTaskResults(self, request):
+        # all messages get sanity checked
+        self.check_request(request)
 
+        # get the values we need from the protobuf
+        collaborator_name   = request.header.sender
+        task_name           = request.task_name
+        round_number        = request.round_number
+        data_size           = request.data_size
+        named_tensors       = request.tensors
+        
+        self.logger.info('Collaborator {} is sending task results for {}, round {}'.format(collaborator_name,task_name,round_number))
+
+        # TODO: do we drop these on the floor?
+        # if round_number != self.round_number:
+        #     return Acknowledgement(header=self.get_header(collaborator_name))
+
+        task_key = TaskResultKey(task_name, collaborator_name, round_number)
+
+        # we mustn't have results already
+        if self.collaborator_task_completed(collaborator_name, task_name, round_number):
+            raise ValueError("Aggregator already has task results from collaborator {} for task {}".format(collaborator_name, task_key))
+
+        # initialize the list of tensors that go with this task
+        #Setting these incrementally is leading to missing values
+        #self.collaborator_tasks_results[task_key] = []
+        task_results = []
+
+        # go through the tensors and add them to the tensor dictionary and the task dictionary
+        for named_tensor in named_tensors:
+            # sanity check that this tensor has been updated
+            if named_tensor.round_number != round_number:
+                raise ValueError('Collaborator {} is reporting results for the wrong round. Exiting...'.format(collaborator_name))
+
+            # quite a bit happens in here, including decompression, delta handling, etc...
+            tensor_key, nparray = self.process_named_tensor(named_tensor,collaborator_name)
+
+            task_results.append(tensor_key)
+            #By giving task_key it's own weight, we can support different training/validation weights
+            #As well as eventually supporting weights that change by round (if more data is added)
+            self.collaborator_task_weight[task_key] = data_size
+
+        self.collaborator_tasks_results[task_key] = task_results
+        
+        self.end_of_task_check(task_name)
+
+        return Acknowledgement(header=self.get_header(collaborator_name))
+
+
+    def process_named_tensor(self,named_tensor,collaborator_name):
+        """
+        Extract the named tensor fields, performs decompression, delta computation, 
+        and inserts results into TensorDB.
+
+        Parameters
+        ----------
+        named_tensor:       NamedTensor protobuf that will be extracted from and processed
+        collaborator_name:  Collaborator name is needed for proper tagging of resulting tensorkeys  
+        """
+        raw_bytes = named_tensor.data_bytes
+        metadata = [{'int_to_float': proto.int_to_float,
+                     'int_list': proto.int_list,
+                     'bool_list': proto.bool_list} for proto in named_tensor.transformer_metadata]
+        #The tensor has already been transfered to aggregator, so the newly constructed tensor should have the aggregator origin
+        tensor_key = TensorKey(named_tensor.name, self.uuid, named_tensor.round_number, named_tensor.report, tuple(named_tensor.tags))
+        tensor_name,origin,round_number,report,tags = tensor_key
+        assert('compressed' in tags or 'lossy_decompressed' in tags), 'Named tensor {} is not compressed'.format(tensor_key)
+        if 'compressed' in tags:
+            dec_tk, decompressed_nparray =  \
+                    self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata,require_lossless=True)
+            dec_name,dec_origin,dec_round_num,dec_report,dec_tags = dec_tk
+            #Need to add the collaborator tag to the resulting tensor
+            if type(dec_tags) == str:
+                new_tags = tuple([dec_tags] + [collaborator_name])
+            else:
+                new_tags = tuple(list(dec_tags) + [collaborator_name])
+            #layer.agg.n.trained.delta.col_i
+            decompressed_tensor_key = TensorKey(dec_name,dec_origin,dec_round_num,dec_report,new_tags)
+        if 'lossy_compressed' in tags:
+            dec_tk, decompressed_nparray =  \
+                    self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata)
+            dec_name,dec_origin,dec_round_num,dec_report,dec_tags = dec_tk
+            if type(dec_tags) == str:
+                new_tags = tuple([dec_tags] + [collaborator_name])
+            else:
+                new_tags = tuple(list(dec_tags) + [collaborator_name])
+            #layer.agg.n.trained.delta.lossy_decompressed.col_i
+            decompressed_tensor_key = TensorKey(dec_name,dec_origin,dec_round_num,dec_report,new_tags)
+
+        if 'delta' in tags:
+            base_model_tensor_key = TensorKey(tensor_name,origin,round_number,report,('model',))
+            base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tensor_key)
+            if base_model_nparray is None:
+                raise ValueError('Base model {} not present in TensorDB'.format(base_model_tensor_key))
+            final_tensor_key,final_nparray = self.tensor_codec.apply_delta(decompressed_tensor_key,decompressed_nparray,base_model_nparray)
+        else:
+            final_tensor_key = decompressed_tensor_key
+            final_nparray = decompressed_nparray
+
+
+        assert(final_nparray is not None), 'Could not create tensorkey {}'.format(final_tensor_key)
+        self.tensor_db.cache_tensor({final_tensor_key: final_nparray})
+        self.logger.debug('Created TensorKey: {}'.format(final_tensor_key))
+        
+        return final_tensor_key, final_nparray
+
+    def nparray_to_named_tensor(self,tensor_key, nparray,send_model_deltas,compress_lossless):
+        """
+        This function constructs the NamedTensor Protobuf and also includes logic to create delta, 
+        compress tensors with the TensorCodec, etc.
         """
 
-        # validate that the message is for me
-        check_equal(message.header.recipient, self.uuid, self.logger)
+        tensor_name,origin,round_number,report,tags = tensor_key
+        # if we have an aggregated tensor, we can make a delta
+        if('aggregated' in tensor_name and send_model_deltas):
+          #Should get the pretrained model to create the delta. If training has happened,
+          #Model should already be stored in the TensorDB
+          model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_name,\
+                                                                  origin,\
+                                                                  round_number-1,\
+                                                                  ('model',))) 
+        
+          assert(model_nparray is not None), "The original model layer should be present if the latest aggregated model is present"
+          delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key,nparray,model_nparray)
+          delta_comp_tensor_key,delta_comp_nparray,metadata = \
+                  self.tensor_codec.compress(delta_tensor_key,delta_nparray,lossless=compress_lossless)
+          named_tensor = construct_named_tensor(delta_comp_tensor_key,delta_comp_nparray,metadata,lossless=compress_lossless)
 
-        # validate that the message is for my federation
-        check_equal(message.header.federation_id, self.federation_uuid, self.logger)
+        else:
+            #Assume every other tensor requires lossless compression
+            compressed_tensor_key, compressed_nparray, metadata = \
+                    self.tensor_codec.compress(tensor_key,nparray,require_lossless=True)
+            named_tensor = construct_named_tensor(compressed_tensor_key,compressed_nparray,metadata,lossless=compress_lossless)
+        
+        return named_tensor
 
-        # validate that the sender is one of my collaborators
-        check_is_in(message.header.sender, self.collaborator_common_names, self.logger)
 
-        # check that we agree on single_col_cert_common_name
-        check_equal(message.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
-
-    def init_per_col_round_stats(self):
-        """Initalize the metrics from collaborators for each round of aggregation. """
-        keys = ["loss_results", "collaborator_training_sizes", "agg_validation_results", "preagg_validation_results", "collaborator_validation_sizes"]
-        values = [{} for i in range(len(keys))]
-        self.per_col_round_stats = dict(zip(keys, values))
-
-    def collaborator_is_done(self, c):
-        """Determines if a collaborator is finished a round.
-
-        Args:
-            c: Collaborator name
-
-        Returns:
-            bool: True if collaborator c is done.
-
-        """
-        assert c in self.collaborator_common_names
-
-        # FIXME: this only works because we have fixed roles each round
-        return (c in self.per_col_round_stats["loss_results"] and
-                c in self.per_col_round_stats["collaborator_training_sizes"] and
-                c in self.per_col_round_stats["agg_validation_results"] and
-                c in self.per_col_round_stats["preagg_validation_results"] and
-                c in self.per_col_round_stats["collaborator_validation_sizes"])
-
-    def num_collaborators_done(self):
-        """Returns the number of collaborators that have finished the training round.
-
-        Returns:
-            int: The number of collaborators that have finished this round of training.
-
-        """
-        return sum([self.collaborator_is_done(c) for c in self.collaborator_common_names])
-
-    def straggler_time_expired(self):
-        """Determines if there are still collaborators that have not returned past the expected round time.
-        Returns:
-            bool: True if training round limit has expired (i.e. there are straggler collaborators that have not returned in the expected time)
-
-        """
-        return self.round_start_time is not None and ((time.time() - self.round_start_time) > self.straggler_cutoff_time)
-
-    def minimum_collaborators_reported(self):
-        """Determines if enough collaborators have returned to do the aggregation.
-
-        Returns:
-            bool: True if the number of collaborators that have finished is greater than the minimum threshold set.
-
-        """
-        return self.num_collaborators_done() >= self.minimum_reporting
-
-    def straggler_cutoff_check(self):
-        """Determines if a collaborator is finished a round.
-
-        Args:
-            c: Collaborator name
-
-        Returns:
-            bool: True if collaborator c is done.
-
-        """
-        cutoff = self.straggler_time_expired() and self.minimum_collaborators_reported()
-        if cutoff:
-            collaborators_done = [c for c in self.collaborator_common_names if self.collaborator_is_done(c)]
-            self.logger.info('\tEnding round early due to straggler cutoff. Collaborators done: {}'.format(collaborators_done))
-        return cutoff
+    def end_of_task_check(self, task_name):
+        if self.is_task_done(task_name):
+            # now check for the end of the round
+            self.end_of_round_check()
 
     def end_of_round_check(self):
-        """Determines if it is the end of a training round.
+        if self.is_round_done():
+            #Compute all validation related metrics
+            all_tasks = self.task_assigner.get_all_tasks_for_round(self.round_number)
+            for task_name in all_tasks:
+                self.logger.info('{} task metrics...'.format(task_name))
+                #By default, print out all of the metrics that the validation task sent
+                #This handles getting the subset of collaborators that may be part of the validation task
+                collaborators_for_task = self.task_assigner.get_collaborators_for_task(task_name,self.round_number)
+                #The collaborator data sizes for that task
+                collaborator_weights_unnormalized = \
+                        {c:self.collaborator_task_weight[TaskResultKey(task_name,c,self.round_number)] \
+                        for c in collaborators_for_task}
+                weight_total = sum(collaborator_weights_unnormalized.values())
+                collaborator_weight_dict = {k:v/weight_total for k,v in collaborator_weights_unnormalized.items()}
+                
+                #The validation task should have just a couple tensors (i.e. metrics) associated with it.
+                #Because each collaborator should have sent the same tensor list, we can use the first 
+                #collaborator in our subset, and apply the correct transformations to the tensorkey to 
+                #resolve the aggregated tensor for that round
+                task_key = TaskResultKey(task_name,collaborators_for_task[0],self.round_number)
+                for tensor_key in self.collaborator_tasks_results[task_key]:
+                    tensor_name,origin,round_number,report,tags = tensor_key
+                    assert(tags[-1] == collaborators_for_task[0]), \
+                            'Tensor {} in task {} has not been processed correctly'.format(tensor_key,task_name)
+                    #Strip the collaborator label, and lookup aggregated tensor
+                    new_tags = tuple(list(tags[:-1]))
+                    agg_tensor_key = TensorKey(tensor_name,origin,round_number,report,new_tags)
+                    agg_tensor_name,agg_origin,agg_round_number,agg_report,agg_tags = agg_tensor_key
+                    agg_results = self.tensor_db.get_aggregated_tensor(agg_tensor_key,collaborator_weight_dict)
+                    if report:
+                        #Print the aggregated metric
+                        if agg_results is None:
+                            self.logger.warning('Aggregated metric {} could not be collect for round {}. Skipping reporting for this round'.format(agg_tensor_name,self.round_number))
+                        self.logger.info('{0}:\t{1:.4f}'.format(agg_tensor_name,agg_results))
+                        #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
+                        if 'validate_agg' in tags:
+                            #Compare the accuracy of the model, and potentially save it
+                            if self.best_model_score is None or self.best_model_score < agg_results:
+                                self.logger.info('Saved the best model with score {:f}'.format(agg_results))
+                                self.best_model_score = agg_results
+                                self.save_model(round_number,self.best_model_fpath)
+                    if 'trained' in tags:
+                        #The aggregated tensorkey tags should have the form of 'trained' or 'trained.lossy_decompressed'
+                        #They need to be relabeled to 'aggregated' and reinserted. Then delta performed, 
+                        #compressed, etc. then reinserted to TensorDB with 'model' tag
 
-        Returns:
-            bool: True if training round has ended.
+                        #First insert the aggregated model layer with the correct tensorkey
+                        agg_tag_tk = TensorKey(tensor_name,origin,round_number+1,report,('aggregated',))
+                        self.tensor_db.cache_tensor({agg_tag_tk:agg_results})
 
-        """
-        # FIXME: find a nice, clean way to manage these values without having to manually ensure
-        # the keys are in sync
+                        #Create delta and save it in TensorDB
+                        base_model_tk = TensorKey(tensor_name,origin,round_number,report,('model',))
+                        base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tk)
+                        if base_model_nparray is not None:
+                            delta_tk,delta_nparray = self.tensor_codec.generate_delta(agg_tag_tk,agg_results,base_model_nparray)
+                            self.tensor_db.cache_tensor({delta_tk:delta_nparray})
+                        else:
+                            #This condition is possible for base model optimizer states (i.e. Adam/iter:0, SGD, etc.)
+                            #These values couldn't be present for the base model because no training occurs on the aggregator
+                            delta_tk,delta_nparray = agg_tag_tk,agg_results
 
-        # assert our dictionary keys are in sync
-        check_equal(self.per_col_round_stats["loss_results"].keys(), self.per_col_round_stats["collaborator_training_sizes"].keys(), self.logger)
-        check_equal(self.per_col_round_stats["agg_validation_results"].keys(), self.per_col_round_stats["collaborator_validation_sizes"].keys(), self.logger)
+                        #Compress lossless/lossy
+                        compressed_delta_tk,compressed_delta_nparray,metadata = \
+                                self.tensor_codec.compress(delta_tk,delta_nparray)
 
-        # if everyone is done OR our straggler policy calls for an early round end
-        if self.num_collaborators_done() == len(self.collaborator_common_names) or self.straggler_cutoff_check():
-            self.end_of_round()
+                        #TODO extend the TensorDB so that compressed data is supported. Once that is in place
+                        #the compressed delta can just be stored here instead of recreating it for every request
 
-    def get_weighted_average_of_collaborators(self, value_dict, weight_dict):
-        """Calculate the weighted average of the model updates from the collaborators.
+                        #Decompress lossless/lossy
+                        decompressed_delta_tk,decompressed_delta_nparray = \
+                                self.tensor_codec.decompress(compressed_delta_tk,compressed_delta_nparray,metadata)
 
-        Args:
-            value_dict: A dictionary of the values (model tensors)
-            weight_dict: A dictionary of the collaborator weights (percentage of total data size)
+                        #Apply delta (unless delta couldn't be created)
+                        if base_model_nparray is not None:
+                            new_model_tk,new_model_nparray = \
+                                    self.tensor_codec.apply_delta(decompressed_delta_tk,decompressed_delta_nparray,base_model_nparray)
+                        else:
+                            new_model_tk,new_model_nparray = decompressed_delta_tk, decompressed_delta_nparray
 
-        Returns:
-            Dictionary of the weights average for all collaborator models
+                        #Now that the model has been compressed/decompressed with delta operations,
+                        #Relabel the tags to 'model'
+                        new_model_tensor_name,new_model_origin,new_model_round_number,new_model_report,new_model_tags = new_model_tk
+                        final_model_tk = TensorKey(new_model_tensor_name,new_model_origin,new_model_round_number,new_model_report,('model',))
 
-        """
-        cols = [k for k in value_dict.keys() if k in self.collaborator_common_names]
-        return np.average([value_dict[c] for c in cols], weights=[weight_dict[c] for c in cols])
+                        #Finally, cache the updated model tensor
+                        self.tensor_db.cache_tensor({final_model_tk:new_model_nparray})
+                        #self.logger.debug('TensorDB contents after training round {}: {}'.format(self.round_number,self.tensor_db))
 
-    def end_of_round(self):
-        """Runs required tasks when the training round has ended.
-        """
-        # FIXME: what all should we do to track results/metrics? It should really be an easy, extensible solution
-
-        # compute the weighted loss average
-        round_loss = self.get_weighted_average_of_collaborators(self.per_col_round_stats["loss_results"],
-                                                                self.per_col_round_stats["collaborator_training_sizes"])
-
-        # compute the weighted average of collaborator pre-train validation (valiation of this round's initial global model)
-        round_initial_global_val = self.get_weighted_average_of_collaborators(self.per_col_round_stats["agg_validation_results"],
-                                                                              self.per_col_round_stats["collaborator_validation_sizes"])
-
-        # if this round initial global is best global seen so far, save it as such
-        if self.best_model_score is None or self.best_model_score < round_initial_global_val:
-            if self.best_model_score is None:
-                # The inital global model being evaluated here is the very first global model (and is self.model)
-                dump_proto(self.model, self.best_model_fpath)
-            else:
-                # The inital global model being evaluated here resides at the latest model fpath (self.model may be a delta)
-                shutil.copyfile(self.latest_model_fpath, self.best_model_fpath)
-            self.best_model_score = round_initial_global_val
-            self.logger.info("Saved the best model with score {:f}.".format(round_initial_global_val))
+           
+            #Once all of the task results have been processed
+            #Increment the round number
+            self.round_number += 1
             
+            #Save the latest model
+            self.logger.info('Saving round {} model...'.format(self.round_number))
+            self.save_model(self.round_number,self.latest_model_fpath)
 
-        # FIXME: proper logging
-        self.logger.info(20*'#')
-        self.logger.info('round {} results for model id/version {}/{}'.format(self.round_num, self.model.header.id, self.model.header.version))
-        self.logger.info('\tround {} initial global validation: {}'.format(self.round_num, round_initial_global_val))
-        self.logger.info('\tweighted average of end of round {} local training loss: {}'.format(self.round_num, round_loss))
-        self.logger.info(20*'#')
 
-        self.tb_writer.add_scalars('training/loss', {**self.per_col_round_stats["loss_results"], "federation": round_loss}, global_step=self.round_num)
-        self.tb_writer.add_scalars('training/size', self.per_col_round_stats["collaborator_training_sizes"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/preagg_results', self.per_col_round_stats["preagg_validation_results"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/size', self.per_col_round_stats["collaborator_validation_sizes"], global_step=self.round_num)
-        self.tb_writer.add_scalars('validation/global_val_results', {**self.per_col_round_stats["agg_validation_results"], "federation": round_initial_global_val}, global_step=self.round_num-1)
-
-        # prepare an initial global model for next round (not yet setting it as self.model)
-        temp_model = construct_proto(tensor_dict=self.model_update_in_progress["tensor_dict"], 
-                                     model_id=self.model.header.id, 
-                                     model_version=self.model.header.version + 1, 
-                                     is_delta=self.model_update_in_progress["is_delta"], 
-                                     compression_pipeline=self.compression_pipeline)
-        
-        
-        # create and/or update the non delta dict
-        if self.model_update_in_progress['is_delta']:
-            if self.model.header.version == 0:
-                # set up tracking of non-delta global model using the exact version 0 all collaborators use 
-                self.non_delta_dict = deconstruct_proto(self.model, self.compression_pipeline)
-            # we update here with a delta that has passed through compression/decompression, so as to exactly match next round collaborator initial global models
-            self.update_non_delta_dict(tensor_dict=deconstruct_proto(temp_model, self.compression_pipeline))
-        
-        # set the initial global model for next round
-        self.model = temp_model
-
-        # determine the model protobuf for saving to disk (exactly matching next round collaborator initial global models)
-        if self.model_update_in_progress['is_delta']:
-            model_to_save = construct_proto(tensor_dict=self.non_delta_dict, 
-                                            model_id=self.model.header.id, 
-                                            model_version=self.model.header.version + 1, 
-                                            is_delta=False, 
-                                            compression_pipeline=NoCompressionPipeline())
-        else:
-            model_to_save = self.model
-       
-        # Save the new model as latest model.
-        dump_proto(model_to_save, self.latest_model_fpath)
-
-        # clear the update pointer
-        self.model_update_in_progress = None
-
-        self.init_per_col_round_stats()
-
-        self.round_num += 1
-        self.logger.debug("Start a new round %d." % self.round_num)
-        self.round_start_time = None
-
-    def UploadLocalModelUpdate(self, message):
-        """Parses the collaborator reply message to get the collaborator model update
-
-        Args:
-            message: Message from the collaborator
-
-        Returns:
-            The reply to the message (usually just the acknowledgement to the collaborator)
-
-        """
-
-        self.mutex.acquire(blocking=True)
-        try:
-            t = time.time()
-            self.validate_header(message)
-
-            self.logger.info("Receive model update from %s " % message.header.sender)
-
-            # Get the model parameters from the model proto and additional model info
-            model_tensors = deconstruct_proto(model_proto=message.model, compression_pipeline=self.compression_pipeline)
-            is_delta = message.model.header.is_delta
-
-            # validate this model header
-            check_equal(message.model.header.id, self.model.header.id, self.logger)
-            check_equal(message.model.header.version, self.model.header.version, self.logger)
-
-            # ensure we haven't received an update from this collaborator already
-            check_not_in(message.header.sender, self.per_col_round_stats["loss_results"], self.logger)
-            check_not_in(message.header.sender, self.per_col_round_stats["collaborator_training_sizes"], self.logger)
-
-            # if this is our very first update for the round, we take these model tensors as-is
-            # FIXME: move to model deltas, add with original to reconstruct
-            # FIXME: this really only works with a trusted collaborator. Sanity check this against self.model
-            if self.model_update_in_progress is None:
-                self.model_update_in_progress = {"tensor_dict": model_tensors,
-                                                 "is_delta": is_delta}
-
-            # otherwise, we compute the streaming weighted average
+            #TODO This needs to be fixed!
+            if self.time_to_quit():
+                self.logger.info('Experiment Completed. Cleaning up...')
             else:
-                # get the current update size total
-                total_update_size = np.sum(list(self.per_col_round_stats["collaborator_training_sizes"].values()))
-
-                # compute the weights for the global vs local tensors for our streaming average
-                weight_g = total_update_size / (message.data_size + total_update_size)
-                weight_l = message.data_size / (message.data_size + total_update_size)
-
-                # The model parameters are represented in float32 and will be transmitted in byte stream.
-                weight_g = weight_g.astype(np.float32)
-                weight_l = weight_l.astype(np.float32)
-
-                # FIXME: right now we're really using names just to sanity check consistent ordering
-
-                # check that the models include the same number of tensors, and that whether or not
-                # it is a delta is the same
-                check_equal(len(self.model_update_in_progress["tensor_dict"]), len(model_tensors), self.logger)
-                check_equal(self.model_update_in_progress["is_delta"], is_delta, self.logger)
-
-                # aggregate all the model tensors in the tensor_dict
-                # (weighted average of local update l and global tensor g for all l, g)
-                for name, l in model_tensors.items():
-                    g = self.model_update_in_progress["tensor_dict"][name]
-                    # check that g and l have the same shape
-                    check_equal(g.shape, l.shape, self.logger)
-
-                    # sanity check that the tensors are indeed different for non opt tensors
-                    # TODO: modify this to better comprehend for non pytorch how to identify the opt portion (use model opt info?)
-                    if (not self.disable_equality_check \
-                        and not name.startswith('__opt') \
-                        and 'RMSprop' not in name \
-                        and 'Adam' not in name \
-                        and 'RMSProp' not in name):
-                        check_equal(np.all(g == l), False, self.logger)
+                self.logger.info('Starting round {}...'.format(self.round_number))
 
 
-                    # now store a weighted average into the update in progress
-                    self.model_update_in_progress["tensor_dict"][name] = np.average([g, l], weights=[weight_g, weight_l], axis=0)
+    def is_task_done(self, task_name):
+        collaborators_needed = self.task_assigner.get_collaborators_for_task(task_name, self.round_number)
 
-            # store the loss results and training update size
-            self.per_col_round_stats["loss_results"][message.header.sender] = message.loss
-            self.per_col_round_stats["collaborator_training_sizes"][message.header.sender] = message.data_size
+        return all([self.collaborator_task_completed(c, task_name, self.round_number) for c in collaborators_needed])
 
-            # return LocalModelUpdateAck
-            self.logger.debug("Complete model update from %s " % message.header.sender)
-            reply = LocalModelUpdateAck(header=self.create_reply_header(message))
+    def is_round_done(self):
+        tasks_for_round = self.task_assigner.get_all_tasks_for_round(self.round_number)
 
-            self.end_of_round_check()
-
-            self.logger.debug('aggregator handled UploadLocalModelUpdate in time {}'.format(time.time() - t))
-        finally:
-            self.mutex.release()
-
-        return reply
-
-    def UploadLocalMetricsUpdate(self, message):
-        """Parses the collaborator reply message to get the collaborator metrics (usually the local validation score)
-
-        Args:
-            message: Message from the collaborator
-
-        Returns:
-            The reply to the message (usually just the acknowledgement to the collaborator)
-
-        """
-
-        self.mutex.acquire(blocking=True)
-        try:
-            t = time.time()
-            self.validate_header(message)
-
-            self.logger.debug("Receive local validation results from %s " % message.header.sender)
-            model_header = message.model_header
-
-            # validate this model header
-            check_equal(model_header.id, self.model.header.id, self.logger)
-            check_equal(model_header.version, self.model.header.version, self.logger)
-
-            sender = message.header.sender
-
-            if sender not in self.per_col_round_stats["agg_validation_results"]:
-                # Pre-train validation
-                # ensure we haven't received an update from this collaborator already
-                # FIXME: is this an error case that should be handled?
-                check_not_in(message.header.sender, self.per_col_round_stats["agg_validation_results"], self.logger)
-                check_not_in(message.header.sender, self.per_col_round_stats["collaborator_validation_sizes"], self.logger)
-
-                # store the validation results and validation size
-                self.per_col_round_stats["agg_validation_results"][message.header.sender] = message.results
-                self.per_col_round_stats["collaborator_validation_sizes"][message.header.sender] = message.data_size
-            elif sender not in self.per_col_round_stats["preagg_validation_results"]:
-                # Post-train validation
-                check_not_in(message.header.sender, self.per_col_round_stats["preagg_validation_results"], self.logger)
-                self.per_col_round_stats["preagg_validation_results"][message.header.sender] = message.results
-
-            reply = LocalValidationResultsAck(header=self.create_reply_header(message))
-
-            self.end_of_round_check()
-
-            self.logger.debug('aggregator handled UploadLocalMetricsUpdate in time {}'.format(time.time() - t))
-        finally:
-            self.mutex.release()
-
-        self.logger.debug('aggregator handled UploadLocalMetricsUpdate in time {}'.format(time.time() - t))
-
-        return reply
-
-    def RequestJob(self, message):
-        """Parse message for job request and act accordingly.
-
-        Args:
-            message: Message from the collaborator
-
-        Returns:
-            The reply to the message (usually just the acknowledgement to the collaborator)
-
-        """
-
-        t = time.time()
-        self.validate_header(message)
-
-        # FIXME: we should really have each collaborator validate one last time
-        # check if we are done
-        if self.round_num > self.rounds_to_train:
-            job = JOB_QUIT
-            self.quit_job_sent_to.append(message.header.sender)
-        # FIXME: this flow needs to depend on a job selection output for the round
-        # for now, all jobs require and in-sync model, so it is the first check
-        # check if the sender model is out of date
-        elif self.collaborator_out_of_date(message.model_header):
-            job = JOB_DOWNLOAD_MODEL
-        # else, check if this collaborator has not sent validation results
-        elif message.header.sender not in self.per_col_round_stats["agg_validation_results"]:
-            job = JOB_VALIDATE
-        # else, check if this collaborator has not sent training results
-        elif message.header.sender not in self.per_col_round_stats["collaborator_training_sizes"]:
-            job = JOB_TRAIN
-        elif message.header.sender not in self.per_col_round_stats["preagg_validation_results"]:
-            job = JOB_VALIDATE
-        # else this collaborator is done for the round
-        else:
-            job = JOB_YIELD
-
-        self.logger.debug("Receive job request from %s and assign with %s" % (message.header.sender, job))
-
-        reply = JobReply(header=self.create_reply_header(message), job=job)
-
-        if reply.job is not JOB_YIELD:
-            # check to see if we need to set our round start time
-            self.mutex.acquire(blocking=True)
-            try:
-                if self.round_start_time is None:
-                    self.round_start_time = time.time()
-            finally:
-                self.mutex.release()
-
-            self.logger.debug('aggregator handled RequestJob in time {}'.format(time.time() - t))
-        elif self.straggler_cutoff_time != np.inf:
-            # we have an idle collaborator and a straggler cutoff time, so we should check for early round end
-            self.mutex.acquire(blocking=True)
-            try:
-                self.end_of_round_check()
-            finally:
-                self.mutex.release()
-
-        return reply
-
-    def DownloadModel(self, message):
-        """Sends a model to the collaborator
-
-        Args:
-            message: Message from the collaborator
-
-        Returns:
-            The reply to the message (usually just the acknowledgement to the collaborator)
-
-        """
-
-        t = time.time()
-        self.validate_header(message)
-
-        self.logger.info("Received model download request from %s " % message.header.sender)
-
-        # ensure the models don't match
-        if not(self.collaborator_out_of_date(message.model_header)):
-            statement = "Collaborator asking for download when not out of date."
-            self.logger.exception(statement)
-            raise RuntimeError(statement)
-
-        # check whether there is an issue related to the sending of deltas or non-deltas
-        if message.model_header.version == -1:
-            if self.model.header.is_delta:
-                raise RuntimeError('First collaborator model download, and we only have a delta.')
-        elif message.model_header.is_delta != self.model.header.is_delta:
-            raise RuntimeError('Collaborator requesting non-initial download should hold a model with the same is_delta as aggregated model.')
-        elif message.model_header.is_delta and (self.model.header.version - message.model_header.version) > 1:
-            # TODO: Here we could provide the collaborator with a non-delta version 
-            #       (Note: we should only apply lossless compression in this case)
-            raise NotImplementedError('Collaborator is too far behind global model to make use of a delta.')
-
-        reply = GlobalModelUpdate(header=self.create_reply_header(message), model=self.model)
-
-        self.logger.debug('aggregator handled RequestJob in time {}'.format(time.time() - t))
-
-        return reply
-
-    def create_reply_header(self, message):
-        """Creates a header for the reply to the message
-
-        Args:
-            message: Message from the collaborator
-
-        Returns:
-            The message header.
-
-        """
-        return MessageHeader(sender=self.uuid, recipient=message.header.sender, federation_id=self.federation_uuid, counter=message.header.counter, single_col_cert_common_name=self.single_col_cert_common_name)
-
-    def collaborator_out_of_date(self, model_header):
-        """Determines if the collaborator has the wrong version of the model (aka out of date)
-
-        Args:
-            model_header: Header for the model
-
-        Returns:
-            The reply to the message (usually just the acknowledgement to the collaborator)
-
-        """
-        # validate that this is the right model to be checking
-        check_equal(model_header.id, self.model.header.id, self.logger)
-
-        return model_header.version != self.model.header.version
+        return all([self.is_task_done(t) for t in tasks_for_round])
 
     def log_big_warning(self):
         self.logger.warning("\n{}\nYOU ARE RUNNING IN SINGLE COLLABORATOR CERT MODE! THIS IS NOT PROPER PKI AND SHOULD ONLY BE USED IN DEVELOPMENT SETTINGS!!!! YE HAVE BEEN WARNED!!!".format(the_dragon))
 
 
-the_dragon = """
-
- ,@@.@@+@@##@,@@@@.`@@#@+  *@@@@ #@##@  `@@#@# @@@@@   @@    @@@@` #@@@ :@@ `@#`@@@#.@
-  @@ #@ ,@ +. @@.@* #@ :`   @+*@ .@`+.   @@ *@::@`@@   @@#  @@  #`;@`.@@ @@@`@`#@* +:@`
-  @@@@@ ,@@@  @@@@  +@@+    @@@@ .@@@    @@ .@+:@@@:  .;+@` @@ ,;,#@` @@ @@@@@ ,@@@* @
-  @@ #@ ,@`*. @@.@@ #@ ,;  `@+,@#.@.*`   @@ ,@::@`@@` @@@@# @@`:@;*@+ @@ @`:@@`@ *@@ `
- .@@`@@,+@+;@.@@ @@`@@;*@  ;@@#@:*@+;@  `@@;@@ #@**@+;@ `@@:`@@@@  @@@@.`@+ .@ +@+@*,@
-  `` ``     ` ``  .     `     `      `     `    `  .` `  ``   ``    ``   `       .   `
-
-
-
-                                            .**
-                                      ;`  `****:
-                                     @**`*******
-                         ***        +***********;
-                        ,@***;` .*:,;************
-                        ;***********@@***********
-                        ;************************,
-                        `*************************
-                         *************************
-                         ,************************
-                          **#*********************
-                          *@****`     :**********;
-                          +**;          .********.
-                          ;*;            `*******#:                       `,:
-                                          ****@@@++::                ,,;***.
-                                          *@@@**;#;:         +:      **++*,
-                                          @***#@@@:          +*;     ,****
-                                          @*@+****           ***`     ****,
-                                         ,@#******.  ,       ****     **;,**.
-                                         * ******** :,       ;*:*+    **  :,**
-                                        #  ********::      *,.*:**`   *      ,*;
-                                        .  *********:      .+,*:;*:   :      `:**
-                                       ;   :********:       ***::**   `       ` **
-                                       +   :****::***  ,    *;;::**`             :*
-                                      ``   .****::;**:::    *;::::*;              ;*
-                                      *     *****::***:.    **::::**               ;:
-                                      #     *****;:****     ;*::;***               ,*`
-                                      ;     ************`  ,**:****;               ::*
-                                      :     *************;:;*;*++:                   *.
-                                      :     *****************;*                      `*
-                                     `.    `*****************;  :                     *.
-                                     .`    .*+************+****;:                     :*
-                                     `.    :;+***********+******;`    :              .,*
-                                      ;    ::*+*******************. `::              .`:.
-                                      +    :::**********************;;:`                *
-                                      +    ,::;*************;:::*******.                *
-                                      #    `:::+*************:::;********  :,           *
-                                      @     :::***************;:;*********;:,           *
-                                      @     ::::******:*********************:         ,:*
-                                      @     .:::******:;*********************,         :*
-                                      #      :::******::******###@*******;;****        *,
-                                      #      .::;*****::*****#****@*****;:::***;  ``  **
-                                      *       ::;***********+*****+#******::*****,,,,**
-                                      :        :;***********#******#******************
-                                      .`       `;***********#******+****+************
-                                      `,        ***#**@**+***+*****+**************;`
-                                       ;         *++**#******#+****+`      `.,..
-                                       +         `@***#*******#****#
-                                       +          +***@********+**+:
-                                       *         .+**+;**;;;**;#**#
-                                      ,`         ****@         +*+:
-                                      #          +**+         :+**
-                                      @         ;**+,       ,***+
-                                      #      #@+****      *#****+
-                                     `;     @+***+@      `#**+#++
-                                     #      #*#@##,      .++:.,#
-                                    `*      @#            +.
-                                  @@@
-                                 #`@
+the_dragon = """                                                                                           
+                                                                                           
+ ,@@.@@+@@##@,@@@@.`@@#@+  *@@@@ #@##@  `@@#@# @@@@@   @@    @@@@` #@@@ :@@ `@#`@@@#.@     
+  @@ #@ ,@ +. @@.@* #@ :`   @+*@ .@`+.   @@ *@::@`@@   @@#  @@  #`;@`.@@ @@@`@`#@* +:@`    
+  @@@@@ ,@@@  @@@@  +@@+    @@@@ .@@@    @@ .@+:@@@:  .;+@` @@ ,;,#@` @@ @@@@@ ,@@@* @     
+  @@ #@ ,@`*. @@.@@ #@ ,;  `@+,@#.@.*`   @@ ,@::@`@@` @@@@# @@`:@;*@+ @@ @`:@@`@ *@@ `     
+ .@@`@@,+@+;@.@@ @@`@@;*@  ;@@#@:*@+;@  `@@;@@ #@**@+;@ `@@:`@@@@  @@@@.`@+ .@ +@+@*,@     
+  `` ``     ` ``  .     `     `      `     `    `  .` `  ``   ``    ``   `       .   `     
+                                                                                           
+                                                                                           
+                                                                                           
+                                            .**                                            
+                                      ;`  `****:                                           
+                                     @**`*******                                           
+                         ***        +***********;                                          
+                        ,@***;` .*:,;************                                          
+                        ;***********@@***********                                          
+                        ;************************,                                         
+                        `*************************                                         
+                         *************************                                         
+                         ,************************                                         
+                          **#*********************                                         
+                          *@****`     :**********;                                         
+                          +**;          .********.                                         
+                          ;*;            `*******#:                       `,:              
+                                          ****@@@++::                ,,;***.               
+                                          *@@@**;#;:         +:      **++*,                
+                                          @***#@@@:          +*;     ,****                 
+                                          @*@+****           ***`     ****,                
+                                         ,@#******.  ,       ****     **;,**.              
+                                         * ******** :,       ;*:*+    **  :,**             
+                                        #  ********::      *,.*:**`   *      ,*;           
+                                        .  *********:      .+,*:;*:   :      `:**          
+                                       ;   :********:       ***::**   `       ` **         
+                                       +   :****::***  ,    *;;::**`             :*        
+                                      ``   .****::;**:::    *;::::*;              ;*       
+                                      *     *****::***:.    **::::**               ;:      
+                                      #     *****;:****     ;*::;***               ,*`     
+                                      ;     ************`  ,**:****;               ::*     
+                                      :     *************;:;*;*++:                   *.    
+                                      :     *****************;*                      `*    
+                                     `.    `*****************;  :                     *.   
+                                     .`    .*+************+****;:                     :*   
+                                     `.    :;+***********+******;`    :              .,*   
+                                      ;    ::*+*******************. `::              .`:.  
+                                      +    :::**********************;;:`                *  
+                                      +    ,::;*************;:::*******.                *  
+                                      #    `:::+*************:::;********  :,           *  
+                                      @     :::***************;:;*********;:,           *  
+                                      @     ::::******:*********************:         ,:*  
+                                      @     .:::******:;*********************,         :*  
+                                      #      :::******::******###@*******;;****        *,  
+                                      #      .::;*****::*****#****@*****;:::***;  ``  **   
+                                      *       ::;***********+*****+#******::*****,,,,**    
+                                      :        :;***********#******#******************     
+                                      .`       `;***********#******+****+************      
+                                      `,        ***#**@**+***+*****+**************;`       
+                                       ;         *++**#******#+****+`      `.,..           
+                                       +         `@***#*******#****#                       
+                                       +          +***@********+**+:                       
+                                       *         .+**+;**;;;**;#**#                        
+                                      ,`         ****@         +*+:                        
+                                      #          +**+         :+**                         
+                                      @         ;**+,       ,***+                          
+                                      #      #@+****      *#****+                          
+                                     `;     @+***+@      `#**+#++                          
+                                     #      #*#@##,      .++:.,#                           
+                                    `*      @#            +.                               
+                                  @@@                                                      
+                                 #`@                                                       
                                   ,                                                        """

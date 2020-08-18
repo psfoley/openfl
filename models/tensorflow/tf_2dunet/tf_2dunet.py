@@ -24,6 +24,8 @@ class TensorFlow2DUNet(TensorFlowFLModel):
         super().__init__(**kwargs)
 
         self.create_model(**kwargs)
+        self.set_logger()
+        self.initialize_tensorkeys_for_functions()
 
     def create_model(self,
                      training_smoothing=32.0,
@@ -50,7 +52,9 @@ class TensorFlow2DUNet(TensorFlowFLModel):
         self.output = define_model(self.X, use_upsampling=True, **kwargs)
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=training_smoothing)
+        self.loss_name = dice_coef_loss.__name__
         self.validation_metric = dice_coef(self.y, self.output, smooth=validation_smoothing)
+        self.validation_metric_name = dice_coef.__name__
 
         self.global_step = tf.train.get_or_create_global_step()
 

@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 
 from models import FLModel
+from tfedlrn import TensorKey
 
 class PyTorchFLModel(nn.Module, FLModel):
     """PyTorch Model class for Federated Learning
@@ -27,7 +28,9 @@ class PyTorchFLModel(nn.Module, FLModel):
         FLModel.__init__(self, **kwargs)
 
         self.device = device
-
+        #This is a map of all the required tensors for each of the public functions in PyTorchFLModel
+        self.required_tensorkeys_for_function = {}
+        
         self.optimizer = None
         self.loss_fn = None
 
@@ -36,6 +39,22 @@ class PyTorchFLModel(nn.Module, FLModel):
         self.tensor_dict_split_fn_kwargs = {'holdout_types': ['non_float'],
                                             'holdout_tensor_names': ['__opt_state_needed']
                                            }
+
+    def rebuild_model(self, round, input_tensor_dict):
+        """
+        Parse tensor names and update weights of model. Handles the optimizer treatment
+
+        Returns
+        -------
+        None
+        """
+        if self.opt_treatment == 'RESET':
+            self.reset_opt_vars()
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
+        elif round > 0 and self.opt_treatment == 'CONTINUE_GLOBAL':
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=True)
+        else:
+            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
 
     # models should implement something like this--
     # def train_batches(self, num_batches, use_tqdm=False):
@@ -118,6 +137,20 @@ class PyTorchFLModel(nn.Module, FLModel):
 
         return state
 
+    def _get_weights_names(self, with_opt_vars=False):
+        # Gets information regarding tensor model layers and optimizer state.
+        # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
+        # for now, state dict gives us names which is good
+        # FIXME: do both and sanity check each time?
+
+        state = self.state_dict().keys()
+
+        if with_opt_vars:
+            opt_state = _get_optimizer_state(self.optimizer)
+            state += opt_state.keys()
+
+        return state
+
     def set_tensor_dict(self, tensor_dict, with_opt_vars=False):
         """Set the tensor dictionary
 
@@ -152,6 +185,59 @@ class PyTorchFLModel(nn.Module, FLModel):
 
     def get_optimizer(self):
         return self.optimizer
+
+    def get_required_tensorkeys_for_function(self, func_name, **kwargs):
+        """
+        Get the required tensors for specified function that could be called as part of a task.
+        By default, this is just all of the layers and optimizer of the model. 
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        List
+            [TensorKey]
+        """
+
+        if func_name == 'validate':
+            local_model = 'apply=' + str(kwargs['apply'])
+            return self.required_tensorkeys_for_function[func_name][local_model]
+        else:
+            return self.required_tensorkeys_for_function[func_name]
+
+
+    def initialize_tensorkeys_for_functions(self,with_opt_vars=False):
+        """
+        Set the required tensors for all publicly accessible methods that could be called as part of a task.
+        By default, this is just all of the layers and optimizer of the model. Custom tensors should be added to this function
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+
+        #TODO there should be a way to programmatically iterate through all of the methods in the class and declare the tensors.
+        #For now this is done manually
+
+        #Minimal required tensors for train function
+        tensor_names = self._get_weights_names(with_opt_vars=with_opt_vars)
+        self.logger.debug('Initial model tensor names: {}'.format(tensor_names))
+        self.required_tensorkeys_for_function['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names]
+
+        #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
+        self.required_tensorkeys_for_function['validate'] = {}
+        #TODO This is not stateless. The optimizer will not be
+        self.required_tensorkeys_for_function['validate']['apply=local'] = \
+                [TensorKey(tensor_name,'LOCAL',0,False,('trained',)) for tensor_name in tensor_names]
+        self.required_tensorkeys_for_function['validate']['apply=global'] = \
+                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names]
+
 
     def load_native(self, filepath, model_state_dict_key='model_state_dict', optimizer_state_dict_key='optimizer_state_dict', **kwargs):
         """Loads model and optimizer states from a pickled file specified by filepath. model_/optimizer_state_dict args can be specified if needed. Uses torch.load().

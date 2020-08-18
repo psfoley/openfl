@@ -10,7 +10,7 @@ import logging
 import time
 
 from ...proto import datastream_to_proto, proto_to_datastream
-from ...proto.collaborator_aggregator_interface_pb2 import LocalModelUpdate
+from ...proto.collaborator_aggregator_interface_pb2 import TaskResults
 from ...proto.collaborator_aggregator_interface_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
 
 class AggregatorGRPCServer(AggregatorServicer):
@@ -42,7 +42,7 @@ class AggregatorGRPCServer(AggregatorServicer):
             if not self.aggregator.valid_collaborator_CN_and_id(common_name, collaborator_common_name):
                 raise ValueError("Invalid collaborator. CN: |{}| collaborator_common_name: |{}|".format(common_name, collaborator_common_name))
 
-    def RequestJob(self, request, context):
+    def GetTasks(self, request, context):
         """gRPC request for a job from aggregator
 
         Args:
@@ -51,9 +51,20 @@ class AggregatorGRPCServer(AggregatorServicer):
 
         """
         self.validate_collaborator(request, context)
-        return self.aggregator.RequestJob(request)
+        return self.aggregator.GetTasks(request)
 
-    def DownloadModel(self, request, context):
+    def GetAggregatedTensor(self, request, context):
+        """gRPC request for a job from aggregator
+
+        Args:
+            request: The gRPC message request
+            context: The gRPC context
+
+        """
+        self.validate_collaborator(request, context)
+        return self.aggregator.GetAggregatedTensor(request)
+
+    def SendLocalTaskResults(self, request, context):
         """gRPC request for a model download from aggregator
 
         Args:
@@ -61,35 +72,12 @@ class AggregatorGRPCServer(AggregatorServicer):
             context: The gRPC context
 
         """
-        self.validate_collaborator(request, context)
-        # turn global model update into data stream
-        proto = self.aggregator.DownloadModel(request)
-        return proto_to_datastream(proto, self.logger)
-
-    def UploadLocalModelUpdate(self, request, context):
-        """gRPC request for a model upload to an aggregator
-
-        Args:
-            request: The gRPC message request
-            context: The gRPC context
-
-        """
-        proto = LocalModelUpdate()
+        proto = TaskResults()
         proto = datastream_to_proto(proto, request)
         self.validate_collaborator(proto, context)
         # turn data stream into local model update
-        return self.aggregator.UploadLocalModelUpdate(proto)
+        return self.aggregator.SendLocalTaskResults(proto)
 
-    def UploadLocalMetricsUpdate(self, request, context):
-        """gRPC request for a local metric to upload to collaborator.
-
-        Args:
-            request: The gRPC message request
-            context: The gRPC context
-
-        """
-        self.validate_collaborator(request, context)
-        return self.aggregator.UploadLocalMetricsUpdate(request)
 
     def serve(self,
               agg_port,

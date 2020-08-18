@@ -128,8 +128,9 @@ def list_files(root, extension, parts):
     return files
 
 
-def nii_reader(brain_path, task, channels_last=True, numpy_type='float64', normalization='by_mode'):
-    """Fetch a whole brain 3D image from disc.
+def nii_reader(brain_path, task, channels_last=True, numpy_type='float64', normalization='by_mode',**kwargs):
+    """
+    Fetch a whole brain 3D image from disc.
 
     Assumes data_dir contains only subdirectories, each containing exactly one
     of each of the following files: "<subdir>_<type>.nii.gz", where <subdir> is

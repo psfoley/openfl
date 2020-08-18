@@ -26,6 +26,7 @@ help:
 	sphinx-apidoc -f -o . ../models
 	sphinx-apidoc -f -o . ../data
 
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) 
+
 	# Build the PDF
 	sphinx-build -b rinoh . _build/rinoh

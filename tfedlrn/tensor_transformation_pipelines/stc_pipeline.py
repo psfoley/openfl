@@ -173,14 +173,14 @@ class GZIPTransformer(Transformer):
             data: an numpy array with non-zero values
 
         Returns:
-            compressed_bytes_:
+            compressed_bytes :
             metadata: dictionary to contain information for recovering back to original data array
 
         """
         bytes_ = data.astype(np.float32).tobytes()
-        compressed_bytes_ = gzip.compress(bytes_)
+        compressed_bytes = gzip.compress(bytes_)
         metadata = {}
-        return compressed_bytes_, metadata
+        return compressed_bytes, metadata
 
     def backward(self, data, metadata, **kwargs):
         """ Decompress data into numpy of float32.

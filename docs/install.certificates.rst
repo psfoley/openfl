@@ -114,4 +114,8 @@ to participate in any future federations run by this aggregator.
 
 where $AFQDN is the fully-qualified domain name of the aggregator node.
 
-![PKI Creation Script](images/pki_creation_script.svg)
+.. figure:: images/pki_creation_script.svg
+
+   :scale: 50 %
+
+   How to create a share the PKI certificates.

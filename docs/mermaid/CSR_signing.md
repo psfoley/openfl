@@ -1,6 +1,6 @@
 ```mermaid
 sequenceDiagram
-Title: Collaborator Cert Signing Flow 
+Title: Collaborator Certificate Signing Flow 
   participant A as Alice
   participant AC as Alice's Collaborator Node
   participant B as Bob

@@ -114,7 +114,7 @@ to participate in any future federations run by this aggregator.
 
 where $AFQDN is the fully-qualified domain name of the aggregator node.
 
-.. figure:: images/pki_creation_script.svg
+.. figure:: images/pki_creation.png
 
    :scale: 50 %
 

@@ -41,7 +41,7 @@ based on Graphene have been created by our partners, including
 
 .. figure:: images/graphene.png
   :alt: graphene
-  :scale: 50%
+  :scale: 25%
 
   Graphene allows unmodified programs to be protected by SGX.
 

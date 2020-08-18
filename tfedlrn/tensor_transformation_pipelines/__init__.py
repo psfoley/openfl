@@ -1,6 +1,7 @@
 from .pipeline import Transformer, TransformationPipeline
 
 from .no_compression_pipeline import NoCompressionPipeline, Float32NumpyArrayToBytes
+from .tensor_codec import TensorCodec
 
 from .random_shift_pipeline import RandomShiftPipeline
 

@@ -6,7 +6,6 @@ import logging
 
 from ...proto import datastream_to_proto, proto_to_datastream
 from ...proto.collaborator_aggregator_interface_pb2_grpc import AggregatorStub
-from ...proto.collaborator_aggregator_interface_pb2 import GlobalModelUpdate
 
 class CollaboratorGRPCClient():
     """Collaboration over gRPC-TLS."""
@@ -72,39 +71,15 @@ class CollaboratorGRPCClient():
         )
         return grpc.secure_channel(uri, credentials, options=self.channel_options)
 
-    def RequestJob(self, message):
-        """Request Job
+    def GetTasks(self, message):
+        return self.stub.GetTasks(message)
 
-        Args:
-            message: Message sent to the collaborator
-        """
-        return self.stub.RequestJob(message)
+    def GetAggregatedTensor(self, message):
+        return self.stub.GetAggregatedTensor(message)
 
-    def DownloadModel(self, message):
-        """Download Model
-
-        Args:
-            message: Message sent to the collaborator
-        """
-        stream = self.stub.DownloadModel(message)
-        # turn datastream into global model update
-        return datastream_to_proto(GlobalModelUpdate(), stream)
-
-    def UploadLocalModelUpdate(self, message):
-        """Upload Local Model Update
-
-        Args:
-            message: Message sent to the collaborator
-        """
-        # turn local model update into datastream
+    def SendLocalTaskResults(self, message):
+        #Convert (potentially) long list of tensors into stream
         stream = []
         stream += proto_to_datastream(message, self.logger)
-        return self.stub.UploadLocalModelUpdate(iter(stream))
+        return self.stub.SendLocalTaskResults(iter(stream))
 
-    def UploadLocalMetricsUpdate(self, message):
-        """Upload Local Metrics Update
-
-        Args:
-            message: Message sent to the collaborator
-        """
-        return self.stub.UploadLocalMetricsUpdate(message)

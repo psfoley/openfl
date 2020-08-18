@@ -13,6 +13,7 @@ class SparsityTransformer(Transformer):
         Args:
             p (float): sparsity ratio (Default=0.01)
         """
+        self.lossy = True
         self.p = p
         return
 
@@ -88,6 +89,7 @@ class TernaryTransformer(Transformer):
     """ A transformer class to ternerize input data.
     """
     def __init__(self):
+        self.lossy = True
         return
 
     def forward(self, data, **kwargs):
@@ -160,6 +162,8 @@ class GZIPTransformer(Transformer):
     def __init__(self):
         """Initializer
         """
+        self.lossy = False
+
         return
 
     def forward(self, data, **kwargs):

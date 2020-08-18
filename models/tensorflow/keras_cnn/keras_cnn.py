@@ -9,6 +9,7 @@ from tensorflow.keras import backend as K
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Flatten, Dense
 from models.tensorflow import KerasFLModel
+from tfedlrn import TensorKey
 
 class KerasCNN(KerasFLModel):
     """A basic convolutional neural network model.
@@ -26,6 +27,8 @@ class KerasCNN(KerasFLModel):
         self.model = self.build_model(self.feature_shape, self.data.num_classes, **kwargs)
 
         self.set_logger()
+
+        self.initialize_tensorkeys_for_functions()
 
         print(self.model.summary())
         if self.data is not None:

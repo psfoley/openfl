@@ -8,6 +8,8 @@ class Float32NumpyArrayToBytes(Transformer):
     def __init__(self, **kwargs):
         """Initializer
         """
+        self.lossy = False
+        
         pass
 
     def forward(self, data, **kwargs):

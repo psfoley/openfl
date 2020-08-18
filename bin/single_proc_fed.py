@@ -61,6 +61,6 @@ def federate(flplan,
                 model.set_tensor_dict(model_states[collaborator_common_name], with_opt_vars=True)
 
             # run the collaborator jobs for this round
-            collaborator.run_to_yield_or_quit()
+            collaborator.run_simulation()
 
             model_states[collaborator_common_name] = model.get_tensor_dict(with_opt_vars=True)

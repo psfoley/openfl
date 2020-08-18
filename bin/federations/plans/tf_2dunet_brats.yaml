@@ -28,7 +28,7 @@ data_object_init:
     percent_train: 0.8
 
 model_object_init:
-  class_to_init: models.tensorflow.tf_2dunet.tf_2dunet.TensorFlow2DUNet.TensorFlow2DUNet
+  class_to_init: models.tensorflow.tf_2dunet.tf_2dunet.TensorFlow2DUNet
 
 network_object_init:
   defaults_file: defaults/network.yaml

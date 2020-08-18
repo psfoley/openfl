@@ -1,0 +1,89 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
+# Compose an FL plan in JSON/YAML.
+# The plan is consumed by bin/run_simulation_from_flplan.py,
+# bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and
+# bin/create_initial_weights_file_from_plan.py
+
+# Note the use of yaml anchors and aliases in order to enforce dependencies
+# across portions of the config:
+# The anochor '&' assigns a name to a piece of the config
+# The alias '*' references an achor 
+
+# values for first level keys: model, aggregator, and collaborator
+# pass in the generic kwargs for those constructors
+# (ex. collaborator id will be collaborator specific)
+
+# values for first level keys: model and data pass in the generic
+# kwargs for get_model and get_data functions
+
+# values for the first level key: hostnames is used in the creation of the public
+# key infrastructure
+
+# The model version is used to validate model updates
+# Aggregator, collaborator, and fed ids (as well as model version) are currently
+# used to validate message headers. Collaborator ids are also
+# used for identifying the data folder of each collaborator
+# (using the local_data_config yaml file)
+
+aggregator_object_init:
+  init_kwargs:
+    rounds_to_train: 10
+    init_model_fname: pytorch_cnn_init.pbuf
+    latest_model_fname: pytorch_cnn_latest.pbuf
+    best_model_fname: pytorch_cnn_best.pbuf
+
+model_object_init:
+  class_to_init: models.pytorch.pt_cnn.pt_cnn.PyTorchCNN
+
+collaborator_object_init:
+  init_kwargs:
+    opt_treatment: CONTINUE_LOCAL
+    send_model_deltas: true
+
+network_object_init:
+  defaults_file: defaults/network.yaml
+ 
+data_object_init:
+  class_to_init: data.pytorch.ptmnist_inmemory.PyTorchMNISTInMemory
+  data_name_in_local_config: mnist_shard
+  init_kwargs:
+    batch_size: 256
+    channels_last: false
+    nb_collaborators: 2
+
+tasks:
+  aggregated_model_validation:
+    function  : validate
+    kwargs    :
+      metrics :
+      - acc
+      apply: global
+  locally_tuned_model_validation:
+    function  : validate
+    kwargs    :
+      metrics :
+      - acc
+      apply: local
+  train:
+    function  : train_batches
+    kwargs    :
+      num_batches: 1
+      metrics :
+      - loss
+
+task_assigner:
+  module_name     : tfedlrn.task_assigner.random_grouped_task_assigner
+  class_name      : RandomGroupedTaskAssigner
+  task_groups     :
+  - name: validation_only
+    percentage: 0.0
+    tasks:
+    - aggregated_model_validation
+  - name: train_and_validate
+    percentage: 1.0
+    tasks:
+    - aggregated_model_validation
+    - train
+    - locally_tuned_model_validation

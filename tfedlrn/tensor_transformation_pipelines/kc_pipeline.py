@@ -14,6 +14,7 @@ class KmeansTransformer(Transformer):
         Args:
             n_cluster (int): Number of clusters for the K-means
         """
+        self.lossy = True
         self.n_cluster = n_cluster
         return
 
@@ -90,6 +91,7 @@ class GZIPTransformer(Transformer):
     """
 
     def __init__(self):
+        self.lossy = False
         return
 
     def forward(self, data, **kwargs):

@@ -13,6 +13,9 @@ class TensorFlowFLDataInMemory(FLData):
     def __init__(self, batch_size):
         """Instantiate the data object
 
+        Args:
+            batch_size: Size of batches used for all data loaders
+
         Returns:
             None
         """
@@ -23,7 +26,7 @@ class TensorFlowFLDataInMemory(FLData):
         self.y_val = None
 
         # Child classes should have init signature:
-        # (self, data_path, batch_size, **kwargs), should call this __init__ and then
+        # (self, batch_size, **kwargs), should call this __init__ and then
         # define self.X_train, self.y_train, self.X_val, and self.y_val
 
     def get_feature_shape(self):

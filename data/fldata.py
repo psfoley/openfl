@@ -4,12 +4,12 @@
 
 class FLData(object):
 
-    def __init__(self, data_path, **kwargs):
+    def __init__(self, batch_size):
         """Instantiate the data object
 
         Args:
-            data_path: The filepath to the dataset
-            **kwargs: Additional parameters to pass to method
+            batch_size: Size of batches used for all data loaders, needs
+            to be set as an attrtibute as the collaborator object uses it
 
         Returns:
             None

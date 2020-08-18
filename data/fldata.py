@@ -4,12 +4,8 @@
 
 class FLData(object):
 
-    def __init__(self, batch_size):
+    def __init__(self, **kwargs):
         """Instantiate the data object
-
-        Args:
-            batch_size: Size of batches used for all data loaders, needs
-            to be set as an attrtibute as the collaborator object uses it
 
         Returns:
             None

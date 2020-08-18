@@ -10,11 +10,12 @@ class TensorFlowFLDataInMemory(FLData):
     """Federation Data Loader for TensorFlow models
     """
 
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, **kwargs):
         """Instantiate the data object
 
         Args:
             batch_size: Size of batches used for all data loaders
+            kwargs: consumes all un-used kwargs
 
         Returns:
             None

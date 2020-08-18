@@ -15,9 +15,9 @@ class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
         Args:
             data_path: The file path to the data
             batch_size: The batch size of the data loader
-            **kwargs: Additional arguments to pass to the functions
+            **kwargs: Additional arguments, passed to super init and load_mnist_shard
         """
-        super().__init__(batch_size)
+        super().__init__(batch_size, **kwargs)
 
         _, num_classes, X_train, y_train, X_val, y_val = load_mnist_shard(shard_num=data_path, **kwargs)
 

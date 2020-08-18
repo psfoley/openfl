@@ -20,9 +20,9 @@ class PyTorchCIFAR10InMemory(PyTorchFLDataInMemory):
         Args:
             data_path: file path for the data
             batch_size (int): batch size for the data loader
-            **kwargs: Additional parameters to pass to function
+            **kwargs: Additional parameters, passed to super init and load_cifar10_shard
         """
-        super().__init__(batch_size)
+        super().__init__(batch_size, **kwargs)
 
         _, num_classes, X_train, y_train, X_val, y_val = load_cifar10_shard(shard_num=data_path, **kwargs)
 

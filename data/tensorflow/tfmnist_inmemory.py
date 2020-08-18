@@ -16,10 +16,10 @@ class TensorFlowMNISTInMemory(TensorFlowFLDataInMemory):
         Args:
             data_path: File path for the dataset
             batch_size (int): The batch size for the data loader
-            **kwargs: Additional arguments to pass to the function
+            **kwargs: Additional arguments, passed to super init and load_mnist_shard
         """
 
-        super().__init__(batch_size)
+        super().__init__(batch_size, **kwargs)
 
         _, num_classes, X_train, y_train, X_val, y_val = load_mnist_shard(shard_num=data_path, **kwargs)
 

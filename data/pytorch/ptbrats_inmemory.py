@@ -1,7 +1,7 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-from data import load_from_NIfTY
+from data import load_from_NIfTI
 from data.pytorch.ptfldata_inmemory import PyTorchFLDataInMemory
 
 
@@ -25,15 +25,15 @@ class PyTorchBratsInMemory(PyTorchFLDataInMemory):
             percent_train (float): The percentage of the data to use for training (Default=0.8)
             pre_split_shuffle (bool): True= shuffle the dataset before performing the train/validate split (Default=True)
             channels_last (bool): True= data is channels last (NHWDC) (Default=False)
-            **kwargs: Additional arguments to pass to function
+            **kwargs: Additional arguments, passed to super init and load_from_NIfTI to function
 
         Returns:
             Data loader with BraTS data
         """
 
-        super().__init__(batch_size)
+        super().__init__(batch_size, **kwargs)
 
-        X_train, y_train, X_val, y_val = load_from_NIfTY(parent_dir=data_path,
+        X_train, y_train, X_val, y_val = load_from_NIfTI(parent_dir=data_path,
                                                         percent_train=percent_train,
                                                         shuffle=pre_split_shuffle,
                                                         channels_last=channels_last,

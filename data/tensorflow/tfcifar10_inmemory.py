@@ -16,13 +16,13 @@ class TensorFlowCIFAR10InMemory(TensorFlowFLDataInMemory):
         Args:
             data_path: The file path for the BraTS dataset
             batch_size (int): The batch size to use
-            **kwargs: Additional arguments to pass to function
+            **kwargs: Additional arguments,  passed to super init and load_cifar10_shard
 
         Returns:
             Data loader with BraTS data
         """
 
-        super().__init__(batch_size)
+        super().__init__(batch_size, **kwargs)
 
         _, num_classes, X_train, y_train, X_val, y_val = load_cifar10_shard(shard_num=data_path, **kwargs)
 

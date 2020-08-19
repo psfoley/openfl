@@ -21,11 +21,10 @@ class TensorDB(object):
 
 
     def cache_tensor(self, tensor_key_dict):
-        """
-        Insert tensor into TensorDB (dataframe)
+        """Insert tensor into TensorDB (dataframe)
 
-	    Args:
-            tensor_key_dict:	{tensor_key: nparray}
+        Args:
+            tensor_key_dict: The Tensor Key
 
         Returns:
 	       None
@@ -73,7 +72,7 @@ class TensorDB(object):
         Returns:
             weighted_nparray if all collaborator values are present
             None if not all values are present
-        
+
         """
         if len(collaborator_weight_dict) != 0:
             assert(np.abs(1.0 - sum(collaborator_weight_dict.values())) < 0.01), \

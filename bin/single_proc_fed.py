@@ -58,7 +58,8 @@ def federate(flplan,
             
             if round != 0:
                 # restore model state from when this collaborator last held the model
-                model.set_tensor_dict(model_states[collaborator_common_name], with_opt_vars=True)
+                #model.set_tensor_dict(model_states[collaborator_common_name], with_opt_vars=True)
+                model.rebuild_model(round,model_states[collaborator_common_name])
 
             # run the collaborator jobs for this round
             collaborator.run_simulation()

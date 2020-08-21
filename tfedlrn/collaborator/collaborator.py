@@ -177,8 +177,8 @@ class Collaborator(object):
             #rnd_num is the relative round. So if rnd_num is -1, get the tensor from the previous round
             required_tensorkeys.append(TensorKey(tname, origin, rnd_num + round_number, report, tags))
         
+        #print('Required tensorkeys = {}'.format([tk[0] for tk in required_tensorkeys]))
         input_tensor_dict = self.get_numpy_dict_for_tensorkeys(required_tensorkeys)
-        #print('input_tensor_dict = {}'.format(input_tensor_dict))
 
         # now we have whatever the model needs to do the task
         func = getattr(self.model, func_name)
@@ -211,6 +211,16 @@ class Collaborator(object):
 
         # if None and origin is our aggregator, request it from the aggregator
         if nparray is None:
+            if origin == self.collaborator_name:
+                self.logger.info('Attempting to find locally stored {} tensor from prior round...'.format(tensor_name))
+                prior_round = round_number - 1
+                while prior_round >= 0:
+                    nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_name,origin,prior_round,report,tags))
+                    if nparray is not None:
+                        self.logger.debug('Found tensor {} in local TensorDB for round {}'.format(tensor_name, prior_round))
+                        return nparray
+                    prior_round -= 1
+                self.logger.info('Cannot find any prior version of tensor {} locally...'.format(tensor_name))
             self.logger.debug('Unable to get tensor from local store...attempting to retrieve from aggregator')
             #Determine whether there are additional compression related dependencies. 
             #Typically, dependencies are only relevant to model layers

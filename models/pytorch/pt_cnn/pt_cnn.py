@@ -150,7 +150,7 @@ class PyTorchCNN(PyTorchFLModel):
 
         """
 
-        self.rebuild_model(round_num, input_tensor_dict) 
+        self.rebuild_model(round_num, input_tensor_dict, validation=True) 
         self.eval()
         val_score = 0
         total_samples = 0
@@ -255,7 +255,10 @@ class PyTorchCNN(PyTorchFLModel):
         #because these are only created after training occurs. A work around could involve doing a single epoch of training
         #on random data to get the optimizer names, and then throwing away the model.
         if self.opt_treatment == 'CONTINUE_GLOBAL':
-            self.initialize_tensorkeys_for_functions()
+            self.initialize_tensorkeys_for_functions(with_opt_vars=True)
+
+        #This will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
+        self.train_round_completed = True
 
         #Return global_tensor_dict, local_tensor_dict
         return global_tensor_dict,local_tensor_dict

@@ -9,7 +9,7 @@ stages:
 pages:
   stage: build
   tags:
-  - alpine-runner-sh-1
+  - sdp-cpu-runner2
   image: python:3.7-alpine
   script:
   - export http_proxy=http://proxy-us.intel.com:911

@@ -46,7 +46,7 @@ aggregator_object_init:
 
 collaborator_object_init:
   init_kwargs:
-    opt_treatment: RESET
+    opt_treatment: CONTINUE_GLOBAL
     send_model_deltas: true
 
 network_object_init:
@@ -80,11 +80,11 @@ task_assigner:
   class_name      : RandomGroupedTaskAssigner
   task_groups     :
   - name: validation_only
-    percentage: 0.0
+    percentage: 0.5
     tasks:
     - aggregated_model_validation
   - name: train_and_validate
-    percentage: 1.0
+    percentage: 0.5
     tasks:
     - aggregated_model_validation
     - train

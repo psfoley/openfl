@@ -513,7 +513,7 @@ class Aggregator(object):
                     if report:
                         #Print the aggregated metric
                         if agg_results is None:
-                            self.logger.warning('Aggregated metric {} could not be collect for round {}. Skipping reporting for this round'.format(agg_tensor_name,self.round_number))
+                            self.logger.warning('Aggregated metric {} could not be collected for round {}. Skipping reporting for this round'.format(agg_tensor_name,self.round_number))
                         self.logger.info('{0}:\t{1:.4f}'.format(agg_tensor_name,agg_results))
                         #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
                         if 'validate_agg' in tags:

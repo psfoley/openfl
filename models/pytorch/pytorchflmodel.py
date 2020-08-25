@@ -30,7 +30,7 @@ class PyTorchFLModel(nn.Module, FLModel):
         self.device = device
         #This is a map of all the required tensors for each of the public functions in PyTorchFLModel
         self.required_tensorkeys_for_function = {}
-        
+
         self.optimizer = None
         self.loss_fn = None
         self.training_round_completed = False
@@ -45,9 +45,8 @@ class PyTorchFLModel(nn.Module, FLModel):
         """
         Parse tensor names and update weights of model. Handles the optimizer treatment
 
-        Returns
-        -------
-        None
+        Returns:
+            None
         """
         if self.opt_treatment == 'RESET':
             self.reset_opt_vars()
@@ -190,16 +189,13 @@ class PyTorchFLModel(nn.Module, FLModel):
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
         """
         Get the required tensors for specified function that could be called as part of a task.
-        By default, this is just all of the layers and optimizer of the model. 
+        By default, this is just all of the layers and optimizer of the model.
 
-        Parameters
-        ----------
-        None
+        Args:
+            func_name
 
-        Returns
-        -------
-        List
-            [TensorKey]
+        Returns:
+            list : [TensorKey]
         """
 
         if func_name == 'validate':
@@ -209,17 +205,14 @@ class PyTorchFLModel(nn.Module, FLModel):
             return self.required_tensorkeys_for_function[func_name]
 
     def initialize_tensorkeys_for_functions(self,with_opt_vars=False):
-        """
-        Set the required tensors for all publicly accessible methods that could be called as part of a task.
+        """Set the required tensors for all publicly accessible methods that could be called as part of a task.
         By default, this is just all of the layers and optimizer of the model. Custom tensors should be added to this function
 
-        Parameters
-        ----------
-        None
+        Args:
+            None
 
-        Returns
-        -------
-        None
+        Returns:
+            None
         """
 
         #TODO there should be a way to programmatically iterate through all of the methods in the class and declare the tensors.
@@ -256,7 +249,7 @@ class PyTorchFLModel(nn.Module, FLModel):
             filepath (string)                   : Path to pickle file created by torch.save().
             model_state_dict_key (string)       : key for model state dict in pickled file.
             optimizer_state_dict_key (string)   : key for optimizer state dict in picked file.
-            kwargs                              : unused 
+            kwargs                              : unused
 
         Returns:
             None
@@ -272,7 +265,7 @@ class PyTorchFLModel(nn.Module, FLModel):
             filepath (string)                   : Path to pickle file to be created by torch.save().
             model_state_dict_key (string)       : key for model state dict in pickled file.
             optimizer_state_dict_key (string)   : key for optimizer state dict in picked file.
-            kwargs                              : unused 
+            kwargs                              : unused
 
         Returns:
             None

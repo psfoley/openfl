@@ -58,7 +58,7 @@ def train_val_split(features, labels, percent_train, shuffle):
     train_labels, val_labels = split(list=labels, idx=split_idx)
     return train_features, train_labels, val_features, val_labels
 
-def load_from_NIfTY(parent_dir,
+def load_from_NIfTI(parent_dir,
                     percent_train,
                     shuffle,
                     channels_last=True,
@@ -66,7 +66,7 @@ def load_from_NIfTY(parent_dir,
                     **kwargs):
     """Load the BraTS dataset from the NiFTI file format
 
-    Loads data from the parent directory (NIfTY files for whole brains are
+    Loads data from the parent directory (NIfTI files for whole brains are
     assumed to be contained in subdirectories of the parent directory).
     Performs a split of the data into training and validation, and the value
     of shuffle determined whether shuffling is performed before this split

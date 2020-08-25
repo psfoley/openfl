@@ -1,12 +1,14 @@
 .. # Copyright (C) 2020 Intel Corporation
 .. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
+.. _install_baremetal:
+
 Baremetal Installation
 ######################
 
 .. note::
 
-   Make sure you've run the :ref:`install.installing:Initial Steps` section first.
+   Make sure you've run the :ref:`the initial steps <install_initial_steps>` section first.
 
 1.	Build the virtual environment using the command:
 
@@ -20,7 +22,6 @@ the aggregator and the collaborators. Note that you can add custom
 Python packages by editing this section in the Makefile.
 
 .. figure:: images/custom_packages.png
-
    :scale: 50 %
 
    How to install a custom package in the virtual environment.

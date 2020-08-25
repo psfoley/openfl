@@ -4,12 +4,8 @@
 
 class FLData(object):
 
-    def __init__(self, data_path, **kwargs):
+    def __init__(self, **kwargs):
         """Instantiate the data object
-
-        Args:
-            data_path: The filepath to the dataset
-            **kwargs: Additional parameters to pass to method
 
         Returns:
             None

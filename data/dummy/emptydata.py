@@ -10,11 +10,12 @@ class EmptyData(FLData):
     """A data class with no data
     """
 
-    def __init__(self, data_path, data_size_mean, data_size_std, p_train=0.8, **kwargs):
+    def __init__(self, data_path, data_size_mean, data_size_std,batch_size=1, p_train=0.8, **kwargs):
         """A data class with no data
 
         """
         n = np.random.normal(loc=data_size_mean, scale=data_size_std)
+        self.batch_size = batch_size
         self.train_size = int(max(1, n * p_train))
         self.val_size = int(max(1, n - self.train_size))
 

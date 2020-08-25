@@ -109,13 +109,15 @@ clean:
 # simply throw an error if these recipies are called without a plan defined
 ifndef plan
 build_containers: venv/bin/python3
-	$(error plan needs to be defined in order to run this recipe)
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
 build_singularity: venv/bin/python3
-	$(error plan needs to be defined in order to run this recipe)
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
 run_agg_container: venv/bin/python3
-	$(error plan needs to be defined in order to run this recipe)
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
 run_col_container: venv/bin/python3
-	$(error plan needs to be defined in order to run this recipe)
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
+run_col_singularity: venv/bin/python3
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
 else
 build_containers: venv/bin/python3
 	# parse the flplan to obtain model info

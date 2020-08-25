@@ -158,8 +158,11 @@ _create_singularity_image: venv/bin/python3
 	            -p $(plan) -kl model_object_init class_to_init) )
 	$(eval model_dir=$(shell echo $(module_name) | awk '{FS="." ; OFS="/"; $$0=$$0}  { print $$1,$$2,$$3}'))
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@mkdir -p singularity
 	@singularity build singularity/tfl_agg_$(model)_$(shell whoami).sif docker-daemon://tfl_agg_$(model)_$(shell whoami):0.1
-	@singularity build singularity/tfl_col_$(model)_$(shell whoami).sif docker-daemon://tfl_col_$(device)_$(model)_$(shell whoami):0.1
+	@echo Created Singularity container tfl_agg_$(model)_$(shell whoami).sif
+	@singularity build singularity/tfl_col_$(device)_$(model)_$(shell whoami).sif docker-daemon://tfl_col_$(device)_$(model)_$(shell whoami):0.1
+	@echo Created Singularity container tfl_col_$(device)_$(model)_$(shell whoami).sif
 
 build_singularity: build_containers _create_singularity_image
 

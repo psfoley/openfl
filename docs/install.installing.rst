@@ -6,3 +6,4 @@
    install.initial
    install.baremetal
    install.docker
+   install.singularity

@@ -3,7 +3,7 @@
 
 .. _install_docker:
 
-Docker Installation
+Singularity Installation
 ###################
 
 .. note::
@@ -11,7 +11,8 @@ Docker Installation
    Make sure you've run the :ref:`install.installing:Initial Steps` section first.
 
 .. note::
-    You'll need Docker installed on all nodes. To check
+    You'll need Docker installed on the node where you'll 
+    be building the Singularity containers. To check
     that Docker is installed and running properly, you
     can run the Docker *Hello World* command like this:
 
@@ -24,25 +25,40 @@ Docker Installation
       ...
       ...
 
+.. note::
+    You'll need Singularity installed on all nodes. 
+    To check that Singularity is installed, run the following:
+
+    .. code-block:: console
+
+      $ singularity help
+     
+      Linux container platform optimized for High Performance Computing (HPC) and
+      Enterprise Performance Computing (EPC)
+      ...
+      ...
+      ...
+
+
 1. Set the path to your Federated Learning Plan
 
 .. code-block:: console
 
     $ export plan=$FLPLAN
 
-replacing $FLPLAN with the federated plan YAML file you intend to use in your Docker environment. For example,
+replacing $FLPLAN with the federated plan YAML file you intend to use in your Singularity environment. For example,
 
 .. code-block:: console
 
     $ export plan=keras_cnn_mnist_2.yaml
 
-2.	Build the Docker containers using the command:
+2.	Build the Singularity containers using the command:
 
 .. code-block:: console
 
-   $ make build_containers 
+   $ make build_singularity
 
-This should create the Docker containers that are used by the aggregator
+This will create the Docker and Singularity containers that are used by the aggregator
 and the collaborators. It will append the model name and the
 user that created the container. For example,
 if user **abc123** ran the command with the FL Plan *keras_cnn_mnist_2.yaml*
@@ -51,5 +67,7 @@ the output would be:
 
 .. code-block:: console
 
-   $ Successfully tagged tfl_agg_keras_cnn_abc123:0.1
-   $ Successfully tagged tfl_col_cpu_keras_cnn_abc123:0.1
+   $ Created Singularity container tfl_agg_keras_cnn_abc123.sif
+   $ Created Singularity container tfl_col_cpu_keras_cnn_abc123.sif
+
+

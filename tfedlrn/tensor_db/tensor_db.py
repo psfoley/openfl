@@ -21,23 +21,20 @@ class TensorDB(object):
 
 
     def cache_tensor(self, tensor_key_dict):
-        """
-        Insert tensor into TensorDB (dataframe)
+        """Insert tensor into TensorDB (dataframe)
 
-	Parameters:
-	-----------
-        tensor_key_dict:	{tensor_key: nparray}
+        Args:
+            tensor_key_dict: The Tensor Key
 
-        Returns
-	-------
-	None
+        Returns:
+	       None
         """
 
         self.mutex.acquire(blocking=True)
         try:
             for tensor_key,nparray in tensor_key_dict.items():
-                tensor_name,origin,round,report,tags = tensor_key
-                df = pd.DataFrame([[tensor_name,origin,round,report,tags,nparray]], \
+                tensor_name,origin,fl_round,report,tags = tensor_key
+                df = pd.DataFrame([[tensor_name,origin,fl_round,report,tags,nparray]], \
                                   columns=['tensor_name','origin','round','report','tags','nparray'])
                 self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)
         finally:
@@ -50,12 +47,12 @@ class TensorDB(object):
         Otherwise, it returns 'None'
         """
 
-        tensor_name,origin,round,report,tags = tensor_key
+        tensor_name,origin,fl_round,report,tags = tensor_key
 
         #TODO come up with easy way to ignore compression
         df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name) & \
                             (self.tensor_db['origin'] == origin) & \
-                            (self.tensor_db['round'] == round) & \
+                            (self.tensor_db['round'] == fl_round) & \
                             (self.tensor_db['report'] == report) & \
                             (self.tensor_db['tags'] == tags)]
 
@@ -65,33 +62,30 @@ class TensorDB(object):
 
     def get_aggregated_tensor(self, tensor_key, collaborator_weight_dict):
         """
-        Determines whether all of the collaborator tensors are present for a given tensor key, and returns their weighted average 
+        Determines whether all of the collaborator tensors are present for a given tensor key, and returns their weighted average
 
-        Parameters
-        ----------
-        tensor_key:		        The tensor key to be resolved. If origin 'agg_uuid' is present, 
+        Args:
+            tensor_key: The tensor key to be resolved. If origin 'agg_uuid' is present,
                                         can be returned directly. Otherwise must compute weighted average of all collaborators
-        collaborator_weight_dict:	List of collaborator names in federation and their respective weights
+                                        collaborator_weight_dict:	List of collaborator names in federation and their respective weights
 
-        Returns
-        -------
-        weighted_nparray if all collaborator values are present
-        None if not all values are present
-        
+        Returns:
+            weighted_nparray if all collaborator values are present
+            None if not all values are present
+
         """
         if len(collaborator_weight_dict) != 0:
-            assert(sum(collaborator_weight_dict.values()) >= 0.99 and \
-                   sum(collaborator_weight_dict.values()) <= 1.01), \
-                   "Collaborator weights are not normalized"
+            assert(np.abs(1.0 - sum(collaborator_weight_dict.values())) < 0.01), \
+                    'Collaborator weights do not sum to 1.0: {}'.format(collaborator_weight_dict)
         collaborator_names = collaborator_weight_dict.keys()
         agg_tensor_dict = {}
-        
+
         #Check if the aggregated tensor is already present in TensorDB
-        tensor_name,origin,round,report,tags = tensor_key
+        tensor_name,origin,fl_round,report,tags = tensor_key
 
         raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name) & \
                                 (self.tensor_db['origin'] == origin) & \
-                                (self.tensor_db['round'] == round) & \
+                                (self.tensor_db['round'] == fl_round) & \
                                 (self.tensor_db['report'] == report) & \
                                 (self.tensor_db['tags'] == tags)]['nparray']
         if len(raw_df) > 0:
@@ -104,20 +98,20 @@ class TensorDB(object):
                 new_tags = tuple(list(tags) + [col])
             raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name) & \
                                     (self.tensor_db['origin'] == origin) & \
-                                    (self.tensor_db['round'] == round) & \
+                                    (self.tensor_db['round'] == fl_round) & \
                                     (self.tensor_db['report'] == report) & \
                                     (self.tensor_db['tags'] == new_tags)]['nparray']
             #print(raw_df)
             if len(raw_df) == 0:
                 print('No results for collaborator {}, TensorKey={}'.format(\
-                        col,TensorKey(tensor_name,origin,round,new_tags)))
+                        col,TensorKey(tensor_name,origin,report,fl_round,new_tags)))
                 return None
             else:
                 agg_tensor_dict[col] = raw_df.iloc[0]
-            agg_tensor_dict[col] = agg_tensor_dict[col] * collaborator_weight_dict[col] 
+            agg_tensor_dict[col] = agg_tensor_dict[col] * collaborator_weight_dict[col]
         agg_nparray = np.sum([agg_tensor_dict[col] for col in collaborator_names],axis=0)
-        
+
         #Cache aggregated tensor in TensorDB
         self.cache_tensor({tensor_key: agg_nparray})
 
-        return np.array(agg_nparray)            
+        return np.array(agg_nparray)

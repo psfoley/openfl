@@ -12,5 +12,10 @@ First make sure you've installed the software :ref:`using these instructions <in
 .. toctree::
 
    running_the_federation.baremetal
-   running_the_federation.docker
-   running_the_federation.singularity
+
+.. only:: Intel
+
+ .. toctree::
+
+    running_the_federation.docker
+    running_the_federation.singularity

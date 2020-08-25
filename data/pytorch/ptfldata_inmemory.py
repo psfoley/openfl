@@ -12,11 +12,12 @@ class PyTorchFLDataInMemory(FLData):
     """PyTorch data loader for Federated Learning
     """
 
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, **kwargs):
         """Instantiate the data object
 
         Args:
-            batch_size (int): batch size for the data loader
+            batch_size (int): batch size for all data loaders
+            kwargs: consumes all un-used kwargs
 
         """
         self.batch_size = batch_size

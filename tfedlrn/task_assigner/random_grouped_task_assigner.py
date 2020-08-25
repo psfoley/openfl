@@ -9,7 +9,8 @@ class RandomGroupedTaskAssigner(TaskAssigner):
     RandomGroupedTaskAssigner  - Given a set of task groups, and a percentage, assign that task group to that percentage 
                                  of collaborators in the federation. After assigning the tasks to collaborator, those tasks
                                  should be carried out each round (no reassignment between rounds)
-    GroupedTaskAssigner - Given task groups and a list of collaborators that belong to that task group, carry out tasks for each                                    round of experiment 
+    GroupedTaskAssigner -        Given task groups and a list of collaborators that belong to that task group, carry out tasks for each
+                                 round of experiment 
     """
     def __init__(self,task_groups,tasks,collaborator_list,rounds,**kwargs):
         self.task_groups = task_groups
@@ -25,10 +26,8 @@ class RandomGroupedTaskAssigner(TaskAssigner):
         """
         All of the logic to set up the map of tasks to collaborators is done here
         """
-        assert(sum([group['percentage'] for group in self.task_groups]) > 0.99 and \
-                sum([group['percentage'] for group in self.task_groups]) < 1.01), 'Task group percentages must sum to 100%'
-        #assert(group['percentage']*len(self.collaborator_list for group in self.task_groups) != int(group['percentage']*len(self.collaborator_list))), \
-        #        "Task group percentages must divide into collaborators evenly"
+        assert(np.abs(1.0 - np.sum([group['percentage'] for group in self.task_groups])) < 0.01), \
+                'Task group percentages must sum to 100%'
 
         #Start by finding all of the tasks in all specified groups
         self.all_tasks_in_groups = list(set([task for group in self.task_groups for task in group['tasks']]))

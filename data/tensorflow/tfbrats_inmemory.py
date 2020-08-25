@@ -18,15 +18,15 @@ class TensorFlowBratsInMemory(TensorFlowFLDataInMemory):
             batch_size (int): The batch size to use
             percent_train (float): The percentage of the data to use for training (Default=0.8)
             pre_split_shuffle (bool): True= shuffle the dataset before performing the train/validate split (Default=True)
-            **kwargs: Additional arguments to pass to function
+            **kwargs: Additional arguments, passed to super init and load_from_NIfTI
 
         Returns:
             Data loader with BraTS data
         """
 
-        super().__init__(batch_size)
+        super().__init__(batch_size, **kwargs)
 
-        X_train, y_train, X_val, y_val = load_from_NIfTY(parent_dir=data_path,
+        X_train, y_train, X_val, y_val = load_from_NIfTI(parent_dir=data_path,
                                                          percent_train=percent_train,
                                                          shuffle=pre_split_shuffle,
                                                          **kwargs)

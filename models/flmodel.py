@@ -108,19 +108,17 @@ class FLModel(object):
     def validate(self):
         """Run validation.
 
-        Returns"
+        Returns:
             dict: {<metric>: <value>}
         """
         raise NotImplementedError
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
         """
-        When running a task, a map of named tensorkeys must be provided to the function as dependencies. 
-        
-        Returns
-        -------
-        list
-            (TensorKey(tensor_name, origin, round_number))
+        When running a task, a map of named tensorkeys must be provided to the function as dependencies.
+
+        Returns:
+            list: (TensorKey(tensor_name, origin, round_number))
         """
         raise NotImplementedError
 
@@ -164,7 +162,7 @@ class FLModel(object):
 
         Args:
             filepath (string): Path to frame-work specific file to load. For frameworks that use multiple files, this string must be used to derive the other filepaths.
-            kwargs           : For future-proofing 
+            kwargs           : For future-proofing
 
         Returns:
             None
@@ -182,4 +180,3 @@ class FLModel(object):
             None
         """
         raise NotImplementedError
-

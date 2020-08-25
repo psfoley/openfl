@@ -53,6 +53,7 @@ if PRODUCT_VERSION == "Intel":
     copyright = '{}, Intel'.format(datetime.now().year)
     author = 'Secure Intelligence Team'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
+    release = version
     master_doc = 'index'
 
     # Global variables for rST
@@ -72,6 +73,7 @@ else:
     author = 'FeTS'
     master_doc = 'index'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
+    release = version
 
     # Global variables for rST
     rst_prolog = """

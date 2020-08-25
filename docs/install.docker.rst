@@ -8,7 +8,7 @@ Docker Installation
 
 .. note::
 
-   Make sure you've run the :ref:`install.installing:Initial Steps` section first.
+   Make sure you've run the :ref:`Initial Installation Steps <install_initial_steps>` section first.
 
 .. note::
     You'll need Docker installed on all nodes. To check

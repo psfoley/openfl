@@ -287,7 +287,7 @@ class Collaborator(object):
             data_size = self.model.get_validation_data_size()
         self.logger.debug('{} data size = {}'.format(task_name,data_size))
         for tensor in tensor_dict:
-            tensor_name,origin,round,report,tags = tensor
+            tensor_name,origin,fl_round,report,tags = tensor
             if report:
                 self.logger.info('Sending metric for task {}, round number {}: {}\t{}'.format(\
                         task_name,round_number,tensor_name,tensor_dict[tensor]))

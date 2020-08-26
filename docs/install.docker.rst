@@ -30,7 +30,7 @@ Docker Installation
 
     $ export plan=$FLPLAN
 
-replacing $FLPLAN with the federated plan YAML file you intend to use in your docker environment. For example,
+replacing $FLPLAN with the federated plan YAML file you intend to use in your Docker environment. For example,
 
 .. code-block:: console
 
@@ -40,19 +40,13 @@ replacing $FLPLAN with the federated plan YAML file you intend to use in your do
 
 .. code-block:: console
 
-   $ make build_containers model_name=$DOCKER_LABEL
-
-replacing *$DOCKER_LABEL* with whatever label you wish to give the Docker container.
-For example,
-
-.. code-block:: console
-
-   $ make build_containers model_name=keras_cnn
+   $ make build_containers 
 
 This should create the Docker containers that are used by the aggregator
-and the collaborators. It will append the *$DOCKER_LABEL* and the
-name of the user that created the container. For example,
-if user **abc123** ran the command using the Docker label *keras_cnn* then
+and the collaborators. It will append the model name and the
+user that created the container. For example,
+if user **abc123** ran the command with the FL Plan *keras_cnn_mnist_2.yaml*
+that references the *keras_cnn* model then
 the output would be:
 
 .. code-block:: console

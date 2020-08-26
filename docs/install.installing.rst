@@ -16,3 +16,4 @@ Installing
 
      install.baremetal
      install.docker
+     install.singularity

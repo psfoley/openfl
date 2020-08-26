@@ -4,6 +4,7 @@
 # WIP for transfering tutorial steps to makefile
 
 col_num ?= 0
+col_name ?= col_$(col_num)
 use_gpu ?= false
 dataset ?= mnist
 python_version ?= python3.6
@@ -76,17 +77,11 @@ bin/federations/certs/test:
 bin/federations/weights/keras_cnn_mnist_init.pbuf:
 	echo "recipe needed!"
 
-# start_mnist_agg_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
-# 	venv/bin/python3 bin/grpc_aggregator.py --plan_path federations/plans/mnist_a.yaml --disable_tls --disable_client_auth
-
-# start_mnist_col_no_tls: $(tfl) federations/weights/mnist_cnn_keras_init.pbuf
-# 	venv/bin/python3 bin/grpc_collaborator.py --plan_path federations/plans/mnist_a.yaml --col_num $(col_num) --disable_tls --disable_client_auth
-
 start_mnist_agg: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
 	cd bin && ../venv/bin/python3 run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml
 
 start_mnist_col: $(tfl) bin/federations/weights/keras_cnn_mnist_init.pbuf local_certs
-	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_$(col_num)
+	cd bin && ../venv/bin/python3 run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col $(col_name)
 
 bin/federations/certs/test/ca.key:
 	openssl genrsa -out bin/federations/certs/test/ca.key 3072
@@ -114,16 +109,20 @@ clean:
 # simply throw an error if these recipies are called without a plan defined
 ifndef plan
 build_containers: venv/bin/python3
-	$(error plan needs to be defined in order to run this recipe)
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
+build_singularity: venv/bin/python3
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
 run_agg_container: venv/bin/python3
-	$(error plan needs to be defined in order to run this recipe)
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
 run_col_container: venv/bin/python3
-	$(error plan needs to be defined in order to run this recipe)
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
+run_col_singularity: venv/bin/python3
+	$(error plan needs to be defined in order to run this recipe. Run `export plan=$$$ FLPLAN` to fix this error) 
 else
 build_containers: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	            -p $(plan) -kl model module_name) )
+	            -p $(plan) -kl model_object_init class_to_init) )
 	$(eval model_dir=$(shell echo $(module_name) | awk '{FS="." ; OFS="/"; $$0=$$0}  { print $$1,$$2,$$3}'))
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo building agg and coll containers for model whose module is named: $(model), and located in: $(model_dir)
@@ -149,12 +148,28 @@ build_containers: venv/bin/python3
 	-f ./$(model_dir)/$(device).dockerfile \
 	.
 
+_create_singularity_image: venv/bin/python3
+	# Not intended to be run independently
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan) -kl model_object_init class_to_init) )
+	$(eval model_dir=$(shell echo $(module_name) | awk '{FS="." ; OFS="/"; $$0=$$0}  { print $$1,$$2,$$3}'))
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@mkdir -p singularity
+	@singularity build singularity/tfl_agg_$(model)_$(shell whoami).sif docker-daemon://tfl_agg_$(model)_$(shell whoami):0.1
+	@echo Created Singularity container tfl_agg_$(model)_$(shell whoami).sif
+	@singularity build singularity/tfl_col_$(device)_$(model)_$(shell whoami).sif docker-daemon://tfl_col_$(device)_$(model)_$(shell whoami):0.1
+	@echo Created Singularity container tfl_col_$(device)_$(model)_$(shell whoami).sif
+
+build_singularity: build_containers _create_singularity_image
+
 run_agg_container: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	            -p $(plan) -kl model module_name) )
+	            -p $(plan) -kl model_object_init class_to_init) )
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
 	@echo running agg container for model contained in module named: $(model)
+
 
 	@docker run \
 	--net=host \
@@ -166,23 +181,43 @@ run_agg_container: venv/bin/python3
 	tfl_agg_$(model)_$(shell whoami):0.1 \
 	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mAggregator\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
 
+run_agg_singularity: venv/bin/python3
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan) -kl model_object_init class_to_init) )
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@echo running agg singularity container for model contained in module named: $(model)
+
+	@export SINGULARITYENV_PS1='[FL Singularity for Aggregator] \w$  > ' && singularity run singularity/tfl_agg_$(model)_$(shell whoami).sif bash -c "make venv && make install && bash"
+
 
 run_col_container: venv/bin/python3
 	# parse the flplan to obtain model info
 	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
-	  -p $(plan) -kl model module_name) )
+	  -p $(plan) -kl model_object_init class_to_init) )
 	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
-	@echo running coll container for model $(model) and collaborator col_$(col_num)
+	@echo running coll container for model $(model) and collaborator $(col_name)
 
-	@echo "Collaborator $(col_num) started. You are in the Docker container"
+	@echo "Collaborator $(col_name) started. You are in the Docker container"
 	@docker run \
 	$(runtime_line) \
 	--net=host \
-	-it --name=tfl_col_$(device)_$(model)_$(shell whoami)_$(col_num) \
+	-it --name=tfl_col_$(device)_$(model)_$(shell whoami)_$(col_name) \
 	--rm \
 	-v $(shell pwd)/bin/federations:/home/$(shell whoami)/tfl/bin/federations:ro \
 	$(additional_brats_container_lines) \
 	-w /home/$(shell whoami)/tfl/bin \
 	tfl_col_$(device)_$(model)_$(shell whoami):0.1 \
-	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mCollaborator $(col_num)\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
+	bash -c "echo \"export PS1='\e[0;31m[FL Docker for \e[0;32mCollaborator $(col_name)\e[0;31m \w$]\e[m >> '\" >> ~/.bashrc && bash"
+
+run_col_singularity: venv/bin/python3
+	# parse the flplan to obtain model info
+	$(eval module_name=$(shell venv/bin/python3 bin/flplan_info_to_stdout.py \
+	            -p $(plan) -kl model_object_init class_to_init) )
+	$(eval model=$(shell echo $(module_name) | awk '{FS="." ; $$0=$$0}  { print $$4}'))
+	@echo running col singularity container for model contained in module named: $(model)
+
+	@export SINGULARITYENV_PS1='[FL Singularity for Collaborator $(col_name)] \w$  > ' && singularity run singularity/tfl_col_$(device)_$(model)_$(shell whoami).sif bash -c "make venv && make install && bash"
+
+
 endif

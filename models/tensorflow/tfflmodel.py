@@ -30,7 +30,10 @@ class TensorFlowFLModel(FLModel):
         self.tvar_placeholders = None
 
         # construct the shape needed for the input features
-        self.input_shape = (None,) + self.data.get_feature_shape()
+        self.input_shape = (None,) + self.data.get_feature_shape() 
+        
+        #Required tensorkeys for all public functions in TensorFlowFLModel
+        self.required_tensorkeys_for_function = {}
 
         #Required tensorkeys for all public functions in TensorFlowFLModel
         self.required_tensorkeys_for_function = {}

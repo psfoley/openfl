@@ -45,7 +45,7 @@ class KerasFLModel(FLModel):
         self.sess = tf.Session(config=config)
         K.set_session(self.sess)
 
-    def rebuild_model(self, round, input_tensor_dict):
+    def rebuild_model(self, round, input_tensor_dict, validation=False):
         """
         Parse tensor names and update weights of model. Handles the optimizer treatment
         
@@ -56,7 +56,7 @@ class KerasFLModel(FLModel):
         if self.opt_treatment == 'RESET':
             self.reset_opt_vars()
             self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
-        elif round > 0 and self.opt_treatment == 'CONTINUE_GLOBAL':
+        elif round > 0 and self.opt_treatment == 'CONTINUE_GLOBAL' and not validation:
             self.set_tensor_dict(input_tensor_dict,with_opt_vars=True)
         else:
             self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
@@ -127,7 +127,7 @@ class KerasFLModel(FLModel):
         #because these are only created after training occurs. A work around could involve doing a single epoch of training
         #on random data to get the optimizer names, and then throwing away the model.
         if self.opt_treatment == 'CONTINUE_GLOBAL':
-            self.initialize_tensorkeys_for_functions()
+            self.initialize_tensorkeys_for_functions(with_opt_vars=True)
 
         #Return global_tensor_dict, local_tensor_dict
         return global_tensor_dict,local_tensor_dict
@@ -150,7 +150,7 @@ class KerasFLModel(FLModel):
         batch_size = 1
         if 'batch_size' in kwargs:
             batch_size = kwargs['batch_size']
-        self.rebuild_model(round_num, input_tensor_dict)
+        self.rebuild_model(round_num, input_tensor_dict,validation=True)
         param_metrics = kwargs['metrics']
 
         vals = self.model.evaluate(self.data.X_val, self.data.y_val,batch_size=batch_size, verbose=0)
@@ -372,7 +372,7 @@ class KerasFLModel(FLModel):
                 [TensorKey(tensor_name,'GLOBAL',0,('model',)) for tensor_name in tensor_names]
 
 
-    def initialize_tensorkeys_for_functions(self):
+    def initialize_tensorkeys_for_functions(self,with_opt_vars=False):
         """
         Set the required tensors for all publicly accessible methods that could be called as part of a task.
         By default, this is just all of the layers and optimizer of the model. Custom tensors should be added to this function
@@ -389,16 +389,28 @@ class KerasFLModel(FLModel):
         #TODO there should be a way to programmatically iterate through all of the methods in the class and declare the tensors.
         #For now this is done manually
 
-        #Minimal required tensors for train function 
-        tensor_names = self._get_weights_names(self.model) + self._get_weights_names(self.model.optimizer)
-        self.logger.debug('Initial model tensor names: {}'.format(tensor_names))
-        self.required_tensorkeys_for_function['train'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names]
+        output_model_dict = self.get_tensor_dict(with_opt_vars=with_opt_vars)
+        global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+        if not with_opt_vars:
+            validation_global_model_dict = global_model_dict
+            validation_local_model_dict = local_model_dict
+        else:
+            output_model_dict = self.get_tensor_dict(with_opt_vars=False)
+            validation_global_model_dict, validation_local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+
+
+        self.required_tensorkeys_for_function['train'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in global_model_dict]
+        self.required_tensorkeys_for_function['train'] += [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in local_model_dict]
+
 
         #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
         self.required_tensorkeys_for_function['validate'] = {}
         #TODO This is not stateless. The optimizer will not be 
         self.required_tensorkeys_for_function['validate']['apply=local'] = \
-                [TensorKey(tensor_name,'LOCAL',0,False,('trained',)) for tensor_name in tensor_names]
+                [TensorKey(tensor_name,'LOCAL',0,False,('trained',)) for tensor_name in {**validation_global_model_dict,**validation_local_model_dict}]
         self.required_tensorkeys_for_function['validate']['apply=global'] = \
-                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in tensor_names]
+                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in validation_global_model_dict]
+        self.required_tensorkeys_for_function['validate']['apply=global'] += \
+                [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in validation_local_model_dict]
+
 

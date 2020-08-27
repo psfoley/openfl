@@ -1,7 +1,7 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-# Compose an FL plan in JSON/YAML.
+# Compose an FL plan in YAML
 # The plan is consumed by bin/run_simulation_from_flplan.py,
 # bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and
 # bin/create_initial_weights_file_from_plan.py
@@ -27,63 +27,42 @@
 # used for identifying the data folder of each collaborator
 # (using the local_data_config yaml file)
 
+model_object_init:
+  class_to_init: models.tensorflow.keras_test.keras_test.KerasTest 
+
+data_object_init:
+  class_to_init: data.tensorflow.tfmnist_inmemory.TensorFlowMNISTInMemory
+  data_name_in_local_config: mnist_shard
+  init_kwargs:
+    nb_collaborators  : 2
+    batch_size        : 256
+
 aggregator_object_init:
   init_kwargs:
-    rounds_to_train: 10
-    init_model_fname: pytorch_cnn_init.pbuf
-    latest_model_fname: pytorch_cnn_latest.pbuf
-    best_model_fname: pytorch_cnn_best.pbuf
-
-model_object_init:
-  class_to_init: models.pytorch.pt_cnn.pt_cnn.PyTorchCNN
+    rounds_to_train   : 10
+    init_model_fname  : keras_cnn_mnist_init.pbuf
+    latest_model_fname: keras_cnn_mnist_latest.pbuf
+    best_model_fname  : keras_cnn_mnist_best.pbuf
 
 collaborator_object_init:
   init_kwargs:
-    opt_treatment: CONTINUE_GLOBAL
+    opt_treatment: RESET
     send_model_deltas: true
 
 network_object_init:
-  defaults_file: defaults/network.yaml
- 
-data_object_init:
-  class_to_init: data.pytorch.ptmnist_inmemory.PyTorchMNISTInMemory
-  data_name_in_local_config: mnist_shard
-  init_kwargs:
-    batch_size: 256
-    channels_last: false
-    nb_collaborators: 2
+  defaults_file : defaults/network.yaml
 
 tasks:
-  aggregated_model_validation:
-    function  : validate
+  demo_dummy_function:
+    function  : dummy_function
     kwargs    :
-      metrics :
-      - acc
-      apply: global
-  locally_tuned_model_validation:
-    function  : validate
-    kwargs    :
-      metrics :
-      - acc
-      apply: local
-  train:
-    function  : train_batches
-    kwargs    :
-      num_batches: 1
-      metrics :
-      - loss
+      metric_name_prefix : 'basic_metric'
 
 task_assigner:
   module_name     : tfedlrn.task_assigner.random_grouped_task_assigner
   class_name      : RandomGroupedTaskAssigner
   task_groups     :
-  - name: validation_only
-    percentage: 0.5
+  - name: dummy_group
+    percentage: 1.0
     tasks:
-    - aggregated_model_validation
-  - name: train_and_validate
-    percentage: 0.5
-    tasks:
-    - aggregated_model_validation
-    - train
-    - locally_tuned_model_validation
+    - demo_dummy_function

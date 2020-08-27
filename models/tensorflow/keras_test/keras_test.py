@@ -39,11 +39,14 @@ class KerasTest(KerasFLModel):
 
 
     def dummy_function(self, col_name, round_num, input_tensor_dict,metric_name_prefix='dummy',**kwargs):
-        """This function is purely an example of the types of things you can do with the low level API. In this case, it just increments
-           its internal count and reports it to the aggregator"""
-        #Do nothing with the input_tensor_dict
-        output_tensor_dict = {TensorKey('{}:internal count'.format(metric_name_prefix),col_name,round_num,True,('metric',)):np.array(self.internal_count)}
+        """This function is purely an example of the types of things you can do with the low level API. 
+           In this case, it just increments its internal count and reports it to the aggregator"""
+        report=True
+        output_tensor_dict = {TensorKey('{}:internal count'.format(metric_name_prefix),\
+                col_name,round_num,report,('metric',)):np.array(self.internal_count)}
         self.internal_count += 1
+        
+        #Return global_output_dict, local_output_dict
         return output_tensor_dict,{}
 
 

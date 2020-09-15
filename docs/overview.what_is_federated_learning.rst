@@ -19,4 +19,4 @@ across the federation is solely the model parameters and their updates.
 
 .. figure:: images/diagram_fl.png
 
-   Federated Learning
+    Federated Learning

@@ -1,11 +1,8 @@
-#image: alpine
-# before_script:
-#   - mkdir -p $HOME/.docker/
-#   - 'echo "{ \"proxies\": { \"default\": { \"httpProxy\": \"http://proxy-us.intel.com:911\", \"httpsProxy\": \"http://proxy-us.intel.com:912\", \"noProxy\": \"intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16\" } } }" > $HOME/.docker/config.json'
+# CLEANUP FOR FLEDGE
+
 stages:
     - build
     - test
-
 pages:
   stage: build
   tags:
@@ -72,8 +69,8 @@ test_spsm_cpu:
     - echo "remove the directory ..."
     - rm -rf spr_secure_intelligence-trusted_federated_learning
     - echo "clone the directory ..."
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/tmp_spsm_cpu/spr_secure_intelligence-trusted_federated_learning
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/tmp_spsm_cpu/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -101,10 +98,10 @@ test_spsm_cpu_compression:
     - ls -al
     - cd /home/gitlab-runner/workspace/tmp_spsm_cpu_compression
     - echo "remove the directory ..."
-    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - rm -rf fledge
     - echo "clone the directory ..."
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/tmp_spsm_cpu_compression/spr_secure_intelligence-trusted_federated_learning
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/tmp_spsm_cpu_compression/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -130,10 +127,10 @@ test_mpsm_shell_1:
     - ls
     - cd /home/gitlab-runner/workspace/tmp_mpsm
     - echo "remove the directory ..."
-    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - rm -rf fledge
     - echo "clone the directory ..."
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/tmp_mpsm/spr_secure_intelligence-trusted_federated_learning
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/tmp_mpsm/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -167,10 +164,10 @@ test_mpmm_shell_1:
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - rm -rf fledge 
     - echo "clone the directory ..."
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -204,10 +201,10 @@ test_mpmm_shell_2:
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf spr_secure_intelligence-trusted_federated_learning
+    - rm -rf fledge
     - echo "clone the directory ..."
-    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/spr_secure_intelligence-trusted_federated_learning.git
-    - cd /home/gitlab-runner/workspace/spr_secure_intelligence-trusted_federated_learning
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -230,3 +227,41 @@ test_mpmm_shell_2:
     - jobs
     - echo "cleaning ...... $$"
     - kill -15 $$
+
+# hello_federation:
+#     stage: test
+#     tags:
+#     - shell-runner-2
+#     before_script:
+#     - whoami
+#     - pwd
+#     - ls
+#     - cd /home/gitlab-runner/workspace
+#     - echo "remove the directory ..."
+#     - rm -rf fledge
+#     - echo "clone the directory ..."
+#     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+#     - cd /home/gitlab-runner/workspace/fledge
+#     - echo $CI_COMMIT_REF_NAME
+#     - git checkout $CI_COMMIT_REF_NAME
+#     - export http_proxy=http://proxy-us.intel.com:911
+#     - export https_proxy=http://proxy-us.intel.com:912
+#     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+#     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
+#     - python3 -m pip install pip~=19.1
+#     script:
+#     - python3 -m pip install . --user
+#     - fx workspace create --prefix /home/gitlab-runner/workspace --template keras_cnn_mnist
+#     - cd /home/gitlab-runner/workspace
+#     - fx workspace certify
+#     - fx aggregator certify
+#     - fx collaborator certify -n one
+#     - fx collaborator certify -n two
+#     - fx plan initialize
+#     - fx aggregator start &
+#     - fx collaborator start -n one &
+#     - fx collaborator start -n two
+#     after_script:
+#     - jobs
+#     - echo "cleaning ...... $$"
+#     - kill -15 $$

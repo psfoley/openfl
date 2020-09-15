@@ -32,34 +32,49 @@ All Nodes
 
    $ cd |productDir|
 
-On the Aggregator Node
-######################
-
-1.	Change the directory to bin/federations/pki:
+3. Install |productName| package:
 
 .. code-block:: console
 
-  $ cd bin/federations/pki
+  $ pip install .
 
-2.	Run the Certificate Authority script. This will setup the Aggregator node
+4. Create workspace:
+
+.. code-block:: console
+
+  $ fx workspace create --prefix WORKSPACE.PATH
+Replace WORKSPACE.PATH with path you want workspace to be located at.
+There will be certificates, python environment, data, federated learning plan, training logs and snapshots.
+
+
+On the Aggregator Node
+######################
+
+1. Change directory to WORKSPACE.PATH:
+
+.. code-block:: console
+
+  $ cd WORKSPACE.PATH
+
+2.	Run the Certificate Authority command. This will setup the Aggregator node
 as the `Certificate Authority <https://en.wikipedia.org/wiki/Certificate_authority>`_
 for the Federation. All certificates will be
 signed by the aggregator. Follow the command-line instructions and enter
-in the information as prompted. The script will create a simple database
+in the information as prompted. The command will create a simple database
 file to keep track of all issued certificates.
 
 .. code-block:: console
 
-  $ bash setup_ca.sh
+  $ fx certificate setup-ca
 
-3.	Run the aggregator cert script, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+3.	Run the aggregator cert command, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_
 for the aggregator machine. You may optionally include the
 IP address for the aggregator, replacing [IP_ADDRESS].
 
 .. code-block:: console
 
-  $ bash create-aggregator.sh AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+  $ fx certificate create-agg --fqdn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 
 .. note::
    You can discover the FQDN with the Linux command:
@@ -70,14 +85,14 @@ IP address for the aggregator, replacing [IP_ADDRESS].
 
 4.	For each test machine you want to run collaborators on, we create a collaborator
 certificate, replacing TEST.MACHINE.NAME with the actual test machine name.
-Note that this does not have to be the FQDN. Also, note that this script
+Note that this does not have to be the FQDN. Also, note that this command
 is run on the Aggregator node because it is the Aggregator that signs the
 certificate. Only Collaborators with valid certificates signed by
 the Aggregator can join the federation.
 
 .. code-block:: console
 
-  $ bash create-collaborator.sh TEST.MACHINE.NAME
+  $ fx certificate create-col --cname TEST.MACHINE.NAME
 
 5.	Once you have the certificates created, you need to move the certificates
 to the correct machines and ensure each machine has the cert_chain.crt
@@ -88,11 +103,11 @@ you want to be able to run as a collaborator, you should have:
 +---------------------------+--------------------------------------------------------------+
 | File Type                 | Filename                                                     |
 +===========================+==============================================================+
-| Certificate chain         | bin/federations/pki/cert_chain.crt                           |
+| Certificate chain         | WORKSPACE.PATH/cert/cert_chain.crt                           |
 +---------------------------+--------------------------------------------------------------+
-| Collaborator certificate  | bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.crt    |
+| Collaborator certificate  | WORKSPACE.PATH/cert/col_TEST_MACHINE/col_TEST_MACHINE.crt    |
 +---------------------------+--------------------------------------------------------------+
-| Collaborator key          | bin/federations/pki/col_TEST_MACHINE/col_TEST_MACHINE.key    |
+| Collaborator key          | WORKSPACE.PATH/cert/col_TEST_MACHINE/col_TEST_MACHINE.key    |
 +---------------------------+--------------------------------------------------------------+
 
 Note that once the certificates are transferred to the collaborator,
@@ -105,11 +120,11 @@ to participate in any future federations run by this aggregator.
 +---------------------------+--------------------------------------------------+
 | File Type                 | Filename                                         |
 +===========================+==================================================+
-| Certificate chain         | bin/federations/pki/cert_chain.crt               |
+| Certificate chain         | WORKSPACE.PATH/cert/cert_chain.crt               |
 +---------------------------+--------------------------------------------------+
-| Aggregator certificate    | bin/federations/pki/agg_$AFQDN/agg_$AFQDN.crt    |
+| Aggregator certificate    | WORKSPACE.PATH/cert/agg_$AFQDN/agg_$AFQDN.crt    |
 +---------------------------+--------------------------------------------------+
-| Aggregator key            | bin/federations/pki/agg_$AFQDN/agg_$AFQDN.key    |
+| Aggregator key            | WORKSPACE.PATH/cert/agg_$AFQDN/agg_$AFQDN.key    |
 +---------------------------+--------------------------------------------------+
 
 where $AFQDN is the fully-qualified domain name of the aggregator node.

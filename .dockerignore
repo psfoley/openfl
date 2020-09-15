@@ -1,12 +1,3 @@
-venv
-initial_models
-build
-dist
-dockerfiles
-docs
-initial_models
-tests
-tfedlrn.egg-info
-*.git
 .git
-.git*
+*.egg-info
+build

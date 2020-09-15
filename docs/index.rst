@@ -32,8 +32,9 @@ Pytorch.
    :caption: Contents:
 
    manual
-   tfedlrn
+   fledge
    models
+   data
 
 
 Indices and tables

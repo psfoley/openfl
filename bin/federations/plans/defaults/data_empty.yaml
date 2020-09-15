@@ -1,6 +1,0 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
-
-data_name: mnist_shard # needs to resolve to something
-class_to_init: data.dummy.emptydata
-class_name: EmptyData

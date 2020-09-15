@@ -22,9 +22,7 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 
-	sphinx-apidoc -f -o . ../tfedlrn
-	sphinx-apidoc -f -o . ../models
-	sphinx-apidoc -f -o . ../data
+	sphinx-apidoc -f -o . ../fledge
 
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) 
 

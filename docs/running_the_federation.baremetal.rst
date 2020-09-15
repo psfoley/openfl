@@ -27,26 +27,39 @@ random model weights and putting it into that file by running the command:
 
 .. code-block:: console
 
-   $ ./venv/bin/python3 ./bin/create_initial_weights_file_from_flplan.py -p keras_cnn_mnist_2.yaml -dc local_data_config.yaml --collaborators_file cols_2.yaml
+   $ fx plan initialize -p plans/keras_cnn_mnist_2.yaml -d plans/defaults/data_tf_mnist.yaml -l cols_2.yaml
 
 .. note::
 
-    :code:`--collaborators_file cols_2.yaml` needs to be changed to the names in your collaborator list.
-    A good practice is to create a new YAML file for each of your federations. This file is only needed by the aggregator.
-    These YAML files can be found in :code:`bin/federations/collaborator_lists/`
+    :code:`-l cols_2.yaml` needs to be changed to the names in your collaborator list.
+    A good practice is to create a new YAML file for each of your federations.
+    This file is only needed by the aggregator and must be in the following format:
+
+      .. code-block:: yaml
+
+         collaborator_common_names :
+         - 'col_0'
+         - 'col_1'
 
 
-2.	Now we’re ready to start the aggregator by running the Python script. Note that we will need to pass in the fully-qualified domain name (FQDN) for the aggregator node address in order to present the correct certificate.
+
+2.	Now we’re ready to start the aggregator by running the Python script.
 
 .. code-block:: console
 
-   $ ./venv/bin/python3 ./bin/run_aggregator_from_flplan.py -p keras_cnn_mnist_2.yaml -ccn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME --collaborators_file cols_2.yaml
+   $ fx service start-agg -p plans/keras_cnn_mnist_2.yaml -l cols_2.yaml
 
 .. note::
 
-    :code:`--collaborators_file cols_2.yaml` needs to be changed to the names in your collaborator list.
-    A good practice is to create a new YAML file for each of your federations. This file is only needed by the aggregator.
-    These YAML files can be found in :code:`bin/federations/collaborator_lists/`
+    :code:`-l cols_2.yaml` needs to be changed to the names in your collaborator list.
+    A good practice is to create a new YAML file for each of your federations.
+    This file is only needed by the aggregator and must be in the following format:
+
+      .. code-block:: yaml
+
+         collaborator_common_names :
+         - 'col_0'
+         - 'col_1'
 
 At this point, the aggregator is running and waiting
 for the collaborators to connect. When all of the collaborators
@@ -61,22 +74,14 @@ On the Collaborator
 1.	Make sure that you followed the steps in :ref:`Configure the Federation <install_certs>` and have copied the keys and certificates onto the federation nodes.
 
 2.	Copy the plan file (e.g. *keras_cnn_mnist_2.yaml*) from the aggregator
-over to the collaborator to the plan subdirectory (**bin/federations/plans**)
+over to the collaborator to the :code:`plans` subdirectory.
 
-3.	Build the virtual environment using the command:
-
-.. code-block:: console
-
-   $ make install
-
-4.	Now run the collaborator col_1 using the Python script. Again,
-you will need to pass in the fully qualified domain name in
-order to present the correct certificate.
+3.	Now run the collaborator col_1 using the :code:`fx` command.
 
 .. code-block:: console
 
-   $ ./venv/bin/python3 ./bin/run_collaborator_from_flplan.py -p keras_cnn_mnist_2.yaml -col col_1 -ccn COLLABORATOR.FULLY.QUALIFIED.DOMAIN.NAME
+   $ fx service start-col -p plans/keras_cnn_mnist_2.yaml -n col_1 -d plans/defaults/data_tf_mnist.yaml 
 
-5.	Repeat this for each collaborator in the federation. Once all
+4.	Repeat this for each collaborator in the federation. Once all
 collaborators have joined, the aggregator will start and you
 will see log messages describing the progress of the federated training.

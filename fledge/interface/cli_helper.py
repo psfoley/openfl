@@ -5,13 +5,15 @@ from socket     import getfqdn
 from click      import Group, CommandCollection, Choice, Path as ClickPath
 from click      import group, command, argument, option, pass_context
 from click      import clear, echo, style, progressbar
-from sys        import path
+from sys        import path, argv
 from time       import sleep
 from shutil     import copyfile, ignore_patterns
 from logging    import getLogger, basicConfig
 from pathlib    import Path
 from itertools  import islice
-from os import environ
+from os         import environ
+
+FX        = argv[0]
 
 SITEPACKS = Path(__file__).parent.parent.parent
 WORKSPACE = SITEPACKS / 'fledge-workspace'

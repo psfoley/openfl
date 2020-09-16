@@ -15,11 +15,12 @@ def collaborator(context):
     context.obj['group'] = 'service'
 
 @collaborator.command()
+@pass_context
 @option('-p', '--plan',              required = False, help = 'Federated learning plan [plan/plan.yaml]',               default = 'plan/plan.yaml', type = ClickPath(exists = True))
 @option('-d', '--data_config',       required = False, help = 'The data set/shard configuration file [plan/data.yaml]', default = 'plan/data.yaml', type = ClickPath(exists = True))
 @option('-n', '--collaborator_name', required = True,  help = 'The certified common name of the collaborator')
 @option('-s', '--secure',            required = False, help = 'Enable Intel SGX Enclave', is_flag = True, default = False)
-def start(plan, collaborator_name, data_config, secure):
+def start(context, plan, collaborator_name, data_config, secure):
     '''Start a collaborator service'''
 
     plan = Plan.Parse(plan_config_path = Path(plan),

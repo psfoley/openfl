@@ -11,7 +11,7 @@ def workspace(context):
     '''Manage Federated Learning Workspaces'''
     context.obj['group'] = 'workspace'
 
-def create_dirs(prefix):
+def create_dirs(context, prefix):
 
     echo(f'Creating Workspace Directories')
 
@@ -28,7 +28,7 @@ def create_dirs(prefix):
 
     copytree(src = src, dst = dst, dirs_exist_ok = True)
 
-def create_venv(prefix):
+def create_venv(context, prefix):
 
     echo(f'Creating Workspace Virtual Environment')
 
@@ -38,9 +38,27 @@ def create_venv(prefix):
               with_pip             = True,
               prompt               = 'FLedge')
 
+    fx = context.obj['script']
+    wx = prefix / 'venv' / 'bin' / 'fx'
+
+    with Path(fx).open() as fx:
+
+        fx    = fx.readlines()
+
+        print(fx[0])
+        print(fx[1])
+
+        fx[0] = f'#!{prefix}/venv/bin/python' + '\n'
+        
+        wx.touch(mode = 0o766, exist_ok = True)
+
+        with wx.open('w') as wx:
+
+            wx.writelines(fx)
+
   # TODO: pip install fledge in new venv and remove system_site_packages = True above
 
-def create_cert(prefix):
+def create_cert(context, prefix):
 
     echo(f'Creating Workspace Certifications')
 
@@ -49,7 +67,7 @@ def create_cert(prefix):
 
     copytree(src = src, dst = dst, dirs_exist_ok = True)
 
-def create_temp(prefix, template):
+def create_temp(context, prefix, template):
 
     echo(f'Creating Workspace Templates')
 
@@ -61,26 +79,24 @@ def get_templates():
     Grab the default templates from the distribution
     """
 
-    templates = [ f.name for f in scandir(WORKSPACE) if f.is_dir() ]
-    # Remove cache and workspace subdirectories
-    templates.remove('__pycache__')
-    templates.remove('workspace')
+    templates = [f.name for f in scandir(WORKSPACE) if f.is_dir() and f not in ['__pycache__', 'workspace']]
 
     return templates
 
 @workspace.command()
+@pass_context
 @option('--prefix',   required = True, help = 'Workspace name or path', type = ClickPath())
 @option('--template', required = True, type = Choice(get_templates()))
-def create(prefix, template):
+def create(context, prefix, template):
     """Create federated learning workspace"""
 
     prefix   = Path(prefix)
     template = Path(template)
 
-    create_dirs(prefix)
-    create_venv(prefix)
-    create_cert(prefix)
-    create_temp(prefix, template)
+    create_dirs(context, prefix)
+    create_venv(context, prefix)
+    create_cert(context, prefix)
+    create_temp(context, prefix, template)
 
     print_tree(prefix, level = 3)
 

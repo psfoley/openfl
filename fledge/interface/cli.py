@@ -1,32 +1,27 @@
 #!/usr/bin/env python
 
-from click       import Group, CommandCollection, command, argument, group, clear, echo, option, pass_context, style
-from sys         import path
-from os.path     import join, exists, dirname, realpath, basename, splitext
-from logging     import getLogger, basicConfig
-
-from rich.traceback import install as colorTraces
-from rich.console   import Console
-from rich.logging   import RichHandler
-
-#colorTraces(width = 160)
-
-console = Console(width = 160)
+from click   import Group, CommandCollection, command, argument, group, clear, echo, option, pass_context, style
+from sys     import path, argv
+from pathlib import Path
 
 def setup_logging(log_config = 'logging.yaml', level = 'debug'):
 
-    import logging
-    import logging.config
-    import yaml
+    from logging        import getLogger, basicConfig, NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
+    from rich.traceback import install as colorTraces
+    from rich.console   import Console
+    from rich.logging   import RichHandler
 
-    levels = \
+    traces  = colorTraces(width = 160)
+    console = Console(width = 160)
+
+    levels  = \
     {
-        'notset'   : logging.NOTSET,
-        'debug'    : logging.DEBUG,
-        'info'     : logging.INFO,
-        'warning'  : logging.WARNING,
-        'error'    : logging.ERROR,
-        'critical' : logging.CRITICAL
+        'notset'   : NOTSET,
+        'debug'    : DEBUG,
+        'info'     : INFO,
+        'warning'  : WARNING,
+        'error'    : ERROR,
+        'critical' : CRITICAL
     }
 
     level = levels.get(level.lower(), levels['notset'])
@@ -88,6 +83,8 @@ def cli(context, log_config, log_level):
     context.obj['log_config'] = log_config
     context.obj['log_level' ] = log_level
     context.obj['fail'      ] = False
+    context.obj['script'    ] = argv[0]
+    context.obj['arguments' ] = argv[1:]
 
     setup_logging(log_config, log_level)
 
@@ -105,37 +102,52 @@ def end(context, result, **kwargs):
 def help(context, subcommand):
     pass
 
+def switch():
+
+    from sys     import argv, exec_prefix
+    from os      import execv
+    from pathlib import Path
+
+    wx_bin = 'venv/bin/fx'
+    wx_arg = [wx_bin] + argv[1:]
+
+    if  Path(wx_bin).exists()         :                       #     inside workspace                              - check if we need to switch
+        if  exec_prefix.count('venv') : pass                  #     using  workspace python from within workspace - all good
+        else                          : execv(wx_bin, wx_arg) # not using  workspace python from within workspace - switch interpreter
+    else                              : pass                  # not inside workspace                              - no need to switch the interpreter
+
 def entry():
+
+    from glob      import glob
+    from os.path   import dirname, realpath, basename, splitext
+    from importlib import import_module
+    from sys       import path
+
+    switch()
+
+    file = Path(__file__).resolve()
+    root = file.parent.resolve() # interface root, containing command modules
+    work = Path.cwd().resolve()
+
+    path.append(   str(root))
+    path.insert(0, str(work))
 
     clear()
     banner = f'Intel FLedge - Secure Federated Learning at the Edge™'
     echo(style(f'{banner:<80}', bold = True, bg = 'bright_blue'))
     echo()
 
-    from glob      import glob
-    from os.path   import dirname, realpath, basename, splitext
-    from importlib import import_module
-    from sys       import path
-    from os        import getcwd
+    for module in root.glob('*.py'): # load command modules
 
-    root = dirname(realpath(__file__)) # interface root, containing command modules
-    base = dirname(root)
-    work = getcwd()
+        package = module.parent
+        module  = module.name.split('.')[0]
 
-    path.append(root)
-    path.insert(0, work)
-
-    for module in glob(f'{root}/*.py'): # load command modules
-
-        package = dirname(module)
-        module  = splitext(basename(module))[0]
-
-        if  module in ['__init__', 'cli', 'cli_helper']:
+        if  module.count('__init__') or module.count('cli'):
             continue
 
-        group   = import_module(module, package)
-        
-        cli.add_command(group.__getattribute__(module))
+        command_group = import_module(module, package)
+
+        cli.add_command(command_group.__getattribute__(module))
 
     try:
         cli()

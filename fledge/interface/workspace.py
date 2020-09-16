@@ -39,14 +39,11 @@ def create_venv(context, prefix):
               prompt               = 'FLedge')
 
     fx = context.obj['script']
-    wx = prefix / 'venv' / 'bin' / 'fx'
+    wx = prefix.resolve() / 'venv' / 'bin' / 'fx'
 
     with Path(fx).open() as fx:
 
         fx    = fx.readlines()
-
-        print(fx[0])
-        print(fx[1])
 
         fx[0] = f'#!{prefix}/venv/bin/python' + '\n'
         

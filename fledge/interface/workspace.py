@@ -188,7 +188,5 @@ def certify(context):
         with open(PKI_DIR / 'ca/root-ca.crt'   ) as s: d.write(s.read())
         with open(PKI_DIR / 'ca/signing-ca.crt') as s: d.write(s.read())
 
-  # @tony, why copy and override below after the 3 lines above?
-  # copyfile(PKI_DIR / 'ca/root-ca.crt', PKI_DIR / 'cert_chain.crt')
-
+ 
     echo('\nDone.')

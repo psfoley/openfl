@@ -76,9 +76,7 @@ def get_templates():
     Grab the default templates from the distribution
     """
 
-    templates = [f.name for f in scandir(WORKSPACE) if f.is_dir() and f not in ['__pycache__', 'workspace']]
-
-    return templates
+    return [d.name for d in WORKSPACE.glob('*') if d.is_dir() and d.name not in ['__pycache__', 'workspace']]
 
 @workspace.command()
 @pass_context

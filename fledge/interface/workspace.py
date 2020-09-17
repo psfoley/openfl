@@ -3,8 +3,6 @@ from cli_helper import *
 import venv as ve
 import pip  as pi
 
-from os import scandir
-
 @group()
 @pass_context
 def workspace(context):

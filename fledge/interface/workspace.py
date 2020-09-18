@@ -1,7 +1,7 @@
 from cli_helper import *
 
-import venv as ve
-import pip  as pi
+from subprocess import check_call
+from sys        import executable
 
 @group()
 @pass_context
@@ -17,7 +17,6 @@ def create_dirs(context, prefix):
     (prefix / 'data').mkdir(parents = True, exist_ok = True) # training data
     (prefix / 'logs').mkdir(parents = True, exist_ok = True) # training logs
     (prefix / 'plan').mkdir(parents = True, exist_ok = True) # federated learning plans
-    (prefix / 'venv').mkdir(parents = True, exist_ok = True) # workspace python environment
     (prefix / 'save').mkdir(parents = True, exist_ok = True) # model weight saves / initialization
     (prefix / 'code').mkdir(parents = True, exist_ok = True) # model code
 
@@ -25,37 +24,6 @@ def create_dirs(context, prefix):
     dst = prefix    /           'plan/defaults' #   to created workspace
 
     copytree(src = src, dst = dst, dirs_exist_ok = True)
-
-def create_venv(context, prefix):
-
-    echo(f'Creating Workspace Virtual Environment')
-
-    prefix = prefix.resolve()
-
-    ve.create(prefix / 'venv',
-              system_site_packages = True,
-              clear                = True,
-              with_pip             = True,
-              prompt               = 'FLedge')
-
-    # fx = context.obj['script']
-    # wx = prefix / 'venv' / 'bin' / 'fx'
-
-    # with Path(fx).open() as fx:
-
-    #     fx    = fx.readlines()
-
-    #     fx[0] = f'#!{prefix}/venv/bin/python' + '\n'
-        
-    #     wx.touch(mode = 0o766, exist_ok = True)
-
-    #     with wx.open('w') as wx:
-
-    #         wx.writelines(fx)
-
-  # TODO: pip install fledge in new venv and remove system_site_packages = True above
-
-
 
 def create_cert(context, prefix):
 
@@ -91,7 +59,6 @@ def create(context, prefix, template):
     template = Path(template)
 
     create_dirs(context, prefix)
-    create_venv(context, prefix)
     create_cert(context, prefix)
     create_temp(context, prefix, template)
 
@@ -101,13 +68,25 @@ def create(context, prefix, template):
 def export_():
     """Export federated learning workspace"""
 
-    pass
+    requirements_filename = "requirements.txt"
+
+    with open(requirements_filename, "w") as f:
+        check_call([executable, "-m", "pip", "freeze"], stdout=f)
+
+    echo(requirements_filename + " written.")
 
 @workspace.command(name = 'import')
 def import_():
     """Import federated learning workspace"""
 
-    pass
+    from os.path import isfile
+
+    requirements_filename = "requirements.txt"
+
+    if isfile(requirements_filename):
+        check_call([executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    else:
+        echo("No " + requirements_filename + " file found.")
 
 @workspace.command()
 @pass_context

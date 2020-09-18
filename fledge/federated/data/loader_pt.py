@@ -2,6 +2,8 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import numpy      as np
+import tensorflow as tf
+from math import ceil
 
 from tqdm import tqdm
 

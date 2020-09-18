@@ -1,0 +1,8 @@
+template: fledge.federation.Network
+settings:
+    agg_addr            : auto
+    agg_port            : auto
+    hash_salt           : auto
+    disable_tls         : False
+    disable_client_auth : False
+    cert_folder         : cert

@@ -35,7 +35,7 @@ network:
   defaults: plan/defaults/network.yaml
 
 tasks:
-  defaults: plan/defaults/tasks_pytorch.yaml
+  defaults: plan/defaults/tasks_torch.yaml
 
 assigner:
   defaults: plan/defaults/assigner.yaml

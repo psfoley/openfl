@@ -123,7 +123,7 @@ def entry():
     from importlib import import_module
     from sys       import path
 
-    switch()
+    #switch()   # TODO: Disabling virtual environment switching
 
     file = Path(__file__).resolve()
     root = file.parent.resolve() # interface root, containing command modules

@@ -30,28 +30,32 @@ def create_venv(context, prefix):
 
     echo(f'Creating Workspace Virtual Environment')
 
+    prefix = prefix.resolve()
+
     ve.create(prefix / 'venv',
               system_site_packages = True,
               clear                = True,
               with_pip             = True,
               prompt               = 'FLedge')
 
-    fx = context.obj['script']
-    wx = prefix.resolve() / 'venv' / 'bin' / 'fx'
+    # fx = context.obj['script']
+    # wx = prefix / 'venv' / 'bin' / 'fx'
 
-    with Path(fx).open() as fx:
+    # with Path(fx).open() as fx:
 
-        fx    = fx.readlines()
+    #     fx    = fx.readlines()
 
-        fx[0] = f'#!{prefix}/venv/bin/python' + '\n'
+    #     fx[0] = f'#!{prefix}/venv/bin/python' + '\n'
         
-        wx.touch(mode = 0o766, exist_ok = True)
+    #     wx.touch(mode = 0o766, exist_ok = True)
 
-        with wx.open('w') as wx:
+    #     with wx.open('w') as wx:
 
-            wx.writelines(fx)
+    #         wx.writelines(fx)
 
   # TODO: pip install fledge in new venv and remove system_site_packages = True above
+
+
 
 def create_cert(context, prefix):
 

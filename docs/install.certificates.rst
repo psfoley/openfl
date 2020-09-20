@@ -65,16 +65,18 @@ file to keep track of all issued certificates.
 
 .. code-block:: console
 
-  $ fx certificate setup-ca
+  $ fx workspace certify
 
-3.	Run the aggregator cert command, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+3.	Run the aggregator certify command, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_
 for the aggregator machine. You may optionally include the
-IP address for the aggregator, replacing [IP_ADDRESS].
+IP address for the aggregator, replacing [IP_ADDRESS]. If you do not specify
+the IP address for the aggregator, then the current machine will be
+assumed to be the aggregator.
 
 .. code-block:: console
 
-  $ fx certificate create-agg --fqdn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+  $ fx aggregator certify --fqdn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 
 .. note::
    You can discover the FQDN with the Linux command:
@@ -92,7 +94,7 @@ the Aggregator can join the federation.
 
 .. code-block:: console
 
-  $ fx certificate create-col --cname TEST.MACHINE.NAME
+  $ fx collaborator certify -n TEST.MACHINE.NAME
 
 5.	Once you have the certificates created, you need to move the certificates
 to the correct machines and ensure each machine has the cert_chain.crt

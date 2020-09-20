@@ -27,60 +27,59 @@ random model weights and putting it into that file by running the command:
 
 .. code-block:: console
 
-   $ fx plan initialize -p plans/keras_cnn_mnist_2.yaml -d plans/defaults/data_tf_mnist.yaml -l cols_2.yaml
+   $ fx plan initialize -p plan.yaml -d data.yaml  -c cols.yaml
 
 .. note::
 
-    :code:`-l cols_2.yaml` needs to be changed to the names in your collaborator list.
+    :code:`-c cols.yaml` needs to be changed to the names in your collaborator list.
     A good practice is to create a new YAML file for each of your federations.
     This file is only needed by the aggregator and must be in the following format:
 
       .. code-block:: yaml
 
-         collaborator_common_names :
-         - 'col_0'
-         - 'col_1'
-
+         collaborators:
+           - 'one'
+           - 'two'
 
 
 2.	Now we’re ready to start the aggregator by running the Python script.
 
 .. code-block:: console
 
-   $ fx service start-agg -p plans/keras_cnn_mnist_2.yaml -l cols_2.yaml
+   $ fx aggregator start -p plan/plan.yaml -c plan/cols.yaml
 
 .. note::
 
-    :code:`-l cols_2.yaml` needs to be changed to the names in your collaborator list.
+    :code:`-c plan/cols.yaml` needs to be changed to the names in your collaborator list.
     A good practice is to create a new YAML file for each of your federations.
     This file is only needed by the aggregator and must be in the following format:
 
       .. code-block:: yaml
 
-         collaborator_common_names :
-         - 'col_0'
-         - 'col_1'
+         collaborators:
+           - 'one'
+           - 'two'
 
 At this point, the aggregator is running and waiting
 for the collaborators to connect. When all of the collaborators
 connect, the aggregator starts training. When the last round of
 training is complete, the aggregator stores the final weights in
 the protobuf file that was specified in the YAML file
-(in this case *keras_cnn_mnist_latest.pbuf*).
+(in this case *save/keras_cnn_mnist_latest.pbuf*).
 
 On the Collaborator
 ~~~~~~~~~~~~~~~~~~~
 
 1.	Make sure that you followed the steps in :ref:`Configure the Federation <install_certs>` and have copied the keys and certificates onto the federation nodes.
 
-2.	Copy the plan file (e.g. *keras_cnn_mnist_2.yaml*) from the aggregator
-over to the collaborator to the :code:`plans` subdirectory.
+2.	Copy the plan file (e.g. *plan.yaml*) from the aggregator
+over to the collaborator to the :code:`plan` subdirectory.
 
-3.	Now run the collaborator col_1 using the :code:`fx` command.
+3.	Now run the collaborator *one* using the :code:`fx` command.
 
 .. code-block:: console
 
-   $ fx service start-col -p plans/keras_cnn_mnist_2.yaml -n col_1 -d plans/defaults/data_tf_mnist.yaml 
+   $ fx collaborator start -p plan/plan.yaml -n one -d plan/data.yaml 
 
 4.	Repeat this for each collaborator in the federation. Once all
 collaborators have joined, the aggregator will start and you

@@ -4,6 +4,7 @@
 from hashlib   import md5
 from logging   import getLogger
 from os.path   import exists, splitext
+from os        import chmod
 from importlib import import_module
 from pathlib   import Path
 from yaml      import safe_load, dump
@@ -37,9 +38,20 @@ class Plan(object):
         return default
 
     @staticmethod
-    def Dump(yaml_path, config):
-
-        yaml_path.write_text(dump(config))
+    def Dump(yaml_path, config, freeze=False):
+        if freeze:
+            plan = Plan()
+            plan.config = config
+            frozen_yaml_path= Path(\
+                    f"{yaml_path.parent}/{yaml_path.stem}_{plan.hash[:8]}.yaml")
+            if frozen_yaml_path.exists():
+                logger.info(f"{yaml_path.name} is already frozen")
+                return
+            frozen_yaml_path.write_text(dump(config))
+            frozen_yaml_path.chmod(0o400)
+            logger.info(f"{yaml_path.name} frozen successfully")
+        else:
+            yaml_path.write_text(dump(config))
 
     @staticmethod
     def Parse(plan_config_path: Path, cols_config_path: Path = None, data_config_path: Path = None, resolve = True):
@@ -159,16 +171,7 @@ class Plan(object):
     @property
     def hash(self):
 
-        if  self.hash_ == None:
-            self.hash_  = md5()
-
-            # for p in self.files:
-            #     with open(p, 'rb') as f:
-            #         self.hash_.update(f.read())
-            #         logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/], after including [blue]{p}[/].', extra = {'markup' : True})
-
-            self.hash_  = md5(dump(self.config).encode('utf-8'))
-
+        self.hash_  = md5(dump(self.config).encode('utf-8'))
         logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]', extra = {'markup' : True})
 
         return self.hash_.hexdigest()

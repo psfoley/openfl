@@ -31,6 +31,7 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
                       cols_config_path = Path(cols_config),
                       data_config_path = Path(data_config))
 
+
     init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
 
     if  feature_shape is None:
@@ -53,7 +54,7 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
                                                                  task_runner.get_tensor_dict(False),
                                                                  **tensor_dict_split_fn_kwargs)
 
-    logger.warn(f'Following paramters omitted from global initial model, '\
+    logger.warn(f'Following parameters omitted from global initial model, '\
                 f'local initialization will determine values: {list(holdout_params.keys())}')
 
     model_snap = construct_model_proto(tensor_dict  = tensor_dict,
@@ -73,3 +74,34 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
         logger.warn(f"Patching Aggregator Addr in Plan 🠆 {plan_origin['network']['settings']['agg_addr']}")
 
         Plan.Dump(Path(plan_config), plan_origin)
+
+    plan.config = plan_origin
+    
+    #Record that plan with this hash has been initialized
+    if 'plans' not in context.obj:
+        context.obj['plans'] = []
+    context.obj['plans'].append(f"{Path(plan_config).stem}_{plan.hash[:8]}")
+    logger.info(f"{context.obj['plans']}")
+
+
+@plan.command()
+@pass_context
+@option('-p', '--plan_config', required = False, help = 'Federated learning plan [plan/plan.yaml]',               default = 'plan/plan.yaml', type = ClickPath(exists = True))
+def freeze(context, plan_config):
+    """
+    Finalize the Data Science plan
+
+    Create a new plan file that embeds its hash in the file name (plan.yaml -> plan_{hash}.yaml)
+    and changes the permissions to read only
+    """
+
+    plan = Plan()
+    plan.config = Plan.Parse(Path(plan_config), resolve = False).config
+    
+    init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
+
+    if not Path(init_state_path).exists():
+        logger.info(f"Plan has not been initialized! Run 'fx plan initialize' before proceeding")
+        return
+
+    Plan.Dump(Path(plan_config), plan.config,freeze=True)

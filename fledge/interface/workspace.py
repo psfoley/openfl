@@ -68,6 +68,11 @@ def create(context, prefix, template):
 def export_():
     """Export federated learning workspace"""
 
+    from shutil   import make_archive, copytree, ignore_patterns, rmtree
+    from tempfile import mkdtemp
+    from os       import getcwd
+    from os.path  import basename, join
+
     requirements_filename = "requirements.txt"
 
     with open(requirements_filename, "w") as f:
@@ -75,18 +80,32 @@ def export_():
 
     echo(requirements_filename + " written.")
 
+    archiveType = 'zip'
+    archiveName = basename(getcwd())
+
+    # Aggregator workspace
+    tmpDir = join(mkdtemp(), 'fledge', archiveName)
+
+    copytree('.', tmpDir,
+        ignore=ignore_patterns('__pycache__'))
+
+    make_archive(archiveName, archiveType, tmpDir)
+
+    echo('Workspace exported to archive: ' + archiveName + '.' + archiveType)
+
 @workspace.command(name = 'import')
 def import_():
     """Import federated learning workspace"""
 
     from os.path import isfile
-
+    
     requirements_filename = "requirements.txt"
 
     if isfile(requirements_filename):
         check_call([executable, "-m", "pip", "install", "-r", "requirements.txt"])
     else:
         echo("No " + requirements_filename + " file found.")
+
 
 @workspace.command()
 @pass_context

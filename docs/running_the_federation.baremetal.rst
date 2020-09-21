@@ -27,38 +27,28 @@ random model weights and putting it into that file by running the command:
 
 .. code-block:: console
 
-   $ fx plan initialize -p plan.yaml -d data.yaml  -c cols.yaml
+   $ fx plan initialize 
 
 .. note::
 
-    :code:`-c cols.yaml` needs to be changed to the names in your collaborator list.
-    A good practice is to create a new YAML file for each of your federations.
-    This file is only needed by the aggregator and must be in the following format:
+   Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
+   Therefore, the Aggregator has the following optional parameters.
 
-      .. code-block:: yaml
-
-         collaborators:
-           - 'one'
-           - 'two'
-
+   +-------------------------+---------------------------------------------------------+
+   | Optional Parameters     | Description                                             |
+   +=========================+=========================================================+
+   | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
+   +-------------------------+---------------------------------------------------------+
+   | -c, --cols_config PATH  | Authorized collaborator list [default = plan/cols.yaml] |
+   +-------------------------+---------------------------------------------------------+
+   | -d, --data_config PATH  | The data set/shard configuration file                   |
+   +-------------------------+---------------------------------------------------------+    
 
 2.	Now we’re ready to start the aggregator by running the Python script.
 
 .. code-block:: console
 
-   $ fx aggregator start -p plan/plan.yaml -c plan/cols.yaml
-
-.. note::
-
-    :code:`-c plan/cols.yaml` needs to be changed to the names in your collaborator list.
-    A good practice is to create a new YAML file for each of your federations.
-    This file is only needed by the aggregator and must be in the following format:
-
-      .. code-block:: yaml
-
-         collaborators:
-           - 'one'
-           - 'two'
+   $ fx aggregator start
 
 At this point, the aggregator is running and waiting
 for the collaborators to connect. When all of the collaborators
@@ -79,7 +69,20 @@ over to the collaborator to the :code:`plan` subdirectory.
 
 .. code-block:: console
 
-   $ fx collaborator start -p plan/plan.yaml -n one -d plan/data.yaml 
+   $ fx collaborator start -n one
+
+   .. note::
+
+      Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
+      Therefore, the Collaborator has the following optional parameters.
+
+      +-------------------------+---------------------------------------------------------+
+      | Optional Parameters     | Description                                             |
+      +=========================+=========================================================+
+      | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
+      +-------------------------+---------------------------------------------------------+
+      | -d, --data_config PATH  | The data set/shard configuration file                   |
+      +-------------------------+---------------------------------------------------------+    
 
 4.	Repeat this for each collaborator in the federation. Once all
 collaborators have joined, the aggregator will start and you

@@ -10,12 +10,14 @@ Running the Federation
 First make sure you've installed the software :ref:`using these instructions <install_software_root>`
 
 .. toctree::
+   :maxdepth: 4
 
    running_the_federation.baremetal
 
 .. only:: Intel
 
  .. toctree::
+    :maxdepth: 4
 
     running_the_federation.docker
     running_the_federation.singularity

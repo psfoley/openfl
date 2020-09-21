@@ -6,6 +6,7 @@ Manual
 ******
 
 .. toctree::
+   :maxdepth: 4
 
    overview
    install

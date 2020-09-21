@@ -44,19 +44,7 @@ running the command:
 
 .. code-block:: console
 
-   $ fx plan initialize -p plan.yaml -d data.yaml  -c cols.yaml
-
-.. note::
-
-    :code:`-c cols.yaml` needs to be changed to the names in your collaborator list.
-    A good practice is to create a new YAML file for each of your federations.
-    This file is only needed by the aggregator and must be in the following format:
-
-      .. code-block:: yaml
-
-         collaborators:
-         - 'one'
-         - 'two'
+   $ fx plan initialize 
 
 At this point, the aggregator
 is running and waiting for the collaborators to connect. When all of the

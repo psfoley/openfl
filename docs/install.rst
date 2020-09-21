@@ -11,6 +11,7 @@ NOTE: This project is expected to be continually developed and improved.
 Changes to this manual, the project code, and the project design should be expected.
 
 .. toctree::
+   :maxdepth: 4
 
    install.design
    install.certificates

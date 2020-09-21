@@ -57,11 +57,6 @@ class PyTorchCNN(PyTorchTaskRunner):
     def init_network(self,
                      device,
                      print_model=True,
-                     pool_sqrkernel_size=2,
-                     conv_sqrkernel_size=5,
-                     conv1_channels_out=20,
-                     conv2_channels_out=50,
-                     fc2_insize = 500,
                      **kwargs):
         """Create the network (model)
 
@@ -87,28 +82,19 @@ class PyTorchCNN(PyTorchTaskRunner):
         when used with the default values above)
 
         """
-        self.pool_sqrkernel_size = pool_sqrkernel_size
-        channel = self.data_loader.get_feature_shape()[0]# (channel, dim1, dim2)
-        self.conv1 = nn.Conv2d(channel, conv1_channels_out, conv_sqrkernel_size, 1)
-
-        # perform some calculations to track the size of the single channel activations
-        # channels are first for pytorch
-        conv1_sqrsize_in = self.feature_shape[-1]
-        conv1_sqrsize_out = conv1_sqrsize_in - (conv_sqrkernel_size - 1)
-        # a pool operation happens after conv1 out
-        # (note dependence on 'forward' function below)
-        conv2_sqrsize_in = int(conv1_sqrsize_out/pool_sqrkernel_size)
-
-        self.conv2 = nn.Conv2d(conv1_channels_out, conv2_channels_out, conv_sqrkernel_size, 1)
-
-        # more tracking of single channel activation size
-        conv2_sqrsize_out = conv2_sqrsize_in - (conv_sqrkernel_size - 1)
-        # a pool operation happens after conv2 out
-        # (note dependence on 'forward' function below)
-        l = int(conv2_sqrsize_out/pool_sqrkernel_size)
-        self.fc1_insize = l*l*conv2_channels_out
-        self.fc1 = nn.Linear(self.fc1_insize, fc2_insize)
-        self.fc2 = nn.Linear(fc2_insize, self.num_classes)
+        channel = self.data_loader.get_feature_shape()[
+            0]  # (channel, dim1, dim2)
+        conv_kwargs = {'kernel_size': 3, 'stride': 1, 'padding': 1}
+        self.conv1 = nn.Conv2d(channel, 16, **conv_kwargs)
+        self.conv2 = nn.Conv2d(16, 32, **conv_kwargs)
+        self.conv3 = nn.Conv2d(32, 64, **conv_kwargs)
+        self.conv4 = nn.Conv2d(64, 128, **conv_kwargs)
+        self.conv5 = nn.Conv2d(128+32, 256, **conv_kwargs)
+        self.conv6 = nn.Conv2d(256, 512, **conv_kwargs)
+        self.conv7 = nn.Conv2d(512+128+32, 256, **conv_kwargs)
+        self.conv8 = nn.Conv2d(256, 512, **conv_kwargs)
+        self.fc1 = nn.Linear(1184 * 9 * 9, 128)
+        self.fc2 = nn.Linear(128, 8)
         if print_model:
             print(self)
         self.to(device)
@@ -121,14 +107,28 @@ class PyTorchCNN(PyTorchTaskRunner):
         """
 
         x = F.relu(self.conv1(x))
-        pl = self.pool_sqrkernel_size
-        x = F.max_pool2d(x, pl, pl)
         x = F.relu(self.conv2(x))
-        x = F.max_pool2d(x, pl, pl)
-        x = x.view(-1, self.fc1_insize)
-        x = F.relu(self.fc1(x))
+        maxpool = F.max_pool2d(x, 2, 2)
+
+        x = F.relu(self.conv3(maxpool))
+        x = F.relu(self.conv4(x))
+        concat = torch.cat([maxpool, x], dim = 1)
+        maxpool = F.max_pool2d(concat, 2, 2)
+
+        x = F.relu(self.conv5(maxpool))
+        x = F.relu(self.conv6(x))
+        concat = torch.cat([maxpool, x], dim = 1)
+        maxpool = F.max_pool2d(concat, 2, 2)
+
+        x = F.relu(self.conv7(maxpool))
+        x = F.relu(self.conv8(x))
+        concat = torch.cat([maxpool, x], dim = 1)
+        maxpool = F.max_pool2d(concat, 2, 2)
+
+        x = maxpool.flatten(start_dim=1)
+        x = F.dropout(self.fc1(x), p=0.5)
         x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        return F.log_softmax(x, dim=-1)
 
     def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
         """Validate

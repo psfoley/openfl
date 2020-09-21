@@ -5,7 +5,7 @@ import numpy as np
 import sys
 from logging import getLogger
 from torchvision.datasets import ImageFolder
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, RandomHorizontalFlip, RandomVerticalFlip, Compose
 from torch.utils.data import random_split
 from urllib.request import urlretrieve
 from hashlib import md5
@@ -20,22 +20,23 @@ logger = getLogger(__name__)
 class HistologyDataset(ImageFolder):
     URL = "https://zenodo.org/record/53169/files/Kather_texture_2016_image_tiles_5000.zip?download=1"
     FILENAME = "Kather_texture_2016_image_tiles_5000.zip"
+    FOLDER_NAME = "Kather_texture_2016_image_tiles_5000"
     ZIP_MD5 = '0ddbebfc56344752028fda72602aaade'
-    DEFAULT_PATH = path.join(path.expanduser('~'), '.fledge', 'data', 'histology')
+    DEFAULT_PATH = path.join(path.expanduser('~'), '.fledge', 'data')
 
-    def __init__(self, root: str = DEFAULT_PATH, download: bool = False, **kwargs) -> None:
+    def __init__(self, root: str = DEFAULT_PATH, **kwargs) -> None:
         makedirs(root, exist_ok=True)
-        self.pbar = tqdm(total=None)
-        if download:
-            filepath = path.join(root, HistologyDataset.FILENAME)
+        filepath = path.join(root, HistologyDataset.FILENAME)
+        if not path.exists(filepath):
+            self.pbar = tqdm(total=None)
             urlretrieve(HistologyDataset.URL, filepath, self.report_hook)
             assert md5(open(filepath, 'rb').read(
                 path.getsize(filepath))).hexdigest() == HistologyDataset.ZIP_MD5
             with ZipFile(filepath, 'r') as f:
                 f.extractall(root)
-            remove(filepath)
-            
-        super(HistologyDataset, self).__init__(root, **kwargs)
+
+        super(HistologyDataset, self).__init__(
+            path.join(root, HistologyDataset.FOLDER_NAME), **kwargs)
         
     def report_hook(self, count, block_size, total_size):
         if self.pbar.total is None and total_size:
@@ -75,7 +76,8 @@ def _load_raw_datashards(shard_num, collaborator_count):
     Returns:
         2 tuples: (image, label) of the training, validation dataset
     """
-    dataset = HistologyDataset(download=False, transform=ToTensor())
+    dataset = HistologyDataset(transform=Compose(
+        [ToTensor(), RandomHorizontalFlip(), RandomVerticalFlip()]))
     n_train = int(0.8 * len(dataset))
     n_valid = len(dataset) - n_train
     ds_train, ds_val  = random_split(dataset, lengths=[n_train, n_valid])

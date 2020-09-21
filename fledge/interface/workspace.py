@@ -65,7 +65,8 @@ def create(context, prefix, template):
     print_tree(prefix, level = 3)
 
 @workspace.command(name = 'export')
-def export_():
+@option('--include_certificates', required = False, help="Include PKI certificates", is_flag=True)
+def export_(include_certificates):
     """Export federated learning workspace"""
 
     from shutil   import make_archive, copytree, ignore_patterns, rmtree
@@ -73,38 +74,51 @@ def export_():
     from os       import getcwd
     from os.path  import basename, join
 
-    requirements_filename = "requirements.txt"
+    requirements_filename = f'requirements.txt'
 
     with open(requirements_filename, "w") as f:
         check_call([executable, "-m", "pip", "freeze"], stdout=f)
 
-    echo(requirements_filename + " written.")
+    echo(f'{requirements_filename} written.')
 
     archiveType = 'zip'
     archiveName = basename(getcwd())
+    archiveFileName = archiveName + '.' + archiveType
 
     # Aggregator workspace
     tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
-    copytree('.', tmpDir,
-        ignore=ignore_patterns('__pycache__'))
+    if include_certificates:
+        echo(style(f'WARNING:', fg='red', blink=True) + f' Including PKI certificates in export. This could be a security risk.')
+        ignore = ignore_patterns('__pycache__')
+    else:
+        ignore = ignore_patterns('__pycache__', 'cert')
 
-    make_archive(archiveName, archiveType, tmpDir)
+    copytree('.', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
 
-    echo('Workspace exported to archive: ' + archiveName + '.' + archiveType)
+    make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
+
+    echo(f'Workspace exported to archive: {archiveFileName}')
 
 @workspace.command(name = 'import')
-def import_():
+@option('--file',   required = True, help = 'Zip file containing workspace to import', type = ClickPath(exists=True))
+def import_(file):
     """Import federated learning workspace"""
 
-    from os.path import isfile
+    from shutil   import unpack_archive
+    from os.path  import isfile
     
+    unpack_archive(file)
+
     requirements_filename = "requirements.txt"
 
     if isfile(requirements_filename):
         check_call([executable, "-m", "pip", "install", "-r", "requirements.txt"])
     else:
         echo("No " + requirements_filename + " file found.")
+
+    echo(f'Workspace {file} has been imported.')
+    echo(f'You may need to copy your PKI certificates to join the federation.')
 
 
 @workspace.command()

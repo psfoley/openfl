@@ -44,39 +44,19 @@ running the command:
 
 .. code-block:: console
 
-   $ fx plan initialize -p plans/keras_cnn_mnist_2.yaml -d plans/defaults/data_tf_mnist.yaml -l cols_2.yaml
+   $ fx plan initialize -p plan.yaml -d data.yaml  -c cols.yaml
 
 .. note::
 
-    :code:`-l cols_2.yaml` needs to be changed to the names in your collaborator list.
+    :code:`-c cols.yaml` needs to be changed to the names in your collaborator list.
     A good practice is to create a new YAML file for each of your federations.
     This file is only needed by the aggregator and must be in the following format:
 
       .. code-block:: yaml
 
-         collaborator_common_names :
-         - 'col_0'
-         - 'col_1'
-
-4. Now we’re ready to start the aggregator by running the fx command.
-During this step the fully-qualified domain name (FQDN) for the aggregator node address 
-is parsed from the flplan's network configuration in order to present the correct certificate. 
-
-.. code-block:: console
-
-   $ fx service start-agg -p plans/keras_cnn_mnist_2.yaml -l cols_2.yaml
-
-.. note::
-
-    :code:`-l cols_2.yaml` needs to be changed to the names in your collaborator list.
-    A good practice is to create a new YAML file for each of your federations.
-    This file is only needed by the aggregator and must be in the following format:
-
-      .. code-block:: yaml
-
-         collaborator_common_names :
-         - 'col_0'
-         - 'col_1'
+         collaborators:
+         - 'one'
+         - 'two'
 
 At this point, the aggregator
 is running and waiting for the collaborators to connect. When all of the
@@ -89,19 +69,10 @@ On the Collaborators
 ~~~~~~~~~~~~~~~~~~~~
 
 1.	Now run the Docker on the collaborator. For example, if the collaborator
-label is **col_0**, run this command:
-
-.. code-block:: console
-
-   $ export plan=keras_cnn_mnist_2.yaml
-   $ make run_col_container col_name=col_0
+label is **one**, run this command:
 
 
 2.	Now run the collaborator fx command to start the collaborator.
-
-.. code-block:: console
-
-   $ fx service start-col -p plans/keras_cnn_mnist_2.yaml -n col_0 -d plans/defaults/data_tf_mnist.yaml 
 
 3.	Repeat this for each collaborator in the federation. Once all
 collaborators have joined, the aggregator will start and

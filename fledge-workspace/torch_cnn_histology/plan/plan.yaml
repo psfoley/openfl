@@ -20,7 +20,6 @@ collaborator :
     opt_treatment    : RESET
 
 data_loader :
-  defaults : plan/defaults/data_loader.yaml
   template : code.pthistology_inmemory.PyTorchHistologyInMemory
   settings :
     collaborator_count : 2

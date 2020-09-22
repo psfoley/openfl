@@ -47,7 +47,7 @@ class PyTorchDataLoader(DataLoader):
         """
         return self.X_train[0].shape
     
-    def get_train_loader(self,batch_size=None):
+    def get_train_loader(self, batch_size=None, num_batches=None):
         """
         Get training data loader 
 
@@ -55,7 +55,7 @@ class PyTorchDataLoader(DataLoader):
         -------
         loader object
         """      
-        return self._get_batch_generator(X = self.X_train, y = self.y_train, batch_size = batch_size)
+        return self._get_batch_generator(X = self.X_train, y = self.y_train, batch_size = batch_size, num_batches = num_batches)
     
     def get_valid_loader(self, batch_size = None):
         """
@@ -105,7 +105,7 @@ class PyTorchDataLoader(DataLoader):
             b = a + batch_size
             yield X[idxs[a:b]], y[idxs[a:b]]
 
-    def _get_batch_generator(self, X, y, batch_size):
+    def _get_batch_generator(self, X, y, batch_size, num_batches=None):
         """
         Returns the dataset generator
 
@@ -122,7 +122,8 @@ class PyTorchDataLoader(DataLoader):
         idxs = np.random.permutation(np.arange(X.shape[0]))
 
         # compute the number of batches
-        num_batches = ceil(X.shape[0] / batch_size)
+        if num_batches is None:
+            num_batches = ceil(X.shape[0] / batch_size)
 
         # build the generator and return it
         return self._batch_generator(X, y, idxs, batch_size, num_batches)

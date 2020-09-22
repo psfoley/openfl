@@ -44,15 +44,15 @@ class PyTorchCNN(PyTorchTaskRunner):
 
         self.num_classes = self.data_loader.num_classes
         self.init_network(device=self.device, **kwargs)
-        self._init_optimizer()
+        self._init_optimizer(lr=kwargs.get('lr'))
         self.loss_fn = cross_entropy
         self.set_logger()
         self.initialize_tensorkeys_for_functions()
 
-    def _init_optimizer(self):
+    def _init_optimizer(self, lr):
         """Initializer the optimizer
         """
-        self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
+        self.optimizer = optim.Adam(self.parameters(), lr=float(lr or 1e-3))
 
     def init_network(self,
                      device,
@@ -257,4 +257,4 @@ class PyTorchCNN(PyTorchTaskRunner):
         Resets the optimizer state variables.
 
         """
-        self._init_optimizer()
+        self._init_optimizer(lr = self.optimizer.defaults.get('lr'))

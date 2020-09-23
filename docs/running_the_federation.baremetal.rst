@@ -42,13 +42,13 @@ pre-created templates can be found by simply running the command:
    in the workspace or wrapped using the :code:`FLModel` class described in the advanced
    tutorial.
 
-4. Change to the workspace directory.
+3. Change to the workspace directory.
 
 .. code-block:: console
 
    $ cd WORKSPACE.PATH
 
-5.	Although it is possible to train models from scratch, it is assumed that in
+4.	Although it is possible to train models from scratch, it is assumed that in
 many cases the federation may perform fine-tuning of a previously-trained model. 
 For this reason, the pre-trained weights for the model
 will be stored within protobuf files on the aggregator and

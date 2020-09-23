@@ -8,7 +8,7 @@ Starting the Federation
 On the Aggregator
 ~~~~~~~~~~~~~~~~~
 
-#.	Now we’re ready to start the aggregator by running the Python script. 
+1. Now we’re ready to start the aggregator by running the Python script. 
 
     .. code-block:: console
     
@@ -26,9 +26,9 @@ On the Aggregator
 On the Collaborator
 ~~~~~~~~~~~~~~~~~~~
 
-1.	Open a new terminal, change the directory to the workspace, and activate the virtual environment.
+1. Open a new terminal, change the directory to the workspace, and activate the virtual environment.
 
-2.	Now run the collaborator that was labelled :code:`one` using the :code:`fx` command.
+2. Now run the collaborator that was labelled :code:`one` using the :code:`fx` command.
 
     .. code-block:: console
 
@@ -47,7 +47,7 @@ On the Collaborator
            | -d, --data_config PATH  | The data set/shard configuration file                   |
            +-------------------------+---------------------------------------------------------+
 
-3.	Repeat this for each collaborator in the federation. Once all collaborators have joined,  the aggregator will start and you will see log messages describing the progress of the federated training.
+3. Repeat this for each collaborator in the federation. Once all collaborators have joined,  the aggregator will start and you will see log messages describing the progress of the federated training.
 
 On Remote Collaborators
 ~~~~~~~~~~~~~~~~~~~~~~~

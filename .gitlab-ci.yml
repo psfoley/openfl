@@ -4,10 +4,6 @@ stages:
     - build
     - test
     
-packages:
-  enabled: true
-  storage_path: shared/packages
-
 pages:
   stage: build
   tags:

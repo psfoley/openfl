@@ -88,11 +88,6 @@ you want to be able to run as a collaborator, you should have:
 | Collaborator key          | WORKSPACE.PATH/cert/col_TEST_MACHINE/col_TEST_MACHINE.key    |
 +---------------------------+--------------------------------------------------------------+
 
-Note that once the certificates are transferred to the collaborator,
-it is now possible
-to participate in any future federations run by this aggregator.
-(The aggregator can revoke this privilege.)
-
 6.	On the aggregator machine you should have the files:
 
 +---------------------------+--------------------------------------------------+

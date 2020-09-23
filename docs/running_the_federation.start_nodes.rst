@@ -28,24 +28,24 @@ On the Collaborator
 
 1.	Open a new terminal, change the directory to the workspace, and activate the virtual environment.
 
-2.	Now run the collaborator *one* using the :code:`fx` command.
+2.	Now run the collaborator that was labelled *one* using the :code:`fx` command.
 
 .. code-block:: console
 
    $ fx collaborator start -n one
 
-   .. note::
+.. note::
 
-      Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
-      Therefore, the Collaborator has the following optional parameters.
+    Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
+    Therefore, the Collaborator has the following optional parameters.
 
-      +-------------------------+---------------------------------------------------------+
-      | Optional Parameters     | Description                                             |
-      +=========================+=========================================================+
-      | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
-      +-------------------------+---------------------------------------------------------+
-      | -d, --data_config PATH  | The data set/shard configuration file                   |
-      +-------------------------+---------------------------------------------------------+    
+    +-------------------------+---------------------------------------------------------+
+    | Optional Parameters     | Description                                             |
+    +=========================+=========================================================+
+    | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
+    +-------------------------+---------------------------------------------------------+
+    | -d, --data_config PATH  | The data set/shard configuration file                   |
+    +-------------------------+---------------------------------------------------------+    
 
 3.	Repeat this for each collaborator in the federation. Once all
 collaborators have joined, the aggregator will start and you
@@ -61,7 +61,7 @@ On any node that contains the workspace (e.g. on the Aggregator), run the follow
 
    $ fx workspace export --include_certificates
 
-..warning::
+.. warning::
   The :code:`--include_certificates` should not be used other than for demonstration purposes
   as it includes the certificates for all nodes of the federation. Instead, users should
   manually copy of the necessary certificates and keys to protect the security of the PKI.
@@ -70,8 +70,7 @@ On any node that contains the workspace (e.g. on the Aggregator), run the follow
 2. If the :code:`export` command is successful, you will have a :code:`.zip` file with the
 workspace name in the directory. Copy this archive to the remote collaborator node.
 
-3. Make sure you have installed |productName| on the remote collaborator node
-:ref:`using these instructions <install_initial_steps>`, and have activated the virtual environment.
+3. Make sure you have installed |productName| on the remote collaborator node :ref:`using these instructions <install_initial_steps>` and have activated the virtual environment.
 
 4. Run the command to import the workspace archive:
 

@@ -57,4 +57,4 @@ manifest file is specified, the command
 
 will use the pal_loader command to create the enclave from the
 manifest and run the web server (:code:`http`) within the enclave. No other
-modifications are needed for the httpd application.
+modifications are needed for the :code:`httpd` application.

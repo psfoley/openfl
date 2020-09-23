@@ -56,5 +56,5 @@ manifest file is specified, the command
   $ SGX=1 ./pal_loader httpd
 
 will use the pal_loader command to create the enclave from the
-manifest and run the web server (http) within the enclave. No other
+manifest and run the web server (:code:`http`) within the enclave. No other
 modifications are needed for the httpd application.

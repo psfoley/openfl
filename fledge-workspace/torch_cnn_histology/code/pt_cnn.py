@@ -63,23 +63,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         Args:
             device: The hardware device to use for training
             print_model (bool): Print the model topology (Default=True)
-            pool_sqrkernel_size (int): Max pooling kernel size (Default=2), assumes square 2x2
-            conv_sqrkernel_size (int): Convolutional filter size (Default=5), assumes square 5x5
-            conv1_channels_out (int): Number of filters in first convolutional layer (Default=20)
-            conv2_channels_out: Number of filters in second convolutional layer (Default=50)
-            fc2_insize (int): Number of neurons in the fully-connected layer (Default = 500)
             **kwargs: Additional arguments to pass to the function
-
-        """
-        """
-        FIXME: We are tracking only side lengths (rather than length and width) as we are assuming square
-        shapes for feature and kernels.
-        In order that all of the input and activation components are used (not cut off), we rely on a criterion:
-        appropriate integers are divisible so that all casting to int perfomed below does no rounding
-        (i.e. all int casting simply converts a float with '0' in the decimal part to an int.)
-
-        (Note this criterion held for the original input sizes considered for this model: 28x28 and 32x32
-        when used with the default values above)
 
         """
         channel = self.data_loader.get_feature_shape()[
@@ -128,7 +112,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         x = maxpool.flatten(start_dim=1)
         x = F.dropout(self.fc1(x), p=0.5)
         x = self.fc2(x)
-        return F.log_softmax(x, dim=-1)
+        return F.log_softmax(x, dim=1)
 
     def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
         """Validate

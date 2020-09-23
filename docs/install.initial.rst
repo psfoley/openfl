@@ -24,14 +24,14 @@ Initial Steps
 
       $ conda activate env_name 
 
-4.	Unzip the source code |productZip|. 
+4. Unzip the source code |productZip|. 
 
    .. code-block:: console
       :substitutions:
 
       $ unzip |productZip|
 
-5.	Change into the project directory.
+5. Change into the project directory.
 
    .. code-block:: console
       :substitutions:

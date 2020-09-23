@@ -28,7 +28,7 @@ On the Collaborator
 
 1.	Open a new terminal, change the directory to the workspace, and activate the virtual environment.
 
-2.	Now run the collaborator that was labelled *one* using the :code:`fx` command.
+2.	Now run the collaborator that was labelled :code:`one` using the :code:`fx` command.
 
     .. code-block:: console
 

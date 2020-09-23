@@ -23,56 +23,50 @@ On the Aggregator
 
 2. Create a workspace for the new federation project.
 
-.. code-block:: console
+    .. code-block:: console
+    
+       $ fx workspace create --prefix WORKSPACE.PATH --template keras_cnn_mnist
+       
+    where **WORKSPACE.PATH** is the directory to create your workspace. By specifying 
+    the :code:`--template keras_cnn_mnist` the workspace will create a workspace 
+    with a simple TensorFlow/Keras CNN model that will download the MNIST 
+    dataset and train in a federation with one aggregator and two collaborators. A list of
+    pre-created templates can be found by simply running the command:
 
-   $ fx workspace create --prefix WORKSPACE.PATH --template keras_cnn_mnist
-
-where **WORKSPACE.PATH** is the directory to create your workspace. By specifying
-the :code:`--template keras_cnn_mnist` the workspace will create a workspace
-with a simple TensorFlow/Keras CNN model that will download the MNIST 
-dataset and train in a federation with one aggregator and two collaborators. A list of
-pre-created templates can be found by simply running the command:
-
-.. code-block:: console
-
-   $ fx workspace create --prefix WORKSPACE.PATH 
-
-.. note::
-   Existing TensorFlow models can either be copied into the :code:`code` subdirectory
-   in the workspace or wrapped using the :code:`FLModel` class described in the advanced
-   tutorial.
+    .. code-block:: console
+    
+       $ fx workspace create --prefix WORKSPACE.PATH 
+       
+    .. note::
+    
+    Existing TensorFlow models can either be copied into the :code:`code` subdirectory
+    in the workspace or wrapped using the :code:`FLModel` class described in 
+    the advanced tutorial.
 
 3. Change to the workspace directory.
 
-.. code-block:: console
+    .. code-block:: console
+    
+        $ cd WORKSPACE.PATH
+     
+        
+4.  Although it is possible to train models from scratch, it is assumed that in many cases the federation may perform fine-tuning of a previously-trained model. For this reason, the pre-trained weights for the model will be stored within protobuf files on the aggregator and passed to the collaborators during initialization. As seen in the YAML file, the protobuf file with the initial weights is expected to be found in the file **keras_cnn_mnist_init.pbuf**. For this example, however, we’ll just create an initial set of random model weights and putting it into that file by running the command:
 
-   $ cd WORKSPACE.PATH
-
-4.	Although it is possible to train models from scratch, it is assumed that in
-many cases the federation may perform fine-tuning of a previously-trained model. 
-For this reason, the pre-trained weights for the model
-will be stored within protobuf files on the aggregator and
-passed to the collaborators during initialization. As seen in
-the YAML file, the protobuf file with the initial weights is
-expected to be found in the file **keras_cnn_mnist_init.pbuf**. For
-this example, however, we’ll just create an initial set of
-random model weights and putting it into that file by running the command:
-
-.. code-block:: console
-
-   $ fx plan initialize 
-
-.. note::
-
-   Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
-   Therefore, the Aggregator has the following optional parameters.
-
-   +-------------------------+---------------------------------------------------------+
-   | Optional Parameters     | Description                                             |
-   +=========================+=========================================================+
-   | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
-   +-------------------------+---------------------------------------------------------+
-   | -c, --cols_config PATH  | Authorized collaborator list [default = plan/cols.yaml] |
-   +-------------------------+---------------------------------------------------------+
-   | -d, --data_config PATH  | The data set/shard configuration file                   |
-   +-------------------------+---------------------------------------------------------+    
+    .. code-block:: console
+    
+       $ fx plan initialize 
+       
+    .. note::
+    
+    Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
+    Therefore, the Aggregator has the following optional parameters.
+    
+    +-------------------------+---------------------------------------------------------+
+    | Optional Parameters     | Description                                             |
+    +=========================+=========================================================+
+    | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
+    +-------------------------+---------------------------------------------------------+
+    | -c, --cols_config PATH  | Authorized collaborator list [default = plan/cols.yaml] |
+    +-------------------------+---------------------------------------------------------+
+    | -d, --data_config PATH  | The data set/shard configuration file                   |
+    +-------------------------+---------------------------------------------------------+    

@@ -13,6 +13,7 @@ from os import path, remove, makedirs
 from zipfile import ZipFile
 from tqdm import tqdm
 import torch
+from collections.abc import Iterable
 
 logger = getLogger(__name__)
 
@@ -45,7 +46,7 @@ class HistologyDataset(ImageFolder):
         self.pbar.update(progress_bytes - self.pbar.n)
 
     def __getitem__(self, index):
-        if isinstance(index, list):
+        if isinstance(index, Iterable):
             return [super(HistologyDataset, self).__getitem__(i) for i in index]
         else:
             return super(HistologyDataset, self).__getitem__(index) 

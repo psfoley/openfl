@@ -13,38 +13,14 @@ to negotiate the connection securely. For the :ref:`Hello Federation <running_th
 we will run the aggregator and collaborators on the same localhost server
 so these configuration steps just need to be done once on that machine.
 
+.. note::
+   Certificates can be created for each project workspace.
+
 .. _install_certs:
 
-All Nodes
-#########
-
-1.	Unzip the source code |productZip|
-
-.. code-block:: console
-   :substitutions:
-
-   $ unzip |productZip|
-
-2.	Change into the project directory.
-
-.. code-block:: console
-   :substitutions:
-
-   $ cd |productDir|
-
-3. Install |productName| package:
-
-.. code-block:: console
-
-  $ pip install .
-
-4. Create workspace:
-
-.. code-block:: console
-
-  $ fx workspace create --prefix WORKSPACE.PATH
-Replace WORKSPACE.PATH with path you want workspace to be located at.
-There will be certificates, python environment, data, federated learning plan, training logs and snapshots.
+Before you run the federation make sure you have installed |productName| 
+:ref:`using these instructions <install_initial_steps>` on every node (i.e. aggregator and collaborators), 
+are in the correct Python virtual environment, and are in the correct directory for the :ref:`project workspace <creating_workspaces>`.
 
 
 On the Aggregator Node
@@ -65,16 +41,18 @@ file to keep track of all issued certificates.
 
 .. code-block:: console
 
-  $ fx certificate setup-ca
+  $ fx workspace certify
 
-3.	Run the aggregator cert command, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+3.	Run the aggregator certify command, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_
 for the aggregator machine. You may optionally include the
-IP address for the aggregator, replacing [IP_ADDRESS].
+IP address for the aggregator, replacing [IP_ADDRESS]. If you do not specify
+the IP address for the aggregator, then the current machine will be
+assumed to be the aggregator.
 
 .. code-block:: console
 
-  $ fx certificate create-agg --fqdn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+  $ fx aggregator certify --fqdn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
 
 .. note::
    You can discover the FQDN with the Linux command:
@@ -92,7 +70,7 @@ the Aggregator can join the federation.
 
 .. code-block:: console
 
-  $ fx certificate create-col --cname TEST.MACHINE.NAME
+  $ fx collaborator certify -n TEST.MACHINE.NAME
 
 5.	Once you have the certificates created, you need to move the certificates
 to the correct machines and ensure each machine has the cert_chain.crt
@@ -109,11 +87,6 @@ you want to be able to run as a collaborator, you should have:
 +---------------------------+--------------------------------------------------------------+
 | Collaborator key          | WORKSPACE.PATH/cert/col_TEST_MACHINE/col_TEST_MACHINE.key    |
 +---------------------------+--------------------------------------------------------------+
-
-Note that once the certificates are transferred to the collaborator,
-it is now possible
-to participate in any future federations run by this aggregator.
-(The aggregator can revoke this privilege.)
 
 6.	On the aggregator machine you should have the files:
 

@@ -102,28 +102,12 @@ def end(context, result, **kwargs):
 def help(context, subcommand):
     pass
 
-def switch():
-
-    from sys     import argv, exec_prefix
-    from os      import execv
-    from pathlib import Path
-
-    wx_bin = 'venv/bin/fx'
-    wx_arg = [wx_bin] + argv[1:]
-
-    if  Path(wx_bin).exists()         :                       #     inside workspace                              - check if we need to switch
-        if  exec_prefix.count('venv') : pass                  #     using  workspace python from within workspace - all good
-        else                          : execv(wx_bin, wx_arg) # not using  workspace python from within workspace - switch interpreter
-    else                              : pass                  # not inside workspace                              - no need to switch the interpreter
-
 def entry():
 
     from glob      import glob
     from os.path   import dirname, realpath, basename, splitext
     from importlib import import_module
     from sys       import path
-
-    switch()
 
     file = Path(__file__).resolve()
     root = file.parent.resolve() # interface root, containing command modules

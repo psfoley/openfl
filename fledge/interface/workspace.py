@@ -1,7 +1,7 @@
 from cli_helper import *
 
-import venv as ve
-import pip  as pi
+from subprocess import check_call
+from sys        import executable
 
 @group()
 @pass_context
@@ -17,7 +17,6 @@ def create_dirs(context, prefix):
     (prefix / 'data').mkdir(parents = True, exist_ok = True) # training data
     (prefix / 'logs').mkdir(parents = True, exist_ok = True) # training logs
     (prefix / 'plan').mkdir(parents = True, exist_ok = True) # federated learning plans
-    (prefix / 'venv').mkdir(parents = True, exist_ok = True) # workspace python environment
     (prefix / 'save').mkdir(parents = True, exist_ok = True) # model weight saves / initialization
     (prefix / 'code').mkdir(parents = True, exist_ok = True) # model code
 
@@ -25,33 +24,6 @@ def create_dirs(context, prefix):
     dst = prefix    /           'plan/defaults' #   to created workspace
 
     copytree(src = src, dst = dst, dirs_exist_ok = True)
-
-def create_venv(context, prefix):
-
-    echo(f'Creating Workspace Virtual Environment')
-
-    ve.create(prefix / 'venv',
-              system_site_packages = True,
-              clear                = True,
-              with_pip             = True,
-              prompt               = 'FLedge')
-
-    fx = context.obj['script']
-    wx = prefix.resolve() / 'venv' / 'bin' / 'fx'
-
-    with Path(fx).open() as fx:
-
-        fx    = fx.readlines()
-
-        fx[0] = f'#!{prefix}/venv/bin/python' + '\n'
-        
-        wx.touch(mode = 0o766, exist_ok = True)
-
-        with wx.open('w') as wx:
-
-            wx.writelines(fx)
-
-  # TODO: pip install fledge in new venv and remove system_site_packages = True above
 
 def create_cert(context, prefix):
 
@@ -87,23 +59,70 @@ def create(context, prefix, template):
     template = Path(template)
 
     create_dirs(context, prefix)
-    create_venv(context, prefix)
     create_cert(context, prefix)
     create_temp(context, prefix, template)
 
     print_tree(prefix, level = 3)
 
 @workspace.command(name = 'export')
-def export_():
+@option('--include_certificates', required = False, help="Include PKI certificates", is_flag=True)
+def export_(include_certificates):
     """Export federated learning workspace"""
 
-    pass
+    from shutil   import make_archive, copytree, ignore_patterns, rmtree
+    from tempfile import mkdtemp
+    from os       import getcwd
+    from os.path  import basename, join
+
+    requirements_filename = f'requirements.txt'
+
+    with open(requirements_filename, "w") as f:
+        check_call([executable, "-m", "pip", "freeze"], stdout=f)
+
+    echo(f'{requirements_filename} written.')
+
+    archiveType = 'zip'
+    archiveName = basename(getcwd())
+    archiveFileName = archiveName + '.' + archiveType
+
+    # Aggregator workspace
+    tmpDir = join(mkdtemp(), 'fledge', archiveName)
+
+    if include_certificates:
+        echo(style(f'WARNING:', fg='red', blink=True) + f' Including PKI certificates in export. This could be a security risk.')
+        ignore = ignore_patterns('__pycache__')
+    else:
+        ignore = ignore_patterns('__pycache__', 'cert')
+
+    copytree('.', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
+
+    make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
+
+    echo(f'Workspace exported to archive: {archiveFileName}')
 
 @workspace.command(name = 'import')
-def import_():
+@option('--file',   required = True, help = 'Zip file containing workspace to import', type = ClickPath(exists=True))
+def import_(file):
     """Import federated learning workspace"""
 
-    pass
+    from shutil   import unpack_archive
+    from os.path  import isfile, basename
+    from os       import chdir
+    
+    dirPath = basename(file).split('.')[0]
+    unpack_archive(file, extract_dir=dirPath)
+    chdir(dirPath)
+
+    requirements_filename = "requirements.txt"
+
+    if isfile(requirements_filename):
+        check_call([executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    else:
+        echo("No " + requirements_filename + " file found.")
+
+    echo(f'Workspace {file} has been imported.')
+    echo(f'You may need to copy your PKI certificates to join the federation.')
+
 
 @workspace.command()
 @pass_context

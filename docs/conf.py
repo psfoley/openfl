@@ -59,8 +59,8 @@ if PRODUCT_VERSION == "Intel":
     # Global variables for rST
     rst_prolog = """
     .. |productName| replace:: Intel\ :sup:`®` \ Federated Learning (FL.Edge)
-    .. |productZip| replace:: intel_fledge.zip
-    .. |productDir| replace:: intel_fledge
+    .. |productZip| replace:: fledge.zip
+    .. |productDir| replace:: fledge
 
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """

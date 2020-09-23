@@ -36,7 +36,7 @@ are reluctant to change their existing code.
 open-source library OS that was created by Intel and its partners to
 provide developers an easy way to leverage SGX without the need
 to change their existing applications. Several commercial implementations
-based on Graphene have been created by our partners, including
+of SGX-enabled LibOSes have been created by our partners, including
 `Fortanix <https://fortanix.com>`_ and `SContain <https://scontain.com>`_.
 
 .. figure:: images/graphene.png
@@ -56,5 +56,5 @@ manifest file is specified, the command
   $ SGX=1 ./pal_loader httpd
 
 will use the pal_loader command to create the enclave from the
-manifest and run the web server (http) within the enclave. No other
+manifest and run the web server (:code:`http`) within the enclave. No other
 modifications are needed for the httpd application.

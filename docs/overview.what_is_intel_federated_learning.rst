@@ -13,7 +13,7 @@ not fully-controlled by the federation owner.
 
 .. figure:: images/trusted_fl.png
 
-  Intel\ :sup:`®` \ Federated Learning
+   Intel\ :sup:`®` \ Federated Learning
 
 Previous attacks have shown that adversaries may be able to steal the model,
 reconstruct data based on the model updates, and/or prevent convergence of
@@ -32,3 +32,5 @@ be done via a trusted Intel server or by the developer’s own server.
 This stops attackers from injecting their own code into the federated training.
 
 .. figure:: images/why_intel_fl.png
+
+   Why Intel\ :sup:`®` \ Federated Learning

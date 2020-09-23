@@ -106,9 +106,12 @@ def import_(file):
     """Import federated learning workspace"""
 
     from shutil   import unpack_archive
-    from os.path  import isfile
+    from os.path  import isfile, basename
+    from os       import chdir
     
-    unpack_archive(file)
+    dirPath = basename(file).split('.')[0]
+    unpack_archive(file, extract_dir=dirPath)
+    chdir(dirPath)
 
     requirements_filename = "requirements.txt"
 

@@ -13,38 +13,14 @@ to negotiate the connection securely. For the :ref:`Hello Federation <running_th
 we will run the aggregator and collaborators on the same localhost server
 so these configuration steps just need to be done once on that machine.
 
+.. note::
+   Certificates can be created for each project workspace.
+
 .. _install_certs:
 
-All Nodes
-#########
-
-1.	Unzip the source code |productZip|
-
-.. code-block:: console
-   :substitutions:
-
-   $ unzip |productZip|
-
-2.	Change into the project directory.
-
-.. code-block:: console
-   :substitutions:
-
-   $ cd |productDir|
-
-3. Install |productName| package:
-
-.. code-block:: console
-
-  $ pip install .
-
-4. Create workspace:
-
-.. code-block:: console
-
-  $ fx workspace create --prefix WORKSPACE.PATH
-Replace WORKSPACE.PATH with path you want workspace to be located at.
-There will be certificates, python environment, data, federated learning plan, training logs and snapshots.
+Before you run the federation make sure you have installed |productName| 
+:ref:`using these instructions <install_initial_steps>` on every node (i.e. aggregator and collaborators), 
+are in the correct Python virtual environment, and are in the correct directory for the :ref:`project workspace <creating_workspaces>`.
 
 
 On the Aggregator Node

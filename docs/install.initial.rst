@@ -6,52 +6,47 @@
 Initial Steps
 #############
 
-.. note::
-   You'll need to first setup the certificates :ref:`using these instructions <install_certs>`.
+1. Install Python 3.6 virtual environment. Conda is preferred, but other virtual environments should work as well.
+Conda can either be installed via the `Anaconda <https://www.anaconda.com/products/individual>`_ 
+or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ distributions.  
 
-1. Install Python 3 and the Python `virtual environment <https://docs.python.org/3.6/library/venv.html#module-venv>`_.
+Once :code:`conda` is installed you may need to logout and back in for the changes to take effect.
 
-.. note::
-You can find the instructions on the official
-`Python website <https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#installing-virtualenv>`_.
-You may need to log out and back in for the changes to take effect.
+2. Create a new conda environment for the project.
 
 .. code-block:: console
 
-   $ python3 -m pip install --user virtualenv
+      $ conda create -n env_name pip python=3.6
 
-
-.. note::
-   If you have trouble installing the virtual environment, make sure you have Python 3 installed on your OS. For example, on Ubuntu:
-
-   .. code-block:: console
-
-     $ sudo apt-get install python3-pip
-
-
-2.	Use a text editor to open the YAML file for network setup.
+3. Activate the virtual environment.
 
 .. code-block:: console
 
-   $ vi plans/defaults/network.yaml
+      $ conda activate env_name 
 
-This YAML file defines the IP addresses for the aggregator. 
-By default, the YAML file is defining a federation where the aggregator
-runs on the localhost at port 5050 (it is up to the developer
-to make sure that the port chosen is open and accessible to all participants).
-For this demo, we’ll just focus on running everything on the same server.
-You’ll need to edit the YAML file and replace localhost with the
-aggregator address. Please make sure you specify the fully-qualified
-domain name (`FQDN <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_)
-address (required for security).
+4.	Unzip the source code |productZip|
 
-.. note::
-   You can discover the FQDN with the Linux command:
+.. code-block:: console
+   :substitutions:
 
-   .. code-block:: console
+   $ unzip |productZip|
 
-     $ hostname --fqdn-all | awk '{print $1}'
+5.	Change into the project directory.
 
+.. code-block:: console
+   :substitutions:
 
-3.	Make sure that you followed the steps in :ref:`Configure the Federation <install_certs>` and
-have copied the keys and certificates onto the federation nodes.
+   $ cd |productDir|
+
+6. Install |productName| package:
+
+.. code-block:: console
+
+  $ pip install .
+
+7. At this point |productName| should be available within the virtual environment. 
+To test, run the :code:`fx` command. This command is only available within this virtual environment.
+
+.. figure:: images/fx_help.png
+
+   fx command

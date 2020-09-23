@@ -50,7 +50,7 @@ replacing $FLPLAN with the federated plan YAML file you intend to use in your Si
 
 .. code-block:: console
 
-    $ export plan=keras_cnn_mnist_2.yaml
+    $ export plan=keras_cnn_mnist.yaml
 
 2.	Build the Singularity containers using the command:
 

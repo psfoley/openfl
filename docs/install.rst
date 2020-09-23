@@ -14,5 +14,5 @@ Changes to this manual, the project code, and the project design should be expec
    :maxdepth: 4
 
    install.design
-   install.certificates
    install.installing
+   

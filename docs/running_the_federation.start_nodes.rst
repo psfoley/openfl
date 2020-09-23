@@ -80,7 +80,6 @@ On Remote Collaborators
     .. warning::
        Make sure you are within a Python virtual environment when importing the workspace as the :code:`requirements.txt` file will overwrite your Python packages.
 
-5. Change the current directory to the new workspace directory. This node can now be used as a collaborator 
-in the federation as described :ref:`previously <running_collaborators>`.
+5. Change the current directory to the new workspace directory. This node can now be used as a collaborator in the federation as described :ref:`previously <running_collaborators>`.
 
 

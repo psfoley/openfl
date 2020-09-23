@@ -28,7 +28,7 @@ approved key.
 Additionally, Intel\ :sup:`®` \ SGX allows developers to require attestation
 from collaborators which proves that the collaborator actually
 ran the expected code within the enclave. Attestation can either
-be done via a trusted Intel server or by the developer’s own server.
+be done via a trusted Intel server or by the developers own server.
 This stops attackers from injecting their own code into the federated training.
 
 .. figure:: images/why_intel_fl.png

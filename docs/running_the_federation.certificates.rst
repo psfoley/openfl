@@ -26,7 +26,7 @@ are in the correct Python virtual environment, and are in the correct directory 
 On the Aggregator Node
 ######################
 
-1. Change directory to WORKSPACE.PATH:
+1. Change directory to **WORKSPACE.PATH**:
 
 .. code-block:: console
 
@@ -43,10 +43,9 @@ file to keep track of all issued certificates.
 
   $ fx workspace certify
 
-3.	Run the aggregator certify command, replacing AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+3.	Run the aggregator certify command, replacing **AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME**
 with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_
-for the aggregator machine. You may optionally include the
-IP address for the aggregator, replacing [IP_ADDRESS]. If you do not specify
+for the aggregator machine. If you do not specify
 the IP address for the aggregator, then the current machine will be
 assumed to be the aggregator.
 
@@ -62,7 +61,7 @@ assumed to be the aggregator.
      $ hostname --all-fqdns | awk '{print $1}'
 
 4.	For each test machine you want to run collaborators on, we create a collaborator
-certificate, replacing TEST.MACHINE.NAME with the actual test machine name.
+certificate, replacing **TEST.MACHINE.NAME** with the actual test machine name.
 Note that this does not have to be the FQDN. Also, note that this command
 is run on the Aggregator node because it is the Aggregator that signs the
 certificate. Only Collaborators with valid certificates signed by
@@ -75,7 +74,7 @@ the Aggregator can join the federation.
 5.	Once you have the certificates created, you need to move the certificates
 to the correct machines and ensure each machine has the cert_chain.crt
 needed to verify certificate signatures.
-For example, on a test machine named TEST_MACHINE that
+For example, on a test machine named **TEST_MACHINE** that
 you want to be able to run as a collaborator, you should have:
 
 +---------------------------+--------------------------------------------------------------+
@@ -100,5 +99,5 @@ you want to be able to run as a collaborator, you should have:
 | Aggregator key            | WORKSPACE.PATH/cert/agg_$AFQDN/agg_$AFQDN.key    |
 +---------------------------+--------------------------------------------------+
 
-where $AFQDN is the fully-qualified domain name of the aggregator node.
+where **$AFQDN** is the fully-qualified domain name of the aggregator node.
 

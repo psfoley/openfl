@@ -78,8 +78,8 @@ workspace name in the directory. Copy this archive to the remote collaborator no
 
    $ fx workspace import --file WORKSPACE.zip
 
-This command will unzip the workspace archive to the current directory and install the 
-Python dependencies that were recorded on the original workspace (via :code:`requirements.txt`).
+   This command will unzip the workspace archive to the current directory and install the 
+   Python dependencies that were recorded on the original workspace (via :code:`requirements.txt`).
 
 5. Change the current directory into the new workspace directory. This node can now be used as
 a collaborator in the federation as described :ref:`previously <running_collaborators>`.

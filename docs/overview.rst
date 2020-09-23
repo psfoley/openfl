@@ -8,7 +8,6 @@ Overview
 .. toctree::
 
    overview.what_is_federated_learning
-
 .. only:: Intel
 
   .. toctree::

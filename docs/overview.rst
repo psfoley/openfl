@@ -18,3 +18,5 @@ Overview
 
 
 .. figure:: images/hls_fl_graphic.png
+
+    A Federated Workflow example

@@ -40,7 +40,7 @@ setup(
         'rich',
         'tqdm',
         'scikit-learn',
-        'tensorflow==1.15',
+        'tensorflow>2',
         'torch>=1.2.0'
     ],
     entry_points = {

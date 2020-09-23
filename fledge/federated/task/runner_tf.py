@@ -1,8 +1,9 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-import numpy      as np
-import tensorflow as tf
+import numpy                       as np
+import tensorflow.compat.v1        as tf
+tf.disable_v2_behavior()
 
 from tqdm import tqdm
 

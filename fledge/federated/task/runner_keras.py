@@ -6,11 +6,12 @@ Base classes for developing a ke.Model() Federated Learning model.
 You may copy this file as the starting point of your own keras model.
 """
 
-import numpy            as np
-import tensorflow       as tf
-import tensorflow.keras as ke
+import numpy                       as np
+import tensorflow.compat.v1        as tf
+tf.disable_v2_behavior()
+import tensorflow.compat.v1.keras  as ke
 
-from tensorflow.keras import backend as K
+from tensorflow.compat.v1.keras import backend as K
 from tqdm             import tqdm
 
 from fledge.utilities import TensorKey,split_tensor_dict_for_holdouts

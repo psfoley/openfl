@@ -39,8 +39,9 @@ setup(
         'grpcio',
         'rich',
         'tqdm',
+        'nibabel',
         'scikit-learn',
-        'tensorflow>2',
+        'tensorflow==1.15',
         'torch>=1.2.0'
     ],
     entry_points = {

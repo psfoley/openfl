@@ -53,7 +53,7 @@ On the Aggregator Node
         
            $ hostname --all-fqdns | awk '{print $1}'
 
-4. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **TEST.MACHINE.NAME** with the actual test machine name. Note that this does not have to be the FQDN. Also, note that this command is run on the Aggregator node because it is the Aggregator that signs the certificate. Only Collaborators with valid certificates signed by the Aggregator can join the federation.
+4. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **TEST.MACHINE.NAME** with the actual test machine name. Note that this does not have to be the FQDN. Also, note that this command is run on the Aggregator node because for this demo the Aggregator node is also the Certificate Authority node. Only Collaborators with valid certificates signed by the Certificate Authority can join the federation.
 
     .. code-block:: console
     
@@ -70,7 +70,13 @@ On the Aggregator Node
            $ fx collaborator certify -n two
            
        
-     If you'd like to change the collaborator names (or add/remove collaborators), you simply need to edit the YAML files: :code:`plan/cols.yaml` and :code:`plan/data.yaml`. 
+    If you'd like to change the collaborator names (or add/remove collaborators), you simply need to edit the YAML files: :code:`plan/cols.yaml` and :code:`plan/data.yaml`. 
+    
+        .. code-block:: yaml
+        
+           collaborators:
+              - 'one'
+              - 'two'
 
 5. Once you have the certificates created, you need to move the certificates to the correct machines and ensure each machine has the :code:`cert_chain.crt` needed to verify certificate signatures. For example, on a test machine named **TEST_MACHINE** that you want to be able to run as a collaborator, you should have:
 

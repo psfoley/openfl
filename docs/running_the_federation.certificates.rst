@@ -58,6 +58,19 @@ On the Aggregator Node
     .. code-block:: console
     
        $ fx collaborator certify -n TEST.MACHINE.NAME
+       
+    For the "Hello Federation" demo, we'll assume that there are 2 collaborators. The first collaborator is named :code:`one` and the second is named :code:`two`. To create their certificates, run the following commands:
+        
+        .. code-block:: console
+        
+           $ fx collaborator certify -n one
+           
+        .. code-block:: console
+        
+           $ fx collaborator certify -n two
+           
+       
+     If you'd like to change the collaborator names (or add/remove collaborators), you simply need to edit the YAML files: :code:`plan/cols.yaml` and :code:`plan/data.yaml`. 
 
 5. Once you have the certificates created, you need to move the certificates to the correct machines and ensure each machine has the :code:`cert_chain.crt` needed to verify certificate signatures. For example, on a test machine named **TEST_MACHINE** that you want to be able to run as a collaborator, you should have:
 
@@ -70,6 +83,8 @@ On the Aggregator Node
     +---------------------------+--------------------------------------------------------------+
     | Collaborator key          | WORKSPACE.PATH/cert/col_TEST_MACHINE/col_TEST_MACHINE.key    |
     +---------------------------+--------------------------------------------------------------+
+    
+    After running the steps above, you should now have 2 collaborator certificates in the :code:`cert` folder: :code:`col_one` and :code:`col_two`.
 
 6. On the aggregator machine you should have the files:
 

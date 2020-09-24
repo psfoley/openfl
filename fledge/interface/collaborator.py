@@ -42,7 +42,7 @@ def start(context, plan, collaborator_name, data_config, secure):
 @collaborator.command()
 @pass_context
 @option('-n', '--collaborator_name', required = True,  help = 'The certified common name of the collaborator')
-def certify(context, collaborator_name):
+def create(context, collaborator_name):
     '''Create collaborator certificate key pair'''
 
     common_name              = f'{collaborator_name}'.lower()
@@ -65,24 +65,109 @@ def certify(context, collaborator_name):
         f'-out {file_name}.csr -keyout {file_name}.key '
         f'-reqexts {extensions}', workdir = PKI_DIR, env = {'SAN': subject_alternative_name})
 
-    echo(f' Signing COLLABORATOR certificate key pair')
-
-    signing_conf = 'config/signing-ca.conf'
-    vex(f'openssl ca -batch '
-        f'-config {signing_conf} '
-        f'-extensions server_ext '
-        f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
-
-    echo(f'  Moving COLLABORATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
+    echo(f'  Moving COLLABORATOR certificate to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
 
     (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
-    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+    (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'{file_name}' / f'{file_name}.csr')
     (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
-    (PKI_DIR / f'{file_name}.csr').unlink()
+
+def findCertificateName(file_name):
+    '''Searches the CRT for the actual collaborator name
+    '''
+
+    # This loop looks for the collaborator name in the key
+    with open(file_name, 'r') as f: 
+        for line in f: 
+            if 'Subject: CN=' in line: 
+                col_name = line.split('=')[-1].strip()
+                break 
+    return col_name
+
+
+def RegisterCollaborator(file_name):
+    '''Register the collaborator name in the cols.yaml list
+
+    Args:
+        file_name (str): The name of the collaborator in this federation
+
+    '''
+    from yaml    import load, dump, FullLoader
+
+    col_name = findCertificateName(file_name)
+
+    cols_file = 'plan/cols.yaml'
+
+    with open(cols_file, 'r') as f:
+        doc = load(f, Loader=FullLoader)
+
+    if col_name in doc['collaborators']:
+        echo(f'\nCollaborator ' + 
+             style(f'{col_name}', fg='green') +
+             f' is already in the ' +
+             style(f'{cols_file}', fg='green'))
+    else:
+
+        doc['collaborators'].append(col_name).sort()
+        with open(cols_file, 'w') as f:
+            dump(doc, f)
+
+        echo(f'\nRegistering ' +
+             style(f'{col_name}', fg='green') +
+             f' in ' +
+             style(f'{cols_file}', fg='green'))
 
 @collaborator.command()
-def test():
+@pass_context
+@option('-n', '--certificate_name', required = True,  help = 'The certificate filename (*.csr) for the collaborator')
+def certify(context, certificate_name):
+    '''Create collaborator certificate key pair'''
 
-    with progressbar(range(10)) as bar:
-        for item in bar:
-            sleep(1)
+    from os.path import splitext, basename
+    from shutil  import copyfile
+
+    from click   import confirm
+
+    cert_name = splitext(certificate_name)[0]
+    file_name = basename(cert_name)
+
+    # Copy PKI to cert directory
+    # TODO:  Circle back to this. Not sure if we need to copy the file or if we can call it directly from openssl
+    # Was getting a file not found error otherwise.
+    copyfile(f'{cert_name}.csr', PKI_DIR / f'{file_name}.csr')
+    copyfile(f'{cert_name}.key', PKI_DIR / f'{file_name}.key')
+
+    output = vex(f'openssl sha256  '
+                  f'{file_name}.csr', workdir=PKI_DIR)
+
+    csr_hash = output.stdout.split('=')[1]
+
+    echo(f'The CSR Hash for file ' + 
+         style(f'{file_name}.csr', fg='green') +
+         ' = ' +
+         style(f'{csr_hash}', fg='red'))
+
+    col_name = findCertificateName(f'{cert_name}.crt')
+    echo(f'The certificate name: ' + style(f'{col_name}', fg='green'))
+
+    if confirm("Do you want to sign this certificate?"):
+
+        echo(f' Signing COLLABORATOR certificate key pair')
+
+        signing_conf = 'config/signing-ca.conf'
+        vex(f'openssl ca -batch '
+            f'-config {signing_conf} '
+            f'-extensions server_ext '
+            f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
+
+        echo(f'  Moving COLLABORATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
+
+        (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
+        (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+        (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
+        (PKI_DIR / f'{file_name}.csr').unlink()
+
+        RegisterCollaborator(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+
+    else:
+        echo(style('Not signing certificate.', fg='red') +
+             ' Please check with this collaborator to get the correct certificate for this federation.')

@@ -39,7 +39,7 @@ On the Aggregator Node
     
        $ fx workspace certify
 
-3. Run the aggregator certify command, replacing **AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine. If you do not specify the IP address for the aggregator, then the current machine will be assumed to be the aggregator.
+3. Run the aggregator certify command, replacing **AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine.
 
     .. code-block:: console
     
@@ -52,6 +52,9 @@ On the Aggregator Node
         .. code-block:: console
         
            $ hostname --all-fqdns | awk '{print $1}'
+           
+   If you omit the :code:`--fdqn` parameter, then :code:`fx` will automatically use the FQDN of the current node.
+           
 
 4. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **TEST.MACHINE.NAME** with the actual test machine name. Note that this does not have to be the FQDN. Also, note that this command is run on the Aggregator node because for this demo the Aggregator node is also the Certificate Authority node. Only Collaborators with valid certificates signed by the Certificate Authority can join the federation.
 

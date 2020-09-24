@@ -47,11 +47,11 @@ On the Aggregator Node
        
     .. note::
     
-    You can discover the FQDN with the Linux command:
+       You can discover the FQDN with the Linux command:
     
-        .. code-block:: console
+           .. code-block:: console
         
-           $ hostname --all-fqdns | awk '{print $1}'
+              $ hostname --all-fqdns | awk '{print $1}'
            
            
    .. note::

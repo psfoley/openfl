@@ -27,7 +27,7 @@ are in the correct Python virtual environment, and are in the correct directory 
 On the Aggregator Node
 ######################
 
-1. Change directory to **WORKSPACE.PATH**:
+1. Change directory to the path for your project's workspace:
 
     .. code-block:: console
     
@@ -53,8 +53,15 @@ On the Aggregator Node
         
            $ hostname --all-fqdns | awk '{print $1}'
            
-   If you omit the :code:`--fdqn` parameter, then :code:`fx` will automatically use the FQDN of the current node.
            
+   .. note::
+   
+      If you omit the :code:`--fdqn` parameter, then :code:`fx` will automatically use the FQDN of the current node.
+   
+      .. code-block:: console
+    
+         $ fx aggregator certify 
+       
 
 4. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **TEST.MACHINE.NAME** with the actual test machine name. Note that this does not have to be the FQDN. Also, note that this command is run on the Aggregator node because for this demo the Aggregator node is also the Certificate Authority node. Only Collaborators with valid certificates signed by the Certificate Authority can join the federation.
 

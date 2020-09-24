@@ -39,11 +39,11 @@ On the Aggregator Node
     
        $ fx workspace certify
 
-3. Run the aggregator certify command, replacing **AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine.
+3. Run the aggregator certify command, replacing **AFQDN** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine.
 
     .. code-block:: console
     
-       $ fx aggregator certify --fqdn AGGREGATOR.FULLY.QUALIFIED.DOMAIN.NAME
+       $ fx aggregator certify --fqdn AFDQN
        
     .. note::
     
@@ -62,24 +62,25 @@ On the Aggregator Node
     
        $ fx collaborator certify -n TEST.MACHINE.NAME
        
-    For the "Hello Federation" demo, we'll assume that there are 2 collaborators. The first collaborator is named :code:`one` and the second is named :code:`two`. To create their certificates, run the following commands:
+   For the "Hello Federation" demo, we'll assume that there are 2 collaborators. The first collaborator is named :code:`one` and the second is named :code:`two`. To create their certificates, run the following commands:
+   
+       .. code-block:: console
         
-        .. code-block:: console
-        
-           $ fx collaborator certify -n one
-           
-        .. code-block:: console
-        
-           $ fx collaborator certify -n two
-           
+          $ fx collaborator certify -n one
+          
+          
+       .. code-block:: console
        
-    If you'd like to change the collaborator names (or add/remove collaborators), you simply need to edit the YAML files: :code:`plan/cols.yaml` and :code:`plan/data.yaml`. 
-    
-        .. code-block:: yaml
-        
-           collaborators:
-              - 'one'
-              - 'two'
+          $ fx collaborator certify -n two
+          
+          
+   If you'd like to change the collaborator names (or add/remove collaborators), you simply need to edit the YAML files: :code:`plan/cols.yaml` and :code:`plan/data.yaml`. 
+   
+      .. code-block:: yaml
+      
+         collaborators:
+           - 'one'
+           - 'two'
 
 5. Once you have the certificates created, you need to move the certificates to the correct machines and ensure each machine has the :code:`cert_chain.crt` needed to verify certificate signatures. For example, on a test machine named **TEST_MACHINE** that you want to be able to run as a collaborator, you should have:
 
@@ -102,10 +103,10 @@ On the Aggregator Node
     +===========================+==================================================+
     | Certificate chain         | WORKSPACE.PATH/cert/cert_chain.crt               |
     +---------------------------+--------------------------------------------------+
-    | Aggregator certificate    | WORKSPACE.PATH/cert/agg_$AFQDN/agg_$AFQDN.crt    |
+    | Aggregator certificate    | WORKSPACE.PATH/cert/agg_AFQDN/agg_AFQDN.crt    |
     +---------------------------+--------------------------------------------------+
-    | Aggregator key            | WORKSPACE.PATH/cert/agg_$AFQDN/agg_$AFQDN.key    |
+    | Aggregator key            | WORKSPACE.PATH/cert/agg_AFQDN/agg_AFQDN.key    |
     +---------------------------+--------------------------------------------------+
     
-    where **$AFQDN** is the fully-qualified domain name of the aggregator node.
+    where **AFQDN** is the fully-qualified domain name of the aggregator node.
 

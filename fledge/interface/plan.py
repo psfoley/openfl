@@ -84,6 +84,19 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
     logger.info(f"{context.obj['plans']}")
 
 
+def FreezePlan(plan_config):
+
+    plan = Plan()
+    plan.config = Plan.Parse(Path(plan_config), resolve = False).config
+    
+    init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
+
+    if not Path(init_state_path).exists():
+        logger.info(f"Plan has not been initialized! Run 'fx plan initialize' before proceeding")
+        return
+
+    Plan.Dump(Path(plan_config), plan.config, freeze=True)
+
 @plan.command()
 @pass_context
 @option('-p', '--plan_config', required = False, help = 'Federated learning plan [plan/plan.yaml]',               default = 'plan/plan.yaml', type = ClickPath(exists = True))
@@ -95,13 +108,4 @@ def freeze(context, plan_config):
     and changes the permissions to read only
     """
 
-    plan = Plan()
-    plan.config = Plan.Parse(Path(plan_config), resolve = False).config
-    
-    init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
-
-    if not Path(init_state_path).exists():
-        logger.info(f"Plan has not been initialized! Run 'fx plan initialize' before proceeding")
-        return
-
-    Plan.Dump(Path(plan_config), plan.config,freeze=True)
+    FreezePlan(plan_config)

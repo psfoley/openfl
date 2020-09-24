@@ -66,13 +66,22 @@ def create(context, prefix, template):
 
 @workspace.command(name = 'export')
 @option('--include_certificates', required = False, help="Include PKI certificates", is_flag=True)
-def export_(include_certificates):
+@pass_context
+def export_(ctx, include_certificates):
     """Export federated learning workspace"""
 
     from shutil   import make_archive, copytree, ignore_patterns, rmtree
     from tempfile import mkdtemp
     from os       import getcwd
     from os.path  import basename, join
+    from plan     import FreezePlan
+
+    # TODO: Does this need to freeze all plans?
+    planFile = f'plan/plan.yaml'
+    try:
+        FreezePlan(planFile) 
+    except:
+        echo(f'Plan file "{planFile}" not found. No freeze performed.')
 
     requirements_filename = f'requirements.txt'
 
@@ -102,6 +111,7 @@ def export_(include_certificates):
 
 @workspace.command(name = 'import')
 @option('--file',   required = True, help = 'Zip file containing workspace to import', type = ClickPath(exists=True))
+@pass_context
 def import_(file):
     """Import federated learning workspace"""
 

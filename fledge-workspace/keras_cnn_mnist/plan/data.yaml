@@ -6,9 +6,4 @@
 # construct the shard of the mnist dataset to be use for this collaborator.
 
 collaborators:
-  one:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/1'
-    mnist: 1
-  two:
-    brats: '/raid/datasets/BraTS17/by_institution_NIfTY/2'
-    mnist: 2
+  

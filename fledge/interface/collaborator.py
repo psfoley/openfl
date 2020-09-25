@@ -100,14 +100,22 @@ def RegisterCollaborator(file_name):
     with open(cols_file, 'r') as f:
         doc = load(f, Loader=FullLoader)
 
-    if col_name in doc['collaborators']:
+    if not doc:   # YAML is not correctly formatted
+        doc = {}  # Create empty dictionary
+
+    if 'collaborators' not in doc.keys() or not doc['collaborators']:  # List doesn't exist
+        doc['collaborators'] = [] # Create empty list
+
+    if  col_name in doc['collaborators']:
+
         echo(f'\nCollaborator ' + 
              style(f'{col_name}', fg='green') +
              f' is already in the ' +
              style(f'{cols_file}', fg='green'))
+
     else:
 
-        doc['collaborators'].append(col_name).sort()
+        doc['collaborators'].append(col_name)
         with open(cols_file, 'w') as f:
             dump(doc, f)
 
@@ -118,9 +126,9 @@ def RegisterCollaborator(file_name):
 
 @collaborator.command()
 @pass_context
-@option('-n', '--certificate_name', required = True,  help = 'The certificate filename (*.csr) for the collaborator')
+@option('-n', '--certificate_name', required = True,  help = 'The certificate signing request filename (*.csr) for the collaborator')
 def certify(context, certificate_name):
-    '''Create collaborator certificate key pair'''
+    '''Sign/certify collaborator certificate key pair'''
 
     from os.path import splitext, basename
     from shutil  import copyfile
@@ -145,9 +153,6 @@ def certify(context, certificate_name):
          style(f'{file_name}.csr', fg='green') +
          ' = ' +
          style(f'{csr_hash}', fg='red'))
-
-    col_name = findCertificateName(f'{cert_name}.crt')
-    echo(f'The certificate name: ' + style(f'{col_name}', fg='green'))
 
     if confirm("Do you want to sign this certificate?"):
 

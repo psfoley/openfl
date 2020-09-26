@@ -26,18 +26,53 @@ def start(context, plan, collaborator_name, data_config, secure):
     plan = Plan.Parse(plan_config_path = Path(plan),
                       data_config_path = Path(data_config))
 
-    if  collaborator_name not in plan.cols_data_paths:
-        logger.error(f'Collaborator [red]{collaborator_name}[/] not found in Data Configuration file [red]{data_config}[/].', extra = {'markup' : True})
-        exit()
+    # TODO: Need to restructure data loader config file loader
 
-    if  plan.data_group_name not in plan.cols_data_paths[collaborator_name]:
-        logger.error(f'Group [red]{plan.data_group_name}[/] for '
-                     f'Collaborator [red]{collaborator_name}[/] not found in Data Configuration file [red]{data_config}[/].', extra = {'markup' : True})
-        exit()
+    # if  collaborator_name not in plan.cols_data_paths:
+    #     logger.error(f'Collaborator [red]{collaborator_name}[/] not found in Data Configuration file [red]{data_config}[/].', extra = {'markup' : True})
+    #     exit()
 
+    # if  plan.data_group_name not in plan.cols_data_paths[collaborator_name]:
+    #     logger.error(f'Group [red]{plan.data_group_name}[/] for '
+    #                  f'Collaborator [red]{collaborator_name}[/] not found in Data Configuration file [red]{data_config}[/].', extra = {'markup' : True})
+    #     exit()
+
+    echo(f'Data = {plan.cols_data_paths}')
     logger.info('🧿 Starting a Collaborator Service.')
 
     plan.get_collaborator(collaborator_name).run()
+
+def RegisterDataPath(plan_name):
+    '''Register dataset path in the plan/data.yaml file
+
+    Args:
+        plan_name (str): Name of the plan file
+         
+    '''
+
+    from click import prompt
+
+    # Ask for the data directory
+    dirPath = prompt(f'\nWhere is the data directory for this collaborator in plan ' +
+                     style(f'{plan_name}', fg='green') +
+                     ' ? ', default=f'data/{plan_name}')
+
+    # Read the data.yaml file
+    d = {}
+    data_yaml = 'plan/data.yaml'
+    separator = ','
+    with open(data_yaml, 'r') as f:
+        for line in f:
+            if separator in line:
+                key, val = line.split(separator, maxsplit=1)
+                d[key] = val.strip()
+
+    d[plan_name] = dirPath
+
+    # Write the data.yaml
+    with open(data_yaml, 'w') as f:
+        for key, val in d.items():
+            f.write(f'{key}{separator}{val}\n')
 
 @collaborator.command()
 @pass_context
@@ -70,6 +105,8 @@ def create(context, collaborator_name):
     (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
     (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'{file_name}' / f'{file_name}.csr')
     (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
+
+    RegisterDataPath(f'default')  # TODO: Is there a way to figure out the plan name automatically? Or do we have a new function for adding new paths for different plans?
 
 def findCertificateName(file_name):
     '''Searches the CRT for the actual collaborator name

@@ -19,7 +19,7 @@ class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
         """
         super().__init__(batch_size, **kwargs)
 
-        _, num_classes, X_train, y_train, X_val, y_val = load_mnist_shard(shard_num=data_path, **kwargs)
+        _, num_classes, X_train, y_train, X_val, y_val = load_mnist_shard(shard_num=int(data_path), **kwargs)
 
         self.training_data_size = len(X_train)
         self.validation_data_size = len(X_val)

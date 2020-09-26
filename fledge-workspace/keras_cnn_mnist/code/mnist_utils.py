@@ -48,6 +48,7 @@ def _load_raw_datashards(shard_num, collaborator_count):
         y_valid_tot = f['y_test']
 
     # create the shards
+    shard_num = int(shard_num)
     X_train = X_train_tot[shard_num::collaborator_count]
     y_train = y_train_tot[shard_num::collaborator_count]
 

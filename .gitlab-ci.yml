@@ -74,47 +74,46 @@ hello_federation_keras:
     - echo "cleaning ...... $$"
     - kill -15 $$
 
-    hello_federation_pytorch:
-      stage: test
-      tags:
-      - shell-runner-2
-      before_script:
-      - whoami
-      - pwd
-      - ls
-      - cd /home/gitlab-runner/workspace
-      - echo "remove the directory ..."
-      - rm -rf fledge
-      - echo "clone the directory ..."
-      - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-      - cd /home/gitlab-runner/workspace/fledge
-      - echo $CI_COMMIT_REF_NAME
-      - git checkout $CI_COMMIT_REF_NAME
-      - export http_proxy=http://proxy-us.intel.com:911
-      - export https_proxy=http://proxy-us.intel.com:912
-      - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-      - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
-      - export COL1=one23
-      - export COL2=two34
-      - export FED_WORKSPACE=/home/gitlab-runner/workspace
-      - python3 -m pip install --user --upgrade pip
-      script:
-      - python3 -m pip install . --user
-      - fx workspace create --prefix ${FED_WORKSPACE} --template torch_cnn_mnist
-      - cd ${FED_WORKSPACE}
-      - fx plan initialize -a ${FQDN}
-      - fx workspace certify
-      - fx aggregator create --fqdn ${FQDN}
-      - fx aggregator certify --certificate_name cert/agg_${FQDN}/agg_${FQDN}.csr --silent
-      - fx collaborator create -n ${COL1} --silent
-      - fx collaborator certify --certificate_name cert/col_${COL1}/col_${COL1}.csr --silent
-      - fx collaborator create -n ${COL2} --silent
-      - fx collaborator certify --certificate_name cert/col_${COL2}/col_${COL2}.csr --silent
-      - fx aggregator start &
-      - fx collaborator start -n ${COL1} &
-      - fx collaborator start -n ${COL2}
-      after_script:
-      - jobs
-      - echo "cleaning ...... $$"
-      - kill -15 $$
-  
+hello_federation_pytorch:
+  stage: test
+  tags:
+  - shell-runner-2
+  before_script:
+  - whoami
+  - pwd
+  - ls
+  - cd /home/gitlab-runner/workspace
+  - echo "remove the directory ..."
+  - rm -rf fledge
+  - echo "clone the directory ..."
+  - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+  - cd /home/gitlab-runner/workspace/fledge
+  - echo $CI_COMMIT_REF_NAME
+  - git checkout $CI_COMMIT_REF_NAME
+  - export http_proxy=http://proxy-us.intel.com:911
+  - export https_proxy=http://proxy-us.intel.com:912
+  - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+  - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
+  - export COL1=one23
+  - export COL2=two34
+  - export FED_WORKSPACE=/home/gitlab-runner/workspace
+  - python3 -m pip install --user --upgrade pip
+  script:
+  - python3 -m pip install . --user
+  - fx workspace create --prefix ${FED_WORKSPACE} --template torch_cnn_mnist
+  - cd ${FED_WORKSPACE}
+  - fx plan initialize -a ${FQDN}
+  - fx workspace certify
+  - fx aggregator create --fqdn ${FQDN}
+  - fx aggregator certify --certificate_name cert/agg_${FQDN}/agg_${FQDN}.csr --silent
+  - fx collaborator create -n ${COL1} --silent
+  - fx collaborator certify --certificate_name cert/col_${COL1}/col_${COL1}.csr --silent
+  - fx collaborator create -n ${COL2} --silent
+  - fx collaborator certify --certificate_name cert/col_${COL2}/col_${COL2}.csr --silent
+  - fx aggregator start &
+  - fx collaborator start -n ${COL1} &
+  - fx collaborator start -n ${COL2}
+  after_script:
+  - jobs
+  - echo "cleaning ...... $$"
+  - kill -15 $$

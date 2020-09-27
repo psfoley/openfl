@@ -109,20 +109,20 @@ Before you run the federation make sure you have activated a Python virtual envi
 
    where **WORKSPACE.zip** is the name of the workspace archive. This will unzip the workspace to the current directory and install the required Python packages within the current virtual environment.
    
-3. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **COLLABORATOR.LABEL** with the label you've assigned to this collaborator. Note that this does not have to be the FQDN. It can be any unique alphanumeric label. 
+3. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **COL.LABEL** with the label you've assigned to this collaborator. Note that this does not have to be the FQDN. It can be any unique alphanumeric label. 
 
     .. code-block:: console
     
-       $ fx collaborator create -n COLLABORATOR.LABEL
+       $ fx collaborator create -n COL.LABEL
 
    This will create the following 2 files:
-   +---------------------------+------------------------------------------------------------------------+
-    | File Type                 | Filename                                                              |
-    +===========================+=======================================================================+
-    | Collaborator certificate  | WORKSPACE.PATH/cert/col_COLLABORATOR.LABEL/col_COLLABORATOR.LABEL.csr |
-    +---------------------------+-----------------------------------------------------------------------+
-    | Collaborator key          | WORKSPACE.PATH/cert/col_COLLABORATOR.LABEL/col_COLLABORATOR.LABEL.key |
-    +---------------------------+-----------------------------------------------------------------------+
+   +---------------------------+------------------------------------------------------+
+    | File Type                 | Filename                                            |
+    +===========================+=====================================================+
+    | Collaborator certificate  | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.csr |
+    +---------------------------+-----------------------------------------------------+
+    | Collaborator key          | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.key |
+    +---------------------------+-----------------------------------------------------+
 
     These 2 files will need to be sent to the certificate authority for them to be signed. In this "Hello Federation" demo, the certificate authority is the Aggregator node.
        

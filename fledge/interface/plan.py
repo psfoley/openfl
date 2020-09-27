@@ -34,19 +34,24 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
 
     init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
 
-    if  feature_shape is None:
-        if  cols_config is None:
-            exit('You must specify either a feature shape or authorized collaborator list in order for the script to determine the input layer shape')
+    # TODO:  Is this part really needed?  Why would we need to collaborator name to know the input shape to the model?
+    
+    # if  feature_shape is None:
+    #     if  cols_config is None:
+    #         exit('You must specify either a feature shape or authorized collaborator list in order for the script to determine the input layer shape')
 
-        collaborator_cname = plan.authorized_cols[0]
+    #     collaborator_cname = plan.authorized_cols[0]
 
-    else:
+    # else:
 
-        logger.info(f'Using data object of type {type(data)} and feature shape {feature_shape}')
-        raise NotImplementedError()
+    #     logger.info(f'Using data object of type {type(data)} and feature shape {feature_shape}')
+    #     raise NotImplementedError()
 
-    data_loader = plan.get_data_loader(collaborator_cname)
-    task_runner = plan.get_task_runner(collaborator_cname)
+    # data_loader = plan.get_data_loader(collaborator_cname)
+    # task_runner = plan.get_task_runner(collaborator_cname)
+
+    data_loader = plan.get_data_loader('default')
+    task_runner = plan.get_task_runner('default')
     tensor_pipe = plan.get_tensor_pipe()
 
     tensor_dict_split_fn_kwargs = task_runner.tensor_dict_split_fn_kwargs or {}

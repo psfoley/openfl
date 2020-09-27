@@ -14,13 +14,13 @@ def collaborator(context):
     '''Manage Federated Learning Collaborators'''
     context.obj['group'] = 'service'
 
-@collaborator.command()
+@collaborator.command(name='start')
 @pass_context
 @option('-p', '--plan',              required = False, help = 'Federated learning plan [plan/plan.yaml]',               default = 'plan/plan.yaml', type = ClickPath(exists = True))
 @option('-d', '--data_config',       required = False, help = 'The data set/shard configuration file [plan/data.yaml]', default = 'plan/data.yaml', type = ClickPath(exists = True))
 @option('-n', '--collaborator_name', required = True,  help = 'The certified common name of the collaborator')
 @option('-s', '--secure',            required = False, help = 'Enable Intel SGX Enclave', is_flag = True, default = False)
-def start(context, plan, collaborator_name, data_config, secure):
+def start_(context, plan, collaborator_name, data_config, secure):
     '''Start a collaborator service'''
 
     plan = Plan.Parse(plan_config_path = Path(plan),
@@ -42,20 +42,24 @@ def start(context, plan, collaborator_name, data_config, secure):
 
     plan.get_collaborator(collaborator_name).run()
 
-def RegisterDataPath(plan_name):
+def RegisterDataPath(plan_name, silent=False):
     '''Register dataset path in the plan/data.yaml file
 
     Args:
         plan_name (str): Name of the plan file
+        silent (bool)  : Silent operation (don't prompt)
          
     '''
 
     from click import prompt
 
     # Ask for the data directory
-    dirPath = prompt(f'\nWhere is the data directory for this collaborator in plan ' +
-                     style(f'{plan_name}', fg='green') +
-                     ' ? ', default=f'data/{plan_name}')
+    if not silent:
+        dirPath = prompt(f'\nWhere is the data directory for this collaborator in plan ' +
+                        style(f'{plan_name}', fg='green') +
+                        ' ? ', default=f'data/{plan_name}')
+    else:
+        dirPath = f'1'  # TODO: Need to figure out the default for this.
 
     # Read the data.yaml file
     d = {}
@@ -74,10 +78,11 @@ def RegisterDataPath(plan_name):
         for key, val in d.items():
             f.write(f'{key}{separator}{val}\n')
 
-@collaborator.command()
+@collaborator.command(name='create')
 @pass_context
 @option('-n', '--collaborator_name', required = True,  help = 'The certified common name of the collaborator')
-def create(context, collaborator_name):
+@option('-s', '--silent', help = 'Do not prompt', is_flag=True)
+def create_(context, collaborator_name, silent):
     '''Create collaborator certificate key pair'''
 
     common_name              = f'{collaborator_name}'.lower()
@@ -106,7 +111,7 @@ def create(context, collaborator_name):
     (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'{file_name}' / f'{file_name}.csr')
     (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
 
-    RegisterDataPath(f'default')  # TODO: Is there a way to figure out the plan name automatically? Or do we have a new function for adding new paths for different plans?
+    RegisterDataPath(f'default', silent=silent)  # TODO: Is there a way to figure out the plan name automatically? Or do we have a new function for adding new paths for different plans?
 
 def findCertificateName(file_name):
     '''Searches the CRT for the actual collaborator name
@@ -161,10 +166,32 @@ def RegisterCollaborator(file_name):
              f' in ' +
              style(f'{cols_file}', fg='green'))
 
-@collaborator.command()
+def sign_certificate(file_name):
+    '''Sign the certificate
+    '''
+
+    echo(f' Signing COLLABORATOR certificate key pair')
+
+    signing_conf = 'config/signing-ca.conf'
+    vex(f'openssl ca -batch '
+        f'-config {signing_conf} '
+        f'-extensions server_ext '
+        f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
+
+    echo(f'  Moving COLLABORATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
+
+    (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
+    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
+    (PKI_DIR / f'{file_name}.csr').unlink()
+
+    RegisterCollaborator(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+
+@collaborator.command(name='certify')
 @pass_context
 @option('-n', '--certificate_name', required = True,  help = 'The certificate signing request filename (*.csr) for the collaborator')
-def certify(context, certificate_name):
+@option('-s', '--silent', help = 'Do not prompt', is_flag=True)
+def certify_(context, certificate_name, silent):
     '''Sign/certify collaborator certificate key pair'''
 
     from os.path import splitext, basename
@@ -191,25 +218,16 @@ def certify(context, certificate_name):
          ' = ' +
          style(f'{csr_hash}', fg='red'))
 
-    if confirm("Do you want to sign this certificate?"):
+    if silent:
 
-        echo(f' Signing COLLABORATOR certificate key pair')
-
-        signing_conf = 'config/signing-ca.conf'
-        vex(f'openssl ca -batch '
-            f'-config {signing_conf} '
-            f'-extensions server_ext '
-            f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
-
-        echo(f'  Moving COLLABORATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
-
-        (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
-        (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
-        (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
-        (PKI_DIR / f'{file_name}.csr').unlink()
-
-        RegisterCollaborator(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+        sign_certificate(file_name)
 
     else:
-        echo(style('Not signing certificate.', fg='red') +
-             ' Please check with this collaborator to get the correct certificate for this federation.')
+
+        if confirm("Do you want to sign this certificate?"):
+
+            sign_certificate(file_name)
+
+        else:
+            echo(style('Not signing certificate.', fg='red') +
+                ' Please check with this collaborator to get the correct certificate for this federation.')

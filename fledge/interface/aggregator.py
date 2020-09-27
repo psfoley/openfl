@@ -14,12 +14,12 @@ def aggregator(context):
     '''Manage Federated Learning Aggregator'''
     context.obj['group'] = 'aggregator'
 
-@aggregator.command()
+@aggregator.command(name='start')
 @pass_context
 @option('-p', '--plan',            required = False, help = 'Federated learning plan [plan/plan.yaml]',      default = 'plan/plan.yaml', type = ClickPath(exists = True))
 @option('-c', '--authorized_cols', required = False, help = 'Authorized collaborator list [plan/cols.yaml]', default = 'plan/cols.yaml', type = ClickPath(exists = True))
 @option('-s', '--secure',          required = False, help = 'Enable Intel SGX Enclave', is_flag = True, default = False)
-def start(context, plan, authorized_cols, secure):
+def start_(context, plan, authorized_cols, secure):
     '''Start the aggregator service'''
 
     plan = Plan.Parse(plan_config_path = Path(plan),
@@ -29,10 +29,10 @@ def start(context, plan, authorized_cols, secure):
 
     plan.get_server().serve()
 
-@aggregator.command()
+@aggregator.command(name='create')
 @pass_context
 @option('--fqdn', required = False, help = f'The fully qualified domain name of aggregator node [{getfqdn()}]', default = getfqdn())
-def create(context, fqdn):
+def create_(context, fqdn):
     '''Create aggregator certificate key pair'''
 
     common_name              = f'{fqdn}'.lower()
@@ -66,10 +66,29 @@ def findCertificateName(file_name):
                 break 
     return col_name
 
-@aggregator.command()
+def sign_certificate(file_name):
+    '''Sign the certificate
+    '''
+    echo(f' Signing AGGREGATOR certificate key pair')
+
+    signing_conf = 'config/signing-ca.conf'
+    vex(f'openssl ca -batch '
+        f'-config {signing_conf} '
+        f'-extensions server_ext '
+        f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
+
+    echo(f'  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
+
+    (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
+    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
+    (PKI_DIR / f'{file_name}.csr').unlink()
+
+@aggregator.command(name='certify')
 @pass_context
 @option('-n', '--certificate_name', required = True,  help = 'The certificate filename (*.csr) for the collaborator')
-def certify(context, certificate_name):
+@option('-s', '--silent', help = 'Do not prompt', is_flag=True)
+def certify_(context, certificate_name, silent):
     '''Sign/certify the aggregator certificate key pair'''
 
     from os.path import splitext, basename
@@ -96,23 +115,16 @@ def certify(context, certificate_name):
          ' = ' +
          style(f'{csr_hash}', fg='red'))
 
-    if confirm("Do you want to sign this certificate?"):
+    if silent:
 
-        echo(f' Signing AGGREGATOR certificate key pair')
-
-        signing_conf = 'config/signing-ca.conf'
-        vex(f'openssl ca -batch '
-            f'-config {signing_conf} '
-            f'-extensions server_ext '
-            f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
-
-        echo(f'  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
-
-        (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
-        (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
-        (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
-        (PKI_DIR / f'{file_name}.csr').unlink()
-
+        sign_certificate(file_name)
+    
     else:
-        echo(style('Not signing certificate.', fg='red') +
-             ' Please check with this AGGREGATOR to get the correct certificate for this federation.')
+
+        if confirm("Do you want to sign this certificate?"):
+
+            sign_certificate(file_name)
+
+        else:
+            echo(style('Not signing certificate.', fg='red') +
+                ' Please check with this AGGREGATOR to get the correct certificate for this federation.')

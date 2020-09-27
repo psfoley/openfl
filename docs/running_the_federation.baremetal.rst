@@ -3,8 +3,11 @@
 
 .. _running_baremetal:
 
-Running on Baremetal
-####################
+Creating the Federation
+#######################
+
+Hello Federation - Your First Federated Learning Training
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We will show you how to set up |productName| using a simple `MNIST <https://en.wikipedia.org/wiki/MNIST_database>`_
 dataset and a `TensorFlow/Keras <https://www.tensorflow.org/>`_

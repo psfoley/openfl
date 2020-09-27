@@ -38,5 +38,5 @@ assigner :
   defaults : defaults/assigner.yaml
   
 tasks :
-  defaults : defaults/tasks_pytorch.yaml
+  defaults : defaults/tasks_torch.yaml
 

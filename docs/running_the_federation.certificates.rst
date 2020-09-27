@@ -116,13 +116,13 @@ Before you run the federation make sure you have activated a Python virtual envi
        $ fx collaborator create -n COL.LABEL
 
    This will create the following 2 files:
-   +---------------------------+------------------------------------------------------+
-    | File Type                 | Filename                                            |
-    +===========================+=====================================================+
-    | Collaborator certificate  | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.csr |
-    +---------------------------+-----------------------------------------------------+
-    | Collaborator key          | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.key |
-    +---------------------------+-----------------------------------------------------+
+    +---------------------+-----------------------------------------------------+
+    | File Type           | Filename                                            |
+    +=====================+=====================================================+
+    | Collaborator CSR    | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.csr |
+    +---------------------+-----------------------------------------------------+
+    | Collaborator key    | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.key |
+    +---------------------+-----------------------------------------------------+
 
     These 2 files will need to be sent to the certificate authority for them to be signed. In this "Hello Federation" demo, the certificate authority is the Aggregator node.
        

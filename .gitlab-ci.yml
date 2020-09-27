@@ -67,8 +67,8 @@ hello_federation:
     - fx collaborator create -n ${COL2} --silent
     - fx collaborator certify --certificate_name cert/col_${COL2}/col_${COL2}.csr --silent
     - fx aggregator start &
-    - fx collaborator start -n one &
-    - fx collaborator start -n two
+    - fx collaborator start -n ${COL1} &
+    - fx collaborator start -n ${COL2}
     after_script:
     - jobs
     - echo "cleaning ...... $$"

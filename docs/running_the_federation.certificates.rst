@@ -136,9 +136,9 @@ Before you run the federation make sure you have activated a Python virtual envi
    
     .. code-block:: console
         
-       $ fx collaborator certify --certificate_name /PATH/TO/col_COLLABORATOR.LABEL.csr
+       $ fx collaborator certify --certificate_name /PATH/TO/col_COL.LABEL.csr
           
-   where **/PATH/TO/col_COLLABORATOR.LABEL.csr** is the path to the folder containing the :code:`.csr` and :code:`.key` files from the collaborator. The Certificate Authority will sign this certificate for use in the Federation.
+   where **/PATH/TO/col_COL.LABEL.csr** is the path to the folder containing the :code:`.csr` and :code:`.key` files from the collaborator. The Certificate Authority will sign this certificate for use in the Federation.
 
 5. Once you have the certificates created, you need to move the certificate to back to the Collaborator node and it has the :code:`cert_chain.crt` needed to verify certificate signatures. For example, on a Collaborator node that was labeled **alpha123**, you should have:
 

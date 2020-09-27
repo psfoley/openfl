@@ -15,17 +15,17 @@ so these configuration steps just need to be done once on that machine.
 
     .. note::
     
-    Certificates can be created for each project workspace.
+       Different certificates can be created for each project workspace.
 
 .. _install_certs:
 
-Before you run the federation make sure you have installed |productName| 
-:ref:`using these instructions <install_initial_steps>` on every node (i.e. aggregator and collaborators), 
-are in the correct Python virtual environment, and are in the correct directory for the :ref:`project workspace <creating_workspaces>`.
-
+.. _install_certs_agg:
 
 On the Aggregator Node
 ######################
+
+Before you run the federation make sure you have activated a Python virtual environment (e.g. :code:`conda activate`), installed the |productName| package
+:ref:`using these instructions <install_initial_steps>`, and are in the correct directory for the :ref:`project workspace <creating_workspaces>`.
 
 1. Change directory to the path for your project's workspace:
 
@@ -39,71 +39,35 @@ On the Aggregator Node
     
        $ fx workspace certify
 
-3. Run the aggregator certify command, replacing **AFQDN** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine.
+3. Run the aggregator certificate creation command, replacing **AFQDN** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine. 
 
     .. code-block:: console
     
-       $ fx aggregator certify --fqdn AFDQN
+       $ fx aggregator create --fqdn AFQDN
        
     .. note::
     
-       You can discover the FQDN with the Linux command:
+       On Linux, you can discover the FQDN with the command:
     
            .. code-block:: console
         
               $ hostname --all-fqdns | awk '{print $1}'
-           
-           
+            
    .. note::
    
-      If you omit the :code:`--fdqn` parameter, then :code:`fx` will automatically use the FQDN of the current node.
+      If you omit the :code:`--fdqn` parameter, then :code:`fx` will automatically use the FQDN of the current node assuming the node has been correctly set with a static address. 
    
       .. code-block:: console
     
-         $ fx aggregator certify 
+         $ fx aggregator create
        
-
-4. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **TEST.MACHINE.NAME** with the actual test machine name. Note that this does not have to be the FQDN. Also, note that this command is run on the Aggregator node because for this demo the Aggregator node is also the Certificate Authority node. Only Collaborators with valid certificates signed by the Certificate Authority can join the federation.
+4. Run the aggregator certificate signing command, replacing **AFQDN** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine. 
 
     .. code-block:: console
     
-       $ fx collaborator certify -n TEST.MACHINE.NAME
-       
-   For the "Hello Federation" demo, we'll assume that there are 2 collaborators. The first collaborator is named :code:`one` and the second is named :code:`two`. To create their certificates, run the following commands:
-   
-       .. code-block:: console
-        
-          $ fx collaborator certify -n one
-          
-          
-       .. code-block:: console
-       
-          $ fx collaborator certify -n two
-          
-          
-   If you'd like to change the collaborator names (or add/remove collaborators), you simply need to edit the YAML files: :code:`plan/cols.yaml` and :code:`plan/data.yaml`. 
-   
-      .. code-block:: yaml
-      
-         collaborators:
-           - 'one'
-           - 'two'
+       $ fx aggregator certify --certificate_name cert/agg_AFQDN/agg_AFQDN.csr 
 
-5. Once you have the certificates created, you need to move the certificates to the correct machines and ensure each machine has the :code:`cert_chain.crt` needed to verify certificate signatures. For example, on a test machine named **TEST_MACHINE** that you want to be able to run as a collaborator, you should have:
-
-    +---------------------------+--------------------------------------------------------------+
-    | File Type                 | Filename                                                     |
-    +===========================+==============================================================+
-    | Certificate chain         | WORKSPACE.PATH/cert/cert_chain.crt                           |
-    +---------------------------+--------------------------------------------------------------+
-    | Collaborator certificate  | WORKSPACE.PATH/cert/col_TEST_MACHINE/col_TEST_MACHINE.crt    |
-    +---------------------------+--------------------------------------------------------------+
-    | Collaborator key          | WORKSPACE.PATH/cert/col_TEST_MACHINE/col_TEST_MACHINE.key    |
-    +---------------------------+--------------------------------------------------------------+
-    
-    After running the steps above, you should now have 2 collaborator certificates in the :code:`cert` folder: :code:`col_one` and :code:`col_two`.
-
-6. On the aggregator machine you should have the files:
+5. This node now has a signed security certificate as the aggreator for this new federation. You should have the following files.
 
     +---------------------------+--------------------------------------------------+
     | File Type                 | Filename                                         |
@@ -116,4 +80,69 @@ On the Aggregator Node
     +---------------------------+--------------------------------------------------+
     
     where **AFQDN** is the fully-qualified domain name of the aggregator node.
+
+.. _workspace_export:
+
+6. Export the workspace so that it can be imported to the collaborator nodes.
+
+    .. code-block:: console
+    
+       $ fx workspace export
+
+   The :code:`export` command will archive the current workspace (as a :code:`zip`) and create a :code:`requirements.txt` file of the current Python packages in the virtual environment. Transfer this zip file to each collaborator node.
+
+.. _install_certs_colab:
+
+On the Collaborator Nodes
+#########################
+
+Before you run the federation make sure you have activated a Python virtual environment (e.g. :code:`conda activate`) and installed the |productName| package
+:ref:`using these instructions <install_initial_steps>`.
+
+1. Make sure you have copied the :ref:`workspace archive <workspace_export>` (:code:`.zip`) from the aggregator node to the collaborator node.
+
+2. Import the workspace archive using the following command:
+
+    .. code-block:: console
+    
+       $ fx workspace import --archive WORKSPACE.zip
+
+   where **WORKSPACE.zip** is the name of the workspace archive. This will unzip the workspace to the current directory and install the required Python packages within the current virtual environment.
+   
+3. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **COLLABORATOR.LABEL** with the label you've assigned to this collaborator. Note that this does not have to be the FQDN. It can be any unique alphanumeric label. 
+
+    .. code-block:: console
+    
+       $ fx collaborator create -n COLLABORATOR.LABEL
+
+   This will create the following 2 files:
+   +---------------------------+------------------------------------------------------------------------+
+    | File Type                 | Filename                                                              |
+    +===========================+=======================================================================+
+    | Collaborator certificate  | WORKSPACE.PATH/cert/col_COLLABORATOR.LABEL/col_COLLABORATOR.LABEL.csr |
+    +---------------------------+-----------------------------------------------------------------------+
+    | Collaborator key          | WORKSPACE.PATH/cert/col_COLLABORATOR.LABEL/col_COLLABORATOR.LABEL.key |
+    +---------------------------+-----------------------------------------------------------------------+
+
+    These 2 files will need to be sent to the certificate authority for them to be signed. In this "Hello Federation" demo, the certificate authority is the Aggregator node.
+       
+4. On the Aggregator node (i.e. the Certificate Authority for this demo), run the following command:
+   
+    .. code-block:: console
+        
+       $ fx collaborator certify --certificate_name /PATH/TO/col_COLLABORATOR.LABEL.csr
+          
+   where **/PATH/TO/col_COLLABORATOR.LABEL.csr** is the path to the folder containing the :code:`.csr` and :code:`.key` files from the collaborator. The Certificate Authority will sign this certificate for use in the Federation.
+
+5. Once you have the certificates created, you need to move the certificate to back to the Collaborator node and it has the :code:`cert_chain.crt` needed to verify certificate signatures. For example, on a Collaborator node that was labeled **alpha123**, you should have:
+
+    +---------------------------+-----------------------------------------------------+
+    | File Type                 | Filename                                            |
+    +===========================+=====================================================+
+    | Certificate chain         | WORKSPACE.PATH/cert/cert_chain.crt                  |
+    +---------------------------+-----------------------------------------------------+
+    | Collaborator certificate  | WORKSPACE.PATH/cert/col_alpha123/col_alpha123.crt   |
+    +---------------------------+-----------------------------------------------------+
+    | Collaborator key          | WORKSPACE.PATH/cert/col_alpha123/col_alpha123.key   |
+    +---------------------------+-----------------------------------------------------+
 

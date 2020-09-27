@@ -30,7 +30,7 @@ On the Aggregator
     where **WORKSPACE.PATH** is the directory to create your workspace. By specifying 
     the :code:`--template keras_cnn_mnist` the workspace will create a workspace 
     with a simple TensorFlow/Keras CNN model that will download the MNIST 
-    dataset and train in a federation with one aggregator and two collaborators. A list of
+    dataset and train in a federation. A list of
     pre-created templates can be found by simply running the command:
 
     .. code-block:: console
@@ -54,7 +54,9 @@ On the Aggregator
 
     .. code-block:: console
     
-       $ fx plan initialize 
+       $ fx plan initialize -a AFQDN
+
+   where *AFQDN** is the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ of the aggregator node. If you omit this parameter, :code:`fx` will automatically use the FQDN of the current node assuming the node has been correctly set with a static address. 
        
     .. note::
     

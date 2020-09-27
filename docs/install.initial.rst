@@ -6,6 +6,8 @@
 Initial Steps
 #############
 
+On every node in the federation you will need to install the |productName| package.
+
 1. Install a Python 3.6 virtual environment. Conda is preferred, but other virtual environments should work as well. 
    Conda can either be installed via the `Anaconda <https://www.anaconda.com/products/individual>`_  
    or `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ distributions.  

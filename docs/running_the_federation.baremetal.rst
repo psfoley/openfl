@@ -57,18 +57,17 @@ On the Aggregator
        $ fx plan initialize -a AFQDN
 
    where *AFQDN** is the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ of the aggregator node. If you omit this parameter, :code:`fx` will automatically use the FQDN of the current node assuming the node has been correctly set with a static address. 
-       
-    .. note::
-    
-    Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
-    Therefore, the Aggregator has the following optional parameters.
-    
-    +-------------------------+---------------------------------------------------------+
-    | Optional Parameters     | Description                                             |
-    +=========================+=========================================================+
-    | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
-    +-------------------------+---------------------------------------------------------+
-    | -c, --cols_config PATH  | Authorized collaborator list [default = plan/cols.yaml] |
-    +-------------------------+---------------------------------------------------------+
-    | -d, --data_config PATH  | The data set/shard configuration file                   |
-    +-------------------------+---------------------------------------------------------+    
+   .. note::
+
+   Each workspace may have multiple Federated Learning plans and multiple collaborator lists associated with it.
+   Therefore, the Aggregator has the following optional parameters.
+
+   +-------------------------+---------------------------------------------------------+
+   | Optional Parameters     | Description                                             |
+   +=========================+=========================================================+
+   | -p, --plan_config PATH  | Federated Learning plan [default = plan/plan.yaml]      |
+   +-------------------------+---------------------------------------------------------+
+   | -c, --cols_config PATH  | Authorized collaborator list [default = plan/cols.yaml] |
+   +-------------------------+---------------------------------------------------------+
+   | -d, --data_config PATH  | The data set/shard configuration file                   |
+   +-------------------------+---------------------------------------------------------+    

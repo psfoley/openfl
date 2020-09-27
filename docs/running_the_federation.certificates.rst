@@ -83,7 +83,10 @@ Before you run the federation make sure you have activated a Python virtual envi
 
 .. _workspace_export:
 
-6. Export the workspace so that it can be imported to the collaborator nodes.
+Exporting the Workspace
+~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Export the workspace so that it can be imported to the collaborator nodes.
 
     .. code-block:: console
     

@@ -28,15 +28,6 @@ def start_(context, plan, collaborator_name, data_config, secure):
 
     # TODO: Need to restructure data loader config file loader
 
-    # if  collaborator_name not in plan.cols_data_paths:
-    #     logger.error(f'Collaborator [red]{collaborator_name}[/] not found in Data Configuration file [red]{data_config}[/].', extra = {'markup' : True})
-    #     exit()
-
-    # if  plan.data_group_name not in plan.cols_data_paths[collaborator_name]:
-    #     logger.error(f'Group [red]{plan.data_group_name}[/] for '
-    #                  f'Collaborator [red]{collaborator_name}[/] not found in Data Configuration file [red]{data_config}[/].', extra = {'markup' : True})
-    #     exit()
-
     echo(f'Data = {plan.cols_data_paths}')
     logger.info('🧿 Starting a Collaborator Service.')
 
@@ -54,12 +45,13 @@ def RegisterDataPath(plan_name, silent=False):
     from click import prompt
 
     # Ask for the data directory
+    default_data_path = f'data/{plan_name}'
     if not silent:
         dirPath = prompt(f'\nWhere is the data directory for this collaborator in plan ' +
                         style(f'{plan_name}', fg='green') +
-                        ' ? ', default=f'data/{plan_name}')
+                        ' ? ', default=default_data_path)
     else:
-        dirPath = f'1'  # TODO: Need to figure out the default for this.
+        dirPath = default_data_path  # TODO: Need to figure out the default for this.
 
     # Read the data.yaml file
     d = {}

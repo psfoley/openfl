@@ -54,7 +54,7 @@ hello_federation_keras:
     - export COL2=two
     - export FED_WORKSPACE=/home/gitlab-runner/workspace_keras
     - python3 -m pip install --user --upgrade pip
-    - python3 -m pip install --user intel-tensorflow==1.15
+    - python3 -m pip install --user intel-tensorflow==1.15.2
     script:
     - python3 -m pip install . --user
     - fx workspace create --prefix ${FED_WORKSPACE} --template keras_cnn_mnist

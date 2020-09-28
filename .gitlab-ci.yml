@@ -54,6 +54,7 @@ hello_federation_keras:
     - export COL2=two
     - export FED_WORKSPACE=/home/gitlab-runner/workspace_keras
     - python3 -m pip install --user --upgrade pip
+    - python3 -m pip install --user intel-tensorflow<2
     script:
     - python3 -m pip install . --user
     - fx workspace create --prefix ${FED_WORKSPACE} --template keras_cnn_mnist
@@ -98,7 +99,7 @@ hello_federation_pytorch:
   - export COL2=two34
   - export FED_WORKSPACE=/home/gitlab-runner/workspace_torch
   - python3 -m pip install --user --upgrade pip
-  - pip install torch>=1.6.0+cpu torchvision>=0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+  - python3 -m pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
   script:
   - python3 -m pip install . --user
   - fx workspace create --prefix ${FED_WORKSPACE} --template torch_cnn_mnist

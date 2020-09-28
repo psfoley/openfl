@@ -39,9 +39,7 @@ setup(
         'grpcio',
         'rich',
         'tqdm',
-        'scikit-learn',
-        'tensorflow==1.15',
-        'torch>=1.2.0'
+        'scikit-learn'
     ],
     entry_points = {
         'console_scripts' : ['fx=fledge.interface.cli:entry']

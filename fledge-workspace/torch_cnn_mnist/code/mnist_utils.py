@@ -42,10 +42,10 @@ def _load_raw_datashards(shard_num, collaborator_count, transform=None):
     
     # create the shards
     shard_num = int(shard_num)
-    X_train = X_train_tot[shard_num::collaborator_count]
+    X_train = X_train_tot[shard_num::collaborator_count].unsqueeze(1).float()
     y_train = y_train_tot[shard_num::collaborator_count]
 
-    X_valid = X_valid_tot[shard_num::collaborator_count]
+    X_valid = X_valid_tot[shard_num::collaborator_count].unsqueeze(1).float()
     y_valid = y_valid_tot[shard_num::collaborator_count]
 
     return (X_train, y_train), (X_valid, y_valid)

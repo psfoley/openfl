@@ -155,7 +155,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         val_score = 0
         total_samples = 0
 
-        loader = self.data_loader.get_val_loader()
+        loader = self.data_loader.get_valid_loader()
         if use_tqdm:
             loader = tqdm.tqdm(loader, desc="validate")
 
@@ -163,7 +163,7 @@ class PyTorchCNN(PyTorchTaskRunner):
             for data, target in loader:
                 samples = target.shape[0]
                 total_samples += samples
-                data, target = data.to(self.device), target.to(self.device, dtype=torch.int64)
+                data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device, dtype=torch.int64)
                 output = self(data)
                 pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
                 target_categorical = target.argmax(dim=1, keepdim=True)
@@ -217,7 +217,7 @@ class PyTorchCNN(PyTorchTaskRunner):
                 if batch_num >= num_batches:
                     break
                 else:
-                    data, target = data.to(self.device), target.to(self.device, dtype=torch.float32)
+                    data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device, dtype=torch.float32)
                     self.optimizer.zero_grad()
                     output = self(data)
                     loss = self.loss_fn(output=output, target=target)

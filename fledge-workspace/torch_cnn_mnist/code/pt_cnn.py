@@ -34,7 +34,7 @@ class PyTorchCNN(PyTorchTaskRunner):
     """Simple CNN for classification.
     """
 
-    def __init__(self, data, device='cpu', **kwargs):
+    def __init__(self, device='cpu', **kwargs):
         """Initializer
 
         Args:
@@ -43,9 +43,9 @@ class PyTorchCNN(PyTorchTaskRunner):
             **kwargs: Additional arguments to pass to the function
 
         """
-        super().__init__(data=data, device=device, **kwargs)
+        super().__init__(device=device, **kwargs)
 
-        self.num_classes = self.data.num_classes
+        self.num_classes = self.data_loader.num_classes
         self.init_network(device=self.device, **kwargs)
         self._init_optimizer()
         self.loss_fn = cross_entropy
@@ -91,7 +91,7 @@ class PyTorchCNN(PyTorchTaskRunner):
 
         """
         self.pool_sqrkernel_size = pool_sqrkernel_size
-        channel = self.data.get_feature_shape()[0]# (channel, dim1, dim2)
+        channel = self.data_loader.get_feature_shape()[0]# (channel, dim1, dim2)
         self.conv1 = nn.Conv2d(channel, conv1_channels_out, conv_sqrkernel_size, 1)
 
         # perform some calculations to track the size of the single channel activations
@@ -155,7 +155,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         val_score = 0
         total_samples = 0
 
-        loader = self.data.get_val_loader()
+        loader = self.data_loader.get_val_loader()
         if use_tqdm:
             loader = tqdm.tqdm(loader, desc="validate")
 
@@ -205,7 +205,7 @@ class PyTorchCNN(PyTorchTaskRunner):
 
         losses = []
 
-        loader = self.data.get_train_loader()
+        loader = self.data_loader.get_train_loader()
         if use_tqdm:
             loader = tqdm.tqdm(loader, desc="train epoch")
 

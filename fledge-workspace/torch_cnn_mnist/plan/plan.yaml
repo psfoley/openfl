@@ -21,7 +21,7 @@ collaborator :
 
 data_loader :
   defaults : plan/defaults/data_loader.yaml
-  template : data.pytorch.ptmnist_inmemory.PyTorchMNISTInMemory
+  template : code.ptmnist_inmemory.PyTorchMNISTInMemory
   settings :
     collaborator_count : 2
     data_group_name    : mnist
@@ -32,11 +32,11 @@ task_runner :
   template : code.pt_cnn.PyTorchCNN
 
 network :
-  defaults : defaults/network.yaml
+  defaults : plan/defaults/network.yaml
 
 assigner :
-  defaults : defaults/assigner.yaml
+  defaults : plan/defaults/assigner.yaml
   
 tasks :
-  defaults : defaults/tasks_torch.yaml
+  defaults : plan/defaults/tasks_torch.yaml
 

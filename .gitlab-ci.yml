@@ -56,9 +56,7 @@ hello_federation_keras:
     - python3 -m pip install --user intel-tensorflow==1.15.2
     script:
     - python3 -m pip install . --user
-    - pwd
-    - ls
-    - /home/gitlab-runner/workspace/fledge/test/gitlab/test_hello_federation.sh keras_cnn_mnist workspace_keras ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh keras_cnn_mnist workspace_keras ${COL1} ${COL2}
     after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -89,9 +87,8 @@ hello_federation_pytorch:
   - python3 -m pip install --user --upgrade pip
   - python3 -m pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
   script:
-    - pwd
-    - ls
-    - /home/gitlab-runner/workspace/fledge/test/gitlab/test_hello_federation.sh torch_cnn_mnist workspace_torch ${COL1} ${COL2}
+    - python3 -m pip install . --user
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh torch_cnn_mnist workspace_torch ${COL1} ${COL2}
   after_script:
   - jobs
   - echo "cleaning ...... $$"

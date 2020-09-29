@@ -7,6 +7,7 @@ Creating the Federation
 #######################
 
 TL;DR
+~~~~~
 
 Here's the "Hello Federation" :code:`bash` script used for testing the project pipeline.
 
@@ -18,9 +19,8 @@ Here's the "Hello Federation" :code:`bash` script used for testing the project p
 
     TEMPLATE=${1:-'keras_cnn_mnist'}  # ['torch_cnn_mnist', 'keras_cnn_mnist']
     FED_WORKSPACE=${2:-'fed_work12345alpha81671'}   # This can be whatever unique directory name you want
-    COL1=${3:-'one123dragons'}  # This can be any unique label
-    COL2=${4:-'beta34unicorns'} # This can be any unique label
-
+    COL1=${3:-'one123dragons'}  # This can be any unique label (lowercase)
+    COL2=${4:-'beta34unicorns'} # This can be any unique label (lowercase)
 
     FQDN=$(hostname --all-fqdns | awk '{print $1}')
 
@@ -84,8 +84,9 @@ Here's the "Hello Federation" :code:`bash` script used for testing the project p
 
     # # Run the federation
     if cd ${FED_DIRECTORY} & fx aggregator start & cd ${COL1_DIRECTORY} & fx collaborator start -n ${COL1} & cd ${COL2_DIRECTORY} & fx collaborator start -n ${COL2} ; then
-    rm -rf ${FED_DIRECTORY}
+       rm -rf ${FED_DIRECTORY}
     fi
+
 
 
 Hello Federation - Your First Federated Learning Training

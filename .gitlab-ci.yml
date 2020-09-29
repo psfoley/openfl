@@ -50,8 +50,8 @@ hello_federation_keras:
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
-    - export COL1=one
-    - export COL2=two
+    - export COL1=Alpha32T
+    - export COL2=beTA816r4
     - python3 -m pip install --user --upgrade pip
     - python3 -m pip install --user intel-tensorflow==1.15.2
     script:

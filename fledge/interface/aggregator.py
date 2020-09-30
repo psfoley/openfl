@@ -29,10 +29,10 @@ def start_(context, plan, authorized_cols, secure):
 
     plan.get_server().serve()
 
-@aggregator.command(name='create')
+@aggregator.command(name='generate-cert-request')
 @pass_context
 @option('--fqdn', required = False, help = f'The fully qualified domain name of aggregator node [{getfqdn()}]', default = getfqdn())
-def create_(context, fqdn):
+def generate_cert_request_(context, fqdn):
     '''Create aggregator certificate key pair'''
 
     common_name              = f'{fqdn}'.lower()
@@ -81,14 +81,13 @@ def sign_certificate(file_name):
 
     (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
     (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
-    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
     (PKI_DIR / f'{file_name}.csr').unlink()
 
 @aggregator.command(name='certify')
 @pass_context
-@option('-n', '--certificate_name', required = True,  help = 'The certificate filename (*.csr) for the collaborator')
+@option('-n', '--fqdn', help = 'The fully qualified domain name of aggregator node [{getfqdn()}]', default = getfqdn())
 @option('-s', '--silent', help = 'Do not prompt', is_flag=True)
-def certify_(context, certificate_name, silent):
+def certify_(context, fqdn, silent):
     '''Sign/certify the aggregator certificate key pair'''
 
     from os.path import splitext, basename
@@ -96,14 +95,14 @@ def certify_(context, certificate_name, silent):
 
     from click   import confirm
 
-    cert_name = splitext(certificate_name)[0]
-    file_name = basename(cert_name)
+    common_name              = f'{fqdn}'.lower()
+    file_name                = f'agg_{common_name}'
+    cert_name                = f'{file_name}/{file_name}'
 
     # Copy PKI to cert directory
     # TODO:  Circle back to this. Not sure if we need to copy the file or if we can call it directly from openssl
     # Was getting a file not found error otherwise.
-    copyfile(f'{cert_name}.csr', PKI_DIR / f'{file_name}.csr')
-    copyfile(f'{cert_name}.key', PKI_DIR / f'{file_name}.key')
+    copyfile(PKI_DIR / f'{cert_name}.csr', PKI_DIR / f'{file_name}.csr')
 
     output = vex(f'openssl sha256  '
                   f'{file_name}.csr', workdir=PKI_DIR)

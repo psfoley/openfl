@@ -70,12 +70,13 @@ def RegisterDataPath(plan_name, silent=False):
         for key, val in d.items():
             f.write(f'{key}{separator}{val}\n')
 
-@collaborator.command(name='create')
+@collaborator.command(name='generate-cert-request')
 @pass_context
 @option('-n', '--collaborator_name', required = True,  help = 'The certified common name of the collaborator')
 @option('-s', '--silent', help = 'Do not prompt', is_flag=True)
-def create_(context, collaborator_name, silent):
-    '''Create collaborator certificate key pair'''
+@option('-x', '--skip-package', help = 'Do not package the certificate signing request for export', is_flag=True)
+def generate_cert_request_(context, collaborator_name, silent, skip_package):
+    '''Create collaborator certificate key pair, then create a package with the CSR to send for signing'''
 
     common_name              = f'{collaborator_name}'.lower()
     subject_alternative_name = f'DNS:{common_name}'
@@ -102,6 +103,26 @@ def create_(context, collaborator_name, silent):
     (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
     (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'{file_name}' / f'{file_name}.csr')
     (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
+
+    if not skip_package:
+        from shutil   import make_archive, copytree, ignore_patterns
+        from tempfile import mkdtemp
+        from os.path  import join
+
+        archiveType = 'zip'
+        archiveName = f'col_{common_name}_to_agg_cert_request'
+        archiveFileName = archiveName + '.' + archiveType
+
+        # Collaborator certificate signing request
+        tmpDir = join(mkdtemp(), 'fledge', archiveName)
+
+        ignore = ignore_patterns('__pycache__', '*.key', '*.srl', '*.pem')
+        copytree(f'cert/col_{common_name}', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
+
+        make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
+
+        echo(f'Archive {archiveFileName} with certificate signing request created')
+        echo(f'This file should be sent to the certificate authority (typically hosted by the aggregator) for signing')
 
     RegisterDataPath(f'default', silent=silent)  # TODO: Is there a way to figure out the plan name automatically? Or do we have a new function for adding new paths for different plans?
 
@@ -174,52 +195,88 @@ def sign_certificate(file_name):
 
     (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
     (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
-    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
     (PKI_DIR / f'{file_name}.csr').unlink()
 
     RegisterCollaborator(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
 
 @collaborator.command(name='certify')
 @pass_context
-@option('-n', '--certificate_name', required = True,  help = 'The certificate signing request filename (*.csr) for the collaborator')
+@option('-n', '--collaborator_name', help = 'The certified common name of the collaborator. This is only needed for single node expiriments')
 @option('-s', '--silent', help = 'Do not prompt', is_flag=True)
-def certify_(context, certificate_name, silent):
+@option('-r', '--request-pkg', help = 'The archive containing the certificate signing request (*.zip) for a collaborator')
+@option('-i', '--import', 'import_', help = 'Import the archive containing the collaborator\'s certificate (signed by the CA)')
+def certify_(context, collaborator_name, silent, request_pkg, import_):
     '''Sign/certify collaborator certificate key pair'''
-
-    from os.path import splitext, basename
-    from shutil  import copyfile
 
     from click   import confirm
 
-    cert_name = splitext(certificate_name)[0]
-    file_name = basename(cert_name)
+    from shutil   import unpack_archive
+    from shutil   import make_archive, copytree, ignore_patterns, copy
+    from glob     import glob
+    from os.path  import isfile, basename, join, splitext
+    from os       import chdir
+    from tempfile import mkdtemp
 
-    # Copy PKI to cert directory
-    # TODO:  Circle back to this. Not sure if we need to copy the file or if we can call it directly from openssl
-    # Was getting a file not found error otherwise.
-    copyfile(f'{cert_name}.csr', PKI_DIR / f'{file_name}.csr')
-    copyfile(f'{cert_name}.key', PKI_DIR / f'{file_name}.key')
+    common_name = f'{collaborator_name}'.lower()
 
-    output = vex(f'openssl sha256  '
-                  f'{file_name}.csr', workdir=PKI_DIR)
+    if not import_:
+        if request_pkg: 
+            unpack_archive(request_pkg, extract_dir=PKI_DIR)
+            csr = glob(f'{PKI_DIR}/*.csr')[0]
+        else:
+            if len(common_name) == 0:
+                echo(f'collaborator_name must be set for single node experiments')
+                return
+            csr = glob(f'{PKI_DIR}/col_{common_name}/*.csr')[0]
+            copy(csr,PKI_DIR)
+        cert_name = splitext(csr)[0]
+        file_name = basename(cert_name)
 
-    csr_hash = output.stdout.split('=')[1]
+        output = vex(f'openssl sha256  '
+                      f'{file_name}.csr', workdir=PKI_DIR)
 
-    echo(f'The CSR Hash for file ' + 
-         style(f'{file_name}.csr', fg='green') +
-         ' = ' +
-         style(f'{csr_hash}', fg='red'))
+        csr_hash = output.stdout.split('=')[1]
 
-    if silent:
+        echo(f'The CSR Hash for file ' + 
+             style(f'{file_name}.csr', fg='green') +
+             ' = ' +
+             style(f'{csr_hash}', fg='red'))
 
-        sign_certificate(file_name)
-
-    else:
-
-        if confirm("Do you want to sign this certificate?"):
+        if silent:
 
             sign_certificate(file_name)
 
         else:
-            echo(style('Not signing certificate.', fg='red') +
-                ' Please check with this collaborator to get the correct certificate for this federation.')
+
+            if confirm("Do you want to sign this certificate?"):
+
+                sign_certificate(file_name)
+
+            else:
+                echo(style('Not signing certificate.', fg='red') +
+                    ' Please check with this collaborator to get the correct certificate for this federation.')
+                return
+
+        if len(common_name) == 0:
+            #If the collaborator name is provided, the collaborator and certificate does not need to be exported
+            return
+
+        archiveType = 'zip'
+        archiveName = f'agg_to_{file_name}_signed_cert'
+        archiveFileName = archiveName + '.' + archiveType
+
+        # Collaborator certificate signing request
+        tmpDir = join(mkdtemp(), 'fledge', archiveName)
+
+        ignore = ignore_patterns('__pycache__', '*.key', '*.srl', '*.pem')
+        copytree(f'{PKI_DIR}/{file_name}', f'{tmpDir}/{file_name}', ignore=ignore) # Copy the signed cert to the temporary directory
+        copy(f'{PKI_DIR}/cert_chain.crt', tmpDir) # Copy the CA certificate chain to the temporary directory
+
+        make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
+
+    else:
+        #Copy the signed certificate and cert chain into PKI_DIR
+        unpack_archive(import_, extract_dir=PKI_DIR)
+        crt = basename(glob(f'{PKI_DIR}/col_*/*.crt')[0])
+        echo(f"Certificate {crt} installed to PKI directory")
+

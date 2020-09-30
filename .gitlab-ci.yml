@@ -33,7 +33,7 @@ pages:
 hello_federation_keras:
     stage: test
     tags:
-    - shell-runner-2
+    - charlie
     before_script:
     - whoami
     - pwd
@@ -65,7 +65,7 @@ hello_federation_keras:
 hello_federation_pytorch:
   stage: test
   tags:
-  - shell-runner-2
+  - charlie
   before_script:
   - whoami
   - pwd

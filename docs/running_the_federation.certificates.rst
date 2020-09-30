@@ -43,7 +43,7 @@ Before you run the federation make sure you have activated a Python virtual envi
 
     .. code-block:: console
     
-       $ fx aggregator create --fqdn AFQDN
+       $ fx aggregator generate-cert-request --fqdn AFQDN
        
     .. note::
     
@@ -59,13 +59,13 @@ Before you run the federation make sure you have activated a Python virtual envi
    
       .. code-block:: console
     
-         $ fx aggregator create
+         $ fx aggregator generate-cert-request
        
 4. Run the aggregator certificate signing command, replacing **AFQDN** with the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ for the aggregator machine. 
 
     .. code-block:: console
     
-       $ fx aggregator certify --certificate_name cert/agg_AFQDN/agg_AFQDN.csr 
+       $ fx aggregator certify --fqdn AFQDN
 
 5. This node now has a signed security certificate as the aggreator for this new federation. You should have the following files.
 
@@ -112,43 +112,48 @@ Before you run the federation make sure you have activated a Python virtual envi
 
    where **WORKSPACE.zip** is the name of the workspace archive. This will unzip the workspace to the current directory and install the required Python packages within the current virtual environment.
    
-3. For each test machine you want to run collaborators on, we create a collaborator certificate, replacing **COL.LABEL** with the label you've assigned to this collaborator. Note that this does not have to be the FQDN. It can be any unique alphanumeric label. 
+3. For each test machine you want to run collaborators on, we create a collaborator certificate request to be signed by the certificate authority, replacing **COL.LABEL** with the label you've assigned to this collaborator. Note that this does not have to be the FQDN. It can be any unique alphanumeric label. 
 
     .. code-block:: console
     
-       $ fx collaborator create -n COL.LABEL
+       $ fx collaborator generate-cert-request -n COL.LABEL
 
 
    The creation script will also ask you to specify the path to the data. For the "Hello Federation" demo, simply enter the an integer that represents which shard of MNIST to use on this Collaborator (e.g. For the first Collaborator enter 1. For the second collaborator enter 2.)
 
    This will create the following 2 files:
-    +---------------------+-----------------------------------------------------+
-    | File Type           | Filename                                            |
-    +=====================+=====================================================+
-    | Collaborator CSR    | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.csr |
-    +---------------------+-----------------------------------------------------+
-    | Collaborator key    | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.key |
-    +---------------------+-----------------------------------------------------+
+    +------------------------------------------------------------------------------------+
+    | File Type                   | Filename                                             |
+    +=============================+======================================================+
+    | Collaborator CSR            | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.csr  |
+    +-----------------------------+------------------------------------------------------+
+    | Collaborator key            | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.key  |
+    +-----------------------------+------------------------------------------------------+
+    | Collaborator CSR Package    | WORKSPACE.PATH/col_COL.LABEL_to_agg_cert_request.zip |
+    +-----------------------------+------------------------------------------------------+
 
-    These 2 files will need to be sent to the certificate authority for them to be signed. In this "Hello Federation" demo, the certificate authority is the Aggregator node.
+
+    The Collaborator CSR Package files will need to be sent to the certificate authority to be signed. In this "Hello Federation" demo, the certificate authority is the Aggregator node.
        
 4. On the Aggregator node (i.e. the Certificate Authority for this demo), run the following command:
    
     .. code-block:: console
         
-       $ fx collaborator certify --certificate_name /PATH/TO/col_COL.LABEL.csr
+       $ fx collaborator certify --request-pkg /PATH/TO/col_COL.LABEL_to_agg_cert_request.zip
           
-   where **/PATH/TO/col_COL.LABEL.csr** is the path to the folder containing the :code:`.csr` and :code:`.key` files from the collaborator. The Certificate Authority will sign this certificate for use in the Federation.
+   where **/PATH/TO/col_COL.LABEL_to_agg_cert_request.zip** is the path to the package containing the :code:`.csr` file from the collaborator. The Certificate Authority will sign this certificate for use in the Federation.
 
-5. Once you have the certificates created, you need to move the certificate to back to the Collaborator node and it has the :code:`cert_chain.crt` needed to verify certificate signatures. For example, on a Collaborator node that was labeled **alpha123**, you should have:
+5. The previous command will package the signed collaborator certificate for transport back to the Collaborator node along with the :code:`cert_chain.crt` needed to verify certificate signatures. The only file needed to send back to the Collaborator node is the following:
 
-    +---------------------------+-----------------------------------------------------+
-    | File Type                 | Filename                                            |
-    +===========================+=====================================================+
-    | Certificate chain         | WORKSPACE.PATH/cert/cert_chain.crt                  |
-    +---------------------------+-----------------------------------------------------+
-    | Collaborator certificate  | WORKSPACE.PATH/cert/col_alpha123/col_alpha123.crt   |
-    +---------------------------+-----------------------------------------------------+
-    | Collaborator key          | WORKSPACE.PATH/cert/col_alpha123/col_alpha123.key   |
-    +---------------------------+-----------------------------------------------------+
+    +---------------------------------+----------------------------------------------------------+
+    | File Type                       | Filename                                                 |
+    +=================================+==========================================================+
+    | Certificate and Chain Package   | WORKSPACE.PATH/cert/agg_to_col_COL.LABEL_signed_cert.zip |
+    +---------------------------------+----------------------------------------------------------+
+
+5. Back on the Collaborator node, import the signed certificate and certificate chain into your workspace with this final command: 
+
+    .. code-block:: console
+        
+       $ fx collaborator certify --import /PATH/TO/col_COL.LABEL_to_agg_cert_request.zip
 

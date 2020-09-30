@@ -4,9 +4,8 @@
 
 TEMPLATE=${1:-'keras_cnn_mnist'}  # ['torch_cnn_mnist', 'keras_cnn_mnist']
 FED_WORKSPACE=${2:-'fed_work12345alpha81671'}   # This can be whatever unique directory name you want
-COL1=${3:-'one123dragons'}  # This can be any unique label
-COL2=${4:-'beta34unicorns'} # This can be any unique label
-
+COL1=${3:-'one123dragons'}  # This can be any unique label (lowercase)
+COL2=${4:-'beta34unicorns'} # This can be any unique label (lowercase)
 
 FQDN=$(hostname --all-fqdns | awk '{print $1}')
 
@@ -25,13 +24,17 @@ create_collaborator() {
     cd ${COL_DIRECTORY}
     fx workspace import --archive ${FED_DIRECTORY}/${ARCHIVE_NAME} # Import the workspace to this collaborator
 
-    # Create collaborator certificate 
+    # Create collaborator certificate request
     cd ${COL_DIRECTORY}/${FED_WORKSPACE}
-    fx collaborator create -n ${COL} --silent # Remove '--silent' if you run this manually
+    fx collaborator generate-cert-request -n ${COL} --silent # Remove '--silent' if you run this manually
 
     # Sign collaborator certificate 
     cd ${FED_DIRECTORY}  # Move back to the Aggregator
-    fx collaborator certify --certificate_name ${COL_DIRECTORY}/${FED_WORKSPACE}/cert/col_${COL}/col_${COL}.csr --silent # Remove '--silent' if you run this manually
+    fx collaborator certify --request-pkg ${COL_DIRECTORY}/${FED_WORKSPACE}/col_${COL}_to_agg_cert_request.zip --silent # Remove '--silent' if you run this manually
+
+    #Import the signed certificate from the aggregator
+    cd ${COL_DIRECTORY}/${FED_WORKSPACE}
+    fx collaborator certify --import ${FED_DIRECTORY}/agg_to_col_${COL}_signed_cert.zip
 
 }
 
@@ -55,10 +58,10 @@ fx workspace certify
 fx workspace export
 
 # Create aggregator certificate
-fx aggregator create --fqdn ${FQDN}
+fx aggregator generate-cert-request --fqdn ${FQDN}
 
 # Sign aggregator certificate
-fx aggregator certify --certificate_name cert/agg_${FQDN}/agg_${FQDN}.csr --silent # Remove '--silent' if you run this manually
+fx aggregator certify --fqdn ${FQDN} --silent # Remove '--silent' if you run this manually
 
 # Create collaborator #1
 COL1_DIRECTORY=${FED_DIRECTORY}/${COL1}
@@ -69,11 +72,11 @@ COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
 create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY}
 
 # # Run the federation
-if cd ${FED_DIRECTORY} & fx aggregator start & cd ${COL1_DIRECTORY} & fx collaborator start -n ${COL1} & cd ${COL2_DIRECTORY} & fx collaborator start -n ${COL2} ; then
-   rm -rf ${FED_DIRECTORY}
-fi
-
-
-
-
-
+cd ${FED_DIRECTORY}
+fx aggregator start & 
+sleep 2 
+cd ${COL1_DIRECTORY}/${FED_WORKSPACE}
+fx collaborator start -n ${COL1} & 
+cd ${COL2_DIRECTORY}/${FED_WORKSPACE}
+fx collaborator start -n ${COL2}
+rm -rf ${FED_DIRECTORY}

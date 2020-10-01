@@ -119,21 +119,22 @@ Before you run the federation make sure you have activated a Python virtual envi
        $ fx collaborator generate-cert-request -n COL.LABEL
 
 
-   The creation script will also ask you to specify the path to the data. For the "Hello Federation" demo, simply enter the an integer that represents which shard of MNIST to use on this Collaborator (e.g. For the first Collaborator enter 1. For the second collaborator enter 2.)
+   The creation script will also ask you to specify the path to the data. For the "Hello Federation" demo, simply enter the an integer that represents which shard of MNIST to use on this Collaborator (e.g. For the first Collaborator enter 1. For the second collaborator enter 2.). 
+   
+   This will create the following 3 files:
 
-   This will create the following 2 files:
-    +------------------------------------------------------------------------------------+
+    +-----------------------------+------------------------------------------------------+
     | File Type                   | Filename                                             |
     +=============================+======================================================+
-    | Collaborator CSR            | WORKSPACE.PATH/cert/client/col_COL.LABEL.csr  |
+    | Collaborator CSR            | WORKSPACE.PATH/cert/client/col_COL.LABEL.csr         |
     +-----------------------------+------------------------------------------------------+
-    | Collaborator key            | WORKSPACE.PATH/cert/client/col_COL.LABEL.key  |
+    | Collaborator key            | WORKSPACE.PATH/cert/client/col_COL.LABEL.key         |
     +-----------------------------+------------------------------------------------------+
     | Collaborator CSR Package    | WORKSPACE.PATH/col_COL.LABEL_to_agg_cert_request.zip |
     +-----------------------------+------------------------------------------------------+
 
 
-    The Collaborator CSR Package files will need to be sent to the certificate authority to be signed. In this "Hello Federation" demo, the certificate authority is the Aggregator node.
+    Only the Collaborator CSR Package file needs to be sent to the certificate authority to be signed. In this "Hello Federation" demo, the certificate authority is the Aggregator node.
        
 4. On the Aggregator node (i.e. the Certificate Authority for this demo), run the following command:
    
@@ -148,7 +149,7 @@ Before you run the federation make sure you have activated a Python virtual envi
     +---------------------------------+----------------------------------------------------------+
     | File Type                       | Filename                                                 |
     +=================================+==========================================================+
-    | Certificate and Chain Package   | WORKSPACE.PATH/agg_to_col_COL.LABEL_signed_cert.zip |
+    | Certificate and Chain Package   | WORKSPACE.PATH/agg_to_col_COL.LABEL_signed_cert.zip      |
     +---------------------------------+----------------------------------------------------------+
 
 5. Back on the Collaborator node, import the signed certificate and certificate chain into your workspace with this final command: 

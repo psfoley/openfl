@@ -33,7 +33,7 @@ application code to use the `Intel SDK for SGX <https://software.intel.com/conte
 are reluctant to change their existing code.
 
 `Graphene <https://github.com/oscarlab/graphene>`_ is an
-open-source library OS that was created by Intel and its partners to
+open-source library OS (LibOS) that was created by Intel and its partners to
 provide developers an easy way to leverage SGX without the need
 to change their existing applications. Several commercial implementations
 of SGX-enabled LibOSes have been created by our partners, including
@@ -57,4 +57,4 @@ manifest file is specified, the command
 
 will use the pal_loader command to create the enclave from the
 manifest and run the web server (:code:`http`) within the enclave. No other
-modifications are needed for the httpd application.
+modifications are needed to protect the :code:`httpd` application with a SGX enclave.

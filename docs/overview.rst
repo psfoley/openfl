@@ -8,7 +8,6 @@ Overview
 .. toctree::
 
    overview.what_is_federated_learning
-
 .. only:: Intel
 
   .. toctree::
@@ -19,3 +18,5 @@ Overview
 
 
 .. figure:: images/hls_fl_graphic.png
+
+    A Federated Workflow example

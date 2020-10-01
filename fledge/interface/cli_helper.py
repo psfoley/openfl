@@ -37,6 +37,8 @@ def vex(command, workdir = '.', env = None, expectcode = 0):
 
         exit()
 
+    return r
+
 def tree(path):
 
     echo(f'+ {path}')

@@ -9,11 +9,9 @@ Installing
 .. toctree::
 
   install.initial
-
 .. only:: Intel
 
   .. toctree::
 
-     install.baremetal
      install.docker
      install.singularity

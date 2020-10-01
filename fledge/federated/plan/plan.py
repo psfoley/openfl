@@ -99,7 +99,12 @@ class Plan(object):
                     plan.config[section] = defaults
 
             plan.authorized_cols = Plan.Load(cols_config_path).get('collaborators', [])
-            plan.cols_data_paths = Plan.Load(data_config_path).get('collaborators', {})
+            #plan.cols_data_paths = Plan.Load(data_config_path).get('collaborators', {})
+
+            # TODO: Does this need to be a YAML file? Probably want to use key value as the plan hash
+            data_paths = Plan.Load(data_config_path)
+            if data_paths:
+                plan.cols_data_paths = data_paths.split(',', maxsplit=1)[1]
 
             if  resolve:
 
@@ -188,7 +193,7 @@ class Plan(object):
             self.config['network'][SETTINGS]['agg_addr']  = getfqdn()
 
         if  self.config['network'][SETTINGS]['agg_port'] == AUTO:
-            self.config['network'][SETTINGS]['agg_port']  = 1337 # int(self.hash[:8], 16) % (60999 - 49152) + 49152
+            self.config['network'][SETTINGS]['agg_port']  = int(self.hash[:8], 16) % (60999 - 49152) + 49152
 
     def get_assigner(self):
 
@@ -245,7 +250,7 @@ class Plan(object):
             SETTINGS : {}
         })
 
-        defaults[SETTINGS]['data_path'] = self.cols_data_paths[collaborator_name][self.data_group_name]
+        defaults[SETTINGS]['data_path'] = self.cols_data_paths #[collaborator_name][self.data_group_name]
 
         if  self.loader_ == None:
             self.loader_  = Plan.Build(**defaults)
@@ -293,8 +298,8 @@ class Plan(object):
         common_name = collaborator_name
 
         chain       = f'cert/cert_chain.crt'
-        certificate = f'cert/col_{common_name}/col_{common_name}.crt'
-        private_key = f'cert/col_{common_name}/col_{common_name}.key'
+        certificate = f'cert/client/col_{common_name}.crt'
+        private_key = f'cert/client/col_{common_name}.key'
 
         client_args = self.config['network'][SETTINGS]
 
@@ -314,8 +319,8 @@ class Plan(object):
         common_name = self.config['network'][SETTINGS]['agg_addr'].lower()
 
         chain       = f'cert/cert_chain.crt'
-        certificate = f'cert/agg_{common_name}/agg_{common_name}.crt'
-        private_key = f'cert/agg_{common_name}/agg_{common_name}.key'
+        certificate = f'cert/server/agg_{common_name}.crt'
+        private_key = f'cert/server/agg_{common_name}.key'
 
         server_args = self.config['network'][SETTINGS]
 

@@ -9,6 +9,7 @@ from tqdm import tqdm
 from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
 
 from .loader import DataLoader
+from math import ceil
 
 class PyTorchDataLoader(DataLoader):
     """

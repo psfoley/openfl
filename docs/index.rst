@@ -16,14 +16,14 @@ It enables organizations to collaborately train a
 model without sharing sensitive information with each other.
 
 There are basically two components in the library:
-the *collaborator* which uses local sensitive dataset to fine-tune
-the aggregated model and the *aggregator* which receives
-model updates from collaborators and distribute the aggregated
-models.
+the *collaborator* which uses local dataset to train
+a global model and the *aggregator* which receives
+model updates from collaborators and combines them to form 
+the global model.
 
 The *aggregator* is framework-anostic, while the *collaborator*
-can use any deep learning frameworks, such as Tensorflow or
-Pytorch.
+can use any deep learning frameworks, such as `Tensorflow <https://www.tensorflow.org/>`_ or
+`PyTorch <https://pytorch.org/>`_.
 
 |productName| is developed by Intel Labs and Intel Internet of Things Group.
 

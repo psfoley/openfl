@@ -48,11 +48,11 @@ def get_templates():
 
     return [d.name for d in WORKSPACE.glob('*') if d.is_dir() and d.name not in ['__pycache__', 'workspace']]
 
-@workspace.command()
+@workspace.command(name='create')
 @pass_context
 @option('--prefix',   required = True, help = 'Workspace name or path', type = ClickPath())
 @option('--template', required = True, type = Choice(get_templates()))
-def create(context, prefix, template):
+def create_(context, prefix, template):
     """Create federated learning workspace"""
 
     prefix   = Path(prefix)
@@ -65,14 +65,23 @@ def create(context, prefix, template):
     print_tree(prefix, level = 3)
 
 @workspace.command(name = 'export')
-@option('--include_certificates', required = False, help="Include PKI certificates", is_flag=True)
-def export_(include_certificates):
+@pass_context
+def export_(ctx):
     """Export federated learning workspace"""
 
     from shutil   import make_archive, copytree, ignore_patterns, rmtree
     from tempfile import mkdtemp
+    from glob     import glob
     from os       import getcwd
     from os.path  import basename, join
+    from plan     import FreezePlan
+
+    # TODO: Does this need to freeze all plans?
+    planFile = f'plan/plan.yaml'
+    try:
+        FreezePlan(planFile) 
+    except:
+        echo(f'Plan file "{planFile}" not found. No freeze performed.')
 
     requirements_filename = f'requirements.txt'
 
@@ -88,29 +97,30 @@ def export_(include_certificates):
     # Aggregator workspace
     tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
-    if include_certificates:
-        echo(style(f'WARNING:', fg='red', blink=True) + f' Including PKI certificates in export. This could be a security risk.')
-        ignore = ignore_patterns('__pycache__')
-    else:
-        ignore = ignore_patterns('__pycache__', 'cert')
-
+    ignore = ignore_patterns('__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem')
     copytree('.', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
+    rmtree(f'{tmpDir}/cert/ca', ignore_errors=True) # Remove the certificate authority directory
+
+    for d in glob(f'{tmpDir}/cert/agg_*'):
+        rmtree(d, ignore_errors=True) # Remove the aggregator certificates directory
+    for d in glob(f'{tmpDir}/cert/col_*'):
+        rmtree(d, ignore_errors=True) # Remove the collaborators certificates directory
 
     make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
 
     echo(f'Workspace exported to archive: {archiveFileName}')
 
 @workspace.command(name = 'import')
-@option('--file',   required = True, help = 'Zip file containing workspace to import', type = ClickPath(exists=True))
-def import_(file):
+@option('--archive', required = True, help = 'Zip file containing workspace to import', type = ClickPath(exists=True))
+def import_(archive):
     """Import federated learning workspace"""
 
     from shutil   import unpack_archive
     from os.path  import isfile, basename
     from os       import chdir
     
-    dirPath = basename(file).split('.')[0]
-    unpack_archive(file, extract_dir=dirPath)
+    dirPath = basename(archive).split('.')[0]
+    unpack_archive(archive, extract_dir=dirPath)
     chdir(dirPath)
 
     requirements_filename = "requirements.txt"
@@ -120,13 +130,12 @@ def import_(file):
     else:
         echo("No " + requirements_filename + " file found.")
 
-    echo(f'Workspace {file} has been imported.')
+    echo(f'Workspace {archive} has been imported.')
     echo(f'You may need to copy your PKI certificates to join the federation.')
 
-
-@workspace.command()
+@workspace.command(name='certify')
 @pass_context
-def certify(context):
+def certify_(context):
     '''Create certificate authority for federation'''
 
     echo('Setting Up Certificate Authority...\n')

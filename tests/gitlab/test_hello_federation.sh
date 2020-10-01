@@ -1,5 +1,4 @@
-#!/bin/bash
-
+set -e
 # Test the pipeline
 
 TEMPLATE=${1:-'keras_cnn_mnist'}  # ['torch_cnn_mnist', 'keras_cnn_mnist']

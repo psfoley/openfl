@@ -102,6 +102,17 @@ def end(context, result, **kwargs):
 def help(context, subcommand):
     pass
 
+def error_handler(error):
+    if 'cannot import' in str(error):
+        if 'TensorFlow' in str(error):
+            echo(style(f'EXCEPTION', fg = 'red', bold = True) + ' : ' + style(f'Tensorflow must be installed prior to running this command', fg = 'red'))
+        if 'PyTorch' in str(error):
+            echo(style(f'EXCEPTION', fg = 'red', bold = True) + ' : ' + style(f'Torch must be installed prior to running this command', fg = 'red'))
+    echo(style(f'EXCEPTION', fg = 'red', bold = True) + ' : ' + style(f'{error}', fg = 'red'))
+    raise error
+
+
+
 def entry():
 
     from glob      import glob
@@ -136,8 +147,9 @@ def entry():
     try:
         cli()
     except Exception as e:
-        echo(style(f'EXCEPTION', fg = 'red', bold = True) + ' : ' + style(f'{e}', fg = 'red'))
-        raise e
+        error_handler(e)
+        #echo(style(f'EXCEPTION', fg = 'red', bold = True) + ' : ' + style(f'{e}', fg = 'red'))
+        #raise e
 
 if  __name__ == '__main__':
     

@@ -22,6 +22,11 @@ class TensorFlowMNISTInMemory(TensorFlowDataLoader):
 
         super().__init__(batch_size, **kwargs)
 
+        # TODO: We should be downloading the dataset shard into a directory
+        # TODO: There needs to be a method to ask how many collaborators and what index/rank is this collaborator.
+        # Then we have a way to automatically shard based on rank and size of collaborator list.
+        data_path = 1 # Hard-coding this for now to ignore path in plan, but update me once we have rank/size metrics
+
         _, num_classes, X_train, y_train, X_valid, y_valid = load_mnist_shard(shard_num = data_path, **kwargs)
 
         self.X_train = X_train

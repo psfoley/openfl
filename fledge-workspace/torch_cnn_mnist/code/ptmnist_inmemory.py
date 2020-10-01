@@ -1,11 +1,11 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-from data import load_mnist_shard
-from data.pytorch.ptfldata_inmemory import PyTorchFLDataInMemory
+from .mnist_utils import load_mnist_shard
+from fledge.federated import PyTorchDataLoader
 
 
-class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
+class PyTorchMNISTInMemory(PyTorchDataLoader):
     """PyTorch data loader for MNIST dataset
     """
 
@@ -19,16 +19,19 @@ class PyTorchMNISTInMemory(PyTorchFLDataInMemory):
         """
         super().__init__(batch_size, **kwargs)
 
-        _, num_classes, X_train, y_train, X_val, y_val = load_mnist_shard(shard_num=data_path, **kwargs)
+        # TODO: We should be downloading the dataset shard into a directory
+        # TODO: There needs to be a method to ask how many collaborators and what index/rank is this collaborator.
+        # Then we have a way to automatically shard based on rank and size of collaborator list.
+        data_path = 1 # Hard-coding this for now to ignore the data path in plan, but update me once we have rank/size metrics
 
-        self.training_data_size = len(X_train)
-        self.validation_data_size = len(X_val)
-        self.num_classes = num_classes
-        self.train_loader = self.create_loader(X=X_train, y=y_train, shuffle=True)
-        self.val_loader = self.create_loader(X=X_val, y=y_val, shuffle=False)
-    
-    
+        num_classes, X_train, y_train, X_valid, y_valid = load_mnist_shard(shard_num=data_path, **kwargs)
 
-
-
+        self.X_train = X_train
+        self.y_train = y_train
+        self.train_loader = self.get_train_loader()
         
+        self.X_valid = X_valid
+        self.y_valid = y_valid
+        self.val_loader = self.get_valid_loader()
+
+        self.num_classes = num_classes

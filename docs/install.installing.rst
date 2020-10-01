@@ -9,7 +9,6 @@ Installing
 .. toctree::
 
   install.initial
-
 .. only:: Intel
 
   .. toctree::

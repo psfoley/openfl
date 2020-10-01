@@ -99,8 +99,7 @@ Exporting the Workspace
 On the Collaborator Nodes
 #########################
 
-Before you run the federation make sure you have activated a Python virtual environment (e.g. :code:`conda activate`) and installed the |productName| package
-:ref:`using these instructions <install_initial_steps>`.
+Before you run the federation make sure you have activated a Python virtual environment (e.g. :code:`conda activate`) and installed the |productName| package :ref:`using these instructions <install_initial_steps>`.
 
 1. Make sure you have copied the :ref:`workspace archive <workspace_export>` (:code:`.zip`) from the aggregator node to the collaborator node.
 
@@ -152,7 +151,7 @@ Before you run the federation make sure you have activated a Python virtual envi
     | Certificate and Chain Package   | WORKSPACE.PATH/agg_to_col_COL.LABEL_signed_cert.zip      |
     +---------------------------------+----------------------------------------------------------+
 
-5. Back on the Collaborator node, import the signed certificate and certificate chain into your workspace with this final command: 
+6. Back on the Collaborator node, import the signed certificate and certificate chain into your workspace with this final command: 
 
     .. code-block:: console
         

@@ -298,8 +298,8 @@ class Plan(object):
         common_name = collaborator_name
 
         chain       = f'cert/cert_chain.crt'
-        certificate = f'cert/col_{common_name}/col_{common_name}.crt'
-        private_key = f'cert/col_{common_name}/col_{common_name}.key'
+        certificate = f'cert/client/col_{common_name}.crt'
+        private_key = f'cert/client/col_{common_name}.key'
 
         client_args = self.config['network'][SETTINGS]
 
@@ -319,8 +319,8 @@ class Plan(object):
         common_name = self.config['network'][SETTINGS]['agg_addr'].lower()
 
         chain       = f'cert/cert_chain.crt'
-        certificate = f'cert/agg_{common_name}/agg_{common_name}.crt'
-        private_key = f'cert/agg_{common_name}/agg_{common_name}.key'
+        certificate = f'cert/server/agg_{common_name}.crt'
+        private_key = f'cert/server/agg_{common_name}.key'
 
         server_args = self.config['network'][SETTINGS]
 

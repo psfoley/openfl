@@ -100,14 +100,16 @@ def generate_cert_request_(context, collaborator_name, silent, skip_package):
 
     echo(f'  Moving COLLABORATOR certificate to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
 
-    (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
-    (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'{file_name}' / f'{file_name}.csr')
-    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
+    (PKI_DIR / f'client').mkdir(parents = True, exist_ok = True)
+    (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'client' / f'{file_name}.csr')
+    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'client' / f'{file_name}.key')
 
     if not skip_package:
         from shutil   import make_archive, copytree, ignore_patterns
         from tempfile import mkdtemp
         from os.path  import join
+        from os       import remove
+        from glob     import glob
 
         archiveType = 'zip'
         archiveName = f'col_{common_name}_to_agg_cert_request'
@@ -117,7 +119,11 @@ def generate_cert_request_(context, collaborator_name, silent, skip_package):
         tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
         ignore = ignore_patterns('__pycache__', '*.key', '*.srl', '*.pem')
-        copytree(f'cert/col_{common_name}', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
+        copytree(f'cert/client', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
+
+        for f in glob(f'{tmpDir}/{PKI_DIR}/client'):
+            if common_name not in f:
+                remove(f)
 
         make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
 
@@ -191,13 +197,13 @@ def sign_certificate(file_name):
         f'-extensions server_ext '
         f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
 
-    echo(f'  Moving COLLABORATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
+    echo(f'  Moving COLLABORATOR certificate key pair to: ' + style(f'{PKI_DIR}/client', fg = 'green'))
 
-    (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
-    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+    (PKI_DIR / f'client').mkdir(parents = True, exist_ok = True)
+    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'client' / f'{file_name}.crt')
     (PKI_DIR / f'{file_name}.csr').unlink()
 
-    RegisterCollaborator(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+    RegisterCollaborator(PKI_DIR / f'client' / f'{file_name}.crt')
 
 @collaborator.command(name='certify')
 @pass_context
@@ -227,7 +233,7 @@ def certify_(context, collaborator_name, silent, request_pkg, import_):
             if len(common_name) == 0:
                 echo(f'collaborator_name must be set for single node experiments')
                 return
-            csr = glob(f'{PKI_DIR}/col_{common_name}/*.csr')[0]
+            csr = glob(f'{PKI_DIR}/client/col_{common_name}.csr')[0]
             copy(csr,PKI_DIR)
         cert_name = splitext(csr)[0]
         file_name = basename(cert_name)
@@ -269,14 +275,17 @@ def certify_(context, collaborator_name, silent, request_pkg, import_):
         tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
         ignore = ignore_patterns('__pycache__', '*.key', '*.srl', '*.pem')
-        copytree(f'{PKI_DIR}/{file_name}', f'{tmpDir}/{file_name}', ignore=ignore) # Copy the signed cert to the temporary directory
+        Path(f'{tmpDir}/client').mkdir(parents=True, exist_ok = True)
+        copy(f'{PKI_DIR}/client/{file_name}.crt', f'{tmpDir}/client/') # Copy the signed cert to the temporary directory
         copy(f'{PKI_DIR}/cert_chain.crt', tmpDir) # Copy the CA certificate chain to the temporary directory
 
         make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
 
     else:
         #Copy the signed certificate and cert chain into PKI_DIR
+        previous_crts = glob(f'{PKI_DIR}/client/*.crt')
         unpack_archive(import_, extract_dir=PKI_DIR)
-        crt = basename(glob(f'{PKI_DIR}/col_*/*.crt')[0])
+        updated_crts = glob(f'{PKI_DIR}/client/*.crt')
+        crt = basename(list(set(updated_crts)-set(previous_crts))[0])
         echo(f"Certificate {crt} installed to PKI directory")
 

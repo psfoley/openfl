@@ -41,8 +41,6 @@ setup(
         'tqdm',
         'nibabel',
         'scikit-learn',
-        'tensorflow==1.15',
-        'torch>=1.2.0'
     ],
     entry_points = {
         'console_scripts' : ['fx=fledge.interface.cli:entry']

@@ -5,13 +5,18 @@
 Base classes for developing a ke.Model() Federated Learning model.
 You may copy this file as the starting point of your own keras model.
 """
+from warnings import catch_warnings, simplefilter
+    
+with catch_warnings():
+    simplefilter(action = 'ignore')
+    import tensorflow.compat.v1        as tf
+    tf.disable_v2_behavior()
+    import tensorflow.compat.v1.keras  as ke
 
-import numpy                       as np
-import tensorflow.compat.v1        as tf
-tf.disable_v2_behavior()
-import tensorflow.compat.v1.keras  as ke
+    from tensorflow.compat.v1.keras import backend as K
 
-from tensorflow.compat.v1.keras import backend as K
+import numpy          as np
+
 from tqdm             import tqdm
 
 from fledge.utilities import TensorKey,split_tensor_dict_for_holdouts
@@ -415,3 +420,4 @@ class KerasTaskRunner(TaskRunner):
                 [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in validation_global_model_dict]
         self.required_tensorkeys_for_function['validate']['apply=global'] += \
                 [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in validation_local_model_dict]
+

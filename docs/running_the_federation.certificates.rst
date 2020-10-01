@@ -74,9 +74,9 @@ Before you run the federation make sure you have activated a Python virtual envi
     +===========================+==================================================+
     | Certificate chain         | WORKSPACE.PATH/cert/cert_chain.crt               |
     +---------------------------+--------------------------------------------------+
-    | Aggregator certificate    | WORKSPACE.PATH/cert/agg_AFQDN/agg_AFQDN.crt    |
+    | Aggregator certificate    | WORKSPACE.PATH/cert/server/agg_AFQDN.crt    |
     +---------------------------+--------------------------------------------------+
-    | Aggregator key            | WORKSPACE.PATH/cert/agg_AFQDN/agg_AFQDN.key    |
+    | Aggregator key            | WORKSPACE.PATH/cert/server/agg_AFQDN.key    |
     +---------------------------+--------------------------------------------------+
     
     where **AFQDN** is the fully-qualified domain name of the aggregator node.
@@ -125,9 +125,9 @@ Before you run the federation make sure you have activated a Python virtual envi
     +------------------------------------------------------------------------------------+
     | File Type                   | Filename                                             |
     +=============================+======================================================+
-    | Collaborator CSR            | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.csr  |
+    | Collaborator CSR            | WORKSPACE.PATH/cert/client/col_COL.LABEL.csr  |
     +-----------------------------+------------------------------------------------------+
-    | Collaborator key            | WORKSPACE.PATH/cert/col_COL.LABEL/col_COL.LABEL.key  |
+    | Collaborator key            | WORKSPACE.PATH/cert/client/col_COL.LABEL.key  |
     +-----------------------------+------------------------------------------------------+
     | Collaborator CSR Package    | WORKSPACE.PATH/col_COL.LABEL_to_agg_cert_request.zip |
     +-----------------------------+------------------------------------------------------+
@@ -148,7 +148,7 @@ Before you run the federation make sure you have activated a Python virtual envi
     +---------------------------------+----------------------------------------------------------+
     | File Type                       | Filename                                                 |
     +=================================+==========================================================+
-    | Certificate and Chain Package   | WORKSPACE.PATH/cert/agg_to_col_COL.LABEL_signed_cert.zip |
+    | Certificate and Chain Package   | WORKSPACE.PATH/agg_to_col_COL.LABEL_signed_cert.zip |
     +---------------------------------+----------------------------------------------------------+
 
 5. Back on the Collaborator node, import the signed certificate and certificate chain into your workspace with this final command: 

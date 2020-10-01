@@ -48,11 +48,11 @@ def generate_cert_request_(context, fqdn):
         f'-subj "/CN={common_name}" '
         f'-out {file_name}.csr -keyout {file_name}.key', workdir = PKI_DIR, env = {'SAN': subject_alternative_name})
 
-    echo(f'  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
+    echo(f'  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/server', fg = 'green'))
     
-    (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
-    (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'{file_name}' / f'{file_name}.csr')
-    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'{file_name}' / f'{file_name}.key')
+    (PKI_DIR / f'server').mkdir(parents = True, exist_ok = True)
+    (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / f'server' / f'{file_name}.csr')
+    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / f'server' / f'{file_name}.key')
     
 def findCertificateName(file_name):
     '''Searches the CRT for the actual aggregator name
@@ -77,10 +77,10 @@ def sign_certificate(file_name):
         f'-extensions server_ext '
         f'-in {file_name}.csr -out {file_name}.crt', workdir = PKI_DIR)
 
-    echo(f'  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/{file_name}', fg = 'green'))
+    echo(f'  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/server', fg = 'green'))
 
-    (PKI_DIR / f'{file_name}').mkdir(parents = True, exist_ok = True)
-    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'{file_name}' / f'{file_name}.crt')
+    (PKI_DIR / f'server').mkdir(parents = True, exist_ok = True)
+    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / f'server' / f'{file_name}.crt')
     (PKI_DIR / f'{file_name}.csr').unlink()
 
 @aggregator.command(name='certify')
@@ -97,7 +97,7 @@ def certify_(context, fqdn, silent):
 
     common_name              = f'{fqdn}'.lower()
     file_name                = f'agg_{common_name}'
-    cert_name                = f'{file_name}/{file_name}'
+    cert_name                = f'server/{file_name}'
 
     # Copy PKI to cert directory
     # TODO:  Circle back to this. Not sure if we need to copy the file or if we can call it directly from openssl

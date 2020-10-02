@@ -13,8 +13,6 @@ Here's the :download:`"Hello Federation" bash script <../tests/gitlab/test_hello
 
 .. include:: ../tests/gitlab/test_hello_federation.sh
 
-   :code: bash
-
 
 Hello Federation - Your First Federated Learning Training
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -32,14 +32,13 @@ setup(
     include_package_data = True,
     install_requires = [
         'Click>=7.0',
-        'PyYAML>=5.1',
+        'PyYAML',
         'numpy',
         'pandas',
         'protobuf',
         'grpcio',
         'rich',
         'tqdm',
-        'nibabel',
         'scikit-learn',
     ],
     entry_points = {

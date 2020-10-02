@@ -102,9 +102,12 @@ class Plan(object):
             #plan.cols_data_paths = Plan.Load(data_config_path).get('collaborators', {})
 
             # TODO: Does this need to be a YAML file? Probably want to use key value as the plan hash
-            data_paths = Plan.Load(data_config_path)
-            if data_paths:
-                plan.cols_data_paths = data_paths.split(',', maxsplit=1)[1]
+            plan.cols_data_paths = {}
+            if data_config_path is not None:
+                data_config = open(data_config_path, "r")
+                for line in data_config:
+                    collab,data_path = line.split(',')
+                    plan.cols_data_paths[collab] = data_path
 
             if  resolve:
 
@@ -250,7 +253,7 @@ class Plan(object):
             SETTINGS : {}
         })
 
-        defaults[SETTINGS]['data_path'] = self.cols_data_paths #[collaborator_name][self.data_group_name]
+        defaults[SETTINGS]['data_path'] = self.cols_data_paths[collaborator_name] #[collaborator_name][self.data_group_name]
 
         if  self.loader_ == None:
             self.loader_  = Plan.Build(**defaults)

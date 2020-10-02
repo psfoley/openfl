@@ -40,7 +40,7 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
     #     if  cols_config is None:
     #         exit('You must specify either a feature shape or authorized collaborator list in order for the script to determine the input layer shape')
 
-    #     collaborator_cname = plan.authorized_cols[0]
+    collaborator_cname = plan.authorized_cols[0]
 
     # else:
 
@@ -50,8 +50,8 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
     # data_loader = plan.get_data_loader(collaborator_cname)
     # task_runner = plan.get_task_runner(collaborator_cname)
 
-    data_loader = plan.get_data_loader('default')
-    task_runner = plan.get_task_runner('default')
+    data_loader = plan.get_data_loader(collaborator_cname)
+    task_runner = plan.get_task_runner(collaborator_cname)
     tensor_pipe = plan.get_tensor_pipe()
 
     tensor_dict_split_fn_kwargs = task_runner.tensor_dict_split_fn_kwargs or {}

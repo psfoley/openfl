@@ -95,7 +95,7 @@ def _load_raw_datashards(shard_num, collaborator_count):
     return (X_train, y_train), (X_valid, y_valid)
 
 
-def load_histology_shard(shard_num, collaborator_count, categorical = True, channels_last = False, **kwargs):
+def load_histology_shard(shard_num, collaborator_count, categorical = False, channels_last = False, **kwargs):
     """
     Load the Histology dataset.
 

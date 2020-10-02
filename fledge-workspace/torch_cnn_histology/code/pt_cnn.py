@@ -15,21 +15,6 @@ import torch.optim as optim
 from fledge.federated import PyTorchTaskRunner
 from fledge.utilities import TensorKey,split_tensor_dict_for_holdouts
 
-def cross_entropy(output, target):
-    """Binary cross-entropy metric
-
-    Args:
-        output: The mode prediction
-        target: The target (ground truth label)
-
-    Returns:
-        Binary cross-entropy with logits
-
-    """
-    return F.binary_cross_entropy_with_logits(input=output, target=target)
-
-
-
 class PyTorchCNN(PyTorchTaskRunner):
     """Simple CNN for classification.
     """
@@ -45,7 +30,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         self.num_classes = self.data_loader.num_classes
         self.init_network(device=self.device, **kwargs)
         self._init_optimizer(lr=kwargs.get('lr'))
-        self.loss_fn = cross_entropy
+        self.loss_fn = nn.CrossEntropyLoss()
         self.set_logger()
         self.initialize_tensorkeys_for_functions()
 
@@ -112,7 +97,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         x = maxpool.flatten(start_dim=1)
         x = F.dropout(self.fc1(x), p=0.5)
         x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        return x
 
     def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
         """Validate
@@ -144,11 +129,10 @@ class PyTorchCNN(PyTorchTaskRunner):
             for data, target in loader:
                 samples = target.shape[0]
                 total_samples += samples
-                data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device, dtype=torch.int64)
+                data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device)
                 output = self(data)
-                pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
-                target_categorical = target.argmax(dim=1, keepdim=True)
-                val_score += pred.eq(target_categorical).sum().cpu().numpy()
+                pred = output.argmax(dim=1) # get the index of the max log-probability
+                val_score += pred.eq(target).sum().cpu().numpy()
 
         origin = col_name
         suffix = 'validate'
@@ -191,10 +175,10 @@ class PyTorchCNN(PyTorchTaskRunner):
             loader = tqdm.tqdm(loader, desc="train epoch")
             # shuffling occurs every time this loader is used as an interator
             for data, target in loader:
-                data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device, dtype=torch.float32)
+                data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device)
                 self.optimizer.zero_grad()
                 output = self(data)
-                loss = self.loss_fn(output=output, target=target)
+                loss = self.loss_fn(output, target)
                 loss.backward()
                 self.optimizer.step()
                 losses.append(loss.detach().cpu().numpy())
@@ -202,7 +186,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         #Output metric tensors (scalar)
         origin = col_name
         tags = ('trained',)
-        output_metric_dict = {TensorKey(self.loss_fn.__name__,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
+        output_metric_dict = {TensorKey(self.loss_fn.__class__.__name__,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
 
         #output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)

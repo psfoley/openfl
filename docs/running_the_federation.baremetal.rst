@@ -11,8 +11,8 @@ TL;DR
 
 Here's the :download:`"Hello Federation" bash script <../tests/gitlab/test_hello_federation.sh>` used for testing the project pipeline.
 
-.. include:: ../tests/gitlab/test_hello_federation.sh
-   :code:
+.. literalinclude:: ../tests/gitlab/test_hello_federation.sh
+  :language: bash
 
 
 Hello Federation - Your First Federated Learning Training

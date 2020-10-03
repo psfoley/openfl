@@ -99,15 +99,17 @@ class Plan(object):
                     plan.config[section] = defaults
 
             plan.authorized_cols = Plan.Load(cols_config_path).get('collaborators', [])
-            #plan.cols_data_paths = Plan.Load(data_config_path).get('collaborators', {})
 
             # TODO: Does this need to be a YAML file? Probably want to use key value as the plan hash
             plan.cols_data_paths = {}
             if data_config_path is not None:
                 data_config = open(data_config_path, "r")
                 for line in data_config:
-                    collab,data_path = line.split(',')
-                    plan.cols_data_paths[collab] = data_path
+                    line = line.rstrip()
+                    if len(line) > 0:
+                        if line[0] !='#': 
+                            collab,data_path = line.split(',')
+                            plan.cols_data_paths[collab] = data_path
 
             if  resolve:
 

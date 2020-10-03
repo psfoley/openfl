@@ -14,7 +14,7 @@ create_collaborator() {
     FED_DIRECTORY=$2
     COL=$3
     COL_DIRECTORY=$4
-    SHARD_NUM=$5
+    DATA_PATH=$5
 
     ARCHIVE_NAME="${FED_WORKSPACE}.zip"
 
@@ -26,7 +26,7 @@ create_collaborator() {
 
     # Create collaborator certificate request
     cd ${COL_DIRECTORY}/${FED_WORKSPACE}
-    fx collaborator generate-cert-request -d ${SHARD_NUM} -n ${COL} --silent # Remove '--silent' if you run this manually
+    fx collaborator generate-cert-request -d ${DATA_PATH} -n ${COL} --silent # Remove '--silent' if you run this manually
 
     # Sign collaborator certificate 
     cd ${FED_DIRECTORY}  # Move back to the Aggregator
@@ -51,6 +51,9 @@ FED_DIRECTORY=`pwd`  # Get the absolute directory path for the workspace
 # Create certificate authority for workspace
 fx workspace certify
 
+# Initialize FL plan
+fx plan initialize -a ${FQDN}
+
 # Export FL workspace
 fx workspace export
 
@@ -68,8 +71,6 @@ create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} 
 COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
 create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} 2
 
-# Initialize FL plan
-fx plan initialize -a ${FQDN}
 
 # # Run the federation
 cd ${FED_DIRECTORY}

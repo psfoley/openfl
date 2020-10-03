@@ -39,8 +39,9 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
     # if  feature_shape is None:
     #     if  cols_config is None:
     #         exit('You must specify either a feature shape or authorized collaborator list in order for the script to determine the input layer shape')
+    print(plan.cols_data_paths)
 
-    collaborator_cname = plan.authorized_cols[0]
+    collaborator_cname = list(plan.cols_data_paths)[0]
 
     # else:
 

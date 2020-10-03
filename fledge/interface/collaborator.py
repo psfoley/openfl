@@ -33,23 +33,27 @@ def start_(context, plan, collaborator_name, data_config, secure):
 
     plan.get_collaborator(collaborator_name).run()
 
-def RegisterDataPath(plan_name, silent=False):
+def RegisterDataPath(collaborator_name, data_path=None, silent=False):
     '''Register dataset path in the plan/data.yaml file
 
     Args:
-        plan_name (str): Name of the plan file
-        silent (bool)  : Silent operation (don't prompt)
+        collaborator_name (str): The collaborator whose data path to be defined
+        data_path (str)        : Data path (optional)
+        silent (bool)          : Silent operation (don't prompt)
          
     '''
 
     from click import prompt
+    from os.path  import isfile
 
     # Ask for the data directory
-    default_data_path = f'data/{plan_name}'
-    if not silent:
-        dirPath = prompt(f'\nWhere is the data directory for this collaborator in plan ' +
-                        style(f'{plan_name}', fg='green') +
+    default_data_path = f'data/{collaborator_name}'
+    if not silent and data_path is None:
+        dirPath = prompt(f'\nWhere is the data (or what is the rank) for collaborator ' +
+                        style(f'{collaborator_name}', fg='green') +
                         ' ? ', default=default_data_path)
+    elif data_path is not None:
+        dirPath = data_path
     else:
         dirPath = default_data_path  # TODO: Need to figure out the default for this.
 
@@ -57,13 +61,14 @@ def RegisterDataPath(plan_name, silent=False):
     d = {}
     data_yaml = 'plan/data.yaml'
     separator = ','
-    with open(data_yaml, 'r') as f:
-        for line in f:
-            if separator in line:
-                key, val = line.split(separator, maxsplit=1)
-                d[key] = val.strip()
+    if isfile(data_yaml):
+      with open(data_yaml, 'r') as f:
+          for line in f:
+              if separator in line:
+                  key, val = line.split(separator, maxsplit=1)
+                  d[key] = val.strip()
 
-    d[plan_name] = dirPath
+    d[collaborator_name] = dirPath
 
     # Write the data.yaml
     with open(data_yaml, 'w') as f:
@@ -73,9 +78,10 @@ def RegisterDataPath(plan_name, silent=False):
 @collaborator.command(name='generate-cert-request')
 @pass_context
 @option('-n', '--collaborator_name', required = True,  help = 'The certified common name of the collaborator')
+@option('-d', '--data_path', help = 'The data path to be associated with the collaborator')
 @option('-s', '--silent', help = 'Do not prompt', is_flag=True)
 @option('-x', '--skip-package', help = 'Do not package the certificate signing request for export', is_flag=True)
-def generate_cert_request_(context, collaborator_name, silent, skip_package):
+def generate_cert_request_(context, collaborator_name, data_path, silent, skip_package):
     '''Create collaborator certificate key pair, then create a package with the CSR to send for signing'''
 
     common_name              = f'{collaborator_name}'.lower()
@@ -130,7 +136,7 @@ def generate_cert_request_(context, collaborator_name, silent, skip_package):
         echo(f'Archive {archiveFileName} with certificate signing request created')
         echo(f'This file should be sent to the certificate authority (typically hosted by the aggregator) for signing')
 
-    RegisterDataPath(f'default', silent=silent)  # TODO: Is there a way to figure out the plan name automatically? Or do we have a new function for adding new paths for different plans?
+    RegisterDataPath(common_name, data_path=data_path, silent=silent) #TODO: There should be some association with the plan made here as well
 
 def findCertificateName(file_name):
     '''Searches the CRT for the actual collaborator name

@@ -3,11 +3,11 @@
 
 from fledge.federated import TensorFlowDataLoader
 
-from .mnist_utils import load_mnist_shard
+from .tfds_utils import load_histology_shard
 
-class TensorFlowMNISTInMemory(TensorFlowDataLoader):
+class TensorFlowHistologyInMemory(TensorFlowDataLoader):
     """
-    TensorFlow Data Loader for MNIST Dataset
+    TensorFlow Data Loader for Colorectal Histology Dataset
     """
 
     def __init__(self, data_path, batch_size, **kwargs):
@@ -22,11 +22,7 @@ class TensorFlowMNISTInMemory(TensorFlowDataLoader):
 
         super().__init__(batch_size, **kwargs)
 
-        # TODO: We should be downloading the dataset shard into a directory
-        # TODO: There needs to be a method to ask how many collaborators and what index/rank is this collaborator.
-        # Then we have a way to automatically shard based on rank and size of collaborator list.
-
-        _, num_classes, X_train, y_train, X_valid, y_valid = load_mnist_shard(shard_num = int(data_path), **kwargs)
+        _, num_classes, X_train, y_train, X_valid, y_valid = load_histology_shard(shard_num = data_path, categorical=False, **kwargs)
 
         self.X_train = X_train
         self.y_train = y_train

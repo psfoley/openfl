@@ -1,8 +1,9 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-import numpy      as np
-import tensorflow as tf
+import numpy             as np
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 from tqdm import tqdm
 
@@ -185,7 +186,7 @@ class TensorFlowTaskRunner(TaskRunner):
 
         score = 0
 
-        gen = self.data_loader.get_val_loader(batch_size)
+        gen = self.data_loader.get_valid_loader(batch_size)
         if  use_tqdm:
             gen = tqdm.tqdm(gen, desc="validating")
 

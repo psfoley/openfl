@@ -38,8 +38,8 @@ def create_temp(context, prefix, template):
 
     echo(f'Creating Workspace Templates')
 
-    copytree(src = WORKSPACE / template / 'code', dst = prefix / 'code', dirs_exist_ok = True, ignore = ignore_patterns('__pycache__')) # from template workspace
-    copytree(src = WORKSPACE / template / 'plan', dst = prefix / 'plan', dirs_exist_ok = True, ignore = ignore_patterns('__pycache__')) # from template workspace
+    copytree(src = WORKSPACE / template , dst = prefix , dirs_exist_ok = True, ignore = ignore_patterns('__pycache__')) # from template workspace
+
 
 def get_templates():
     """
@@ -55,6 +55,8 @@ def get_templates():
 def create_(context, prefix, template):
     """Create federated learning workspace"""
 
+    from os.path  import isfile
+
     prefix   = Path(prefix)
     template = Path(template)
 
@@ -62,16 +64,22 @@ def create_(context, prefix, template):
     create_cert(context, prefix)
     create_temp(context, prefix, template)
 
+    requirements_filename = "requirements.txt"
+
+    if isfile(f'{str(prefix)}/{requirements_filename}'):
+        check_call([executable, "-m", "pip", "install", "-r", f"{prefix}/requirements.txt"])
+    else:
+        echo("No additional requirements for workspace defined. Skipping...")
+
     print_tree(prefix, level = 3)
 
 @workspace.command(name = 'export')
 @pass_context
-def export_(ctx):
+def export_(context):
     """Export federated learning workspace"""
 
     from shutil   import make_archive, copytree, ignore_patterns, rmtree
     from tempfile import mkdtemp
-    from glob     import glob
     from os       import getcwd
     from os.path  import basename, join
     from plan     import FreezePlan
@@ -99,12 +107,10 @@ def export_(ctx):
 
     ignore = ignore_patterns('__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem')
     copytree('.', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
-    rmtree(f'{tmpDir}/cert/ca', ignore_errors=True) # Remove the certificate authority directory
 
-    for d in glob(f'{tmpDir}/cert/agg_*'):
-        rmtree(d, ignore_errors=True) # Remove the aggregator certificates directory
-    for d in glob(f'{tmpDir}/cert/col_*'):
-        rmtree(d, ignore_errors=True) # Remove the collaborators certificates directory
+    rmtree(f'{tmpDir}/cert/ca', ignore_errors=True) # Remove the certificate authority directory
+    rmtree(f'{tmpDir}/cert/server', ignore_errors=True) # Remove the server certificate directory
+    rmtree(f'{tmpDir}/cert/client', ignore_errors=True) # Remove the clients certificate directory
 
     make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
 
@@ -132,6 +138,7 @@ def import_(archive):
 
     echo(f'Workspace {archive} has been imported.')
     echo(f'You may need to copy your PKI certificates to join the federation.')
+
 
 @workspace.command(name='certify')
 @pass_context

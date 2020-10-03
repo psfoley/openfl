@@ -39,7 +39,7 @@ setup(
         'grpcio',
         'rich',
         'tqdm',
-        'scikit-learn'
+        'scikit-learn',
     ],
     entry_points = {
         'console_scripts' : ['fx=fledge.interface.cli:entry']

@@ -55,6 +55,8 @@ def _load_raw_datashards(shard_num, collaborator_count):
     X_valid_tot = image[split:]
     y_valid_tot = label[split:]
 
+    shard_num = int(shard_num)
+    
     # create the shards
     X_train = X_train_tot[shard_num::collaborator_count]
     y_train = y_train_tot[shard_num::collaborator_count]

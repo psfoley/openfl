@@ -277,7 +277,7 @@ class Plan(object):
 
         return self.runner_
 
-    def get_collaborator(self, collaborator_name):
+    def get_collaborator(self, collaborator_name, task_runner=None, client=None):
 
         defaults = self.config.get('collaborator',
         {
@@ -288,10 +288,16 @@ class Plan(object):
         defaults[SETTINGS]['collaborator_name'] = collaborator_name
         defaults[SETTINGS]['aggregator_uuid'  ] = self.aggregator_uuid
         defaults[SETTINGS]['federation_uuid'  ] = self.federation_uuid
-        defaults[SETTINGS]['task_runner'      ] = self.get_task_runner(collaborator_name)
+        if task_runner is not None:
+            defaults[SETTINGS]['task_runner'  ] = task_runner
+        else:
+            defaults[SETTINGS]['task_runner'  ] = self.get_task_runner(collaborator_name)
         defaults[SETTINGS]['tensor_pipe'      ] = self.get_tensor_pipe()
         defaults[SETTINGS]['task_config'      ] = self.config.get('tasks',   {})
-        defaults[SETTINGS]['client'           ] = self.get_client(collaborator_name)
+        if client is not None:
+            defaults[SETTINGS]['client'       ] = client
+        else:
+            defaults[SETTINGS]['client'       ] = self.get_client(collaborator_name)
 
         if  self.collaborator_ == None:
             self.collaborator_  = Plan.Build(**defaults)

@@ -7,6 +7,8 @@ from .task import TaskRunner
 if (True if pkgutil.find_loader('tensorflow') else False):
   from .task import TensorFlowTaskRunner, KerasTaskRunner
   from .data import TensorFlowDataLoader, KerasDataLoader
+  from .task import FederatedModel
+  from .data import FederatedDataSet
 if (True if pkgutil.find_loader('torch') else False):
   from .task import PyTorchTaskRunner      
   from .data import PyTorchDataLoader

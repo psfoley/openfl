@@ -163,6 +163,8 @@ class KerasTaskRunner(TaskRunner):
 
         vals = self.model.evaluate(self.data_loader.X_valid, self.data_loader.y_valid, batch_size = batch_size, verbose = 0)
         model_metrics_names = self.model.metrics_names
+        if type(vals) is not list:
+            vals = [vals]
         ret_dict = dict(zip(model_metrics_names, vals))
 
       # TODO if there are new metrics in the flplan that were not included in the originally compiled model, that behavior is not currently handled. 

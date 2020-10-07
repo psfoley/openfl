@@ -12,6 +12,7 @@ with catch_warnings():
 from .runner       import           TaskRunner
 if (True if pkgutil.find_loader('tensorflow') else False):
   from .runner_tf    import TensorFlowTaskRunner
-  from .runner_keras import      KerasTaskRunner
+  from .runner_keras import KerasTaskRunner
+  from .fl_model     import FederatedModel
 if (True if pkgutil.find_loader('torch') else False):
   from .runner_pt    import    PyTorchTaskRunner

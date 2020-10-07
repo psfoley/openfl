@@ -81,7 +81,7 @@ def _load_raw_datashards(shard_num, collaborator_count):
         [ToTensor(), RandomHorizontalFlip(), RandomVerticalFlip()]))
     n_train = int(0.8 * len(dataset))
     n_valid = len(dataset) - n_train
-    ds_train, ds_val  = random_split(dataset, lengths=[n_train, n_valid])
+    ds_train, ds_val  = random_split(dataset, lengths=[n_train, n_valid], generator=torch.manual_seed(0))
 
     # create the shards
     X_train, y_train = list(zip(*ds_train[shard_num::collaborator_count]))

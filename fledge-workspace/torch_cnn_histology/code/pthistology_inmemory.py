@@ -3,6 +3,7 @@
 
 from .histology_utils import load_histology_shard
 from fledge.federated import PyTorchDataLoader
+import numpy as np
 
 
 class PyTorchHistologyInMemory(PyTorchDataLoader):
@@ -27,6 +28,7 @@ class PyTorchHistologyInMemory(PyTorchDataLoader):
         self.y_valid = y_valid
 
         self.num_classes = num_classes
+        np.random.seed(0)
     
     
 

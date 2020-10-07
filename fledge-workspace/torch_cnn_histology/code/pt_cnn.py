@@ -27,6 +27,10 @@ class PyTorchCNN(PyTorchTaskRunner):
         """
         super().__init__(**kwargs)
 
+        torch.manual_seed(0)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        
         self.num_classes = self.data_loader.num_classes
         self.init_network(device=self.device, **kwargs)
         self._init_optimizer(lr=kwargs.get('lr'))

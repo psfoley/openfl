@@ -48,11 +48,11 @@ fx workspace create --prefix ${FED_WORKSPACE} --template ${TEMPLATE}
 cd ${FED_WORKSPACE}
 FED_DIRECTORY=`pwd`  # Get the absolute directory path for the workspace
 
-# Create certificate authority for workspace
-fx workspace certify
-
 # Initialize FL plan
 fx plan initialize -a ${FQDN}
+
+# Create certificate authority for workspace
+fx workspace certify
 
 # Export FL workspace
 fx workspace export

@@ -105,7 +105,7 @@ def export_(context):
     # Aggregator workspace
     tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
-    ignore = ignore_patterns('__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem')
+    ignore = ignore_patterns('__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem', '*.pbuf')
     copytree('.', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
 
     rmtree(f'{tmpDir}/cert/ca', ignore_errors=True) # Remove the certificate authority directory

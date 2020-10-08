@@ -75,7 +75,7 @@ create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} 
 # # Run the federation
 cd ${FED_DIRECTORY}
 fx aggregator start & 
-sleep 2 
+sleep 5 
 cd ${COL1_DIRECTORY}/${FED_WORKSPACE}
 fx collaborator start -n ${COL1} & 
 cd ${COL2_DIRECTORY}/${FED_WORKSPACE}

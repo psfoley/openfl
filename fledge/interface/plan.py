@@ -179,6 +179,20 @@ def save_(context, name):
     
     switch_plan(name) # Swtich the context
 
+@plan.command(name = 'remove')
+@pass_context
+@option('-n', '--name', required = False, help = 'Name of the Federated learning plan', default = 'default', type = str)
+def save_(context, name):
+    """
+    Remove this plan
+    """
+    from shutil import rmtree
+
+    echo(f'Removing plan {name}')
+    # TODO: How do we get the prefix path? What happens if this gets executed outside of the workspace top directory?
+
+    rmtree(f'plan/plans/{name}')
+
 @plan.command(name = 'print')
 def print_():
     """

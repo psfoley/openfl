@@ -188,10 +188,16 @@ def save_(context, name):
     """
     from shutil import rmtree
 
-    echo(f'Removing plan {name}')
-    # TODO: How do we get the prefix path? What happens if this gets executed outside of the workspace top directory?
+    if name != f'default':
+        echo(f'Removing plan {name}')
+        # TODO: How do we get the prefix path? What happens if this gets executed outside of the workspace top directory?
 
-    rmtree(f'plan/plans/{name}')
+        rmtree(f'plan/plans/{name}')
+
+        switch_plan('default') # Swtich the context back to the default
+
+    else:
+        echo(f"ERROR: Can't remove default plan")
 
 @plan.command(name = 'print')
 def print_():

@@ -25,6 +25,10 @@ All workspaces begin with a :code:`default` Federation Plan. If you are working 
        $ fx plan switch -n NEW.PLAN.NAME
 
        where **NEW.PLAN.NAME** is the new plan for your workspace. 
+
+    .. note::
+
+       If you have changed the :code:`plan` file, you should first :ref:`save the plan <creating_new_plans>` before switching. Otherwise, any changes will be lost.
        
 .. _removing_plans:
 

@@ -5,7 +5,7 @@ import numpy as np
 import sys
 from logging import getLogger
 from torchvision.datasets import ImageFolder
-from torchvision.transforms import ToTensor, RandomHorizontalFlip, RandomVerticalFlip, Compose
+from torchvision.transforms import ToTensor
 from torch.utils.data import random_split
 from urllib.request import urlretrieve
 from hashlib import md5
@@ -77,8 +77,7 @@ def _load_raw_datashards(shard_num, collaborator_count):
     Returns:
         2 tuples: (image, label) of the training, validation dataset
     """
-    dataset = HistologyDataset(transform=Compose(
-        [ToTensor(), RandomHorizontalFlip(), RandomVerticalFlip()]))
+    dataset = HistologyDataset(transform=ToTensor())
     n_train = int(0.8 * len(dataset))
     n_valid = len(dataset) - n_train
     ds_train, ds_val  = random_split(dataset, lengths=[n_train, n_valid], generator=torch.manual_seed(0))
@@ -127,11 +126,6 @@ def load_histology_shard(shard_num, collaborator_count, categorical = False, cha
         X_train = X_train.reshape(X_train.shape[0], 3, img_rows, img_cols)
         X_valid = X_valid.reshape(X_valid.shape[0], 3, img_rows, img_cols)
         input_shape = (3, img_rows, img_cols)
-
-    X_train = X_train.astype('float32')
-    X_valid = X_valid.astype('float32')
-    X_train /= 255
-    X_valid /= 255
 
     logger.info(f'Histology > X_train Shape : {X_train.shape}')
     logger.info(f'Histology > y_train Shape : {y_train.shape}')

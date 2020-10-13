@@ -17,7 +17,7 @@ class PyTorchDataLoader(DataLoader):
     Federation Data Loader for TensorFlow Models
     """
 
-    def __init__(self, batch_size, **kwargs):
+    def __init__(self, batch_size, random_seed=None, **kwargs):
         """
         Instantiate the data object
 
@@ -34,6 +34,7 @@ class PyTorchDataLoader(DataLoader):
         self.y_train = None
         self.X_valid = None
         self.y_valid = None
+        self.random_seed = random_seed
 
         # Child classes should have init signature:
         # (self, batch_size, **kwargs), should call this __init__ and then
@@ -54,7 +55,7 @@ class PyTorchDataLoader(DataLoader):
         Returns
         -------
         loader object
-        """      
+        """ 
         return self._get_batch_generator(X = self.X_train, y = self.y_train, batch_size = batch_size, num_batches = num_batches)
     
     def get_valid_loader(self, batch_size = None):
@@ -119,6 +120,9 @@ class PyTorchDataLoader(DataLoader):
             batch_size = self.batch_size
 
         # shuffle data indices
+        if self.random_seed is not None:
+            np.random.seed(self.random_seed)
+
         idxs = np.random.permutation(np.arange(X.shape[0]))
 
         # compute the number of batches

@@ -28,9 +28,3 @@ class PyTorchHistologyInMemory(PyTorchDataLoader):
         self.y_valid = y_valid
 
         self.num_classes = num_classes
-    
-    
-
-
-
-        

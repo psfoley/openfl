@@ -148,7 +148,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         #TODO figure out a better way to pass in metric for this pytorch validate function
         output_tensor_dict = {TensorKey('acc',origin,round_num,True,tags): np.array(val_score/total_samples)} 
                 
-        #Empty list represents metrics that should only be stored locally
+        # empty list represents metrics that should only be stored locally
         return output_tensor_dict,{}
 
     def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=True,**kwargs): 
@@ -187,40 +187,39 @@ class PyTorchCNN(PyTorchTaskRunner):
                 self.optimizer.step()
                 losses.append(loss.detach().cpu().numpy())
 
-        #Output metric tensors (scalar)
+        # output metric tensors (scalar)
         origin = col_name
         tags = ('trained',)
         output_metric_dict = {TensorKey(self.loss_fn.__class__.__name__,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
 
-        #output model tensors (Doesn't include TensorKey)
+        # output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
         global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
 
-        #Create global tensorkeys
+        # create global tensorkeys
         global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in global_model_dict.items()}
-        #Create tensorkeys that should stay local
+        # create tensorkeys that should stay local
         local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in local_model_dict.items()}
-        #The train/validate aggregated function of the next round will look for the updated model parameters. 
-        #This ensures they will be resolved locally
+        # the train/validate aggregated function of the next round will look for the updated model parameters
+        # this ensures they will be resolved locally
         next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,False,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
 
 
         global_tensor_dict = {**output_metric_dict,**global_tensorkey_model_dict}
         local_tensor_dict = {**local_tensorkey_model_dict,**next_local_tensorkey_model_dict}
 
-        #Update the required tensors if they need to be pulled from the aggregator
+        # update the required tensors if they need to be pulled from the aggregator
         #TODO this logic can break if different collaborators have different roles between rounds.
-        #For example, if a collaborator only performs validation in the first round but training
-        #in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
-        #because these are only created after training occurs. A work around could involve doing a single epoch of training
-        #on random data to get the optimizer names, and then throwing away the model.
+        # for example, if a collaborator only performs validation in the first round but training
+        # in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
+        # because these are only created after training occurs. A work around could involve doing a single epoch of training
+        # on random data to get the optimizer names, and then throwing away the model.
         if self.opt_treatment == 'CONTINUE_GLOBAL':
             self.initialize_tensorkeys_for_functions(with_opt_vars=True)
 
-        #This will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
+        # this will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
         self.train_round_completed = True
 
-        #Return global_tensor_dict, local_tensor_dict
         return global_tensor_dict,local_tensor_dict
 
     def reset_opt_vars(self):

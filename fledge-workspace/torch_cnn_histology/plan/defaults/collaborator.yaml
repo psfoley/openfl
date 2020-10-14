@@ -1,4 +1,0 @@
-template : fledge.component.Collaborator
-settings :
-    opt_treatment     : 'CONTINUE_LOCAL'
-    send_model_deltas : True

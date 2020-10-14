@@ -64,7 +64,7 @@ def one_hot(labels, classes):
     """
     return np.eye(classes)[labels]
 
-def _load_raw_datashards(shard_num, collaborator_count):
+def _load_raw_datashards(shard_num, collaborator_count, train_split_ratio = 0.8):
     """
     Load the raw data by shard
 
@@ -78,18 +78,16 @@ def _load_raw_datashards(shard_num, collaborator_count):
         2 tuples: (image, label) of the training, validation dataset
     """
     dataset = HistologyDataset(transform=ToTensor())
-    n_train = int(0.8 * len(dataset))
+    n_train = int(train_split_ratio * len(dataset))
     n_valid = len(dataset) - n_train
     ds_train, ds_val  = random_split(dataset, lengths=[n_train, n_valid], generator=torch.manual_seed(0))
 
     # create the shards
     X_train, y_train = list(zip(*ds_train[shard_num::collaborator_count]))
-    X_train = np.stack(X_train)
-    y_train = np.array(y_train)
+    X_train, y_train = np.stack(X_train), np.array(y_train)
 
     X_valid, y_valid = list(zip(*ds_val[shard_num::collaborator_count]))
-    X_valid = np.stack(X_valid)
-    y_valid = np.array(y_valid)
+    X_valid, y_valid = np.stack(X_valid), np.array(y_valid)
 
     return (X_train, y_train), (X_valid, y_valid)
 

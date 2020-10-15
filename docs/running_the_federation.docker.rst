@@ -28,13 +28,18 @@ This demo runs on a single node and creates a federation with 2 institutions: 1 
 Both the institutions are containerized and the fledge sw-stack is self-contained within docker.
 
 To  emulate the workspaces of both components, it will create 2 separated directories ("host_agg_workspace" and "host_col_workspace") in the /home/. on the local host.
-To define the path where those 2 directories will be created, please edit the "HOST_WORKSPACE" var in the bash script.
 
-To change the name of the docker image that will be used for the demo, please edit the "DOCKER_IMG" in the bash script. 
-By default, the bash script will rely on the docker image name used to build it with the previous command.
+The name of the docker image to be used for the demo can be set as first argument when calling the script. By default, the bash script will rely on the docker image name used to build it with the previous command: fledge/docker.
+
+The path where the 2 local directories will be created can be passed as second argument. If empty, it will defautl to /home/$USERNAME.
 
 
 ### Run the demo
 ```
 $ bash docker_keras_demo.sh
+```
+
+### Run the demo with custom params
+```
+$ bash docker_keras_demo.sh myDockerImg/name /My/Local/Path
 ```

@@ -1,32 +1,15 @@
 #!/bin/bash
 
 ## PARAMETER SETTING
-# System params
-HOST_USER=${1:-''}
-HOST_UID=${2:-''}
-HOST_GID=${3:-''}
-
-
 # Fledge params
-MODE=${4:-'import'}                # ['import', 'start']
-WORKSPACE_DIR=${5:-'fed_work12345alpha81671'}  # This can be whatever unique$
-COL=${6:-'pippo12'}                # This can be any unique label
-FED_PATH=${7:-'/home/fledge'}      # FED_WORKSPACE Path
+MODE=${1:-'import'}                # ['import', 'start']
+WORKSPACE_DIR=${2:-'fed_work12345alpha81671'}  # This can be whatever unique$
+COL=${3:-'one123dragons'}          # This can be any unique label
+FED_PATH=${4:-'/home/fledge'}      # FED_WORKSPACE Path
 
 
 if [ ! -z "$FED_PATH" ]; then
-   groupadd -g ${HOST_GID} ${HOST_USER}
-   useradd --no-log-init -m -u ${HOST_UID} -g ${HOST_GID} -s /bin/bash ${HOST_USER}
-   chown -R ${HOST_USER}:${HOST_USER} ${FED_PATH}
    cd ${FED_PATH}
-
-elif [ -d "$WORKSPACE_DIR" ] ; then
-   groupadd -g ${HOST_GID} ${HOST_USER}
-   useradd --no-log-init -m -u ${HOST_UID} -g ${HOST_GID} -s /bin/bash ${HOST_USER}
-   chown -R ${HOST_USER}:${HOST_USER} ${FED_PATH}
-else
-   echo "Missing dir: no permissions to be set"
-
 fi
 
 
@@ -131,13 +114,3 @@ else
     echo "Unrecognized Mode. Aborting"
 
 fi
-
-
-#echo "COL STO PER SETTARLO PER IL CMD $MODE"
-# Setting user permissions
-#if [ ! -z "$HOST_USER" ]; then
-#    groupadd -g ${HOST_GID} ${HOST_USER}
-#    useradd --no-log-init -m -u ${HOST_UID} -g ${HOST_GID} -s /bin/bash ${HOST_USER}
-#    [ -d "$WORKSPACE_DIR" ] && chown -R ${HOST_USER}:${HOST_USER} ${WORKSPACE_DIR} && echo "DENTROOOOOOO COL SETTATO PER IL CMD $MODE"
-#fi
-#echo "COL FINITO"

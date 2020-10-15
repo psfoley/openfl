@@ -9,16 +9,16 @@ Please find below the steps to have the containerized fledge up&running and run 
 
 ## Build the docker image
 ======================
+### Requirements
 In order to successfully build the image, the Dockerfile is expecting to access the following dependencies:
 - Find the "fledge" directory in the same location where we are going to execute the "docker build" command.
 - Find the "docker_agg.sh" file
 - Find the "docker_col.sh" file
 
-### TODO: automate file retrieval --> need guidance 
 
-
+### Command
 ```
-$ docker build --build-arg http_proxy --build-arg https_proxy --build-arg socks_proxy --build-arg ftp_proxy --build-arg no_proxy -t fledge/docker -f fledge_containers/Dockerfile .
+$ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t fledge/docker -f fledge_containers/Dockerfile .
 ```
 
 ## Docker Demo
@@ -34,7 +34,7 @@ The name of the docker image to be used for the demo can be set as first argumen
 The path where the 2 local directories will be created can be passed as second argument. If empty, it will defautl to /home/$USERNAME.
 
 
-### Run the demo
+### Commands
 ```
 $ bash docker_keras_demo.sh
 ```

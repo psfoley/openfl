@@ -2,34 +2,17 @@
 
 
 ## PARAMETER SETTING
-# System params
-HOST_USER=${1:-''}
-HOST_UID=${2:-''}
-HOST_GID=${3:-''}
-
-
 # Fledge params
-MODE=${4:-'init'}                  # ['init',...,'start']
+MODE=${1:-'init'}                  # ['init',...,'start']
 
-WORKSPACE_DIR=${5:-'fed_work12345alpha81671'}  # This can be whatever unique directory name you want
-COL=${6:-'pippo12'}                # This can be any unique label
-FED_PATH=${7:-'/home/fledge'}      # FED_WORKSPACE Path
-TEMPLATE=${8:-'keras_cnn_mnist'}   # ['torch_cnn_mnist', 'keras_cnn_mnist']
+WORKSPACE_DIR=${2:-'fed_work12345alpha81671'}  # This can be whatever unique directory name you want
+COL=${3:-'one123dragons'}          # This can be any unique label
+FED_PATH=${4:-'/home/fledge'}      # FED_WORKSPACE Path
+TEMPLATE=${5:-'keras_cnn_mnist'}   # ['torch_cnn_mnist', 'keras_cnn_mnist']
 
 
 if [ ! -z "$FED_PATH" ]; then
-   groupadd -g ${HOST_GID} ${HOST_USER}
-   useradd --no-log-init -m -u ${HOST_UID} -g ${HOST_GID} -s /bin/bash ${HOST_USER}
-   chown -R ${HOST_USER}:${HOST_USER} ${FED_PATH}
    cd ${FED_PATH}
-
-elif [ -d "$WORKSPACE_DIR" ] ; then
-   groupadd -g ${HOST_GID} ${HOST_USER}
-   useradd --no-log-init -m -u ${HOST_UID} -g ${HOST_GID} -s /bin/bash ${HOST_USER}
-   chown -R ${HOST_USER}:${HOST_USER} ${FED_PATH}
-else
-   echo "Missing dir: no permissions to be set"
-
 fi
 
 
@@ -137,13 +120,3 @@ else
     echo "Unrecognized Mode. Aborting"
 
 fi
-
-
-# Setting user permissions
-#echo "STO PER SETTARLO PER IL CMD $MODE"
-#if [ ! -z "$HOST_USER" ]; then
-
-#    [ -d "$WORKSPACE_DIR" ] && chown -R ${HOST_USER}:${HOST_USER} ${WORKSPACE_DIR} && echo "SETTATO PER IL CMD $MODE"
-
-#fi
-#echo "AGG HO FINITO"

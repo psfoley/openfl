@@ -16,6 +16,10 @@ ARG socks_proxy
 ARG ftp_proxy
 ARG no_proxy
 
+ARG USERNAME
+ARG USER_ID
+ARG GROUP_ID
+
 ENV http_proxy=$http_proxy
 ENV https_proxy=$https_proxy
 ENV HTTP_PROXY=$HTTP_PROXY
@@ -25,14 +29,22 @@ ENV ftp_proxy=$ftp_proxy
 ENV no_proxy=$no_proxy
 
 
+# Run this docker as User
+RUN addgroup --gid $GROUP_ID $USERNAME
+RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USERNAME
+
+USER $USERNAME
+
+#########################
+
 ENV install_dir=/usr/fledge/
 
 WORKDIR /home/
 
 ADD fledge $install_dir
 
-COPY docker_agg.sh /home/.
-COPY docker_col.sh /home/.
+COPY fledge_containers/AUX/v6/docker_agg.sh /home/.
+COPY fledge_containers/AUX/v6/docker_col.sh /home/.
 
 # Set locale details
 RUN apt-get update
@@ -56,5 +68,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv
 RUN apt-get install -y python3-pip
 
+#RUN pip install intel-tensorflow==1.15.0 && pip install --upgrade pip
 RUN pip install --upgrade pip
 RUN pip install $install_dir
+
+
+#ENV PATH="/home/.local/bin:${PATH}"
+

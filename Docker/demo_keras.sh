@@ -1,26 +1,19 @@
 #!/bin/bash
 
 ### VAR definition
-## System var
-HOST_USER=`whoami`
-HOST_UID=`id -u $HOST_USER`
-HOST_GID=`id -g $HOST_USER`
-
+DOCKER_IMG=${1:-"fledge/docker"}
+HOST_WORKSPACE=${2:-'/home/$HOST_USER'}
 
 ## Fledge var
-WORKSPACE_DIR=${2:-'fed_work12345alpha81671'} 	# This can be whatever unique directory name you want 
-#COL=${3:-'one123dragons'} 			# This can be any unique label 
-COL=${3:-'pippo12'}
-##FED_PATH=${4:-'/home/fledge'} 		# Federation workspace PATH within Docker 
-TEMPLATE=${5:-'keras_cnn_mnist'}		# ['torch_cnn_mnist', 'keras_cnn_mnist']
+WORKSPACE_DIR=${3:-'fed_work12345alpha81671'} 	# This can be whatever unique directory name you want 
+COL=${4:-'one123dragons'} 			# This can be any unique label 
+FED_PATH=${5:-'/home/fledge'}    		# Federation workspace PATH within Docker 
+TEMPLATE=${6:-'keras_cnn_mnist'}		# ['torch_cnn_mnist', 'keras_cnn_mnist']
 
 
 ## Local var
-HOST_WORKSPACE=${1:-'/home/$HOST_USER'}
 HOST_AGG=${HOST_WORKSPACE}/host_agg_workspace
 HOST_COL=${HOST_WORKSPACE}/host_col_workspace
-
-DOCKER_IMG=${2:-"fledge/docker"}flocker/user
 
 
 
@@ -31,9 +24,9 @@ mkdir -p ${HOST_COL}
 
 ### AGGREGATOR
 ## Create workspace
-docker run --rm -it --network=host -v ${HOST_AGG}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} init"
+docker run --rm -it --network=host -v ${HOST_AGG}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh init"
 ## Export workspace
-docker run --rm -it --network=host -v ${HOST_AGG}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} export"
+docker run --rm -it --network=host -v ${HOST_AGG}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh export"
 
 
 ## Copy workspace from AGGREGATOR to COLLABORATOR directories
@@ -48,9 +41,9 @@ fi
 
 ### COLLABORATOR
 ## Import workspace
-docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} import_ws"
+docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh import_ws"
 ## Initialize collaborato
-docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} init"
+docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh init"
 
 
 ## Send COLLABORATOR request to AGGREGATOR 
@@ -67,7 +60,7 @@ fi
 
 ### AGGREGATOR
 ## Certify collaborator
-docker run --rm -it --network=host -v ${HOST_AGG}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} col"
+docker run --rm -it --network=host -v ${HOST_AGG}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh col"
 
 
 ## Send verified certificate from AGGREGATOR to COLLABORATOR
@@ -82,18 +75,15 @@ fi
 
 ### COLLABORATOR
 ## Import certificate
-docker run --rm -it --network=host -v ${HOST_COL}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} import_crt"
+docker run --rm -it --network=host -v ${HOST_COL}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh import_crt"
 
 ### AGGREGATOR
 ## Start the aggregator
-docker run --rm -it -d --network=host -v ${HOST_AGG}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} start"
+docker run --rm -it -d --network=host -v ${HOST_AGG}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh start"
 
 ### COLLABORATOR
 ## Start the collaborator
-docker run --rm -it --network=host -v ${HOST_COL}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh ${HOST_USER} ${HOST_UID} ${HOST_GID} start"
-
-
-
+docker run --rm -it --network=host -v ${HOST_COL}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh start"
 
 
 

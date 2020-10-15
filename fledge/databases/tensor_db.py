@@ -41,7 +41,6 @@ class TensorDB(object):
                 tensor_name,origin,fl_round,report,tags = tensor_key
                 df = pd.DataFrame([[tensor_name,origin,fl_round,report,tags,nparray]], \
                                   columns=['tensor_name','origin','round','report','tags','nparray'])
-
                 self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)
         finally:
             self.mutex.release()

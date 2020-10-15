@@ -19,5 +19,6 @@ train:
   kwargs   :
     batch_size : 32
     epochs     : 1
+    num_batches: 1
     metrics    :
     - loss

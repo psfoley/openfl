@@ -24,7 +24,7 @@ class DataLoader(object):
         """
         raise NotImplementedError
 
-    def get_train_loader(self):
+    def get_train_loader(self, **kwargs):
         """
         Get training data loader
 

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Parameter definition
-MODE=${1:-'import'}                             # ['init','import_ws','import_crt','start']
-WORKSPACE_DIR=${2:-'fed_work12345alpha81671'}   # This can be whatever unique$
-COL=${3:-'one123dragons'}                       # This can be any unique label
-FED_PATH=${4:-'/home/fledge'}                   # FED_WORKSPACE Path
+MODE=${1:-'import'}                # ['import', 'start']
+WORKSPACE_DIR=${2:-'fed_work12345alpha81671'}  # This can be whatever unique$
+COL=${3:-'pippo12'}                # This can be any unique label
+FED_PATH=${4:-'/home/fledge'}      # FED_WORKSPACE Path
 
 
 [[ ! -z "$FED_PATH" ]] && FED_WORKSPACE=${FED_PATH}/${WORKSPACE_DIR} || FED_WORKSPACE=$WORKSPACE_DIR

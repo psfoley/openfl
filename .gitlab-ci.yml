@@ -36,7 +36,7 @@ hello_federation_keras:
     - charlie
     before_script:
     - whoami
-    - echo "Killing running fledge processes..." && kill -9 `pgrep fx`
+    - echo "Killing running fledge processes..." && pgrep fx && kill -15 `pgrep fx`
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace

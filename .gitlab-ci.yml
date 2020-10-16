@@ -36,8 +36,7 @@ hello_federation_keras:
     - charlie
     before_script:
     - whoami
-    - echo "fx processes:"
-    - echo $(ps | grep fx)
+    - echo "Killing running fledge processes..." && kill -9 `pgrep fx`
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace

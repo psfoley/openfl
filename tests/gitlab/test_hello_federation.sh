@@ -48,9 +48,6 @@ fx workspace create --prefix ${FED_WORKSPACE} --template ${TEMPLATE}
 cd ${FED_WORKSPACE}
 FED_DIRECTORY=`pwd`  # Get the absolute directory path for the workspace
 
-# Initialize FL plan
-fx plan initialize -a ${FQDN}
-
 # Create certificate authority for workspace
 fx workspace certify
 
@@ -71,6 +68,8 @@ create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} 
 COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
 create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} 2
 
+# Initialize FL plan
+fx plan initialize -a ${FQDN}
 
 # # Run the federation
 cd ${FED_DIRECTORY}

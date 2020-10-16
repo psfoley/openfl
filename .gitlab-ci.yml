@@ -36,6 +36,8 @@ hello_federation_keras:
     - charlie
     before_script:
     - whoami
+    - echo "fx processes:"
+    - echo $(ps | grep fx)
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace

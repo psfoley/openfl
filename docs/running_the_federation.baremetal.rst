@@ -41,7 +41,7 @@ On the Aggregator
     .. code-block:: console
         $ export WORKSPACE_TEMPLATE = keras_cnn_mnist
     
-2. Create a workspace for the new federation project.
+4. Create a workspace for the new federation project.
 
     .. code-block:: console
     
@@ -59,14 +59,19 @@ On the Aggregator
     Existing models can either be copied into the :code:`code` subdirectory
     in the workspace.
 
-3. Change to the workspace directory.
+5. Change to the workspace directory.
 
     .. code-block:: console
     
         $ cd WORKSPACE.PATH
-     
+
+6. Install workspace requirements:
+
+     .. code-block:: console
+    
+        $ pip install -r requirements.txt
         
-4.  Although it is possible to train models from scratch, it is assumed that in many cases the federation may perform fine-tuning of a previously-trained model. For this reason, the pre-trained weights for the model will be stored within protobuf files on the aggregator and passed to the collaborators during initialization. As seen in the YAML file, the protobuf file with the initial weights is expected to be found in the file **${WORKSPACE_TEMPLATE}_init.pbuf**. For this example, however, we’ll just create an initial set of random model weights and putting it into that file by running the command:
+6.  Although it is possible to train models from scratch, it is assumed that in many cases the federation may perform fine-tuning of a previously-trained model. For this reason, the pre-trained weights for the model will be stored within protobuf files on the aggregator and passed to the collaborators during initialization. As seen in the YAML file, the protobuf file with the initial weights is expected to be found in the file **${WORKSPACE_TEMPLATE}_init.pbuf**. For this example, however, we’ll just create an initial set of random model weights and putting it into that file by running the command:
 
     .. code-block:: console
     

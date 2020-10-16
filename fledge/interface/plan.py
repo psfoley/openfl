@@ -59,7 +59,7 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
     # tensor_dict_split_fn_kwargs = task_runner.tensor_dict_split_fn_kwargs or {}
     tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger,
                                                                  task_runner.get_tensor_dict(False),
-                                                                 **tensor_dict_split_fn_kwargs)
+                                                                 **task_runner.tensor_dict_split_fn_kwargs)
 
     logger.warn(f'Following parameters omitted from global initial model, '\
                 f'local initialization will determine values: {list(holdout_params.keys())}')

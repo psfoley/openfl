@@ -6,5 +6,3 @@
 # construct the shard of the mnist dataset to be use for this collaborator.
 
 # collaborator_name ,data_directory_path
-one,1
-

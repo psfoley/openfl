@@ -18,7 +18,8 @@ All workspaces begin with a :code:`default` Federation Plan. If you are working 
     .. code-block:: console
     
        $ fx plan save -n NEW.PLAN.NAME
-       
+      
+ 
     where **NEW.PLAN.NAME** is the new plan for your workspace. 
     
 .. _switching_plans:
@@ -32,7 +33,7 @@ To switch to a different plan, run the following command from the workspace dire
     
        $ fx plan switch -n NEW.PLAN.NAME
 
-       where **NEW.PLAN.NAME** is the new plan for your workspace. 
+    where **NEW.PLAN.NAME** is the new plan for your workspace. 
 
     .. note::
 

@@ -67,17 +67,17 @@ fx aggregator certify --fqdn ${FQDN} --silent # Remove '--silent' if you run thi
 COL1_DIRECTORY=${FED_DIRECTORY}/${COL1}
 create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} 1
 
-# Create collaborator #2
-COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
-create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} 2
+# # Create collaborator #2
+# COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
+# create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} 2
 
 
-# # Run the federation
-cd ${FED_DIRECTORY}
-fx aggregator start & 
-sleep 2 
-cd ${COL1_DIRECTORY}/${FED_WORKSPACE}
-fx collaborator start -n ${COL1} & 
-cd ${COL2_DIRECTORY}/${FED_WORKSPACE}
-fx collaborator start -n ${COL2}
-rm -rf ${FED_DIRECTORY}
+# # # Run the federation
+# cd ${FED_DIRECTORY}
+# fx aggregator start & 
+# sleep 2 
+# cd ${COL1_DIRECTORY}/${FED_WORKSPACE}
+# fx collaborator start -n ${COL1} & 
+# cd ${COL2_DIRECTORY}/${FED_WORKSPACE}
+# fx collaborator start -n ${COL2}
+# rm -rf ${FED_DIRECTORY}

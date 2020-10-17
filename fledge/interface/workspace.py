@@ -80,7 +80,7 @@ def export_(context):
 
     from shutil   import make_archive, copytree, ignore_patterns, rmtree
     from tempfile import mkdtemp
-    from os       import getcwd
+    from os       import getcwd, makedirs
     from os.path  import basename, join
     from plan     import FreezePlan
 
@@ -108,11 +108,18 @@ def export_(context):
     ignore = ignore_patterns('__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem', '*.pbuf')
     copytree('.', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
 
-    rmtree(f'{tmpDir}/cert/ca', ignore_errors=True) # Remove the certificate authority directory
+    # Make sure the export doesn't include previous logs/saved files/PKI
+    rmtree(f'{tmpDir}/cert/ca', ignore_errors=True)     # Remove the certificate authority directory
     rmtree(f'{tmpDir}/cert/server', ignore_errors=True) # Remove the server certificate directory
     rmtree(f'{tmpDir}/cert/client', ignore_errors=True) # Remove the clients certificate directory
 
-    make_archive(archiveName, archiveType, tmpDir) # Create Zip archive of directory
+    rmtree(f'{tmpDir}/save', ignore_errors=True)        # Remove the save directory
+    makedirs(f'{tmpDir}/save', exist_ok=True)           # Create a save directory stub (no files or subdirectories)
+
+    rmtree(f'{tmpDir}/logs', ignore_errors=True)        # Remove the logs directory
+    makedirs(f'{tmpDir}/logs', exist_ok=True)           # Create a logs directory stub (no files or subdirectories)
+   
+    make_archive(archiveName, archiveType, tmpDir)      # Create Zip archive of directory
 
     echo(f'Workspace exported to archive: {archiveFileName}')
 

@@ -13,6 +13,8 @@ from pathlib    import Path
 from itertools  import islice
 from os         import environ
 
+from yaml       import load, dump, FullLoader    
+
 FX        = argv[0]
 
 SITEPACKS = Path(__file__).parent.parent.parent
@@ -151,3 +153,22 @@ def copytree(src, dst, symlinks = False, ignore = None, ignore_dangling_symlinks
         return dst
 
     return _copytree()
+
+def get_workspace_parameter(name):
+    """
+    Gets a parameter from the workspace config file (.workspace)
+    """
+
+    # Update the .workspace file to show the current workspace plan
+    workspace_file = f'.workspace'
+
+    with open(workspace_file, 'r') as f:
+        doc = load(f, Loader=FullLoader)
+
+    if not doc:   # YAML is not correctly formatted
+        doc = {}  # Create empty dictionary
+    
+    if name not in doc.keys() or not doc[name]:  # List doesn't exist
+        return ''
+    else:
+        return doc[name]

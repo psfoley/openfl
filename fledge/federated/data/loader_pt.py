@@ -2,6 +2,7 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import numpy      as np
+from math import ceil
 
 from tqdm import tqdm
 
@@ -15,7 +16,7 @@ class PyTorchDataLoader(DataLoader):
     Federation Data Loader for TensorFlow Models
     """
 
-    def __init__(self, batch_size, **kwargs):
+    def __init__(self, batch_size, random_seed=None, **kwargs):
         """
         Instantiate the data object
 
@@ -32,6 +33,7 @@ class PyTorchDataLoader(DataLoader):
         self.y_train = None
         self.X_valid = None
         self.y_valid = None
+        self.random_seed = random_seed
 
         # Child classes should have init signature:
         # (self, batch_size, **kwargs), should call this __init__ and then
@@ -45,15 +47,15 @@ class PyTorchDataLoader(DataLoader):
         """
         return self.X_train[0].shape
     
-    def get_train_loader(self,batch_size=None):
+    def get_train_loader(self, batch_size=None, num_batches=None):
         """
         Get training data loader 
 
         Returns
         -------
         loader object
-        """      
-        return self._get_batch_generator(X = self.X_train, y = self.y_train, batch_size = batch_size)
+        """ 
+        return self._get_batch_generator(X = self.X_train, y = self.y_train, batch_size = batch_size, num_batches = num_batches)
     
     def get_valid_loader(self, batch_size = None):
         """
@@ -103,7 +105,7 @@ class PyTorchDataLoader(DataLoader):
             b = a + batch_size
             yield X[idxs[a:b]], y[idxs[a:b]]
 
-    def _get_batch_generator(self, X, y, batch_size):
+    def _get_batch_generator(self, X, y, batch_size, num_batches=None):
         """
         Returns the dataset generator
 
@@ -117,10 +119,14 @@ class PyTorchDataLoader(DataLoader):
             batch_size = self.batch_size
 
         # shuffle data indices
+        if self.random_seed is not None:
+            np.random.seed(self.random_seed)
+
         idxs = np.random.permutation(np.arange(X.shape[0]))
 
         # compute the number of batches
-        num_batches = ceil(X.shape[0] / batch_size)
+        if num_batches is None:
+            num_batches = ceil(X.shape[0] / batch_size)
 
         # build the generator and return it
         return self._batch_generator(X, y, idxs, batch_size, num_batches)

@@ -9,11 +9,13 @@ from warnings import catch_warnings, simplefilter
     
 with catch_warnings():
     simplefilter(action = 'ignore')
-    import tensorflow.compat.v1        as tf
-    tf.disable_v2_behavior()
-    import tensorflow.compat.v1.keras  as ke
+    #import tensorflow.compat.v1        as tf
+    #tf.disable_v2_behavior()
+    import tensorflow                   as tf
+    #import tensorflow.compat.v1.keras  as ke
+    import tensorflow.keras             as ke
 
-    from tensorflow.compat.v1.keras import backend as K
+    #from tensorflow.compat.v1.keras import backend as K
 
 import numpy          as np
 
@@ -22,6 +24,8 @@ from tqdm             import tqdm
 from fledge.utilities import TensorKey,split_tensor_dict_for_holdouts
 
 from .runner import TaskRunner
+
+tf.config.run_functions_eagerly(True)
 
 class KerasTaskRunner(TaskRunner):
     """
@@ -36,7 +40,7 @@ class KerasTaskRunner(TaskRunner):
         """
         super().__init__(**kwargs)
 
-        self.model = ke.Model()
+        #self.model = ke.Model()
 
         self.model_tensor_names = []
 
@@ -45,16 +49,16 @@ class KerasTaskRunner(TaskRunner):
 
         NUM_PARALLEL_EXEC_UNITS = 1
 
-        config = tf.ConfigProto(intra_op_parallelism_threads = NUM_PARALLEL_EXEC_UNITS,
-                                inter_op_parallelism_threads = 1,
-                                allow_soft_placement         = True,
-                                device_count                 = {'CPU': NUM_PARALLEL_EXEC_UNITS })
+        #config = tf.ConfigProto(intra_op_parallelism_threads = NUM_PARALLEL_EXEC_UNITS,
+        #                        inter_op_parallelism_threads = 1,
+        #                        allow_soft_placement         = True,
+        #                        device_count                 = {'CPU': NUM_PARALLEL_EXEC_UNITS })
 
-        config.gpu_options.allow_growth = True
+        #config.gpu_options.allow_growth = True
 
-        self.sess = tf.Session(config = config)
+        #self.sess = tf.Session(config = config)
 
-        K.set_session(self.sess)
+        #K.set_session(self.sess)
 
     def rebuild_model(self, round, input_tensor_dict, validation = False):
         """
@@ -243,7 +247,8 @@ class KerasTaskRunner(TaskRunner):
         Initialize global variables
         """
         
-        self.sess.run(tf.global_variables_initializer())
+        #self.sess.run(tf.global_variables_initializer())
+        pass
 
     def get_tensor_dict(self, with_opt_vars, suffix = ''):
         """
@@ -300,8 +305,9 @@ class KerasTaskRunner(TaskRunner):
         Resets the optimizer variables
 
         """
-        for weight in self.model.optimizer.weights:
-            weight.initializer.run(session=self.sess)
+        #for weight in self.model.optimizer.weights:
+        #    weight.initializer.run(session=self.sess)
+        pass
 
     def set_required_tensorkeys_for_function(self, func_name, tensor_key, **kwargs):
         """

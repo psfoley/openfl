@@ -17,11 +17,11 @@ Short description
 This demo runs on a single node and creates a federation with 2 institutions: 1 aggregator and 1 collaborator.
 Both the institutions are containerized and the |productName| software stack is self-contained within docker.
 
-To emulate the workspaces of both components, it will create 2 separated directories ("host_agg_workspace" and "host_col_workspace") in the /home/. on the local host.
+To emulate the workspaces of both components, it will create 2 separated directories (*host_agg_workspace* and *host_col_workspace*) in the :code:`home` directory on the local host.
 
 The name of the docker image to be used for the demo can be set as first argument when calling the script. By default, the bash script will rely on the docker image name used to build it with the previous command (*e.g.* fledge/docker).
 
-The path where the 2 local directories will be created can be passed as second argument. If empty, it will defautl to /home/$USERNAME.
+The path where the 2 local directories will be created can be passed as second argument. If empty, it will defautl to :code:`/home/$USERNAME`.
 
 .. code-block:: console
    $ bash docker_keras_demo.sh

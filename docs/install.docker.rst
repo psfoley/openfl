@@ -24,4 +24,20 @@ Docker Installation
       ...
       ...
 
-1. TODO
+Build the docker image
+======================
+
+Requirements
+~~~~~~~~~~~~
+
+In order to successfully build the image, the Dockerfile is expecting to access the following dependencies:
+- Find the "fledge" directory in the same location where we are going to execute the "docker build" command.
+- Find the "docker_agg.sh" file
+- Find the "docker_col.sh" file
+
+Command
+~~~~~~~
+
+.. code-block:: console
+
+   $ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t fledge/docker -f fledge_containers/Dockerfile .

@@ -71,7 +71,6 @@ create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} 
 COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
 create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} 2
 
-
 # # Run the federation
 cd ${FED_DIRECTORY}
 fx aggregator start & 

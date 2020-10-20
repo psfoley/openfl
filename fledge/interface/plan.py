@@ -104,9 +104,9 @@ def FreezePlan(plan_config):
 
     Plan.Dump(Path(plan_config), plan.config, freeze=True)
 
-@plan.command()
+@plan.command(name = 'freeze')
 @pass_context
-@option('-p', '--plan_config', required = False, help = 'Federated learning plan [plan/plan.yaml]',               default = 'plan/plan.yaml', type = ClickPath(exists = True))
+@option('-p', '--plan_config', required = False, help = 'Federated learning plan [plan/plan.yaml]', default = 'plan/plan.yaml', type = ClickPath(exists = True))
 def freeze(context, plan_config):
     """
     Finalize the Data Science plan
@@ -116,3 +116,96 @@ def freeze(context, plan_config):
     """
 
     FreezePlan(plan_config)
+
+def switch_plan(name):
+    """
+    Switch the FL plan to this one
+    """
+    from shutil  import copyfile
+    from os.path import isfile 
+
+    from yaml    import load, dump, FullLoader    
+
+    plan_file = f'plan/plans/{name}/plan.yaml'
+    if isfile(plan_file):
+
+        echo(f'Switch plan to {name}')
+
+        # Copy the new plan.yaml file to the top directory
+        copyfile(plan_file, f'plan/plan.yaml')
+
+        # Update the .workspace file to show the current workspace plan
+        workspace_file = f'.workspace'
+
+        with open(workspace_file, 'r') as f:
+            doc = load(f, Loader=FullLoader)
+
+        if not doc:   # YAML is not correctly formatted
+            doc = {}  # Create empty dictionary
+     
+        doc['current_plan_name'] = f'{name}' # Switch with new plan name
+
+        # Rewrite updated workspace file
+        with open(workspace_file, 'w') as f:
+            dump(doc, f)
+
+    else:
+        echo(f'Error: Plan {name} not found in plan/plans/{name}')
+    
+
+@plan.command(name = 'switch')
+@pass_context
+@option('-n', '--name', required = False, help = 'Name of the Federated learning plan', default = 'default', type = str)
+def switch_(context, name):
+    """
+    Switch the current plan to this plan
+    """
+    switch_plan(name)
+
+@plan.command(name = 'save')
+@pass_context
+@option('-n', '--name', required = False, help = 'Name of the Federated learning plan', default = 'default', type = str)
+def save_(context, name):
+    """
+    Save the current plan to this plan and switch
+    """
+    from os     import makedirs
+    from shutil import copyfile
+
+    echo(f'Saving plan to {name}')
+    # TODO: How do we get the prefix path? What happens if this gets executed outside of the workspace top directory?
+
+    makedirs(f'plan/plans/{name}', exist_ok=True)
+    copyfile(f'plan/plan.yaml', f'plan/plans/{name}/plan.yaml')
+    
+    switch_plan(name) # Swtich the context
+
+@plan.command(name = 'remove')
+@pass_context
+@option('-n', '--name', required = False, help = 'Name of the Federated learning plan', default = 'default', type = str)
+def save_(context, name):
+    """
+    Remove this plan
+    """
+    from shutil import rmtree
+
+    if name != f'default':
+        echo(f'Removing plan {name}')
+        # TODO: How do we get the prefix path? What happens if this gets executed outside of the workspace top directory?
+
+        rmtree(f'plan/plans/{name}')
+
+        switch_plan('default') # Swtich the context back to the default
+
+    else:
+        echo(f"ERROR: Can't remove default plan")
+
+@plan.command(name = 'print')
+def print_():
+    """
+    Print the current plan
+    """
+    current_plan_name = get_workspace_parameter("current_plan_name")
+    echo(f'The current plan is: {current_plan_name}')
+
+    

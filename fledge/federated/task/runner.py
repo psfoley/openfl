@@ -97,7 +97,7 @@ class TaskRunner(object):
         """
         return self.data_loader.get_valid_data_size()
 
-    def train_batches(self, num_batches, use_tqdm = False):
+    def train_batches(self, num_batches = None, use_tqdm = False):
         """
         Perform the training for a specified number of batches.
 

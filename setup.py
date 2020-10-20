@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'fledge',
-    version = '0.1',
+    version = '0.11',
     author = 'Intel Corporation',
     description = 'Federated Learning on the Edge',
     packages = [

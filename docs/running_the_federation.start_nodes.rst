@@ -19,7 +19,7 @@ On the Aggregator
     connect, the aggregator starts training. When the last round of
     training is complete, the aggregator stores the final weights in
     the protobuf file that was specified in the YAML file
-    (in this case *save/keras_cnn_mnist_latest.pbuf*).
+    (in this case *save/${WORKSPACE_TEMPLATE}_latest.pbuf*).
 
 .. _running_collaborators:
 

@@ -15,7 +15,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
     """PyTorch Model class for Federated Learning
     """
 
-    def __init__(self, device='cpu', **kwargs):
+    def __init__(self, device=pt.device('cuda' if pt.cuda.is_available() else 'cpu'), **kwargs):
         """Initializer
 
         Args:

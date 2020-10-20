@@ -6,7 +6,7 @@
 Running on Docker
 #################
 
-First make sure you have :ref:`followed the Docker installation steps <docker_install>` to have the containerized version of |productName|. A demo script can be found at :code:`docker_keras_demo.sh`.
+First make sure you have :ref:`followed the Docker installation steps <install_docker>` to have the containerized version of |productName|. A demo script can be found at :code:`docker_keras_demo.sh`.
 
 Docker Demo
 ===========
@@ -21,9 +21,10 @@ To emulate the workspaces of both components, it will create 2 separated directo
 
 The name of the docker image to be used for the demo can be set as first argument when calling the script. By default, the bash script will rely on the docker image name used to build it with the previous command (*e.g.* fledge/docker).
 
-The path where the 2 local directories will be created can be passed as second argument. If empty, it will default to :code:`/home/$USERNAME`.
+The path where the two local directories will be created can be passed as second argument. If empty, it will default to :code:`/home/$USERNAME`.
 
 .. code-block:: console
+
    $ bash docker_keras_demo.sh
 
 Run the demo with custom parameters

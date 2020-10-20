@@ -31,9 +31,10 @@ Requirements
 ~~~~~~~~~~~~
 
 In order to successfully build the image, the Dockerfile is expecting to access the following dependencies:
-- Find the "fledge" directory in the same location where we are going to execute the "docker build" command.
-- Find the "docker_agg.sh" file
-- Find the "docker_col.sh" file
+
+* Find the "fledge" directory in the same location where we are going to execute the "docker build" command.
+* Find the "docker_agg.sh" file
+* Find the "docker_col.sh" file
 
 Command
 ~~~~~~~

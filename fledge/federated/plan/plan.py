@@ -210,6 +210,8 @@ class Plan(object):
 
         defaults[SETTINGS]['authorized_cols'] = self.authorized_cols
         defaults[SETTINGS]['rounds_to_train'] = self.rounds_to_train
+        defaults[SETTINGS]['tasks']           = self.config.get('tasks',   {})
+
 
         if  self.assigner_ == None:
             self.assigner_  = Plan.Build(**defaults)

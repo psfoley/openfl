@@ -102,9 +102,14 @@ def run_experiment(collaborator_dict,config={}):
                       data_config_path = Path(data_config))
 
     if 'rounds_to_train' in config:
-        plan.config['aggregator' ]['settings']['rounds_to_train'] = config['rounds_to_train']
+        plan.config['aggregator']['settings']['rounds_to_train'] = config['rounds_to_train']
         plan.rounds_to_train = config['rounds_to_train']
     rounds_to_train = plan.config['aggregator' ]['settings']['rounds_to_train'] 
+
+    if 'tasks.locally_tuned_model_validation.aggregation_type' in config:
+        plan.config['tasks']['locally_tuned_model_validation']['aggregation_type'] = config['tasks.locally_tuned_model_validation.aggregation_type']
+        #logger.info('custom aggregation type set')
+        #logger.info(f'{plan.config}')
 
     #Overwrite plan values
     plan.authorized_cols = list(collaborator_dict)

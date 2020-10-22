@@ -38,24 +38,27 @@ On the Aggregator
  - :code:`torch_cnn_histology`: workspace with a simple `PyTorch <http://pytorch.org/>`_ CNN model that will download the `Colorectal Histology <https://zenodo.org/record/53169#.XGZemKwzbmG>`_ dataset and train in a federation.
  - :code:`torch_cnn_mnist`: workspace with a simple `PyTorch <http://pytorch.org>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
 
-3.  For this example, we will use the template called :code:`keras_cnn_mnist`.
+3.  For this example, we will use the template called :code:`keras_cnn_mnist` and create it within a new directory called :code:`${HOME}/my_federation`.
 
     .. code-block:: console
     
         $ export WORKSPACE_TEMPLATE=keras_cnn_mnist
+        $ export WORKSPACE_PATH=${HOME}/my_federation
 
     
 4.  Create a workspace for the new federation project.
 
     .. code-block:: console
-       $ fx workspace create --prefix WORKSPACE.PATH --template ${WORKSPACE_TEMPLATE}
-
-    where **WORKSPACE.PATH** is the directory to create your workspace.  
-    A list of pre-created templates can be found by simply running the command:
+    
+       $ fx workspace create --prefix ${WORKSPACE_PATH} --template ${WORKSPACE_TEMPLATE}
+       
+    where :code:`--prefix` is the directory to create your workspace.  
+    
+    The list of pre-created templates can be found by simply running the command:
 
     .. code-block:: console
     
-       $ fx workspace create --prefix WORKSPACE.PATH 
+       $ fx workspace create --prefix ${WORKSPACE_PATH}
        
     .. note::
     
@@ -66,7 +69,7 @@ On the Aggregator
 
     .. code-block:: console
     
-        $ cd WORKSPACE.PATH
+        $ cd ${WORKSPACE_PATH}
 
 6.  Install workspace requirements:
 
@@ -79,9 +82,9 @@ On the Aggregator
 
     .. code-block:: console
     
-       $ fx plan initialize -a AFQDN
+       $ fx plan initialize -a ${AFQDN}
 
-    where *AFQDN** is the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ of the aggregator node. If you omit this parameter, :code:`fx` will automatically use the FQDN of the current node assuming the node has been correctly set with a static address. 
+    where **${AFQDN}** is the actual `fully qualified domain name (FQDN) <https://en.wikipedia.org/wiki/Fully_qualified_domain_name>`_ of the aggregator node. If you omit this parameter, :code:`fx` will automatically use the FQDN of the current node assuming the node has been correctly set with a static address. 
    
    .. note::
     

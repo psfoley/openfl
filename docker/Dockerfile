@@ -33,8 +33,6 @@ ENV no_proxy=$no_proxy
 RUN addgroup --gid $GROUP_ID $USERNAME
 RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USERNAME
 
-#USER $USERNAME
-
 #########################
 
 ENV install_dir=/usr/fledge/
@@ -43,8 +41,8 @@ WORKDIR /home/
 
 ADD fledge $install_dir
 
-COPY Docker/docker_agg.sh /home/.
-COPY Docker/docker_col.sh /home/.
+COPY docker_agg.sh /home/.
+COPY docker_col.sh /home/.
 
 # Set locale details
 RUN apt-get update

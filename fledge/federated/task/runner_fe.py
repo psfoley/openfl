@@ -1,53 +1,32 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
-
 import numpy         as np
-import torch         as pt
-import torch.nn      as nn
-import fastestimator as fe
-
-from copy import deepcopy
+import torch as pt
+import tensorflow as tf
 
 from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
 
+from .runner import TaskRunner
 from .runner_keras import KerasTaskRunner
-from .runner_pt    import PyTorchTaskRunner
+from .runner_pt import PyTorchTaskRunner
 
-class FastEstimatorTaskRunner(KerasTaskRunner,PyTorchTaskRunner):
-    """FastEstimator class for Federated Learning
-    """
-
+class FastEstimatorTaskRunner(TaskRunner):
+    runner: TaskRunner
     def __init__(self, **kwargs):
-        """Initializer
-
-        Args:
-            **kwargs: Additional parameters to pass to the functions
-        """
-
-        #super().__init__(**kwargs)
-
-        #Keep reference to Pytorch, Keras TaskRunners to initialize when model is actually known
-        self.ktr = KerasTaskRunner
-        self.pttr = PyTorchTaskRunner
-        self.kwargs = kwargs
-        
-        self.estimator = None
-
-    def set_runner_type(self,model):
-        """
-        Inherit methods from Pytorch or Keras depending on model type
-        """
-        kwargs = self.kwargs
-        if 'keras' in str(type(model)):
-            #The keras task runner reinitializes the model. Save a reference to the compiled model and overwrite self.model
-            model = self.model
-            self.ktr.__init__(self,**kwargs)
-            self.model = model
-        if isinstance(model,nn.Module):
-            self.pttr.__init__(self,**kwargs)
+        super().__init__(**kwargs)
+        self.model = self.build_model()
+        self.optimizer = self.model.optimizer
+        if isinstance(self.model, pt.nn.Module):
+            impl = PyTorchTaskRunner
+        elif isinstance(self.model, tf.keras.Model):
+            impl = KerasTaskRunner
+        self.runner = impl(**kwargs)
+        self.runner.set_logger()
+        self.runner.model = self.model
+        self.runner.optimizer = self.optimizer
+        self.required_tensorkeys_for_function = {}
+        self.tensor_dict_split_fn_kwargs = self.runner.tensor_dict_split_fn_kwargs
         
 
-    def train(self, col_name, round_num, input_tensor_dict,epochs, **kwargs):
+    def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
         """
         Perform training for a specified number of epochs
         """
@@ -140,30 +119,94 @@ class FastEstimatorTaskRunner(KerasTaskRunner,PyTorchTaskRunner):
         None
         """
 
-        #TODO there should be a way to programmatically iterate through all of the methods in the class and declare the tensors.
-        #For now this is done manually
+        self.runner.initialize_tensorkeys_for_functions(with_opt_vars)
 
-        output_model_dict = self.get_tensor_dict(with_opt_vars=with_opt_vars)
-        global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
-        if not with_opt_vars:
-            validation_global_model_dict = global_model_dict
-            validation_local_model_dict = local_model_dict
-        else:
-            output_model_dict = self.get_tensor_dict(with_opt_vars=False)
-            validation_global_model_dict, validation_local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+    def build_model(self):
+        raise NotImplementedError
 
+    def get_required_tensorkeys_for_function(self, func_name, **kwargs):
+        """
+        When running a task, a map of named tensorkeys must be provided to the function as dependencies.
 
-        self.required_tensorkeys_for_function['train'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in global_model_dict]
-        self.required_tensorkeys_for_function['train'] += [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in local_model_dict]
+        Returns:
+            list: (TensorKey(tensor_name, origin, round_number))
+        """
+        return self.runner.get_required_tensorkeys_for_function(func_name, **kwargs)
 
+    def get_tensor_dict(self, with_opt_vars):
+        """
+        Get the weights.
 
-        #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
-        self.required_tensorkeys_for_function['validate'] = {}
-        #TODO This is not stateless. The optimizer will not be 
-        self.required_tensorkeys_for_function['validate']['apply=local'] = \
-                [TensorKey(tensor_name,'LOCAL',0,False,('trained',)) for tensor_name in {**validation_global_model_dict,**validation_local_model_dict}]
-        self.required_tensorkeys_for_function['validate']['apply=global'] = \
-                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in validation_global_model_dict]
-        self.required_tensorkeys_for_function['validate']['apply=global'] += \
-                [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in validation_local_model_dict]
+        Args:
+            with_opt_vars (bool): Specify if we also want to get the variables of the optimizer.
 
+        Returns:
+            dict: The weight dictionary {<tensor_name>: <value>}
+        """
+        return self.runner.get_tensor_dict(with_opt_vars)
+
+    def set_tensor_dict(self, tensor_dict, with_opt_vars):
+        """
+        Set the model weights with a tensor dictionary: {<tensor_name>: <value>}.
+
+        Args:
+            tensor_dict (dict): The model weights dictionary.
+            with_opt_vars (bool): Specify if we also want to set the variables of the optimizer.
+
+        Returns:
+            None
+        """
+        return self.runner.set_tensor_dict(tensor_dict, with_opt_vars)
+
+    def reset_opt_vars(self):
+        """
+        Reinitialize the optimizer variables."""
+        return self.runner.reset_opt_vars()
+
+    def initialize_globals(self):
+        """
+        Initialize all global variables
+
+        Returns:
+            None
+        """
+        return self.runner.initialize_globals()
+
+    def load_native(self, filepath, **kwargs):
+        """
+        Loads model state from a filepath in ML-framework "native" format, e.g. PyTorch pickled models. May load from multiple files. Other filepaths may be derived from the passed filepath, or they may be in the kwargs.
+
+        Args:
+            filepath (string): Path to frame-work specific file to load. For frameworks that use multiple files, this string must be used to derive the other filepaths.
+            kwargs           : For future-proofing
+
+        Returns:
+            None
+        """
+        return self.runner.load_native(filepath, **kwargs)
+
+    def save_native(self, filepath, **kwargs):
+        """
+        Saves model state in ML-framework "native" format, e.g. PyTorch pickled models. May save one file or multiple files, depending on the framework.
+
+        Args:
+            filepath (string): If framework stores a single file, this should be a single file path. Frameworks that store multiple files may need to derive the other paths from this path.
+            kwargs           : For future-proofing
+
+        Returns:
+            None
+        """
+        return self.runner.save_native(filepath, **kwargs)
+
+    def rebuild_model(self, round_num, input_tensor_dict,validation = False):
+        """
+        Parse tensor names and update weights of model. Handles the optimizer treatment
+
+        Returns:
+            None
+        """
+        return self.runner.rebuild_model(round_num, input_tensor_dict, validation)
+
+    def set_optimizer_treatment(self,opt_treatment):
+        super().set_optimizer_treatment(opt_treatment)
+        self.runner.opt_treatment = opt_treatment

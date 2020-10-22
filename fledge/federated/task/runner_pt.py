@@ -229,7 +229,9 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
 
         self.required_tensorkeys_for_function['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in global_model_dict]
         self.required_tensorkeys_for_function['train_batches'] += [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in local_model_dict]
-
+        
+        self.required_tensorkeys_for_function['train'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in global_model_dict]
+        self.required_tensorkeys_for_function['train'] += [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in local_model_dict]
 
         #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
         self.required_tensorkeys_for_function['validate'] = {}
@@ -271,6 +273,16 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         """
         pickle_dict = {model_state_dict_key: self.state_dict(), optimizer_state_dict_key: self.optimizer.state_dict()}
         pt.save(pickle_dict, filepath)
+
+    def reset_opt_vars(self):
+        """
+        Reset optimizer variables
+
+        Resets the optimizer variables
+
+        """
+        pass
+
 
 def _derive_opt_state_dict(opt_state_dict):
     """Separate optimizer tensors from the tensor dictionary

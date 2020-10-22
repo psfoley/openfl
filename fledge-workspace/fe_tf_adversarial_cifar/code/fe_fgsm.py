@@ -26,6 +26,9 @@ from fastestimator.util import ImgData, to_number
 import tensorflow as tf
 #tf.compat.v1.keras.layers.enable_v2_dtype_behavior()
 
+
+tf.config.run_functions_eagerly(True)
+
 logger = getLogger(__name__)
 
 class FastEstimatorFGSM(FastEstimatorTaskRunner):
@@ -39,29 +42,19 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         Args:
             **kwargs: Additional parameters to pass to the function
         """
-        print(f"Executing eagerly before calling super init : {tf.executing_eagerly()}")
-
         super().__init__(**kwargs)
 
-        print(f"Executing eagerly before building model? : {tf.executing_eagerly()}")
-
-        self.model = self.build_model()
-
-        #This will load the required KerasTaskRunner functions
-        self.set_runner_type(self.model)
+        
 
         #Now the data pipeline will be initialized and the rest of the network/estimator can be built
         self.network = self.build_network()
         self.estimator = self.build_estimator()
 
-        #This will load the required KerasTaskRunner functions
-        self.set_runner_type(self.model)
-
         self.set_logger()
 
         self.initialize_tensorkeys_for_functions()
 
-        self.model.summary(print_fn = logger.info)
+        logger.info(self.model.__repr__())
 
         if  self.data_loader is not None:
             logger.info(f'Train Set Size : {self.get_train_data_size()}')

@@ -25,8 +25,6 @@ from fledge.utilities import TensorKey,split_tensor_dict_for_holdouts
 
 from .runner import TaskRunner
 
-tf.config.run_functions_eagerly(True)
-
 class KerasTaskRunner(TaskRunner):
     """
     The base model for Keras models in the federation.

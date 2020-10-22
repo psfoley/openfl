@@ -15,6 +15,5 @@ locally_tuned_model_validation:
 train:
   function : train_batches
   kwargs   :
-    num_batches : 1
     metrics     :
     - loss

@@ -7,10 +7,6 @@ Docker Installation
 ###################
 
 .. note::
-
-   Make sure you've run the :ref:`Initial Installation Steps <install_initial_steps>` section first.
-
-.. note::
     You'll need Docker installed on all nodes. To check
     that Docker is installed and running properly, you
     can run the Docker *Hello World* command like this:
@@ -24,4 +20,21 @@ Docker Installation
       ...
       ...
 
-1. TODO
+Build the docker image
+======================
+
+Requirements
+~~~~~~~~~~~~
+
+In order to successfully build the image, the Dockerfile is expecting to access the following dependencies:
+
+* Find the :code:`fledge` directory in the same location where we are going to execute the :code:`docker build` command.
+* Find the :code:`docker_agg.sh` file
+* Find the :code:`docker_col.sh` file
+
+Command
+~~~~~~~
+
+.. code-block:: console
+   $ HOST_USER=`whoami`
+   $ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t fledge/docker -f fledge_containers/Dockerfile .

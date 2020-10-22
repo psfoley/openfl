@@ -182,7 +182,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         #Empty list represents metrics that should only be stored locally
         return output_tensor_dict,{}
 
-    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches, use_tqdm=False,**kwargs): 
+    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=False,**kwargs): 
         """Train batches
 
         Train the model on the requested number of batches.
@@ -205,27 +205,17 @@ class PyTorchCNN(PyTorchTaskRunner):
 
         losses = []
 
-        loader = self.data_loader.get_train_loader()
+        loader = self.data_loader.get_train_loader(num_batches)
         if use_tqdm:
             loader = tqdm.tqdm(loader, desc="train epoch")
-
-        batch_num = 0
-
-        while batch_num < num_batches:
-            # shuffling occurs every time this loader is used as an interator
-            for data, target in loader:
-                if batch_num >= num_batches:
-                    break
-                else:
-                    data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device, dtype=torch.float32)
-                    self.optimizer.zero_grad()
-                    output = self(data)
-                    loss = self.loss_fn(output=output, target=target)
-                    loss.backward()
-                    self.optimizer.step()
-                    losses.append(loss.detach().cpu().numpy())
-
-                    batch_num += 1
+        for data, target in loader:
+            data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device, dtype=torch.float32)
+            self.optimizer.zero_grad()
+            output = self(data)
+            loss = self.loss_fn(output=output, target=target)
+            loss.backward()
+            self.optimizer.step()
+            losses.append(loss.detach().cpu().numpy())
 
         #Output metric tensors (scalar)
         origin = col_name

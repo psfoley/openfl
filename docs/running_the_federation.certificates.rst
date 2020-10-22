@@ -118,8 +118,7 @@ Before you run the federation make sure you have activated a Python virtual envi
        $ fx collaborator generate-cert-request -n COL.LABEL
 
 
-   The creation script will also ask you to specify the path to the data. For the "Hello Federation" demo, simply enter the an integer that represents which shard of MNIST to use on this Collaborator (e.g. For the first Collaborator enter 1. For the second collaborator enter 2.). 
-   
+   The creation script will also ask you to specify the path to the data. For the "Hello Federation" demo, simply enter the an integer that represents which shard of MNIST to use on this Collaborator For the first collaborator enter **1**. For the second collaborator enter **2**.
    This will create the following 3 files:
 
     +-----------------------------+------------------------------------------------------+

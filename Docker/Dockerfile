@@ -33,7 +33,7 @@ ENV no_proxy=$no_proxy
 RUN addgroup --gid $GROUP_ID $USERNAME
 RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USERNAME
 
-USER $USERNAME
+#USER $USERNAME
 
 #########################
 
@@ -43,14 +43,13 @@ WORKDIR /home/
 
 ADD fledge $install_dir
 
-COPY fledge_containers/AUX/v6/docker_agg.sh /home/.
-COPY fledge_containers/AUX/v6/docker_col.sh /home/.
+COPY Docker/docker_agg.sh /home/.
+COPY Docker/docker_col.sh /home/.
 
 # Set locale details
 RUN apt-get update
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
-
 
 # Install OpenSSH for MPI to communicate between containers
 RUN apt-get install -y ssh
@@ -72,6 +71,4 @@ RUN apt-get install -y python3-pip
 RUN pip install --upgrade pip
 RUN pip install $install_dir
 
-
-#ENV PATH="/home/.local/bin:${PATH}"
-
+USER $USERNAME

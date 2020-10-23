@@ -11,7 +11,7 @@ with catch_warnings():
 
 from .loader         import      DataLoader
 if (True if pkgutil.find_loader('tensorflow') else False):
-  #from .loader_tf    import      TensorFlowDataLoader
+  from .loader_tf    import      TensorFlowDataLoader
   from .loader_keras import      KerasDataLoader
 if (True if pkgutil.find_loader('torch') else False):
   from .loader_pt    import      PyTorchDataLoader

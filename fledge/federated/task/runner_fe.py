@@ -11,6 +11,7 @@ from .runner_pt import PyTorchTaskRunner
 class FastEstimatorTaskRunner(TaskRunner):
     runner: TaskRunner
     def __init__(self, **kwargs):
+        tf.config.run_functions_eagerly(True)
         super().__init__(**kwargs)
         self.model = self.build_model()
         self.optimizer = self.model.optimizer

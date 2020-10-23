@@ -42,8 +42,6 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         """
         super().__init__(**kwargs)
 
-        
-
         #Now the data pipeline will be initialized and the rest of the network/estimator can be built
         self.network = self.build_network()
         self.estimator = self.build_estimator()

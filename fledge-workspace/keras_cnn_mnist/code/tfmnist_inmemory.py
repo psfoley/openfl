@@ -1,11 +1,11 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-from fledge.federated import TensorFlowDataLoader
+from fledge.federated import KerasDataLoader
 
 from .mnist_utils import load_mnist_shard
 
-class TensorFlowMNISTInMemory(TensorFlowDataLoader):
+class TensorFlowMNISTInMemory(KerasDataLoader):
     """
     TensorFlow Data Loader for MNIST Dataset
     """

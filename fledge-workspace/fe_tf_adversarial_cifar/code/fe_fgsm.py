@@ -27,8 +27,6 @@ import tensorflow as tf
 #tf.compat.v1.keras.layers.enable_v2_dtype_behavior()
 
 
-tf.config.run_functions_eagerly(True)
-
 logger = getLogger(__name__)
 
 class FastEstimatorFGSM(FastEstimatorTaskRunner):

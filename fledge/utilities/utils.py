@@ -26,14 +26,38 @@ def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
             non_float_dict[k] = v
     return float_dict, non_float_dict
 
-def split_tensor_dict_for_holdouts(logger, tensor_dict, holdout_types = ['non_float'], holdout_tensor_names = []):
+
+def split_tensor_dict_into_supported_and_not_supported_types(tensor_dict, keep_types):
+    """
+    Splits the tensor dictionary into supported and not supported types
+    Args:
+        tensor_dict: A dictionary of tensors
+        keep_types: An iterable of supported types
+    Returns:
+        Two dictionaries: the first contains all of the supported tensors 
+        and the second contains all of the not supported tensors
+
+    """
+
+    keep_dict = {}
+    holdout_dict = {}
+    for k, v in tensor_dict.items():
+        if any([np.issubdtype(v.dtype, type_) for type_ in keep_types]):
+            keep_dict[k] = v
+        else:
+            holdout_dict[k] = v
+    return keep_dict, holdout_dict
+
+
+def split_tensor_dict_for_holdouts(logger, tensor_dict, keep_types = (np.floating, np.integer), \
+            holdout_tensor_names = ()):
     """
     Splits a tensor according to tensor types.
 
     Args:
         logger: The log object
         tensor_dict: A dictionary of tensors
-        holdout_types: A list of types to extract from the dictionary of tensors
+        keep_types: A list of types to keep in dictionary of tensors
         holdout_tensor_names: A list of tensor names to extract from the dictionary of tensors
 
     Returns:
@@ -55,13 +79,8 @@ def split_tensor_dict_for_holdouts(logger, tensor_dict, holdout_types = ['non_fl
                 continue
 
     # filter holdout_types from tensors_to_send and add to holdout_tensors
-    for holdout_type in holdout_types:
-        if holdout_type == 'non_float':
-            # filter non floats from tensors_to_send and add to holdouts
-            tensors_to_send, non_float_dict = split_tensor_dict_into_floats_and_non_floats(tensors_to_send)
-            holdout_tensors = {**holdout_tensors, **non_float_dict}
-        else:
-            raise ValueError('{} is not a currently suported parameter type to hold out from a tensor dict'.format(holdout_type))
-
+    tensors_to_send, not_supported_tensors_dict = \
+        split_tensor_dict_into_supported_and_not_supported_types(tensors_to_send, keep_types)
+    holdout_tensors = {**holdout_tensors, **not_supported_tensors_dict}
 
     return tensors_to_send, holdout_tensors

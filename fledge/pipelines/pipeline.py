@@ -69,6 +69,7 @@ class Float32NumpyArrayToBytes(Transformer):
         if data.dtype != np.float32:
             data = data.astype(np.float32)
         array_shape = data.shape
+        # Better call it array_shape?
         metadata = {'int_list': list(array_shape)}
         data_bytes = data.tobytes(order='C')
         return data_bytes, metadata
@@ -86,6 +87,7 @@ class Float32NumpyArrayToBytes(Transformer):
         """
         array_shape = tuple(metadata['int_list'])
         flat_array = np.frombuffer(data,dtype = np.float32)
+        # For integer parameters we probably should unpack arrays with shape (1,)
         return np.reshape(flat_array,newshape = array_shape, order='C')
 
 class TransformationPipeline(object):

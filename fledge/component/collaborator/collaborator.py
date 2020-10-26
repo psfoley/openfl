@@ -160,7 +160,6 @@ class Collaborator(object):
 
     def get_tasks(self):
 
-        logger.info('Waiting for tasks...')
         request  = TasksRequest(header = self.header)
         response = self.client.GetTasks(request)
         self.validate_response(response) # sanity checks and validation

@@ -1,0 +1,4 @@
+template : fledge.component.Collaborator
+settings :
+    opt_treatment     : 'CONTINUE_LOCAL'
+    delta_updates     : True

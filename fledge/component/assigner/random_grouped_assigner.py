@@ -17,9 +17,10 @@ class RandomGroupedAssigner(Assigner):
                              round of experiment 
     """
 
-    def __init__(self, task_groups, authorized_cols, rounds_to_train, **kwargs):
+    def __init__(self, task_groups, tasks, authorized_cols, rounds_to_train, **kwargs):
 
         self.task_groups     = task_groups
+        self.tasks           = tasks
         self.rounds          = rounds_to_train
         self.authorized_cols = authorized_cols
 
@@ -70,6 +71,11 @@ class RandomGroupedAssigner(Assigner):
 
     def get_collaborators_for_task(self, task_name, round_number):
         return self.collaborators_for_task[task_name][round_number]
+
+    def get_aggregation_type_for_task(self, task_name):
+        if 'aggregation_type' not in self.tasks[task_name]:
+            return None
+        return self.tasks[task_name]['aggregation_type']
 
     def get_all_tasks_for_round(self,round_number):
         """

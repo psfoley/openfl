@@ -78,7 +78,7 @@ def create_(context, prefix, template):
 def export_(context):
     """Export federated learning workspace"""
 
-    from shutil   import make_archive, copytree, ignore_patterns, rmtree
+    from shutil   import make_archive, copytree, copy2, ignore_patterns, rmtree
     from tempfile import mkdtemp
     from os       import getcwd, makedirs
     from os.path  import basename, join
@@ -106,18 +106,17 @@ def export_(context):
     tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
     ignore = ignore_patterns('__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem', '*.pbuf')
-    copytree('.', tmpDir, ignore=ignore) # Copy the current directory into the temporary directory
 
-    # Make sure the export doesn't include previous logs/saved files/PKI
-    rmtree(f'{tmpDir}/cert/ca', ignore_errors=True)     # Remove the certificate authority directory
-    rmtree(f'{tmpDir}/cert/server', ignore_errors=True) # Remove the server certificate directory
-    rmtree(f'{tmpDir}/cert/client', ignore_errors=True) # Remove the clients certificate directory
 
-    rmtree(f'{tmpDir}/save', ignore_errors=True)        # Remove the save directory
-    makedirs(f'{tmpDir}/save', exist_ok=True)           # Create a save directory stub (no files or subdirectories)
-
-    rmtree(f'{tmpDir}/logs', ignore_errors=True)        # Remove the logs directory
-    makedirs(f'{tmpDir}/logs', exist_ok=True)           # Create a logs directory stub (no files or subdirectories)
+    # We only export the minimum required files to set up a collaborator 
+    makedirs(f'{tmpDir}/save', exist_ok=True)
+    makedirs(f'{tmpDir}/logs', exist_ok=True)
+    makedirs(f'{tmpDir}/data', exist_ok=True)
+    copytree('./code', f'{tmpDir}/code', ignore=ignore) # code
+    copytree('./cert/config', f'{tmpDir}/cert/config', ignore=ignore) # cert
+    copytree('./plan', f'{tmpDir}/plan', ignore=ignore) # plan
+    copy2('requirements.txt', tmpDir) # requirements
+    copy2('.workspace', tmpDir) # .workspace
    
     make_archive(archiveName, archiveType, tmpDir)      # Create Zip archive of directory
 

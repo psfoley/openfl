@@ -1,4 +1,3 @@
-```mermaid
 gantt
 
     dateFormat  YYYY-MM-DD
@@ -21,20 +20,20 @@ gantt
         FastEstimator                : crit, done, tag_fastestimator, 2020-10-16, 2w
         Basic Python wrapper         : done, tag_basicpython, 2020-10-16, 2w
         Advanced Python wrapper      : tag_advanced_python, after tag_basicpython, 2w
-        Governor UI                  : tag_governor, after tag_advanced_python, 2w
+        Governor UI                  : tag_governor, after tag_taskrunner, 4w
         
     section Security
 
         ICX Demo with SGX : done, crit, tag_icx_demo, 2020-09-16, 5w
-        Initial Governor  : crit, tag_init_governor, 2020-11-02, 2w
+        Initial Governor  : crit, tag_init_governor, after tag_advanced_python, 2w
 
-        Finalized Governor API specs : crit, tag_final_api_gov, 2020-11-16, 2w
+        Finalized Governor API specs : crit, tag_final_api_gov, after tag_init_governor, 2w
 
         SGX validation Governor     : tag_valid_governor, after tag_final_api_gov, 2w
         SGX validation Aggregator   : tag_valid_aggregator, after tag_final_api_gov, 2w
         SGX validation Collaborator : tag_valid_collaborator, after tag_final_api_gov, 2w
 
-        Multi-node SGX demo with Governor, Collaborator, Aggregator deemed ready for other customers : tag_1.0, 2020-12-14, 2w
+        Multi-node SGX demo with Governor, Collaborator, Aggregator deemed ready for other customers : tag_1.0, after tag_valid_governor, 2w
 
     section Milestones
 
@@ -47,4 +46,4 @@ gantt
         v0.70 : milestone, v0.70, 2020-12-25, 1d
         v0.90 : milestone, v0.90, 2021-01-08, 1d
         v1.0  : milestone, v1.0,  2021-01-22, 1d
-```     
+        

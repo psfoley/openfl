@@ -1,3 +1,4 @@
+```mermaid
 gantt
 
     dateFormat  YYYY-MM-DD
@@ -47,3 +48,4 @@ gantt
         v0.90 : milestone, v0.90, 2021-01-08, 1d
         v1.0  : milestone, v1.0,  2021-01-22, 1d
         
+```

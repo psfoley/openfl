@@ -38,6 +38,8 @@ gantt
 
     section Milestones
 
+        openFL Open Sourcing: milestone, openFL, 2020-08-22, 1d
+        
         v0.10 : milestone, v0.10, 2020-09-15, 1d
         v0.11 : milestone, v0.11, 2020-10-25, 1d
         v0.20 : milestone, v0.20, 2020-10-30, 1d

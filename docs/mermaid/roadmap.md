@@ -28,7 +28,7 @@ gantt
         ICX Demo with SGX : done, crit, tag_icx_demo, 2020-09-16, 5w
         Initial Governor  : crit, tag_init_governor, after tag_advanced_python, 2w
 
-        Finalized Governor API specs : crit, tag_final_api_gov, after tag_init_governor, 2w
+        Finalized Governor API specs : crit, tag_final_api_gov, after tag_taskrunner, 2w
 
         SGX validation Governor     : tag_valid_governor, after tag_final_api_gov, 2w
         SGX validation Aggregator   : tag_valid_aggregator, after tag_final_api_gov, 2w

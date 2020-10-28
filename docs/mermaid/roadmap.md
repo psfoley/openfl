@@ -21,7 +21,7 @@ gantt
         FastEstimator                : crit, done, tag_fastestimator, 2020-10-16, 2w
         Basic Python wrapper         : done, tag_basicpython, 2020-10-16, 2w
         Advanced Python wrapper      : tag_advanced_python, after tag_basicpython, 2w
-        Governor UI                  : tag_governor, after tag_taskrunner, 4w
+        Governor UI                  : tag_governor, after tag_final_api_gov, 4w
         
     section Security
 

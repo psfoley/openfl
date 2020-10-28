@@ -2,7 +2,7 @@
 gantt
 
     dateFormat  YYYY-MM-DD
-    title FLedge Roadmap
+    title FLedge Development Roadmap
     %% Intel IOTG Federated Learning
 
     section Scalability

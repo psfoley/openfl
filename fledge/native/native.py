@@ -6,6 +6,7 @@ import fledge.interface.workspace as workspace
 import fledge.interface.aggregator as aggregator
 import fledge.interface.collaborator as collaborator
 import fledge.interface.plan as plan
+from fledge.interface.cli_helper import *
 
 from fledge.component import Aggregator
 from fledge.transport import AggregatorGRPCServer

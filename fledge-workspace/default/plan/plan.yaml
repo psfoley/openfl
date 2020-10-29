@@ -5,9 +5,9 @@ aggregator :
   defaults : plan/defaults/aggregator.yaml
   template : fledge.component.Aggregator
   settings :
-    init_state_path : save/model_init.pbuf
-    best_state_path : save/model_best.pbuf
-    last_state_path : save/model_last.pbuf
+    init_state_path : save/keras_lenet_init.pbuf
+    best_state_path : save/keras_lenet_best.pbuf
+    last_state_path : save/keras_lenet_last.pbuf
     rounds_to_train : 10
 
 collaborator :
@@ -21,15 +21,9 @@ collaborator :
 
 data_loader :
   defaults : plan/defaults/data_loader.yaml
-  template : code.tfmnist_inmemory.TensorFlowMNISTInMemory
-  settings :
-    collaborator_count : 2
-    data_group_name    : mnist
-    batch_size         : 256
 
 task_runner :
   defaults : plan/defaults/task_runner.yaml
-  template : code.keras_cnn.KerasCNN
 
 network :
   defaults : plan/defaults/network.yaml
@@ -38,4 +32,4 @@ assigner :
   defaults : plan/defaults/assigner.yaml
 
 tasks :
-  defaults : plan/defaults/tasks_keras.yaml
+  defaults : plan/defaults/tasks_fast_estimator.yaml

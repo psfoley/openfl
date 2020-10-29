@@ -44,8 +44,6 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         self.network = self.build_network()
         self.estimator = self.build_estimator()
 
-        self.set_logger()
-
         self.initialize_tensorkeys_for_functions()
 
         logger.info(self.model.__repr__())

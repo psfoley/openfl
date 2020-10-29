@@ -13,7 +13,7 @@ class DataLoader(object):
         Returns:
             None
         """
-        raise NotImplementedError
+        pass
 
     def get_feature_shape(self):
         """

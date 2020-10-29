@@ -3,6 +3,7 @@ import torch as pt
 import tensorflow as tf
 
 from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
+import fastestimator as fe
 
 from .runner import TaskRunner
 from .runner_keras import KerasTaskRunner
@@ -10,21 +11,25 @@ from .runner_pt import PyTorchTaskRunner
 
 class FastEstimatorTaskRunner(TaskRunner):
     runner: TaskRunner
-    def __init__(self, **kwargs):
+    estimator: fe.Estimator
+    def __init__(self, estimator, **kwargs):
         tf.config.run_functions_eagerly(True)
-        super().__init__(**kwargs)
-        self.model = self.build_model()
-        self.optimizer = self.model.optimizer
-        if isinstance(self.model, pt.nn.Module):
+        
+        self.estimator = estimator
+        assert(len(estimator.network.models) == 1), 'Only one-model networks are currently supported'
+        if isinstance(estimator.network, fe.network.TorchNetwork):
             impl = PyTorchTaskRunner
-        elif isinstance(self.model, tf.keras.Model):
+        elif isinstance(estimator.network, fe.network.TFNetwork):
             impl = KerasTaskRunner
+        self.model = estimator.network.models[0]
+        self.optimizer = self.model.optimizer
+        super().__init__(**kwargs)
         self.runner = impl(**kwargs)
-        self.runner.set_logger()
         self.runner.model = self.model
         self.runner.optimizer = self.optimizer
         self.required_tensorkeys_for_function = {}
         self.tensor_dict_split_fn_kwargs = self.runner.tensor_dict_split_fn_kwargs
+        self.initialize_tensorkeys_for_functions()
         
 
     def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):

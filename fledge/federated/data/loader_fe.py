@@ -15,7 +15,7 @@ class FastEstimatorDataLoader(DataLoader):
     Federation Data Loader for FastEstimator
     """
 
-    def __init__(self, batch_size, **kwargs):
+    def __init__(self, pipeline, **kwargs):
         """
         Instantiate the data object
 
@@ -27,7 +27,9 @@ class FastEstimatorDataLoader(DataLoader):
             None
         """
 
-        self.batch_size = batch_size
+        self.pipeline = pipeline
+
+        self.batch_size = pipeline.batch_size
         self.X_train = None
         self.y_train = None
         self.X_valid = None

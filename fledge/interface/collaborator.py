@@ -1,4 +1,4 @@
-from cli_helper import *
+from fledge.interface.cli_helper import *
 
 from fledge.component import Aggregator
 from fledge.transport import AggregatorGRPCServer
@@ -82,6 +82,9 @@ def RegisterDataPath(collaborator_name, data_path=None, silent=False):
 @option('-s', '--silent', help = 'Do not prompt', is_flag=True)
 @option('-x', '--skip-package', help = 'Do not package the certificate signing request for export', is_flag=True)
 def generate_cert_request_(context, collaborator_name, data_path, silent, skip_package):
+    generate_cert_request(collaborator_name, data_path, silent, skip_package)
+
+def generate_cert_request(collaborator_name, data_path, silent, skip_package):
     '''Create collaborator certificate key pair, then create a package with the CSR to send for signing'''
 
     common_name              = f'{collaborator_name}'.lower()
@@ -218,6 +221,9 @@ def sign_certificate(file_name):
 @option('-r', '--request-pkg', help = 'The archive containing the certificate signing request (*.zip) for a collaborator')
 @option('-i', '--import', 'import_', help = 'Import the archive containing the collaborator\'s certificate (signed by the CA)')
 def certify_(context, collaborator_name, silent, request_pkg, import_):
+    certify(collaborator_name, silent, request_pkg, import_)
+
+def certify(collaborator_name, silent, request_pkg=False, import_=False):
     '''Sign/certify collaborator certificate key pair'''
 
     from click   import confirm

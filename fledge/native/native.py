@@ -2,7 +2,11 @@
 import os
 from copy import copy
 from logging import getLogger
-from fledge.interface.cli_helper import *
+import fledge.interface.workspace as workspace
+import fledge.interface.aggregator as aggregator
+import fledge.interface.collaborator as collaborator
+import fledge.interface.plan as plan
+
 from fledge.component import Aggregator
 from fledge.transport import AggregatorGRPCServer
 from fledge.component import Collaborator
@@ -14,6 +18,7 @@ from fledge.utilities import split_tensor_dict_for_holdouts
 
 logger = getLogger(__name__)
 
+WORKSPACE_PREFIX = os.path.join(os.path.expanduser('~'), '.local', 'workspace')
 
 def setup_logging():
     #Setup logging
@@ -27,8 +32,18 @@ def setup_logging():
     console = Console(width = 160)
     basicConfig(level = 'INFO', format = '%(message)s', datefmt = '[%X]', handlers = [RichHandler(console = console)])    
 
-def init():
-    #TODO Add function to setup a default workspace in ~/.local/workspace
+def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
+    workspace.create(WORKSPACE_PREFIX, workspace_template)
+    os.chdir(WORKSPACE_PREFIX)
+    workspace.certify()
+    aggregator.generate_cert_request(agg_fqdn)
+    aggregator.certify(agg_fqdn, silent=True)
+    data_path = 1
+    for col_name in col_names:
+        collaborator.generate_cert_request(col_name, str(data_path), silent=True, skip_package=True)
+        collaborator.certify(col_name, silent=True)
+        data_path += 1
+
     setup_logging()
 
 

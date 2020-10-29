@@ -39,6 +39,7 @@ class TaskRunner(object):
         # from protobuf (and as a result for aggregation) - for such params in current examples,
         # aggregation does not make sense anyway, but if this changes support should be added.
         self.tensor_dict_split_fn_kwargs = tensor_dict_split_fn_kwargs
+        self.set_logger()
 
     def set_logger(self):
         """Sets up the log object

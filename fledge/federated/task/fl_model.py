@@ -30,8 +30,6 @@ class FederatedModel(KerasTaskRunner):
 
         self.model = self.build_model(self.feature_shape,self.data_loader.num_classes)
 
-        self.set_logger()
-
         #print(self.model.summary())
         #if self.data is not None:
         #print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size(), self.get_validation_data_size()))

@@ -3,18 +3,15 @@ import torch as pt
 import tensorflow as tf
 
 from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
-import fastestimator as fe
 
 from .runner import TaskRunner
 from .runner_keras import KerasTaskRunner
 from .runner_pt import PyTorchTaskRunner
 
 class FastEstimatorTaskRunner(TaskRunner):
-    runner: TaskRunner
-    estimator: fe.Estimator
     def __init__(self, estimator, **kwargs):
+        import fastestimator as fe
         tf.config.run_functions_eagerly(True)
-        
         self.estimator = estimator
         assert(len(estimator.network.models) == 1), 'Only one-model networks are currently supported'
         if isinstance(estimator.network, fe.network.TorchNetwork):

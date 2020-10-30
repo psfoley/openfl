@@ -3,7 +3,7 @@
 
 import numpy            as np
 
-from fledge.federated import FastEstimatorTaskRunner
+from fledge.federated import TaskRunner, FastEstimatorTaskRunner
 from fledge.utilities import TensorKey
 
 from logging import getLogger
@@ -40,8 +40,7 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         Args:
             **kwargs: Additional parameters to pass to the function
         """
-        
-
+        TaskRunner.__init__(self, **kwargs)
         #Now the data pipeline will be initialized and the rest of the network/estimator can be built
         self.network = self.build_network()
         estimator = self.build_estimator()
@@ -55,22 +54,6 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
             logger.info(f'Train Set Size : {self.get_train_data_size()}')
             logger.info(f'Valid Set Size : {self.get_valid_data_size()}')
 
-    def build_model(self):
-        """
-        Define the FastEstimator model architecture.
-
-        Args:
-            None
-
-        Returns:
-            model: Union[tf.keras.sequential, nn.module]
-
-        """
-
-        model = fe.build(model_fn=lambda: LeNet(input_shape=(32, 32, 3)), \
-                         optimizer_fn="adam", model_name="adv_model")
-        return model
-
     def build_network(self):
         """
         Define the FastEstimator network flow
@@ -83,6 +66,9 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         """
 
         epsilon = 0.04
+
+        self.model = fe.build(model_fn=lambda: LeNet(input_shape=(32, 32, 3)), \
+                         optimizer_fn="adam", model_name="adv_model")
 
         network = fe.Network(ops=[
                 Watch(inputs="x"),

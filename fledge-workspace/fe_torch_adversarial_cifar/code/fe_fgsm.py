@@ -3,7 +3,7 @@
 
 import numpy            as np
 
-from fledge.federated import FastEstimatorTaskRunner
+from fledge.federated import TaskRunner, FastEstimatorTaskRunner
 from fledge.utilities import TensorKey
 
 from logging import getLogger
@@ -36,13 +36,12 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         Args:
             **kwargs: Additional parameters to pass to the function
         """
-        super().__init__(**kwargs)
-
-        
-
+        TaskRunner.__init__(self, **kwargs)
         #Now the data pipeline will be initialized and the rest of the network/estimator can be built
+        self.model = self.build_model()
         self.network = self.build_network()
-        self.estimator = self.build_estimator()
+        estimator = self.build_estimator()
+        super().__init__(estimator, **kwargs)
 
         self.initialize_tensorkeys_for_functions()
 

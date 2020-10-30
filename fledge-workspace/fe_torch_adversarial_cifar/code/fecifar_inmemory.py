@@ -23,8 +23,6 @@ class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
             **kwargs: Additional arguments, passed to super init and load_mnist_shard
         """
 
-        super().__init__(batch_size, **kwargs)
-
         # TODO: We should be downloading the dataset shard into a directory
         # TODO: There needs to be a method to ask how many collaborators and what index/rank is this collaborator.
         # Then we have a way to automatically shard based on rank and size of collaborator list.
@@ -33,14 +31,7 @@ class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
         test_data = eval_data.split(0.5)
 
         train_data, eval_data, test_data = self.split_data(train_data, eval_data, test_data, int(data_path), collaborator_count)
-        
-        print(f"train_data = {train_data}")
-        print(f"eval_data = {eval_data}")
-        print(f"test_data = {test_data}")
-
-        print(f"batch_size = {batch_size}")
-
-        self.pipeline = fe.Pipeline(
+        super().__init__(fe.Pipeline(
                                      train_data=train_data,
                                      eval_data=eval_data,
                                      test_data=test_data,
@@ -50,7 +41,13 @@ class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
                                                    mean=(0.4914, 0.4822, 0.4465), 
                                                    std=(0.2471, 0.2435, 0.2616)),
                                          ChannelTranspose(inputs="x", outputs="x")
-                                     ]) 
+                                     ]), **kwargs)
+        
+        print(f"train_data = {train_data}")
+        print(f"eval_data = {eval_data}")
+        print(f"test_data = {test_data}")
+
+        print(f"batch_size = {batch_size}")
 
 
     def split_data(self,train,eva,test,rank,collaborator_count):

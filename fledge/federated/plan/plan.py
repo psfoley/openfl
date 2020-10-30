@@ -192,7 +192,6 @@ class Plan(object):
         self.aggregator_uuid = f'aggregator_{self.federation_uuid}'
 
         self.rounds_to_train = self.config['aggregator' ][SETTINGS]['rounds_to_train']
-        self.data_group_name = self.config['data_loader'][SETTINGS]['data_group_name']
 
         if  self.config['network'][SETTINGS]['agg_addr'] == AUTO:
             self.config['network'][SETTINGS]['agg_addr']  = getfqdn()
@@ -257,7 +256,7 @@ class Plan(object):
             SETTINGS : {}
         })
 
-        defaults[SETTINGS]['data_path'] = self.cols_data_paths[collaborator_name] #[collaborator_name][self.data_group_name]
+        defaults[SETTINGS]['data_path'] = self.cols_data_paths[collaborator_name] 
 
         if  self.loader_ == None:
             self.loader_  = Plan.Build(**defaults)

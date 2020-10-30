@@ -13,9 +13,10 @@ class FederatedFastEstimator:
     def __init__(self, estimator, rounds=10, **kwargs):
         self.estimator = estimator
         self.rounds = rounds
-        fx.init('fe', **kwargs)
+        fx.init(**kwargs)
 
     def fit(self):
+        import fastestimator as fe
         from sys       import path
 
         file = Path(__file__).resolve()
@@ -37,26 +38,15 @@ class FederatedFastEstimator:
 
         plan.config['aggregator']['settings']['rounds_to_train'] = self.rounds
         plan.rounds_to_train = self.rounds
-        self.rounds = plan.config['aggregator' ]['settings']['rounds_to_train'] 
-
+        self.rounds = plan.config['aggregator' ]['settings']['rounds_to_train']
+        data_loader = FastEstimatorDataLoader(self.estimator.pipeline)
+        runner = FastEstimatorTaskRunner(self.estimator, data_loader=data_loader)
         #Overwrite plan values
         tensor_pipe = plan.get_tensor_pipe() 
-        data_loader = FastEstimatorDataLoader(self.estimator.pipeline)
-        #This must be set to the final index of the list (this is the last tensorflow session to get created)
-        plan.runner_ = FastEstimatorTaskRunner(self.estimator, data_loader=data_loader)
-        runner = plan.runner_
-
-        #Do PKI setup here 
-
-        #setup_pki(aggregator_fqdn,collaborator_names)
-
-        #Set rounds to train
-
-
         #Initialize model weights
         init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
         tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, 
-                                                                    plan.runner_.get_tensor_dict(False),
+                                                                    runner.get_tensor_dict(False),
                                                                     {})
 
         model_snap = construct_model_proto(tensor_dict  = tensor_dict,
@@ -72,25 +62,50 @@ class FederatedFastEstimator:
         aggregator = plan.get_aggregator()
 
         model_states = {collaborator: None for collaborator in plan.authorized_cols}
+        runners = {}
+        data_path = 1
+        for col in plan.authorized_cols:
+            data = self.estimator.pipeline.data
+            train_data, eval_data, test_data = split_data(data['train'], data['eval'], data['test'], data_path, len(plan.authorized_cols))
+            pipeline_kwargs = {}
+            for k, v in self.estimator.pipeline.__dict__.items():
+                if k in ['batch_size', 'ops', 'num_process', 'drop_last', 'pad_value', 'collate_fn']:
+                    pipeline_kwargs[k] = v
+            pipeline_kwargs.update({'train_data': train_data, 'eval_data': eval_data, 'test_data': test_data})
+            pipeline = fe.Pipeline(**pipeline_kwargs)
+
+            data_loader = FastEstimatorDataLoader(pipeline)
+            estimator_kwargs = {}
+            for k, v in self.estimator.system.__dict__.items():
+                if k in ['network', 'traces', 'log_steps', 'max_train_steps_per_epoch', 'max_eval_steps_per_epoch']:
+                    estimator_kwargs[k] = v
+            estimator_kwargs.update({'pipeline': pipeline, 'epochs': self.estimator.system.total_epochs, 'monitor_names': self.estimator.monitor_names})
+            estimator = fe.Estimator(**estimator_kwargs)
+            
+            runners[col] = FastEstimatorTaskRunner(estimator=estimator, data_loader=data_loader)
+            runners[col].set_optimizer_treatment('RESET')
+            data_path += 1
 
         #Create the collaborators
-        collaborators = {collaborator: fx.create_collaborator(plan,collaborator,runner,aggregator) for collaborator in plan.authorized_cols}
+        collaborators = {collaborator: fx.create_collaborator(plan,collaborator,runners[col],aggregator) for collaborator in plan.authorized_cols}
 
+        model = None
         for round_num in range(self.rounds):
             for col in plan.authorized_cols:
 
                 collaborator = collaborators[col]
 
                 if round_num != 0:
-                    runner.rebuild_model(round_num,model_states[col])
+                    runners[col].rebuild_model(round_num,model_states[col])
 
                 collaborator.run_simulation()
 
-                model_states[col] = runner.get_tensor_dict(with_opt_vars=True)
+                model_states[col] = runners[col].get_tensor_dict(with_opt_vars=True)
+                model = runners[col].model
 
         #TODO This will return the model from the last collaborator, NOT the final aggregated model (though they should be similar). 
         #There should be a method added to the aggregator that will load the best model from disk and return it 
-        return runner.model
+        return model
 
         
 def split_data(train,eva,test,rank,collaborator_count):

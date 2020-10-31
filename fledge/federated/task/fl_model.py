@@ -4,15 +4,12 @@
 import logging
 import copy
 import numpy as np
-import tensorflow.compat.v1        as tf
-tf.disable_v2_behavior()
-import tensorflow.compat.v1.keras  as keras
-from tensorflow.compat.v1.keras import backend as K
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Conv2D, Flatten, Dense
 from .runner_keras import KerasTaskRunner
+from .runner import TaskRunner
 
-class FederatedModel(KerasTaskRunner):
+class FederatedModel(TaskRunner):
     """A wrapper for all task runners
 
     """
@@ -24,23 +21,32 @@ class FederatedModel(KerasTaskRunner):
             **kwargs: Additional parameters to pass to the function
             
         """
+
         super().__init__(**kwargs)
 
         self.build_model = build_model
 
         self.model = self.build_model(self.feature_shape,self.data_loader.num_classes)
-
-        #print(self.model.summary())
-        #if self.data is not None:
-        #print("Training set size: %d; Validation set size: %d" % (self.get_training_data_size(), self.get_validation_data_size()))
-        # initialize the optimizer variables
-        
-        opt_vars = self.model.optimizer.variables()
-
-        for v in opt_vars:
-            v.initializer.run(session = self.sess)
-
+        if 'keras' in str(type(self.model)):
+            impl = KerasTaskRunner
+        elif isinstance(model,nn.Module):
+            impl = PyTorchTaskRunner
+        self.optimizer = self.model.optimizer
+        self.runner = impl(**kwargs)
+        self.runner.model = self.model
+        self.runner.optimizer = self.optimizer
+        self.tensor_dict_split_fn_kwargs = self.runner.tensor_dict_split_fn_kwargs
         self.initialize_tensorkeys_for_functions()
+
+    def __getattribute__(self,attr):
+        """
+        Direct call into self.runner methods if necessary
+        """
+        if attr in ['reset_opt_vars','initialize_globals','set_tensor_dict','get_tensor_dict',\
+                    'get_required_tensorkeys_for_function','initialize_tensorkeys_for_functions',\
+                    'save_native','load_native','rebuild_model','set_optimizer_treatment','train','validate']:
+            return self.runner.__getattribute__(attr)
+        return super(FederatedModel,self).__getattribute__(attr)
 
     def setup(self,num_collaborators):
         """Create new models for all of the collaborators in the experiment

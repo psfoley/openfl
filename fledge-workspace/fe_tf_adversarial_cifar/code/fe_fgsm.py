@@ -24,8 +24,6 @@ from fastestimator.trace.metric import Accuracy
 from fastestimator.util import ImgData, to_number
 
 import tensorflow as tf
-#tf.compat.v1.keras.layers.enable_v2_dtype_behavior()
-
 
 logger = getLogger(__name__)
 
@@ -42,6 +40,7 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         """
         TaskRunner.__init__(self, **kwargs)
         #Now the data pipeline will be initialized and the rest of the network/estimator can be built
+        self.model = self.build_model()
         self.network = self.build_network()
         estimator = self.build_estimator()
         super().__init__(estimator, **kwargs)
@@ -53,6 +52,23 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         if  self.data_loader is not None:
             logger.info(f'Train Set Size : {self.get_train_data_size()}')
             logger.info(f'Valid Set Size : {self.get_valid_data_size()}')
+
+    def build_model(self):
+        """
+        Define the FastEstimator model architecture.
+
+        Args:
+            None
+
+        Returns:
+            model: Union[tf.keras.sequential, nn.module]
+
+        """
+
+        model = fe.build(model_fn=lambda: LeNet(input_shape=(32, 32, 3)), \
+                         optimizer_fn="adam", model_name="adv_model")
+        return model
+
 
     def build_network(self):
         """
@@ -66,9 +82,6 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         """
 
         epsilon = 0.04
-
-        self.model = fe.build(model_fn=lambda: LeNet(input_shape=(32, 32, 3)), \
-                         optimizer_fn="adam", model_name="adv_model")
 
         network = fe.Network(ops=[
                 Watch(inputs="x"),

@@ -135,10 +135,6 @@ def run_experiment(collaborator_dict,config={}):
     plan.runner_ = list(collaborator_dict.values())[-1]
     model = plan.runner_
 
-    #Do PKI setup here 
-
-    #setup_pki(aggregator_fqdn,collaborator_names)
-
     #Set rounds to train
 
 
@@ -147,7 +143,7 @@ def run_experiment(collaborator_dict,config={}):
     tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, 
                                                                  plan.runner_.get_tensor_dict(False),
                                                                  {})
-
+    
     model_snap = construct_model_proto(tensor_dict  = tensor_dict,
                                        round_number = 0,
                                        tensor_pipe  = tensor_pipe)

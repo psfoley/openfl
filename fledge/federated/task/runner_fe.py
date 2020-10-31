@@ -41,7 +41,7 @@ class FastEstimatorTaskRunner(TaskRunner):
         self.rebuild_model(round_num, input_tensor_dict)
 
         #Estimators need to be given an experiment name to produce an output summary
-        summary = self.estimator.fit("experiment")
+        summary = self.estimator.fit("experiment",warmup=False)
 
         #Define what the ouptut is to encapsulate in tensorkeys and return
         # output metric tensors (scalar)

@@ -192,7 +192,6 @@ class Plan(object):
         self.aggregator_uuid = f'aggregator_{self.federation_uuid}'
 
         self.rounds_to_train = self.config['aggregator' ][SETTINGS]['rounds_to_train']
-        self.data_group_name = self.config['data_loader'][SETTINGS]['data_group_name']
 
         if  self.config['network'][SETTINGS]['agg_addr'] == AUTO:
             self.config['network'][SETTINGS]['agg_addr']  = getfqdn()
@@ -210,6 +209,8 @@ class Plan(object):
 
         defaults[SETTINGS]['authorized_cols'] = self.authorized_cols
         defaults[SETTINGS]['rounds_to_train'] = self.rounds_to_train
+        defaults[SETTINGS]['tasks']           = self.config.get('tasks',   {})
+
 
         if  self.assigner_ == None:
             self.assigner_  = Plan.Build(**defaults)
@@ -255,7 +256,7 @@ class Plan(object):
             SETTINGS : {}
         })
 
-        defaults[SETTINGS]['data_path'] = self.cols_data_paths[collaborator_name] #[collaborator_name][self.data_group_name]
+        defaults[SETTINGS]['data_path'] = self.cols_data_paths[collaborator_name] 
 
         if  self.loader_ == None:
             self.loader_  = Plan.Build(**defaults)
@@ -277,7 +278,7 @@ class Plan(object):
 
         return self.runner_
 
-    def get_collaborator(self, collaborator_name):
+    def get_collaborator(self, collaborator_name, task_runner=None, client=None):
 
         defaults = self.config.get('collaborator',
         {
@@ -288,10 +289,16 @@ class Plan(object):
         defaults[SETTINGS]['collaborator_name'] = collaborator_name
         defaults[SETTINGS]['aggregator_uuid'  ] = self.aggregator_uuid
         defaults[SETTINGS]['federation_uuid'  ] = self.federation_uuid
-        defaults[SETTINGS]['task_runner'      ] = self.get_task_runner(collaborator_name)
+        if task_runner is not None:
+            defaults[SETTINGS]['task_runner'  ] = task_runner
+        else:
+            defaults[SETTINGS]['task_runner'  ] = self.get_task_runner(collaborator_name)
         defaults[SETTINGS]['tensor_pipe'      ] = self.get_tensor_pipe()
         defaults[SETTINGS]['task_config'      ] = self.config.get('tasks',   {})
-        defaults[SETTINGS]['client'           ] = self.get_client(collaborator_name)
+        if client is not None:
+            defaults[SETTINGS]['client'       ] = client
+        else:
+            defaults[SETTINGS]['client'       ] = self.get_client(collaborator_name)
 
         if  self.collaborator_ == None:
             self.collaborator_  = Plan.Build(**defaults)

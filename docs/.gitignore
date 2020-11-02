@@ -2,3 +2,4 @@ fledge*
 models*
 data*
 /_build
+**/.ipynb_checkpoints

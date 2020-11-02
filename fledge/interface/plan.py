@@ -1,5 +1,4 @@
-
-from cli_helper import *
+from fledge.interface.cli_helper import *
 
 from fledge.protocols import dump_proto, construct_model_proto
 from fledge.utilities import split_tensor_dict_for_holdouts

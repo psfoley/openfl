@@ -2,8 +2,6 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import numpy             as np
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
 
 from tqdm import tqdm
 
@@ -22,6 +20,8 @@ class TensorFlowTaskRunner(TaskRunner):
         Args:
             **kwargs: Additional parameters to pass to the function
         """
+        import tensorflow.compat.v1 as tf
+        tf.disable_v2_behavior()
 
         super().__init__(**kwargs)
 

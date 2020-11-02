@@ -25,7 +25,6 @@ class TensorFlow2DUNet(TensorFlowTaskRunner):
         super().__init__(**kwargs)
 
         self.create_model(**kwargs)
-        self.set_logger()
         self.initialize_tensorkeys_for_functions()
 
     def create_model(self,

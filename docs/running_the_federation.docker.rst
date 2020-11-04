@@ -8,6 +8,22 @@ Running on Docker
 
 First make sure you have :ref:`followed the Docker installation steps <install_docker>` to have the containerized version of |productName|. A demo script can be found at :code:`docker_keras_demo.sh`.
 
+TL;DR
+=====
+
+Here's the :download:`DockerFile <../docker/Dockerfile>`.
+
+.. literalinclude:: ../docker/Dockerfile
+  :language: docker
+  
+
+Here's the :download:`"Hello Docker Federation <../docker/docker_keras_demo.sh>`.
+
+.. literalinclude:: ../docker/docker_keras_demo.sh
+  :language: bash
+  
+
+
 Hello Federation Docker
 =======================
 

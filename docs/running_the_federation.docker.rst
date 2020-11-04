@@ -11,13 +11,13 @@ First make sure you have :ref:`followed the Docker installation steps <install_d
 TL;DR
 =====
 
-Here's the :download:`DockerFile <../docker/Dockerfile>`.
+Here's the :download:`DockerFile <../docker/Dockerfile>`. This image can be reused for aggregators and collaborators.
 
 .. literalinclude:: ../docker/Dockerfile
   :language: docker
   
 
-Here's the :download:`"Hello Docker Federation <../docker/docker_keras_demo.sh>`.
+Here's the :download:`"Hello Docker Federation <../docker/docker_keras_demo.sh>`. This is an end-to-end demo for the Keras CNN MNIST (:code:`docker_keras_demo.sh`).
 
 .. literalinclude:: ../docker/docker_keras_demo.sh
   :language: bash

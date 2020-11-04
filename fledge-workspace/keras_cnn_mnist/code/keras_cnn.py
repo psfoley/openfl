@@ -31,8 +31,6 @@ class KerasCNN(KerasTaskRunner):
 
         self.model = self.build_model(self.feature_shape, self.data_loader.num_classes, **kwargs)
 
-        self.set_logger()
-
         self.initialize_tensorkeys_for_functions()
 
         self.model.summary(print_fn = logger.info)

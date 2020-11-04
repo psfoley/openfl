@@ -12,6 +12,7 @@ setup(
         'fledge',
         'fledge.interface',
         'fledge.component',
+        'fledge.native',
         'fledge.component.assigner',
         'fledge.component.aggregator',
         'fledge.component.collaborator',

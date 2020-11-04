@@ -24,7 +24,6 @@ class TensorFlowCNN(KerasTaskRunner):
         super().__init__(**kwargs)
 
         self.model = self.create_model(self.feature_shape,self.data_loader.num_classes,**kwargs)
-        self.set_logger()
         self.initialize_tensorkeys_for_functions()
 
     def create_model(self,

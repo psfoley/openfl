@@ -1,4 +1,4 @@
-from cli_helper import *
+from fledge.interface.cli_helper import *
 
 from subprocess import check_call
 from sys        import executable
@@ -9,7 +9,7 @@ def workspace(context):
     '''Manage Federated Learning Workspaces'''
     context.obj['group'] = 'workspace'
 
-def create_dirs(context, prefix):
+def create_dirs(prefix):
 
     echo(f'Creating Workspace Directories')
 
@@ -25,7 +25,7 @@ def create_dirs(context, prefix):
 
     copytree(src = src, dst = dst, dirs_exist_ok = True)
 
-def create_cert(context, prefix):
+def create_cert(prefix):
 
     echo(f'Creating Workspace Certifications')
 
@@ -34,7 +34,7 @@ def create_cert(context, prefix):
 
     copytree(src = src, dst = dst, dirs_exist_ok = True)
 
-def create_temp(context, prefix, template):
+def create_temp(prefix, template):
 
     echo(f'Creating Workspace Templates')
 
@@ -49,25 +49,28 @@ def get_templates():
     return [d.name for d in WORKSPACE.glob('*') if d.is_dir() and d.name not in ['__pycache__', 'workspace']]
 
 @workspace.command(name='create')
-@pass_context
 @option('--prefix',   required = True, help = 'Workspace name or path', type = ClickPath())
 @option('--template', required = True, type = Choice(get_templates()))
-def create_(context, prefix, template):
-    """Create federated learning workspace"""
+def create_(prefix, template):
+    create(prefix, template)
 
+
+def create(prefix, template):
+    """Create federated learning workspace"""
     from os.path  import isfile
 
     prefix   = Path(prefix)
     template = Path(template)
 
-    create_dirs(context, prefix)
-    create_cert(context, prefix)
-    create_temp(context, prefix, template)
+    create_dirs(prefix)
+    create_cert(prefix)
+    create_temp(prefix, template)
 
     requirements_filename = "requirements.txt"
 
     if isfile(f'{str(prefix)}/{requirements_filename}'):
         check_call([executable, "-m", "pip", "install", "-r", f"{prefix}/requirements.txt"])
+        echo(f"Successfully installed packages from {prefix}/requirements.txt.")
     else:
         echo("No additional requirements for workspace defined. Skipping...")
 
@@ -147,8 +150,10 @@ def import_(archive):
 
 
 @workspace.command(name='certify')
-@pass_context
-def certify_(context):
+def certify_():
+    certify()
+
+def certify():
     '''Create certificate authority for federation'''
 
     echo('Setting Up Certificate Authority...\n')

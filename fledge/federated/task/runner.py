@@ -41,6 +41,7 @@ class TaskRunner(object):
         if type(tensor_dict_split_fn_kwargs) is not dict:
             tensor_dict_split_fn_kwargs = dict()
         self.tensor_dict_split_fn_kwargs = tensor_dict_split_fn_kwargs
+        self.set_logger()
 
     def set_logger(self):
         """Sets up the log object

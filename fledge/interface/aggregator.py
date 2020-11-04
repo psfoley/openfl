@@ -1,4 +1,4 @@
-from cli_helper import *
+from fledge.interface.cli_helper import *
 
 from fledge.component import Aggregator
 from fledge.transport import AggregatorGRPCServer
@@ -30,9 +30,11 @@ def start_(context, plan, authorized_cols, secure):
     plan.get_server().serve()
 
 @aggregator.command(name='generate-cert-request')
-@pass_context
 @option('--fqdn', required = False, help = f'The fully qualified domain name of aggregator node [{getfqdn()}]', default = getfqdn())
-def generate_cert_request_(context, fqdn):
+def generate_cert_request_(fqdn):
+    generate_cert_request(fqdn)
+
+def generate_cert_request(fqdn):
     '''Create aggregator certificate key pair'''
 
     common_name              = f'{fqdn}'.lower()
@@ -84,10 +86,12 @@ def sign_certificate(file_name):
     (PKI_DIR / f'{file_name}.csr').unlink()
 
 @aggregator.command(name='certify')
-@pass_context
 @option('-n', '--fqdn', help = 'The fully qualified domain name of aggregator node [{getfqdn()}]', default = getfqdn())
 @option('-s', '--silent', help = 'Do not prompt', is_flag=True)
-def certify_(context, fqdn, silent):
+def certify_(fqdn, silent):
+    certify(fqdn, silent)
+
+def certify(fqdn, silent):
     '''Sign/certify the aggregator certificate key pair'''
 
     from os.path import splitext, basename

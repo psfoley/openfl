@@ -120,7 +120,7 @@ class KerasDataLoader(DataLoader):
         idxs = np.random.permutation(np.arange(X.shape[0]))
 
         # compute the number of batches
-        num_batches = ceil(X.shape[0] / batch_size)
+        num_batches = int(np.ceil(X.shape[0] / batch_size))
 
         # build the generator and return it
         return self._batch_generator(X, y, idxs, batch_size, num_batches)

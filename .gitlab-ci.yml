@@ -24,8 +24,10 @@ pages:
   - mv _build/html/ ../public/
   - mv _build/rinoh/ ../public/pdf/
 
+  - cd ..
   - pwd
   - ls
+  - scripts/build_wheel.sh
 
   artifacts:
     paths:

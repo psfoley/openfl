@@ -19,6 +19,16 @@ Docker Installation
       ...
       ...
       ...
+      
+
+Design Philosophy
+~~~~~~~~~~~~~~~~~
+
+The Docker version of |productName| was designed to be simple and embrace the Docker philosophy. 
+By building and running the Dockerfile, one will be able to have an isolated environment that is fully equipped 
+with all the right dependencies and prerequisites. Once the execution is over, the container can be destroyed and 
+the results of the computation will be available on a directory on local host.
+
 
 Build the docker image
 ======================

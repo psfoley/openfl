@@ -61,6 +61,7 @@ if PRODUCT_VERSION == "Intel":
     .. |productName| replace:: Intel\ :sup:`®` \ Federated Learning (FL.Edge)
     .. |productZip| replace:: fledge.zip
     .. |productDir| replace:: fledge
+    .. |productWheel| replace:: fledge-***-py3-none-any.whl
 
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """
@@ -80,6 +81,7 @@ else:
     .. |productName| replace:: Open Federated Learning
     .. |productZip| replace:: OpenFederatedLearning.zip
     .. |productDir| replace:: OpenFederatedLearning
+    .. |productWheel| replace:: openfl-***-py3-none-any.whl
 
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """

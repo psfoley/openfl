@@ -54,7 +54,6 @@ hello_federation_keras:
     - export COL1=alpha32tr
     - export COL2=beta816r4
     - python3 -m pip install --user --upgrade pip
-    - python3 -m pip install --user intel-tensorflow==1.15.2
     script:
     - python3 -m pip install . --user
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh keras_cnn_mnist workspace_keras ${COL1} ${COL2}
@@ -69,6 +68,7 @@ hello_federation_pytorch:
   - charlie
   before_script:
   - whoami
+  - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
   - pwd
   - ls
   - cd /home/gitlab-runner/workspace
@@ -86,7 +86,6 @@ hello_federation_pytorch:
   - export COL1=one23
   - export COL2=two34
   - python3 -m pip install --user --upgrade pip
-  - python3 -m pip install torch==1.6.0+cpu torchvision==0.7.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
   script:
     - python3 -m pip install . --user
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh torch_cnn_mnist workspace_torch ${COL1} ${COL2}

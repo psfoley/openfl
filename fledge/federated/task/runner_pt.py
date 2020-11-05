@@ -36,9 +36,9 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
 
         # overwrite attribute to account for one optimizer param (in every child model that
         # does not overwrite get and set tensordict) that is not a numpy array
-        self.tensor_dict_split_fn_kwargs = {'holdout_types': ['non_float'],
+        self.tensor_dict_split_fn_kwargs.update({
                                             'holdout_tensor_names': ['__opt_state_needed']
-                                           }
+                                           })
 
     def rebuild_model(self, round_num, input_tensor_dict,validation = False):
         """

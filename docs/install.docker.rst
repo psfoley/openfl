@@ -36,5 +36,5 @@ Command
 ~~~~~~~
 
 .. code-block:: console
-
+   $ export HOST_USER=`whoami`
    $ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t fledge/docker -f fledge_containers/Dockerfile .

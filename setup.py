@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = 'fledge',
-    version = '0.11',
+    version = '0.20',
     author = 'Intel Corporation',
     description = 'Federated Learning on the Edge',
     packages = [
@@ -37,7 +37,8 @@ setup(
         'numpy',
         'pandas',
         'protobuf',
-        'grpcio',
+        'grpcio==1.30.0',
+        'grpcio-tools==1.30.0',
         'rich',
         'tqdm',
         'scikit-learn',

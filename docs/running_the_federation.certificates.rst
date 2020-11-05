@@ -19,6 +19,8 @@ so these configuration steps just need to be done once on that machine.
 
 .. _install_certs:
 
+.. mermaid:: mermaid/CSR_signing.md
+
 .. _install_certs_agg:
 
 On the Aggregator Node

@@ -3,7 +3,7 @@
 
 # docker build --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY -t fledge .
 
-ARG BASE_IMAGE=intel/intel-optimized-tensorflow
+ARG BASE_IMAGE=ubuntu:18.04
 FROM $BASE_IMAGE
 
 LABEL maintainer "Walter riviera <walter.riviera@intel.com"
@@ -41,8 +41,8 @@ WORKDIR /home/
 
 ADD fledge $install_dir
 
-COPY docker_agg.sh /home/.
-COPY docker_col.sh /home/.
+COPY fledge/docker/docker_agg.sh /home/.
+COPY fledge/docker/docker_col.sh /home/.
 
 # Set locale details
 RUN apt-get update
@@ -64,9 +64,11 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv
 RUN apt-get install -y python3-pip
+RUN pip3 install $install_dir
 
-#RUN pip install intel-tensorflow==1.15.0 && pip install --upgrade pip
-RUN pip install --upgrade pip
-RUN pip install $install_dir
+
+# Setting permissions to run container as user
+RUN mkdir -p /home/fledge
+RUN chown ${USERNAME} /home/fledge
 
 USER $USERNAME

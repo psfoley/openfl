@@ -1,13 +1,20 @@
 #!/bin/bash
 
+HOST_USER="$(whoami)"
+
 ### VAR definition
 DOCKER_IMG=${1:-"fledge/docker"}
-HOST_WORKSPACE=${2:-'/home/$HOST_USER'}
+HOST_WORKSPACE=${2:-''}
+
+if [  -z "$HOST_WORKSPACE" ]; then
+   HOST_WORKSPACE=/home/${HOST_USER}
+fi
+
 
 ## Fledge var
-WORKSPACE_DIR=${3:-'fed_work12345alpha81671'} 	# This can be whatever unique directory name you want 
-COL=${4:-'one123dragons'} 			# This can be any unique label 
-FED_PATH=${5:-'/home/fledge'}    		# Federation workspace PATH within Docker 
+WORKSPACE_DIR=${3:-'fed_work12345alpha81671'} 	# This can be whatever unique directory name you want
+COL=${4:-'one123dragons'} 			# This can be any unique label
+FED_PATH=${5:-'/home/fledge'}    		# Federation workspace PATH within Docker
 TEMPLATE=${6:-'keras_cnn_mnist'}		# ['torch_cnn_mnist', 'keras_cnn_mnist']
 
 
@@ -17,7 +24,7 @@ HOST_COL=${HOST_WORKSPACE}/host_col_workspace
 
 
 
-## Prepare working env mkdir -p $HOST_WORKSPACE/host_agg_workspace 
+## Prepare working env mkdir -p $HOST_WORKSPACE/host_agg_workspace
 mkdir -p ${HOST_AGG}
 mkdir -p ${HOST_COL}
 
@@ -46,7 +53,7 @@ docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /b
 docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh init"
 
 
-## Send COLLABORATOR request to AGGREGATOR 
+## Send COLLABORATOR request to AGGREGATOR
 CMD=`cp -r ${HOST_COL}/${WORKSPACE_DIR}/col_${COL}_to_agg_cert_request.zip ${HOST_AGG}/${WORKSPACE_DIR}/cert/.`
 if ${CMD}; then
      echo “Success”
@@ -84,11 +91,3 @@ docker run --rm -it -d --network=host -v ${HOST_AGG}:/home/fledge ${DOCKER_IMG} 
 ### COLLABORATOR
 ## Start the collaborator
 docker run --rm -it --network=host -v ${HOST_COL}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh start"
-
-
-
-
-
-
-
-

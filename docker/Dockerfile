@@ -6,7 +6,7 @@
 ARG BASE_IMAGE=ubuntu:18.04
 FROM $BASE_IMAGE
 
-LABEL maintainer "Walter riviera <walter.riviera@intel.com"
+LABEL maintainer "Walter riviera <walter.riviera@intel.com>"
 
 ARG http_proxy
 ARG HTTP_PROXY

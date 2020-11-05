@@ -3,7 +3,7 @@
 stages:
     - build
     - test
-    
+
 pages:
   stage: build
   tags:
@@ -23,6 +23,10 @@ pages:
   - make html
   - mv _build/html/ ../public/
   - mv _build/rinoh/ ../public/pdf/
+
+  - cd ..
+  - ./scripts/build_wheel.sh
+  - mv dist/*.whl ../public/packages/
 
   artifacts:
     paths:

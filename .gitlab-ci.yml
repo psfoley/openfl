@@ -25,7 +25,7 @@ pages:
   - mv _build/rinoh/ ../public/pdf/
 
   - cd ..
-  - pwd
+  - mkdir ../public/packages
   - python3 setup.py sdist bdist_wheel
   - mv dist/fledge*.whl ../public/packages/
 

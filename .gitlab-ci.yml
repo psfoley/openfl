@@ -26,7 +26,7 @@ pages:
 
   - cd ..
   - pwd
-  - python3 setup.py sdist bdist_wheelbash scripts/build_wheel.sh
+  - python3 setup.py sdist bdist_wheel
   - mv dist/fledge*.whl ../public/packages/
 
   artifacts:

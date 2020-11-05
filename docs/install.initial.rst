@@ -26,27 +26,13 @@ On every node in the federation you will need to install the |productName| packa
 
       $ conda activate env_name 
 
-4. Unzip the source code |productZip|. 
-
-   .. code-block:: console
-      :substitutions:
-
-      $ unzip |productZip|
-
-5. Change into the project directory.
-
-   .. code-block:: console
-      :substitutions:
-
-      $ cd |productDir|
-
-6. Install |productName| package:
+4. Install |productName| package:
 
    .. code-block:: console
 
-      $ pip install .
+      $ pip install |productWheel|
       
-7. At this point |productName| should be available within the virtual environment. To test, run the :code:`fx` command. This command is only available within this virtual environment.
+5. At this point |productName| should be available within the virtual environment. To test, run the :code:`fx` command. This command is only available within this virtual environment.
 
    .. figure:: images/fx_help.png
       :scale: 70 %

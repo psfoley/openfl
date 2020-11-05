@@ -27,7 +27,7 @@ pages:
   - cd ..
   - pwd
   - ls
-  - scripts/build_wheel.sh
+  - bash scripts/build_wheel.sh
 
   artifacts:
     paths:

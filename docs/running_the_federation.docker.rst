@@ -43,26 +43,25 @@ As a **collaborator**:
    
 Each :code:`bash` file contains its own list of methods to implement and run the federation. Each method is relevant depending on which step of the pipeline one needs to address. 
 
-+--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
-| Method (command)               | Who       | What                                                                  | Assumption                     |
-+================================+===========+=======================================================================+================================+
-| bash docker_agg.sh init        | AGG       | Initialize and certify the workspace                                  | None                           |
-+--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
-| bash docker_agg.sh export      | AGG       | export the workspace into a "workspace_name.zip" file                 | Workspace has been created    |
-+--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
-| bash docker_col.sh import_ws   | COL       | import the workspace "workspace_name.zip"                             | file already scp-ed into the collaborator workspace dir on the host |
-+--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
-| bash docker_col.sh init        | COL       | initialize the collaborator (i.e. generates the "col_$COL_NAME" dir ) | workspace has been exported |
-+--------------------------------+-----------+-------------------------------------------------------+---------------------------------------------+
-| bash docker_agg.sh col         | AGG       | certify the collaborator request                                      |  "col_$COL_NAME" dir already scp-ed into the aggregator workspace dir on the host |
-+--------------------------------+-----------+-----------------------------------------------------------------------+------------------------------------+-----------------------------+
-| bash docker_col.sh import_crt  | COL       | Import the validated certificate                                      |  "signed_cert" zip already scp-ed into the collaborator workspace dir on the host  |
-+--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
-| bash docker_agg.sh start       | AGG       | Start the aggregator                                                  |   |
-+--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
-| bash docker_col.sh start  	 | COL       | Start the collaborator                                                | the "col_$COL_NAME.crt" and "cert_chain.crt" files have already been respectively scp-ed to EACH collaborator |
-+--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
-
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| Command                         | Who          | What                                                                    | Assumptions                                                                                                   |
++=================================+==============+=========================================================================+===============================================================================================================+
+| bash docker\_agg.sh init        | Aggregator   | Initialize and certify the workspace                                    | None                                                                                                          |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| bash docker\_agg.sh export      | Collaborator | Export the workspace into a "workspace\_name.zip" file                  | Workspace has been created                                                                                    |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| bash docker\_col.sh import\_ws  | Collaborator | Import the workspace "workspace\_name.zip"                              | File already transfered to the collaborator workspace directory on the host                                   |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| bash docker\_col.sh init        | Collaborator | initialize the collaborator (i.e. generates the "col\_$COL\_NAME" dir ) | Workspace has been exported                                                                                   |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| bash docker\_agg.sh col         | Aggregator   | certify the collaborator request                                        | "col\_$COL\_NAME" directory already transfered to the aggregator workspace directory                          |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| bash docker\_col.sh import\_crt | Collaborator | Import the validated certificate                                        | A signed certificate request zip archive has already been transfered to the aggregator                        |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| bash docker\_agg.sh start       | Aggregator   | Start the aggregator                                                    | None                                                                                                          |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
+| bash docker\_col.sh start       | Collaborator | Start the collabortor                                                   | The .crt files (collaborator and cert\_chain) have already been transfered to the correct collaborator        |
++---------------------------------+--------------+-------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------+
 
 Execution on hosts with non-root access
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

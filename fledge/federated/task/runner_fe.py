@@ -11,8 +11,23 @@ from .runner_pt import PyTorchTaskRunner
 class FastEstimatorTaskRunner(TaskRunner):
     def __init__(self, estimator, **kwargs):
         import fastestimator as fe
+        class EpochIdxSetter(fe.trace.Trace):
+            def __init__(self, get_epoch_idx) -> None:
+                super().__init__(mode="train")
+                self.get_epoch_idx = get_epoch_idx
+
+            def on_begin(self, data) -> None:
+                """Runs once at the beginning of training or testing.
+
+                Args:
+                    data: A dictionary through which traces can communicate with each other or write values for logging.
+                """
+                epoch_idx = self.get_epoch_idx()
+                self.system.epoch_idx = epoch_idx
+        
         tf.config.run_functions_eagerly(True)
         self.estimator = estimator
+        self.estimator.system.traces = estimator.system.traces + [EpochIdxSetter(lambda: self.epoch_idx)]
         assert(len(estimator.network.models) == 1), 'Only one-model networks are currently supported'
         if isinstance(estimator.network, fe.network.TorchNetwork):
             impl = PyTorchTaskRunner
@@ -27,6 +42,8 @@ class FastEstimatorTaskRunner(TaskRunner):
         self.required_tensorkeys_for_function = {}
         self.tensor_dict_split_fn_kwargs = self.runner.tensor_dict_split_fn_kwargs
         self.initialize_tensorkeys_for_functions()
+        self.epoch_idx = 0
+        self.total_epochs = self.estimator.system.total_epochs
         
 
     def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
@@ -42,7 +59,8 @@ class FastEstimatorTaskRunner(TaskRunner):
 
         #Estimators need to be given an experiment name to produce an output summary
         summary = self.estimator.fit("experiment",warmup=False)
-
+        self.epoch_idx = self.estimator.system.epoch_idx
+        self.estimator.system.total_epochs += self.total_epochs
         #Define what the ouptut is to encapsulate in tensorkeys and return
         # output metric tensors (scalar)
         origin = col_name

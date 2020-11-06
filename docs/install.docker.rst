@@ -29,6 +29,26 @@ By building and running the Dockerfile, one will be able to have an isolated env
 with all the right dependencies and prerequisites. Once the execution is over, the container can be destroyed and 
 the results of the computation will be available on a directory on local host.
 
+Design Assumptions
+~~~~~~~~~~~~~~~~~~
+
+The current design is based on three assumptions:
+
+  * Docker containers are the essential components to have a working environment that is able to initiate and run a federation. Orchestration and pipeline automation is not currently supported and would need to be handled manually.
+  
+  * Each machine hosting the aggregator or a collaborator container is expected to have a local workspace directory which can be mapped onto the hosted container. These directories are *not* expected to be shared among hosts. 
+  
+  * `PKI exchange <https://en.wikipedia.org/wiki/Public_key_infrastructure>`_ required to validate and welcome new collaborators to the federation will need to be handled outside the containers through a bash script (not provided) or performed manually by:
+     
+     * Coping files manually (:code:`scp` or some other secure file transfer) from one host to another
+     * Creating a shared file system across the federation hosts. *This option might not be ideal for hosts not connected to the same internal network*
+
+.. figure:: images/docker_design.png
+   :alt: Docker design
+   :scale: 70%
+
+   Docker design
+
 
 Build the docker image
 ======================

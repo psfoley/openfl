@@ -45,9 +45,7 @@ class FederatedFastEstimator:
         tensor_pipe = plan.get_tensor_pipe() 
         #Initialize model weights
         init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
-        tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, 
-                                                                    runner.get_tensor_dict(False),
-                                                                    {})
+        tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, runner.get_tensor_dict(False))
 
         model_snap = construct_model_proto(tensor_dict  = tensor_dict,
                                         round_number = 0,
@@ -83,11 +81,11 @@ class FederatedFastEstimator:
             estimator = fe.Estimator(**estimator_kwargs)
             
             runners[col] = FastEstimatorTaskRunner(estimator=estimator, data_loader=data_loader)
-            runners[col].set_optimizer_treatment('RESET')
+            runners[col].set_optimizer_treatment('CONTINUE_LOCAL')
             data_path += 1
 
         #Create the collaborators
-        collaborators = {collaborator: fx.create_collaborator(plan,collaborator,runners[col],aggregator) for collaborator in plan.authorized_cols}
+        collaborators = {collaborator: fx.create_collaborator(plan,collaborator,runners[collaborator],aggregator) for collaborator in plan.authorized_cols}
 
         model = None
         for round_num in range(self.rounds):

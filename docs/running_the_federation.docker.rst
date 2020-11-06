@@ -8,6 +8,7 @@ Running on Docker
 
 First make sure you have :ref:`followed the Docker installation steps <install_docker>` to have the containerized version of |productName|. A demo script can be found at :code:`docker_keras_demo.sh`.
 
+
 TL;DR
 =====
 
@@ -17,7 +18,7 @@ Here's the :download:`DockerFile <../docker/Dockerfile>`. This image can be reus
   :language: docker
   
 
-Here's the :download:`"Hello Docker Federation <../docker/docker_keras_demo.sh>`. This is an end-to-end demo for the Keras CNN MNIST (:code:`docker_keras_demo.sh`).
+Here's the :download:`"Hello Docker Federation" <../docker/docker_keras_demo.sh>` demo. This is an end-to-end demo for the Keras CNN MNIST (:code:`docker_keras_demo.sh`).
 
 .. literalinclude:: ../docker/docker_keras_demo.sh
   :language: bash
@@ -28,12 +29,14 @@ Custom execution
 Once built, the current image can be instantiated in two modes:
 
 As an **aggregator**:
+
 .. code-block:: console
 
    $ container-home>> bash docker_agg.sh CMD
    
    
 As a **collaborator**:
+
 .. code-block:: console
 
    $ container-home>> bash docker_col.sh CMD
@@ -60,12 +63,14 @@ Each :code:`bash` file contains its own list of methods to implement and run the
 | bash docker_col.sh start  	 | COL       | Start the collaborator                                                | the "col_$COL_NAME.crt" and "cert_chain.crt" files have already been respectively scp-ed to EACH collaborator |
 +--------------------------------+-----------+-----------------------------------------------------------------------+--------------------------------+
 
+
 Execution on hosts with non-root access
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The current image ensures that both environment with root and non-root access can run the docker fledge container smoothly. 
 While users with root access wouldn’t require particular instructions, there are few considerations that are worth to be shared for those user with limited permissions. 
 To achieve this result, the image will need to be built by providing the information of the current user at build time. This will ensure that all the actions taken by the container at runtime, will be owned by the same user logged in the host.
+
 
 Single and Multi-node execution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

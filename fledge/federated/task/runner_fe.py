@@ -7,8 +7,6 @@ from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
 from .runner import TaskRunner
 from .runner_keras import KerasTaskRunner
 from .runner_pt import PyTorchTaskRunner
-import traceback
-
 
 class FastEstimatorTaskRunner(TaskRunner):
     def __init__(self, estimator, **kwargs):
@@ -73,7 +71,6 @@ class FastEstimatorTaskRunner(TaskRunner):
         summary = self.estimator.fit("experiment",warmup=False)
         self.epoch_idx = self.estimator.system.epoch_idx
         self.global_step = self.estimator.system.global_step
-        print(f'Saved epoch_idx={self.epoch_idx}, global_step={self.global_step}')
         self.estimator.system.total_epochs += self.total_epochs
         #Define what the ouptut is to encapsulate in tensorkeys and return
         # output metric tensors (scalar)
@@ -245,4 +242,3 @@ class FastEstimatorTaskRunner(TaskRunner):
     def set_optimizer_treatment(self,opt_treatment):
         super().set_optimizer_treatment(opt_treatment)
         self.runner.opt_treatment = opt_treatment
-

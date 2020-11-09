@@ -73,14 +73,9 @@ class FederatedFastEstimator:
             pipeline = fe.Pipeline(**pipeline_kwargs)
 
             data_loader = FastEstimatorDataLoader(pipeline)
-            estimator_kwargs = {}
-            for k, v in self.estimator.system.__dict__.items():
-                if k in ['network', 'traces', 'log_steps', 'max_train_steps_per_epoch', 'max_eval_steps_per_epoch']:
-                    estimator_kwargs[k] = v
-            estimator_kwargs.update({'pipeline': pipeline, 'epochs': self.estimator.system.total_epochs, 'monitor_names': self.estimator.monitor_names})
-            estimator = fe.Estimator(**estimator_kwargs)
+            self.estimator.system.pipeline = pipeline
             
-            runners[col] = FastEstimatorTaskRunner(estimator=estimator, data_loader=data_loader)
+            runners[col] = FastEstimatorTaskRunner(estimator=self.estimator, data_loader=data_loader)
             runners[col].set_optimizer_treatment('CONTINUE_LOCAL')
             data_path += 1
 

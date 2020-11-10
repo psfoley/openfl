@@ -55,63 +55,125 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         else:
             self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
 
-    # models should implement something like this--
-    # def train_batches(self, num_batches,use_tqdm = False):
-    #     # set to "training" mode
-    #     self.train()
+    def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
+        """Validate
 
-    #     losses = []
+        Run validation of the model on the local data.
 
-    #     gen = self.data.get_train_loader()
-    #     if use_tqdm:
-    #         gen = tqdm.tqdm(gen, desc="training for this round")
+        Args:
+            col_name:            Name of the collaborator
+            round_num:           What round is it
+            input_tensor_dict:   Required input tensors (for model)
+            use_tqdm (bool):     Use tqdm to print a progress bar (Default=True)
+            
+        Returns:
+            global_output_dict:  Tensors to send back to the aggregator
+            local_output_dict:   Tensors to maintain in the local TensorDB
 
-    #     batch_num = 0
+        """
 
-    #     while batch_num < num_batches:
-    #         # shuffling happens every time gen is used as an iterator
-    #         for (data, target) in gen:
-    #             if batch_num >= num_batches:
-    #                 break
-    #             else:
-    #                 if isinstance(data, np.ndarray):
-    #                         data = pt.Tensor(data)
-    #                 if isinstance(target, np.ndarray):
-    #                     target = pt.Tensor(data)
-    #                 data, target = data.to(self.device), target.to(self.device)
-    #                 self.optimizer.zero_grad()
-    #                 output = self(data)
-    #                 loss = self.loss_fn(output, target)
-    #                 loss.backward()
-    #                 self.optimizer.step()
-    #                 losses.append(loss.detach().cpu().numpy())
+        self.rebuild_model(round_num, input_tensor_dict, validation=True) 
+        self.eval()
+        val_score = 0
+        total_samples = 0
 
-    #                 batch_num += 1
+        loader = self.data_loader.get_valid_loader()
+        if use_tqdm:
+            loader = tqdm.tqdm(loader, desc="validate")
 
-    #     return np.mean(losses)
+        with pt.no_grad():
+            for data, target in loader:
+                samples = target.shape[0]
+                total_samples += samples
+                data, target = pt.tensor(data).to(self.device), pt.tensor(target).to(self.device, dtype=pt.int64)
+                output = self(data)
+                pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+                target_categorical = target.argmax(dim=1, keepdim=True)
+                val_score += pred.eq(target_categorical).sum().cpu().numpy()
 
+        origin = col_name
+        suffix = 'validate'
+        if kwargs['apply'] == 'local':
+            suffix += '_local'
+        else:
+            suffix += '_agg'
+        tags = ('metric',suffix)
+        #TODO figure out a better way to pass in metric for this pytorch validate function
+        output_tensor_dict = {TensorKey('acc',origin,round_num,True,tags): np.array(val_score/total_samples)} 
+                
+        #Empty list represents metrics that should only be stored locally
+        return output_tensor_dict,{}
 
+    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=False,**kwargs): 
+        """Train batches
 
-    # FIXME: create a good general version. For now, models should implement this
-    # def validate(self):
-    #     batch_generator = self.data.get_batch_generator(train_or_val='val')
-    #     self.eval()
-    #     val_score = 0
-    #     total_samples = 0
+        Train the model on the requested number of batches.
 
-    #     with pt.no_grad():
-    #         for data, target in batch_generator:
-    #             if isinstance(data, np.ndarray):
-    #                 data = pt.Tensor(data)
-    #             if isinstance(target, np.ndarray):
-    #                 target = pt.Tensor(data)
-    #             samples = target.shape[0]
-    #             total_samples += samples
-    #             data, target = data.to(self.device), target.to(self.device,dtype = pt.int64)
-    #             output = self(data)
-    #             val_score += self.loss_fn(output, target).cpu().numpy() * samples
-    #     return val_score / total_samples
+        Args:
+            col_name:            Name of the collaborator
+            round_num:           What round is it
+            input_tensor_dict:   Required input tensors (for model)
+            num_batches:         The number of batches to train on before returning
+            use_tqdm (bool):     Use tqdm to print a progress bar (Default=True)
+            
+        Returns:
+            global_output_dict:  Tensors to send back to the aggregator
+            local_output_dict:   Tensors to maintain in the local TensorDB
+        """
 
+        self.rebuild_model(round_num,input_tensor_dict)
+        # set to "training" mode
+        self.train()
+
+        losses = []
+
+        loader = self.data_loader.get_train_loader(num_batches)
+        if use_tqdm:
+            loader = tqdm.tqdm(loader, desc="train epoch")
+        for data, target in loader:
+            data, target = pt.tensor(data).to(self.device), pt.tensor(target).to(self.device, dtype=pt.float32)
+            self.optimizer.zero_grad()
+            output = self(data)
+            loss = self.loss_fn(output=output, target=target)
+            loss.backward()
+            self.optimizer.step()
+            losses.append(loss.detach().cpu().numpy())
+
+        #Output metric tensors (scalar)
+        origin = col_name
+        tags = ('trained',)
+        output_metric_dict = {TensorKey(self.loss_fn.__name__,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
+
+        #output model tensors (Doesn't include TensorKey)
+        output_model_dict = self.get_tensor_dict(with_opt_vars=True)
+        global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+
+        #Create global tensorkeys
+        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in global_model_dict.items()}
+        #Create tensorkeys that should stay local
+        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in local_model_dict.items()}
+        #The train/validate aggregated function of the next round will look for the updated model parameters. 
+        #This ensures they will be resolved locally
+        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,False,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
+
+        global_tensor_dict = {**output_metric_dict,**global_tensorkey_model_dict}
+        local_tensor_dict = {**local_tensorkey_model_dict,**next_local_tensorkey_model_dict}
+
+        #Update the required tensors if they need to be pulled from the aggregator
+        #TODO this logic can break if different collaborators have different roles between rounds.
+        #For example, if a collaborator only performs validation in the first round but training
+        #in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
+        #because these are only created after training occurs. A work around could involve doing a single epoch of training
+        #on random data to get the optimizer names, and then throwing away the model.
+        if self.opt_treatment == 'CONTINUE_GLOBAL':
+            self.initialize_tensorkeys_for_functions(with_opt_vars=True)
+
+        #This will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
+        self.train_round_completed = True
+
+        #Return global_tensor_dict, local_tensor_dict
+        return global_tensor_dict,local_tensor_dict
+    
     def get_tensor_dict(self,with_opt_vars = False):
         """Return the tensor dictionary
 

@@ -135,15 +135,11 @@ def run_experiment(collaborator_dict,config={}):
     plan.runner_ = list(collaborator_dict.values())[-1]
     model = plan.runner_
 
-    #Set rounds to train
-
-
     #Initialize model weights
     init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
     tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, 
-                                                                 plan.runner_.get_tensor_dict(False),
-                                                                 {})
-    
+                                                                 plan.runner_.get_tensor_dict(False))
+
     model_snap = construct_model_proto(tensor_dict  = tensor_dict,
                                        round_number = 0,
                                        tensor_pipe  = tensor_pipe)

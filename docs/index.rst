@@ -21,7 +21,7 @@ a global model and the *aggregator* which receives
 model updates from collaborators and combines them to form 
 the global model.
 
-The *aggregator* is framework-anostic, while the *collaborator*
+The *aggregator* is framework-agnostic, while the *collaborator*
 can use any deep learning frameworks, such as `Tensorflow <https://www.tensorflow.org/>`_ or
 `PyTorch <https://pytorch.org/>`_.
 

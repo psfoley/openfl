@@ -4,7 +4,7 @@ aggregated_model_validation:
     batch_size : 32
     apply      : global
     metrics    :
-      - acc
+      - accuracy
 
 locally_tuned_model_validation:
   function : validate
@@ -12,7 +12,7 @@ locally_tuned_model_validation:
     batch_size : 32
     apply      : local
     metrics    :
-      - acc
+      - accuracy
 
 train:
   function : train

@@ -12,10 +12,6 @@ from tensorflow.keras.layers import Conv2D, Flatten, Dense
 from fledge.federated import KerasTaskRunner
 from fledge.utilities import TensorKey
 
-from logging import getLogger
-
-logger = getLogger(__name__)
-
 class KerasCNN(KerasTaskRunner):
     """
     A basic convolutional neural network model.
@@ -33,11 +29,11 @@ class KerasCNN(KerasTaskRunner):
 
         self.initialize_tensorkeys_for_functions()
 
-        self.model.summary(print_fn = logger.info)
+        self.model.summary(print_fn = self.logger.info)
 
         if  self.data_loader is not None:
-            logger.info(f'Train Set Size : {self.get_train_data_size()}')
-            logger.info(f'Valid Set Size : {self.get_valid_data_size()}')
+            self.logger.info(f'Train Set Size : {self.get_train_data_size()}')
+            self.logger.info(f'Valid Set Size : {self.get_valid_data_size()}')
 
     def build_model(self,
                     input_shape,

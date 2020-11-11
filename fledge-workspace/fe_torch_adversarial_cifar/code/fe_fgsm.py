@@ -6,8 +6,6 @@ import numpy            as np
 from fledge.federated import TaskRunner, FastEstimatorTaskRunner
 from fledge.utilities import TensorKey
 
-from logging import getLogger
-
 import fastestimator as fe
 from fastestimator.architecture.pytorch import LeNet
 from fastestimator.backend import to_tensor, argmax
@@ -22,8 +20,6 @@ from fastestimator.op.tensorop.model import ModelOp, UpdateOp
 from fastestimator.trace.io import BestModelSaver
 from fastestimator.trace.metric import Accuracy
 from fastestimator.util import ImgData, to_number
-
-logger = getLogger(__name__)
 
 class FastEstimatorFGSM(FastEstimatorTaskRunner):
     """
@@ -45,11 +41,11 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
 
         self.initialize_tensorkeys_for_functions()
 
-        logger.info(self.model.__repr__())
+        self.logger.info(self.model.__repr__())
 
         if  self.data_loader is not None:
-            logger.info(f'Train Set Size : {self.get_train_data_size()}')
-            logger.info(f'Valid Set Size : {self.get_valid_data_size()}')
+            self.logger.info(f'Train Set Size : {self.get_train_data_size()}')
+            self.logger.info(f'Valid Set Size : {self.get_valid_data_size()}')
 
     def build_model(self):
         """

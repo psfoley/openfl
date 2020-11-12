@@ -22,13 +22,11 @@ TEMPLATE = 'template'
 DEFAULTS = 'defaults'
 AUTO     = 'auto'
 
-logger   = getLogger(__name__)
-
 class Network(object):
     pass
 
 class Plan(object):
-
+    logger = getLogger(__name__)
     @staticmethod
     def Load(yaml_path: Path, default = {}):
 
@@ -45,11 +43,11 @@ class Plan(object):
             frozen_yaml_path= Path(\
                     f"{yaml_path.parent}/{yaml_path.stem}_{plan.hash[:8]}.yaml")
             if frozen_yaml_path.exists():
-                logger.info(f"{yaml_path.name} is already frozen")
+                Plan.logger.info(f"{yaml_path.name} is already frozen")
                 return
             frozen_yaml_path.write_text(dump(config))
             frozen_yaml_path.chmod(0o400)
-            logger.info(f"{yaml_path.name} frozen successfully")
+            Plan.logger.info(f"{yaml_path.name} frozen successfully")
         else:
             yaml_path.write_text(dump(config))
 
@@ -86,7 +84,7 @@ class Plan(object):
                     plan.files.append(defaults)
 
                     if  resolve:
-                        logger.info(f'Loading DEFAULTS for section [red]{section}[/] from file [red]{defaults}[/].', extra = { 'markup' : True})
+                        Plan.logger.info(f'Loading DEFAULTS for section [red]{section}[/] from file [red]{defaults}[/].', extra = { 'markup' : True})
 
                     defaults = Plan.Load(Path(defaults))
 
@@ -115,14 +113,14 @@ class Plan(object):
 
                 plan.resolve()
 
-                logger.info(f'Parsing Federated Learning Plan : [green]SUCCESS[/] : [blue]{plan_config_path}[/].', extra = {'markup' : True})
-                logger.info(dump(plan.config))
+                Plan.logger.info(f'Parsing Federated Learning Plan : [green]SUCCESS[/] : [blue]{plan_config_path}[/].', extra = {'markup' : True})
+                Plan.logger.info(dump(plan.config))
 
             return plan
 
         except Exception as e :
 
-            logger.error(f'Parsing Federated Learning Plan : [red]FAILURE[/] : [blue]{plan_config_path}[/].', extra = {'markup' : True})
+            Plan.logger.error(f'Parsing Federated Learning Plan : [red]FAILURE[/] : [blue]{plan_config_path}[/].', extra = {'markup' : True})
             raise
 
     @staticmethod
@@ -141,14 +139,14 @@ class Plan(object):
         # from sys import path
 
         # for x in path:
-        #     logger.info(f'sys.path: {x}')
+        #     Plan.logger.info(f'sys.path: {x}')
 
         class_name  = splitext(template)[1].strip('.')
         module_path = splitext(template)[0]
 
-        logger.info(f'Building [red]🡆[/] Object [red]{class_name}[/] from [red]{module_path}[/] Module.', extra = {'markup' : True})
-        logger.info(f'Settings [red]🡆[/] {settings}', extra = {'markup' : True})
-        logger.info(f'Override [red]🡆[/] {override}', extra = {'markup' : True})
+        Plan.logger.info(f'Building [red]🡆[/] Object [red]{class_name}[/] from [red]{module_path}[/] Module.', extra = {'markup' : True})
+        Plan.logger.info(f'Settings [red]🡆[/] {settings}', extra = {'markup' : True})
+        Plan.logger.info(f'Override [red]🡆[/] {override}', extra = {'markup' : True})
 
         settings.update(**override)
 
@@ -182,7 +180,7 @@ class Plan(object):
     def hash(self):
 
         self.hash_  = md5(dump(self.config).encode('utf-8'))
-        logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]', extra = {'markup' : True})
+        Plan.logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]', extra = {'markup' : True})
 
         return self.hash_.hexdigest()
 

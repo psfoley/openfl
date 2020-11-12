@@ -9,8 +9,6 @@ from fledge.protocols import AggregatorStub
 
 from logging import getLogger
 
-logger = getLogger(__name__)
-
 class CollaboratorGRPCClient():
     """Collaboration over gRPC-TLS."""
 
@@ -34,13 +32,15 @@ class CollaboratorGRPCClient():
         self.channel_options     = [('grpc.max_metadata_size',           32 * 1024 * 1024),
                                     ('grpc.max_send_message_length',    128 * 1024 * 1024),
                                     ('grpc.max_receive_message_length', 128 * 1024 * 1024)]
+        
+        self.logger = getLogger(__name__)
 
         if  self.disable_tls:
             self.channel = self.create_insecure_channel(self.uri)
         else:
             self.channel = self.create_tls_channel(self.uri, self.ca, self.disable_client_auth, self.certificate, self.private_key)
 
-        logger.debug('Connecting to gRPC at {uri}')
+        self.logger.debug('Connecting to gRPC at {uri}')
 
         self.stub = AggregatorStub(self.channel)
 
@@ -55,7 +55,7 @@ class CollaboratorGRPCClient():
             An insecure gRPC channel object
 
         """
-        logger.warn("gRPC is running on insecure channel with TLS disabled.")
+        self.logger.warn("gRPC is running on insecure channel with TLS disabled.")
 
         return grpc.insecure_channel(uri, options = self.channel_options)
 
@@ -77,7 +77,7 @@ class CollaboratorGRPCClient():
             root_certificates = f.read()
 
         if  disable_client_auth:
-            logger.warn('Client-side authentication is disabled.')
+            self.logger.warn('Client-side authentication is disabled.')
             private_key = None
             client_cert = None
         else:
@@ -101,6 +101,6 @@ class CollaboratorGRPCClient():
     def SendLocalTaskResults(self, message):
       # convert (potentially) long list of tensors into stream
         stream  = []
-        stream += proto_to_datastream(message, logger)
+        stream += proto_to_datastream(message, self.logger)
 
         return self.stub.SendLocalTaskResults(iter(stream))

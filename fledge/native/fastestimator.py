@@ -7,12 +7,11 @@ import fledge.native as fx
 from fledge.federated.data import FastEstimatorDataLoader
 from fledge.federated.task import FastEstimatorTaskRunner
 
-logger = getLogger(__name__)
-
 class FederatedFastEstimator:
     def __init__(self, estimator, rounds=10, **kwargs):
         self.estimator = estimator
         self.rounds = rounds
+        self.logger = getLogger(__name__)
         fx.init(**kwargs)
 
     def fit(self):
@@ -45,7 +44,7 @@ class FederatedFastEstimator:
         tensor_pipe = plan.get_tensor_pipe() 
         #Initialize model weights
         init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
-        tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger, 
+        tensor_dict, holdout_params = split_tensor_dict_for_holdouts(self.logger, 
                                                                     runner.get_tensor_dict(False),
                                                                     {})
 
@@ -53,11 +52,11 @@ class FederatedFastEstimator:
                                         round_number = 0,
                                         tensor_pipe  = tensor_pipe)
 
-        logger.info(f'Creating Initial Weights File    🠆 {init_state_path}' )
+        self.logger.info(f'Creating Initial Weights File    🠆 {init_state_path}' )
 
         dump_proto(model_proto = model_snap, fpath = init_state_path)
 
-        logger.info('Starting Experiment...')
+        self.logger.info('Starting Experiment...')
         
         aggregator = plan.get_aggregator()
 

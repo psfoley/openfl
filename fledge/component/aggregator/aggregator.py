@@ -17,8 +17,6 @@ from fledge.protocols import load_proto, dump_proto, construct_proto, deconstruc
 
 from logging import getLogger
 
-logger = getLogger(__name__)
-
 class Aggregator(object):
 
     """An Aggregator is the central node in federated learning
@@ -80,6 +78,7 @@ class Aggregator(object):
         self.tensor_db            = TensorDB()
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline() 
         self.tensor_codec         = TensorCodec(self.compression_pipeline)
+        self.logger = getLogger(__name__)
 
         self.init_state_path = init_state_path
         self.best_state_path = best_state_path
@@ -113,12 +112,12 @@ class Aggregator(object):
         tensor_dict,round_number = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
 
         if round_number > self.round_number:
-            logger.info('Starting training from round {} of previously saved model'.format(round_number))
+            self.logger.info('Starting training from round {} of previously saved model'.format(round_number))
             self.round_number = round_number
         tensor_key_dict = {TensorKey(k,self.uuid,self.round_number,False,('model',)):v for k,v in tensor_dict.items()}
       # all initial model tensors are loaded here
         self.tensor_db.cache_tensor(tensor_key_dict)
-        logger.debug('This is the initial tensor_db: {}'.format(self.tensor_db))
+        self.logger.debug('This is the initial tensor_db: {}'.format(self.tensor_db))
 
     def save_model(self,round_number,file_path):
         """
@@ -141,7 +140,7 @@ class Aggregator(object):
             tk_name,_,_,_,_ = tk
             best_tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
             if best_tensor_dict[tk_name] is None:
-              logger.info('Cannot save model for round {}. Continuing...'.format(round_number))
+              self.logger.info('Cannot save model for round {}. Continuing...'.format(round_number))
               return
         self.model = construct_model_proto(best_tensor_dict,round_number,self.compression_pipeline)
         dump_proto(self.model, file_path)
@@ -174,16 +173,16 @@ class Aggregator(object):
         Validate request header matches expected values
         """
       # TODO improve this check. the sender name could be spoofed
-        check_is_in(request.header.sender, self.authorized_cols, logger) 
+        check_is_in(request.header.sender, self.authorized_cols, self.logger) 
 
       # check that the message is for me
-        check_equal(request.header.receiver, self.uuid, logger)
+        check_equal(request.header.receiver, self.uuid, self.logger)
 
       # check that the message is for my federation
-        check_equal(request.header.federation_uuid, self.federation_uuid, logger)
+        check_equal(request.header.federation_uuid, self.federation_uuid, self.logger)
 
       # check that we agree on the single cert common name
-        check_equal(request.header.single_col_cert_common_name, self.single_col_cert_common_name, logger)
+        check_equal(request.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
 
     def get_header(self,collaborator_name):
         """
@@ -212,11 +211,11 @@ class Aggregator(object):
 
         collaborator_name = request.header.sender
 
-        logger.info('Aggregator GetTasks function reached from collaborator {}...'.format(collaborator_name))
+        self.logger.info('Aggregator GetTasks function reached from collaborator {}...'.format(collaborator_name))
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():
-            logger.info('Sending signal to collaborator {} to shutdown...'.format(collaborator_name))
+            self.logger.info('Sending signal to collaborator {} to shutdown...'.format(collaborator_name))
             self.quit_job_sent_to.append(collaborator_name)
             return TasksResponse(header=self.get_header(collaborator_name),
                                 round_number = self.round_number,
@@ -246,7 +245,7 @@ class Aggregator(object):
                                 sleep_time = self.get_sleep_time(), # this could be an extensible function if we want
                                 quit = False)
 
-        logger.info('Sending tasks to collaborator {} for round {}'.format(collaborator_name,self.round_number))
+        self.logger.info('Sending tasks to collaborator {} for round {}'.format(collaborator_name,self.round_number))
         return TasksResponse(header=self.get_header(collaborator_name),
                             round_number = self.round_number,
                             tasks = tasks,
@@ -265,7 +264,7 @@ class Aggregator(object):
         report              = request.report
         tags                = request.tags
 
-        logger.debug('Retrieving aggregated tensor {} for collaborator {}'.format(tensor_name,collaborator_name))
+        self.logger.debug('Retrieving aggregated tensor {} for collaborator {}'.format(tensor_name,collaborator_name))
 
         if 'compressed' in tags or require_lossless:
            compress_lossless = True
@@ -366,7 +365,7 @@ class Aggregator(object):
         data_size           = request.data_size
         named_tensors       = request.tensors
         
-        logger.info('Collaborator {} is sending task results for {}, round {}'.format(collaborator_name,task_name,round_number))
+        self.logger.info('Collaborator {} is sending task results for {}, round {}'.format(collaborator_name,task_name,round_number))
 
         # TODO: do we drop these on the floor?
         # if round_number != self.round_number:
@@ -457,7 +456,7 @@ class Aggregator(object):
 
         assert(final_nparray is not None), 'Could not create tensorkey {}'.format(final_tensor_key)
         self.tensor_db.cache_tensor({final_tensor_key: final_nparray})
-        logger.debug('Created TensorKey: {}'.format(final_tensor_key))
+        self.logger.debug('Created TensorKey: {}'.format(final_tensor_key))
         
         return final_tensor_key, final_nparray
 
@@ -502,7 +501,7 @@ class Aggregator(object):
             #Compute all validation related metrics
             all_tasks = self.assigner.get_all_tasks_for_round(self.round_number)
             for task_name in all_tasks:
-                logger.info('{} task metrics...'.format(task_name))
+                self.logger.info('{} task metrics...'.format(task_name))
                 #By default, print out all of the metrics that the validation task sent
                 #This handles getting the subset of collaborators that may be part of the validation task
                 collaborators_for_task = self.assigner.get_collaborators_for_task(task_name,self.round_number)
@@ -532,18 +531,18 @@ class Aggregator(object):
                     if report:
                         #Print the aggregated metric
                         if agg_results is None:
-                            logger.warning('Aggregated metric {} could not be collected for round {}. Skipping reporting for this round'.format(agg_tensor_name,self.round_number))
+                            self.logger.warning('Aggregated metric {} could not be collected for round {}. Skipping reporting for this round'.format(agg_tensor_name,self.round_number))
                         if agg_functions is not None:
-                            logger.info('{0} {1}:\t{2:.4f}'.format(agg_functions[0],agg_tensor_name,agg_results))
+                            self.logger.info('{0} {1}:\t{2:.4f}'.format(agg_functions[0],agg_tensor_name,agg_results))
                         else:
-                            logger.info('{0}:\t{1:.4f}'.format(agg_tensor_name,agg_results))
+                            self.logger.info('{0}:\t{1:.4f}'.format(agg_tensor_name,agg_results))
                         for met in agg_metadata_dict:
-                            logger.info('{0} {1}:\t{2:.4f}'.format(met,agg_tensor_name,agg_metadata_dict[met]))
+                            self.logger.info('{0} {1}:\t{2:.4f}'.format(met,agg_tensor_name,agg_metadata_dict[met]))
                         #TODO Add all of the logic for saving the model based on best accuracy, lowest loss, etc.
                         if 'validate_agg' in tags:
                             #Compare the accuracy of the model, and potentially save it
                             if self.best_model_score is None or self.best_model_score < agg_results:
-                                logger.info('Saved the best model with score {:f}'.format(agg_results))
+                                self.logger.info('Saved the best model with score {:f}'.format(agg_results))
                                 self.best_model_score = agg_results
                                 self.save_model(round_number,self.best_state_path)
                     if 'trained' in tags:
@@ -591,7 +590,7 @@ class Aggregator(object):
 
                         #Finally, cache the updated model tensor
                         self.tensor_db.cache_tensor({final_model_tk:new_model_nparray})
-                        #logger.debug('TensorDB contents after training round {}: {}'.format(self.round_number,self.tensor_db))
+                        #self.logger.debug('TensorDB contents after training round {}: {}'.format(self.round_number,self.tensor_db))
 
            
             #Once all of the task results have been processed
@@ -599,15 +598,15 @@ class Aggregator(object):
             self.round_number += 1
             
             #Save the latest model
-            logger.info('Saving round {} model...'.format(self.round_number))
+            self.logger.info('Saving round {} model...'.format(self.round_number))
             self.save_model(self.round_number,self.last_state_path)
 
 
             #TODO This needs to be fixed!
             if self.time_to_quit():
-                logger.info('Experiment Completed. Cleaning up...')
+                self.logger.info('Experiment Completed. Cleaning up...')
             else:
-                logger.info('Starting round {}...'.format(self.round_number))
+                self.logger.info('Starting round {}...'.format(self.round_number))
 
 
     def is_task_done(self, task_name):
@@ -621,7 +620,7 @@ class Aggregator(object):
         return all([self.is_task_done(t) for t in tasks_for_round])
 
     def log_big_warning(self):
-        logger.warning("\n{}\nYOU ARE RUNNING IN SINGLE COLLABORATOR CERT MODE! THIS IS NOT PROPER PKI AND SHOULD ONLY BE USED IN DEVELOPMENT SETTINGS!!!! YE HAVE BEEN WARNED!!!".format(the_dragon))
+        self.logger.warning("\n{}\nYOU ARE RUNNING IN SINGLE COLLABORATOR CERT MODE! THIS IS NOT PROPER PKI AND SHOULD ONLY BE USED IN DEVELOPMENT SETTINGS!!!! YE HAVE BEEN WARNED!!!".format(the_dragon))
 
 
 the_dragon = """                                                                                           

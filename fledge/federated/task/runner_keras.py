@@ -282,9 +282,8 @@ class KerasTaskRunner(TaskRunner):
         Resets the optimizer variables
 
         """
-        opt_config = serialize(self.model.optimizer)
-        reset_opt  = deserialize(opt_config)
-        self.model.optimizer = reset_opt
+        for var in self.model.optimizer.variables():
+            var.assign(tf.zeros_like(var))
         self.logger.debug('Optimizer variables reset')
 
 

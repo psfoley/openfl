@@ -76,22 +76,19 @@ def update_plan(config):
     Plan.Dump(Path(plan_path),plan_config)
 
 def unflatten(config,separator='.'):
-    while True:
-        keys_to_separate = [k for k in config if separator in k]
-        if len(keys_to_separate) > 0:
-          for key in keys_to_separate:
-              prefix = separator.join(key.split(separator)[:-1])
-              suffix = key.split(separator)[-1]
-              if prefix in config:
-                  #print(f'key = {key}')
-                  #print(f'config[{prefix}] = {config[prefix]}')
-                  temp = {**config[prefix],suffix:config[key]}
-                  config[prefix] = temp
-              else:
-                  config[prefix] = {suffix:config[key]}
-              del config[key]
-        else:
-            return config
+    keys_to_separate = [k for k in config if separator in k]
+    if len(keys_to_separate) > 0:
+        for key in keys_to_separate:
+            prefix = separator.join(key.split(separator)[:-1])
+            suffix = key.split(separator)[-1]
+            if prefix in config:
+                temp = {**config[prefix],suffix:config[key]}
+                config[prefix] = temp
+            else:
+                config[prefix] = {suffix:config[key]}
+            del config[key]
+        unflatten(config,separator) 
+    return config
 
 def setup_logging():
     #Setup logging

@@ -42,6 +42,7 @@ setup(
         'rich',
         'tqdm',
         'scikit-learn',
+        'flatten_json',
     ],
     entry_points = {
         'console_scripts' : ['fx=fledge.interface.cli:entry']

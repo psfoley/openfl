@@ -8,11 +8,12 @@ from fledge.federated.data import FastEstimatorDataLoader
 from fledge.federated.task import FastEstimatorTaskRunner
 
 class FederatedFastEstimator:
-    def __init__(self, estimator, rounds=10, **kwargs):
+    def __init__(self, estimator, override_config={}, **kwargs):
         self.estimator = estimator
-        self.rounds = rounds
         self.logger = getLogger(__name__)
         fx.init(**kwargs)
+        if len(override_config) > 0:
+            fx.update_plan(override_config)
 
     def fit(self):
         import fastestimator as fe
@@ -25,6 +26,7 @@ class FederatedFastEstimator:
         path.append(   str(root))
         path.insert(0, str(work))
 
+
         #TODO: Fix this implementation. The full plan parsing is reused here, 
         #but the model and data will be overwritten based on user specifications
         plan_config = (Path(fx.WORKSPACE_PREFIX) / 'plan'/'plan.yaml')
@@ -35,8 +37,6 @@ class FederatedFastEstimator:
                         cols_config_path = cols_config,
                         data_config_path = data_config)
 
-        plan.config['aggregator']['settings']['rounds_to_train'] = self.rounds
-        plan.rounds_to_train = self.rounds
         self.rounds = plan.config['aggregator' ]['settings']['rounds_to_train']
         data_loader = FastEstimatorDataLoader(self.estimator.pipeline)
         runner = FastEstimatorTaskRunner(self.estimator, data_loader=data_loader)
@@ -45,8 +45,7 @@ class FederatedFastEstimator:
         #Initialize model weights
         init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
         tensor_dict, holdout_params = split_tensor_dict_for_holdouts(self.logger, 
-                                                                    runner.get_tensor_dict(False),
-                                                                    {})
+                                                                    runner.get_tensor_dict(False))
 
         model_snap = construct_model_proto(tensor_dict  = tensor_dict,
                                         round_number = 0,

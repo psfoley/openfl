@@ -3,9 +3,9 @@
 
 import numpy as np
 
-from .loader_tf import TensorFlowDataLoader
+from .loader_pt import PyTorchDataLoader
 
-class FederatedDataSet(TensorFlowDataLoader):
+class FederatedDataSet(PyTorchDataLoader):
     """Data Loader for in memory Numpy data
     """
 

@@ -406,8 +406,16 @@ def _get_optimizer_state(optimizer):
     Args:
         optimizer
     """
-
     opt_state_dict = deepcopy(optimizer.state_dict())
+
+    # Optimizer state might not have some parts representing frozen parameters
+    # So we do not synchronize them
+    param_keys_with_state = set(opt_state_dict['state'].keys())
+    for group in opt_state_dict['param_groups']:
+        local_param_set = set(group['params'])
+        params_to_sync = local_param_set & param_keys_with_state
+        group['params'] = sorted(list(params_to_sync))
+
     derived_opt_state_dict = _derive_opt_state_dict(opt_state_dict)
 
     return derived_opt_state_dict

@@ -171,6 +171,14 @@ class KerasTaskRunner(TaskRunner):
 
         return output_tensor_dict,{}
 
+    def save_native(self, filepath):
+        """Saves model"""
+        self.model.save(filepath)
+
+    def load_native(self, filepath):
+        """Loads model"""
+        self.model = tf.keras.models.load_model(filepath) 
+
     @staticmethod
     def _get_weights_names(obj):
         """

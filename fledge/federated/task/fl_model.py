@@ -2,6 +2,7 @@
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
 import logging
+import inspect
 import copy
 import numpy as np
 from tensorflow.keras import Sequential
@@ -28,10 +29,10 @@ class FederatedModel(TaskRunner):
 
         self.build_model = build_model
         self.lambda_opt = None
-        if isinstance(build_model,nn.Module):
-            self.model = build_model
+        if inspect.isclass(build_model):
+            self.model = build_model()
             impl = PyTorchTaskRunner
-            build_model.__init__()
+            #build_model.__init__()
         else:
             self.model = self.build_model(self.feature_shape,self.data_loader.num_classes)
             impl = KerasTaskRunner
@@ -39,11 +40,12 @@ class FederatedModel(TaskRunner):
         if optimizer is not None:
             self.optimizer = optimizer(self.model.parameters())
             self.lambda_opt = optimizer
-            self.loss_fn = loss_fn
         else:
             self.optimizer = self.model.optimizer
         self.runner = impl(**kwargs)
-        self.runner.forward = self.model.forward
+        self.loss_fn = loss_fn
+        if hasattr(self.model,'forward'):
+            self.runner.forward = self.model.forward
         self.runner.model = self.model
         self.runner.optimizer = self.optimizer
         self.runner.loss_fn = self.loss_fn
@@ -68,17 +70,8 @@ class FederatedModel(TaskRunner):
 
         Returns:
             List of models"""
-        if self.lambda_opt is not None:
-            return [FederatedModel(self.build_model,optimizer=self.lambda_opt,loss_fn=self.loss_fn,data_loader=data_slice) for data_slice in self.data_loader.split(num_collaborators,equally=True)]
-        else:
-            return [FederatedModel(self.build_model,optimizer=self.optimizer,loss_fn=self.loss_fn,data_loader=data_slice) for data_slice in self.data_loader.split(num_collaborators,equally=True)]
+        return [FederatedModel(self.build_model,optimizer=self.lambda_opt,loss_fn=self.loss_fn,data_loader=data_slice) for data_slice in self.data_loader.split(num_collaborators,equally=True)]
 
-
-    def save(self,model_name):
-        """
-        Save the model in its native format. Because keras is supported today, just call model.save
-        """
-        self.model.save(model_name)
 
     def __hash__(self):
         """Return a hash of the model structure"""

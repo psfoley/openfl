@@ -21,6 +21,8 @@ across the federation is solely the model parameters and their updates.
 
     Federated Learning
 
+.. _definitions_and_conventions
+
 Definitions and Conventions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

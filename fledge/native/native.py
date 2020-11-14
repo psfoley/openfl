@@ -34,6 +34,27 @@ def setup_logging():
     basicConfig(level = 'INFO', format = '%(message)s', datefmt = '[%X]', handlers = [RichHandler(console = console)])    
 
 def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
+    """
+    The initialization function for the fledge package. It performs the following tasks:
+         
+         1. Creates a workspace in ~/.local/workspace (Equivalent to `fx workspace create --prefix ~/.local/workspace --template $workspace_template)
+         2. Setup certificate authority (equivalent to `fx workspace certify`)
+         3. Setup aggregator PKI (equivalent to `fx aggregator generate-cert-request` followed by `fx aggregator certify`)
+         4. Setup list of collaborators (col_names) and their PKI. (Equivalent to running `fx collaborator generate-cert-request` followed by `fx collaborator certify` for each of the collaborators in col_names)
+         5. Setup logging
+
+    Args:
+        workspace_template : str (default='default')
+            The template that should be used as the basis for the experiment. Other options include are any of the template names [keras_cnn_mnist,tf_2dunet,tf_cnn_histology,torch_cnn_histology,torch_cnn_mnist]
+        agg_fqdn : str
+           The local node's fully qualified domain name (if it can't be resolved automatically)
+        col_names: list[str]
+           The names of the collaborators that will be created. These collaborators will be set up to participate in the experiment, but are not required to
+    
+    Returns:
+        None
+    """
+
     workspace.create(WORKSPACE_PREFIX, workspace_template)
     os.chdir(WORKSPACE_PREFIX)
     workspace.certify()
@@ -97,6 +118,19 @@ def patch_plan(config,plan):
 
 
 def run_experiment(collaborator_dict,config={}):
+    """
+    Core function that executes the FL Plan. 
+
+    Args:
+        collaborator_dict : dict {collaborator_name(str): FederatedModel}
+            This dictionary defines which collaborators will participate in the experiment, as well as a reference to that collaborator's federated model.
+        override_config : dict {flplan.key : flplan.value}
+            Override any of the plan parameters at runtime using this dictionary. To get a list of the available options, execute `fx.get_plan()`
+
+    Returns:
+        final_federated_model : FederatedModel
+            The final model resulting from the federated learning experiment
+    """
 
     from sys       import path
 

@@ -13,7 +13,16 @@ from .runner import TaskRunner
 from torch import nn
 
 class FederatedModel(TaskRunner):
-    """A wrapper for all task runners
+    """
+    A wrapper that adapts to Tensorflow and Pytorch models to a federated context. 
+
+    Args:
+        model : tensorflow/keras (function) , pytorch (class)
+            For keras/tensorflow model, expects a function that returns the model definition
+            For pytorch models, expects a class (not an instance) containing the model definition and forward function
+        optimizer : lambda function (only required for pytorch)
+            The optimizer should be definied within a lambda function. This allows the optimizer to be attached to the federated models spawned for each collaborator.
+        loss_fn : pytorch loss_fun (only required for pytorch)
 
     """
     def __init__(self, build_model, optimizer=None, loss_fn=None, **kwargs):

@@ -204,6 +204,6 @@ def run_experiment(collaborator_dict,config={}):
 
             model_states[col] = model.get_tensor_dict(with_opt_vars=True)
 
-    #TODO This will return the model from the last collaborator, NOT the final aggregated model (though they should be similar). 
-    #There should be a method added to the aggregator that will load the best model from disk and return it 
+    #Set the weights for the final model
+    model.rebuild_model(rounds_to_train-1,aggregator.last_tensor_dict,validation=True)
     return model

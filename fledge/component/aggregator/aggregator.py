@@ -135,14 +135,18 @@ class Aggregator(object):
         #Extract the model from TensorDB and set it to the new model
         og_tensor_dict,_ = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
         tensor_keys = [TensorKey(k,self.uuid,round_number,False,('model',)) for k,v in og_tensor_dict.items()]
-        best_tensor_dict = {}
+        tensor_dict = {}
         for tk in tensor_keys:
             tk_name,_,_,_,_ = tk
-            best_tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
-            if best_tensor_dict[tk_name] is None:
+            tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
+            if tensor_dict[tk_name] is None:
               self.logger.info('Cannot save model for round {}. Continuing...'.format(round_number))
               return
-        self.model = construct_model_proto(best_tensor_dict,round_number,self.compression_pipeline)
+        if file_path == self.best_state_path:
+            self.best_tensor_dict = tensor_dict
+        if file_path == self.last_state_path:
+            self.last_tensor_dict = tensor_dict
+        self.model = construct_model_proto(tensor_dict,round_number,self.compression_pipeline)
         dump_proto(self.model, file_path)
 
 

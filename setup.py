@@ -28,7 +28,8 @@ setup(
         'fledge.federated.plan',
         'fledge.federated.task',
         'fledge.federated.data',
-        'fledge-workspace'
+        'fledge-workspace',
+        'fledge-docker'
     ],
     include_package_data = True,
     install_requires = [

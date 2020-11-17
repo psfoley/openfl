@@ -236,3 +236,132 @@ def certify():
 
  
     echo('\nDone.')
+
+
+@workspace.command(name='dockerize')
+@option('--fl_path', required = True,  help = 'Absolute path to FLedge repository', type = ClickPath(exists=True))
+@option('--ws_path', required = True,  help = 'Absolute path to Workspace dir', type = ClickPath(exists=True))
+@option('--compress',required = False, help = 'Compress the docker img into a .zip file saved in workspace/workspace.zip', is_flag=True)
+def dockerize_(fl_path, ws_path, compress):
+
+    import os
+    import subprocess
+    from shutil import copy
+
+
+    def get_info(cmd=[]):
+
+        ''' Returns the output of the cmd executed at shell level
+            cmd is a list of strings that contains the actual instruction
+            followed by the parameters.
+            for example, the command "ls -a", would be ['ls','a'] '''
+
+        import subprocess
+        result = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n')
+
+        return result
+
+
+    def check_varenv(env="", args={}):
+        ''' Updates "args" (dictionary) with <env: env_value> if env has a defined value in the host'''
+
+        env_val = os.environ.get(env)
+        if env and (env_val is not None):
+            args[env] = env_val
+
+        return args
+
+    def get_wspaceName(path=""):
+        ''' Returns the name of the workspace extracted from path'''
+
+        if (path[-1] == "/"):
+            path = path[0:-1]
+
+        return (path.split("/"))[-1]
+
+
+
+    # Clone Dockerfile
+    docker_dir="docker"
+    dockerfile_template="Dockerfile_wspace_template"
+    tmp_dockerfile="Dockerfile_tmp"
+
+    src = os.path.join(fl_path,docker_dir,dockerfile_template)
+    dst = os.path.join(fl_path,docker_dir,tmp_dockerfile)
+    os.system('cp '+ src +' '+ dst)
+
+
+    # Define "build_args". These are the equivalent of the "--build-arg" passed to "docker build"
+    username = get_info(['whoami'])
+    build_args = {'USERNAME':   username,
+                  'USER_ID':    get_info(['id','-u',username]),
+                  'GROUP_ID':   get_info(['id','-g',username])
+                  }
+
+
+    # Retrieve args from env vars
+    check_varenv('http_proxy', build_args)
+    check_varenv('HTTP_PROXY', build_args)
+    check_varenv('HTTPS_PROXY',build_args)
+    check_varenv('https_proxy',build_args)
+    check_varenv('socks_proxy',build_args)
+    check_varenv('ftp_proxy',  build_args)
+    check_varenv('no_proxy',   build_args)
+
+    ## Configure Dockerfile
+    # Uncomment WORKSPACE_PATH details in Dockerfile
+    os.system('sed -i "s/#__RUN mkdir -p /RUN mkdir -p /g" ' + dst)
+    os.system('sed -i "s/#__COPY $WORKSPACE_PATH/COPY $WORKSPACE_PATH/g" ' + dst)
+    os.system('sed -i "s/#__RUN pip3 install/RUN pip3 install/g" ' + dst)
+
+    # Update list of build args for "docker build"
+    build_args['WORKSPACE_PATH'] = ws_path
+
+
+    ## Compose "build cmd"
+    FLEDGE_IMG_NAME="fledge/docker_test"
+
+    args = ['--build-arg '+ var +'='+val for var,val in build_args.items()]
+    #args = ['--build-arg ', var, '=', val] for var,val in build_args.items()
+   
+    build_cmd_args = ['docker build'] + args + ['-t', FLEDGE_IMG_NAME,'-f Dockerfile','.']
+    #build_cmd_args = ['docker', 'build'] + args + ['-t', FLEDGE_IMG_NAME,'-f',' Dockerfile','.']
+    build_command = ' '.join(build_cmd_args)
+
+
+    ## Move the Dockerfile outside fledge dir
+    dockerfile="Dockerfile"
+    src = os.path.join(fl_path,docker_dir,tmp_dockerfile)
+    dst = os.path.abspath(os.path.join(fl_path, os.pardir))
+
+    copy(src, dst)
+    os.system("mv "+ os.path.join(dst,tmp_dockerfile) + " " + os.path.join(dst,dockerfile))
+
+    ## Build the image
+    print("BUILD_CMD: \n",build_command)
+    os.system("sleep 5")
+    try:
+        
+        os.chdir(dst)
+        if os.system(build_command) != 0:
+            raise Exception("Error found while building the image. Aborting!")
+
+    except:
+        raise Exception("Error found while building the image. Aborting!")
+        exit()
+
+    # Clean environment
+    os.system('rm '+ os.path.join(fl_path,docker_dir,tmp_dockerfile))
+
+    ## Produce .tar file containing the freshly built image
+    if compress:
+        workspace_name = get_wspaceName(ws_path)
+        print("WORKSPACE_NAME vale: ", workspace_name)
+        OUT_PKG_NAME = "docker_"+ workspace_name + ".tar"
+        print("OUT_PKG_NAME: ", OUT_PKG_NAME)
+        os.chdir(ws_path)
+        print("sono all'indirizzo: ", ws_path)
+        print("Salvo FLEDGE_IMG_NAME: ",FLEDGE_IMG_NAME)
+        os.system('docker save -o '+ OUT_PKG_NAME +' '+ FLEDGE_IMG_NAME)
+
+    echo('\nDone: Dockefile built')

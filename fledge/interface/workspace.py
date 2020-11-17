@@ -282,7 +282,7 @@ def dockerize_(fl_path, ws_path, compress):
 
 
     # Clone Dockerfile
-    docker_dir="docker"
+    docker_dir="fledge-docker"
     dockerfile_template="Dockerfile_wspace_template"
     tmp_dockerfile="Dockerfile_tmp"
 
@@ -362,6 +362,9 @@ def dockerize_(fl_path, ws_path, compress):
         os.chdir(ws_path)
         print("sono all'indirizzo: ", ws_path)
         print("Salvo FLEDGE_IMG_NAME: ",FLEDGE_IMG_NAME)
-        os.system('docker save -o '+ OUT_PKG_NAME +' '+ FLEDGE_IMG_NAME)
+        compress_cmd = 'docker save -o '+ OUT_PKG_NAME +' '+ FLEDGE_IMG_NAME
+        print("COMPRESS_CMD vale: \n\t", compress_cmd)
+        #os.system('docker save -o '+ OUT_PKG_NAME +' '+ FLEDGE_IMG_NAME)
+        os.system(compress_cmd)
 
     echo('\nDone: Dockefile built')

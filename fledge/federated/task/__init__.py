@@ -13,8 +13,8 @@ from .runner       import           TaskRunner
 if (True if pkgutil.find_loader('tensorflow') else False):
   from .runner_tf    import TensorFlowTaskRunner
   from .runner_keras import KerasTaskRunner
+  from .fl_model     import FederatedModel
 if (True if pkgutil.find_loader('torch') else False):
   from .runner_pt    import         PyTorchTaskRunner
 if (True if pkgutil.find_loader('torch') else False) and (True if pkgutil.find_loader('tensorflow') else False):
   from .runner_fe    import         FastEstimatorTaskRunner
-  from .fl_model     import FederatedModel

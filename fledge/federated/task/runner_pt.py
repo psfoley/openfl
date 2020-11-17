@@ -74,6 +74,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
 
         self.rebuild_model(round_num, input_tensor_dict, validation=True) 
         self.eval()
+        self.to(self.device)
         val_score = 0
         total_samples = 0
 
@@ -124,6 +125,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         self.rebuild_model(round_num,input_tensor_dict)
         # set to "training" mode
         self.train()
+        self.to(self.device)
 
         losses = []
 

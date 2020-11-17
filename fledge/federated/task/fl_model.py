@@ -5,12 +5,7 @@ import logging
 import inspect
 import copy
 import numpy as np
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Conv2D, Flatten, Dense
-from .runner_keras import KerasTaskRunner
-from .runner_pt import PyTorchTaskRunner
 from .runner import TaskRunner
-from torch import nn
 
 class FederatedModel(TaskRunner):
     """
@@ -40,10 +35,12 @@ class FederatedModel(TaskRunner):
         self.lambda_opt = None
         if inspect.isclass(build_model):
             self.model = build_model()
+            from .runner_pt import PyTorchTaskRunner
             impl = PyTorchTaskRunner
             #build_model.__init__()
         else:
             self.model = self.build_model(self.feature_shape,self.data_loader.num_classes)
+            from .runner_keras import KerasTaskRunner
             impl = KerasTaskRunner
 
         if optimizer is not None:

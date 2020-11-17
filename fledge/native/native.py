@@ -25,7 +25,14 @@ WORKSPACE_PREFIX = os.path.join(os.path.expanduser('~'), '.local', 'workspace')
 
 def setup_plan(save=True):
     """
-    Dumps the plan with all defaults + overrides set. Returns the plan configuration
+    Dumps the plan with all defaults + overrides set.
+
+    Args:
+        save : bool (default=True)
+            Whether to save the plan to disk
+
+    Returns:
+        plan : Plan object
     """
     plan_config = 'plan/plan.yaml'
     cols_config = 'plan/cols.yaml'
@@ -41,7 +48,21 @@ def setup_plan(save=True):
 
 def get_plan(return_complete=False):
     """
-    Return the flattened JSON associated with the plan
+    Return the flattened dictionary associated with the plan
+
+    To read the output in a human readable format, we recommend interpreting it as follows:
+
+    ```
+    print(json.dumps(fx.get_plan(), indent=4, sort_keys=True))
+    ```
+
+    Args:
+        return_complete : bool (default=False)
+            By default will not print the default file locations for each of the templates
+
+    Returns:
+        plan : dict
+            flattened dictionary of the current plan
     """
 
     getLogger().setLevel('CRITICAL')
@@ -60,13 +81,21 @@ def get_plan(return_complete=False):
 
     return flattened_config
 
-def update_plan(config):
+def update_plan(override_config):
     """
-    Update the plan with the provided config
+    Update the plan with the provided override and save it to disk
+
+    For a list of available override options, call `fx.get_plan()`
+
+    Args:
+        override_config : dict {"COMPONENT.settings.variable" : value}
+
+    Returns:
+        None
     """
     plan_path = 'plan/plan.yaml'
     flat_plan_config = get_plan(return_complete=True)
-    for k,v in config.items():
+    for k,v in override_config.items():
         if k in flat_plan_config:
             flat_plan_config[k] = v
             logger.info(f'Updating {k} to {v}... ')

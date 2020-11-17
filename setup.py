@@ -45,6 +45,7 @@ setup(
         'scikit-learn',
         'jupyter',
         'ipykernel',
+        'flatten_json',
     ],
     entry_points = {
         'console_scripts' : ['fx=fledge.interface.cli:entry']

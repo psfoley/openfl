@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from logging import getLogger
 from fledge.federated import Plan
@@ -8,14 +9,16 @@ from fledge.federated.data import FastEstimatorDataLoader
 from fledge.federated.task import FastEstimatorTaskRunner
 
 class FederatedFastEstimator:
-    def __init__(self, estimator, rounds=10, **kwargs):
+    def __init__(self, estimator, override_config={}, **kwargs):
         self.estimator = estimator
-        self.rounds = rounds
         self.logger = getLogger(__name__)
         fx.init(**kwargs)
+        if len(override_config) > 0:
+            fx.update_plan(override_config)
 
     def fit(self):
         import fastestimator as fe
+        from fastestimator.trace.io.best_model_saver import BestModelSaver
         from sys       import path
 
         file = Path(__file__).resolve()
@@ -24,6 +27,7 @@ class FederatedFastEstimator:
 
         path.append(   str(root))
         path.insert(0, str(work))
+
 
         #TODO: Fix this implementation. The full plan parsing is reused here, 
         #but the model and data will be overwritten based on user specifications
@@ -35,8 +39,6 @@ class FederatedFastEstimator:
                         cols_config_path = cols_config,
                         data_config_path = data_config)
 
-        plan.config['aggregator']['settings']['rounds_to_train'] = self.rounds
-        plan.rounds_to_train = self.rounds
         self.rounds = plan.config['aggregator' ]['settings']['rounds_to_train']
         data_loader = FastEstimatorDataLoader(self.estimator.pipeline)
         runner = FastEstimatorTaskRunner(self.estimator, data_loader=data_loader)
@@ -45,8 +47,7 @@ class FederatedFastEstimator:
         #Initialize model weights
         init_state_path = plan.config['aggregator' ]['settings']['init_state_path']
         tensor_dict, holdout_params = split_tensor_dict_for_holdouts(self.logger, 
-                                                                    runner.get_tensor_dict(False),
-                                                                    {})
+                                                                    runner.get_tensor_dict(False))
 
         model_snap = construct_model_proto(tensor_dict  = tensor_dict,
                                         round_number = 0,
@@ -62,6 +63,7 @@ class FederatedFastEstimator:
 
         model_states = {collaborator: None for collaborator in plan.authorized_cols}
         runners = {}
+        save_dir = {}
         data_path = 1
         for col in plan.authorized_cols:
             data = self.estimator.pipeline.data
@@ -78,6 +80,13 @@ class FederatedFastEstimator:
             
             runners[col] = FastEstimatorTaskRunner(estimator=self.estimator, data_loader=data_loader)
             runners[col].set_optimizer_treatment('CONTINUE_LOCAL')
+
+            for trace in runners[col].estimator.system.traces:
+                if isinstance(trace, BestModelSaver):
+                    save_dir_path = f'{trace.save_dir}/{col}'
+                    os.makedirs(save_dir_path, exist_ok=True)
+                    save_dir[col] = save_dir_path
+
             data_path += 1
 
         #Create the collaborators
@@ -90,12 +99,23 @@ class FederatedFastEstimator:
                 collaborator = collaborators[col]
 
                 if round_num != 0:
+                    #For FastEstimator Jupyter notebook, models must be
+                    #saved in different directories (i.e. path must be reset here)
+
+                    runners[col].estimator.system.load_state(f'save/{col}_state')
                     runners[col].rebuild_model(round_num,model_states[col])
+
+                #Reset the save directory if BestModelSaver is present in traces
+                for trace in runners[col].estimator.system.traces:
+                    if isinstance(trace, BestModelSaver):
+                        trace.save_dir = save_dir[col]
 
                 collaborator.run_simulation()
 
                 model_states[col] = runners[col].get_tensor_dict(with_opt_vars=True)
                 model = runners[col].model
+                runners[col].estimator.system.save_state(f'save/{col}_state')
+
 
         #TODO This will return the model from the last collaborator, NOT the final aggregated model (though they should be similar). 
         #There should be a method added to the aggregator that will load the best model from disk and return it 

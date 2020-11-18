@@ -20,9 +20,7 @@ ARG USERNAME
 ARG USER_ID
 ARG GROUP_ID
 
-ARG FLEDGE_BIN_PATH
-ARG FLEDGE_LIB_PATH
-ARG WORKSPACE_PATH
+ARG DOCKER_TMP
 
 ENV http_proxy=$http_proxy
 ENV https_proxy=$https_proxy
@@ -69,36 +67,26 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get install -y python3-pip
 RUN pip3 install --upgrade pip
 
-########## Fledge files ##################################################################
-
+########## FLEDGE files ##################################################################
 # BIN
-COPY ${FLEDGE_BIN_PATH}/fx /usr/local/bin/.
-
-####TODO: Modify first line of fx
+COPY ${DOCKER_TMP}/fx /usr/local/bin/.
 
 # LIBs
-COPY ${FLEDGE_LIB_PATH}/fledge /usr/local/lib/python3.6/dist-packages/fledge
-COPY ${FLEDGE_LIB_PATH}/fledge-workspace /usr/local/lib/python3.6/dist-packages/fledge-workspace
-COPY ${FLEDGE_LIB_PATH}/fledge-0.20.dist-info /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info
+COPY fledge /usr/local/lib/python3.6/dist-packages/fledge
+COPY fledge-workspace /usr/local/lib/python3.6/dist-packages/fledge-workspace
+COPY fledge-0.20.dist-info /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info
 
-### TODO: freeze env and copy list of requirements
-#COPY fl_docker_requirements.txt /home/${USERNAME}/. 
-#RUN pip3 install -r /home/${USERNAME}/fl_docker_requirements.txt 
+COPY ${DOCKER_TMP}/fl_docker_requirements.txt /home/${USERNAME}/. 
+RUN pip3 install -r /home/${USERNAME}/fl_docker_requirements.txt 
 
-## TODO: delete irrelevant line
 
-##########################################################################################
-########## Dockerize cmd Part ############################################################
-# This section will be automatically uncommented by the "fx workspace dockerize [...]" cmd
-
-#__RUN mkdir -p /home/workspace
-#__COPY ${WORKSPACE_PATH} /home/workspace
-#__RUN pip3 install -r /home/workspace/requirements.txt
-############# EOF Dockerize ##############################################################
+########## WORKSPACE files ###############################################################
+COPY ${DOCKER_TMP}/workspace /home/workspace
+RUN pip3 install -r /home/workspace/requirements.txt
 
 
 # Setting permissions to run container as user
 RUN mkdir -p /home/fledge
-RUN chown ${USERNAME} /home/fledge
+RUN chown ${USERNAME} /usr/local/*
 
 USER $USERNAME

@@ -239,15 +239,16 @@ def certify():
 
 
 @workspace.command(name='dockerize')
-@option('--fl_path', required = True,  help = 'Absolute path to FLedge repository', type = ClickPath(exists=True))
-@option('--ws_path', required = True,  help = 'Absolute path to Workspace dir', type = ClickPath(exists=True))
 @option('--compress',required = False, help = 'Compress the docker img into a .zip file saved in workspace/workspace.zip', is_flag=True)
-def dockerize_(fl_path, ws_path, compress):
+def dockerize_(compress):
 
     import os
     import subprocess
     from shutil import copy
 
+    ## Retrieve SITEPACKS
+    SITEPACKS = Path(__file__).parent.parent.parent
+    WORKSPACE_PATH = os.getcwd()
 
     def get_info(cmd=[]):
 
@@ -286,9 +287,10 @@ def dockerize_(fl_path, ws_path, compress):
     dockerfile_template="Dockerfile_wspace_template"
     tmp_dockerfile="Dockerfile_tmp"
 
-    src = os.path.join(fl_path,docker_dir,dockerfile_template)
-    dst = os.path.join(fl_path,docker_dir,tmp_dockerfile)
-    os.system('cp '+ src +' '+ dst)
+    src = os.path.join(SITEPACKS,docker_dir,dockerfile_template)
+    dst = os.path.join(SITEPACKS,docker_dir,tmp_dockerfile)
+    copy(src,dst)
+    #os.system('cp '+ src +' '+ dst)
 
 
     # Define "build_args". These are the equivalent of the "--build-arg" passed to "docker build"
@@ -315,31 +317,27 @@ def dockerize_(fl_path, ws_path, compress):
     os.system('sed -i "s/#__RUN pip3 install/RUN pip3 install/g" ' + dst)
 
     # Update list of build args for "docker build"
-    build_args['WORKSPACE_PATH'] = ws_path
+    build_args['WORKSPACE_PATH'] = WORKSPACE_PATH
 
 
     ## Compose "build cmd"
     FLEDGE_IMG_NAME="fledge/docker_test"
 
-    args = ['--build-arg '+ var +'='+val for var,val in build_args.items()]
-    #args = ['--build-arg ', var, '=', val] for var,val in build_args.items()
-   
+    args = ['--build-arg '+ var +'='+val for var,val in build_args.items()]   
     build_cmd_args = ['docker build'] + args + ['-t', FLEDGE_IMG_NAME,'-f Dockerfile','.']
-    #build_cmd_args = ['docker', 'build'] + args + ['-t', FLEDGE_IMG_NAME,'-f',' Dockerfile','.']
     build_command = ' '.join(build_cmd_args)
 
 
-    ## Move the Dockerfile outside fledge dir
+    ## Move the Dockerfile outside fledge dirs
     dockerfile="Dockerfile"
-    src = os.path.join(fl_path,docker_dir,tmp_dockerfile)
-    dst = os.path.abspath(os.path.join(fl_path, os.pardir))
-
+    src = os.path.join(SITEPACKS,docker_dir,tmp_dockerfile)
+    #dst = os.path.abspath(os.path.join(SITEPACKS, os.pardir))
+    dst=SITEPACKS
     copy(src, dst)
     os.system("mv "+ os.path.join(dst,tmp_dockerfile) + " " + os.path.join(dst,dockerfile))
 
     ## Build the image
-    print("BUILD_CMD: \n",build_command)
-    os.system("sleep 5")
+    '''
     try:
         
         os.chdir(dst)
@@ -349,22 +347,24 @@ def dockerize_(fl_path, ws_path, compress):
     except:
         raise Exception("Error found while building the image. Aborting!")
         exit()
+    '''
+    echo('\nDone: Dockerfile successfully built')
+
 
     # Clean environment
-    os.system('rm '+ os.path.join(fl_path,docker_dir,tmp_dockerfile))
+    cmd='rm '+ os.path.join(SITEPACKS,docker_dir,tmp_dockerfile)
+    os.system(cmd)
+
 
     ## Produce .tar file containing the freshly built image
     if compress:
-        workspace_name = get_wspaceName(ws_path)
-        print("WORKSPACE_NAME vale: ", workspace_name)
-        OUT_PKG_NAME = "docker_"+ workspace_name + ".tar"
-        print("OUT_PKG_NAME: ", OUT_PKG_NAME)
-        os.chdir(ws_path)
-        print("sono all'indirizzo: ", ws_path)
-        print("Salvo FLEDGE_IMG_NAME: ",FLEDGE_IMG_NAME)
-        compress_cmd = 'docker save -o '+ OUT_PKG_NAME +' '+ FLEDGE_IMG_NAME
-        print("COMPRESS_CMD vale: \n\t", compress_cmd)
-        #os.system('docker save -o '+ OUT_PKG_NAME +' '+ FLEDGE_IMG_NAME)
+        workspace_name = get_wspaceName(WORKSPACE_PATH)
+        archiveType = "tar"
+        archiveFileName = "docker_"+ workspace_name + "." + archiveType
+
+        os.chdir(WORKSPACE_PATH)
+        compress_cmd = 'docker save -o '+ archiveFileName +' '+ FLEDGE_IMG_NAME
         os.system(compress_cmd)
 
-    echo('\nDone: Dockefile built')
+        echo('\nDone: Docker image compressed!')
+

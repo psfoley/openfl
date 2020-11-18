@@ -6,19 +6,45 @@ import numpy as np
 from .loader_pt import PyTorchDataLoader
 
 class FederatedDataSet(PyTorchDataLoader):
-    """Data Loader for in memory Numpy data
+    """
+    Data Loader for in memory Numpy data
+
+    Args:
+        X_train: np.array
+            Training Features
+        y_train: np.array
+            Training labels
+        X_val: np.array
+            Validation features
+        y_val: np.array
+            Validation labels
+        batch_size : int 
+            The batch size for the data loader
+        num_classes : int
+            The number of classes the model will be trained on
+        **kwargs: Additional arguments to pass to the function
+
     """
 
     def __init__(self, X_train, y_train, X_valid, y_valid, batch_size=1, num_classes=None, **kwargs):
-        """Initializer
+        """
+        Initializer
 
         Args:
-            X: Training Features
-            y_train: Training labels
-            X_val: Validation features
-            y_val: Validation labels
-            batch_size (int): The batch size for the data loader
+            X_train: np.array
+                Training Features
+            y_train: np.array
+                Training labels
+            X_val: np.array
+                Validation features
+            y_val: np.array
+                Validation labels
+            batch_size : int 
+                The batch size for the data loader
+            num_classes : int
+                The number of classes the model will be trained on
             **kwargs: Additional arguments to pass to the function
+    
         """
 
         super().__init__(batch_size)
@@ -37,12 +63,16 @@ class FederatedDataSet(PyTorchDataLoader):
         """Create a Federated Dataset for each of the collaborators
            
         Args:
-            num_collaborators: Collaborators to split the dataset between
-            shuffle: Should the dataset be randomized?
-            equally: Should each collaborator get the same amount of data?
+            num_collaborators: int
+                Collaborators to split the dataset between
+            shuffle: boolean
+                Should the dataset be randomized?
+            equally: boolean
+                Should each collaborator get the same amount of data?
 
         Returns:
-            List of FederatedDataSets
+            list[FederatedDataSets]
+                A dataset slice for each collaborator
         """
         collaborator_datasets = []
 

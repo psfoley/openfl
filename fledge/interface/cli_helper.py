@@ -19,6 +19,7 @@ FX        = argv[0]
 
 SITEPACKS = Path(__file__).parent.parent.parent
 WORKSPACE = SITEPACKS / 'fledge-workspace'
+TUTORIALS = SITEPACKS / 'fledge-tutorials'
 PKI_DIR   = Path('cert')
 
 def pretty(o):

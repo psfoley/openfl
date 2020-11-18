@@ -25,7 +25,14 @@ WORKSPACE_PREFIX = os.path.join(os.path.expanduser('~'), '.local', 'workspace')
 
 def setup_plan(save=True):
     """
-    Dumps the plan with all defaults + overrides set. Returns the plan configuration
+    Dumps the plan with all defaults + overrides set.
+
+    Args:
+        save : bool (default=True)
+            Whether to save the plan to disk
+
+    Returns:
+        plan : Plan object
     """
     plan_config = 'plan/plan.yaml'
     cols_config = 'plan/cols.yaml'
@@ -41,7 +48,21 @@ def setup_plan(save=True):
 
 def get_plan(return_complete=False):
     """
-    Return the flattened JSON associated with the plan
+    Return the flattened dictionary associated with the plan
+
+    To read the output in a human readable format, we recommend interpreting it as follows:
+
+    ```
+    print(json.dumps(fx.get_plan(), indent=4, sort_keys=True))
+    ```
+
+    Args:
+        return_complete : bool (default=False)
+            By default will not print the default file locations for each of the templates
+
+    Returns:
+        plan : dict
+            flattened dictionary of the current plan
     """
 
     getLogger().setLevel('CRITICAL')
@@ -60,13 +81,21 @@ def get_plan(return_complete=False):
 
     return flattened_config
 
-def update_plan(config):
+def update_plan(override_config):
     """
-    Update the plan with the provided config
+    Update the plan with the provided override and save it to disk
+
+    For a list of available override options, call `fx.get_plan()`
+
+    Args:
+        override_config : dict {"COMPONENT.settings.variable" : value}
+
+    Returns:
+        None
     """
     plan_path = 'plan/plan.yaml'
     flat_plan_config = get_plan(return_complete=True)
-    for k,v in config.items():
+    for k,v in override_config.items():
         if k in flat_plan_config:
             flat_plan_config[k] = v
             logger.info(f'Updating {k} to {v}... ')
@@ -103,6 +132,27 @@ def setup_logging():
     basicConfig(level = 'INFO', format = '%(message)s', datefmt = '[%X]', handlers = [RichHandler(console = console)])    
 
 def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
+    """
+    The initialization function for the fledge package. It performs the following tasks:
+         
+         1. Creates a workspace in ~/.local/workspace (Equivalent to `fx workspace create --prefix ~/.local/workspace --template $workspace_template)
+         2. Setup certificate authority (equivalent to `fx workspace certify`)
+         3. Setup aggregator PKI (equivalent to `fx aggregator generate-cert-request` followed by `fx aggregator certify`)
+         4. Setup list of collaborators (col_names) and their PKI. (Equivalent to running `fx collaborator generate-cert-request` followed by `fx collaborator certify` for each of the collaborators in col_names)
+         5. Setup logging
+
+    Args:
+        workspace_template : str (default='default')
+            The template that should be used as the basis for the experiment. Other options include are any of the template names [keras_cnn_mnist,tf_2dunet,tf_cnn_histology,torch_cnn_histology,torch_cnn_mnist]
+        agg_fqdn : str
+           The local node's fully qualified domain name (if it can't be resolved automatically)
+        col_names: list[str]
+           The names of the collaborators that will be created. These collaborators will be set up to participate in the experiment, but are not required to
+    
+    Returns:
+        None
+    """
+
     workspace.create(WORKSPACE_PREFIX, workspace_template)
     os.chdir(WORKSPACE_PREFIX)
     workspace.certify()
@@ -125,7 +175,21 @@ def create_collaborator(plan, name, model, aggregator):
 
     return plan.get_collaborator(name,task_runner=model,client=aggregator)
 
+
 def run_experiment(collaborator_dict,override_config={}):
+    """
+    Core function that executes the FL Plan. 
+
+    Args:
+        collaborator_dict : dict {collaborator_name(str): FederatedModel}
+            This dictionary defines which collaborators will participate in the experiment, as well as a reference to that collaborator's federated model.
+        override_config : dict {flplan.key : flplan.value}
+            Override any of the plan parameters at runtime using this dictionary. To get a list of the available options, execute `fx.get_plan()`
+
+    Returns:
+        final_federated_model : FederatedModel
+            The final model resulting from the federated learning experiment
+    """
 
     from sys       import path
 
@@ -195,6 +259,6 @@ def run_experiment(collaborator_dict,override_config={}):
 
             model_states[col] = model.get_tensor_dict(with_opt_vars=True)
 
-    #TODO This will return the model from the last collaborator, NOT the final aggregated model (though they should be similar). 
-    #There should be a method added to the aggregator that will load the best model from disk and return it 
+    #Set the weights for the final model
+    model.rebuild_model(rounds_to_train-1,aggregator.last_tensor_dict,validation=True)
     return model

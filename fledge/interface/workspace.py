@@ -280,6 +280,29 @@ def dockerize_(compress):
 
         return (path.split("/"))[-1]
 
+    def get_binPath(curr_path=""):
+       ''' Returns the path to go from current dir to bin/fx'''
+       import re
+       import os
+
+       match=re.search("lib", curr_path)
+       idx = match.end()
+       path_prefix = curr_path[0:idx]
+       bin_path = os.path.relpath(path_prefix,curr_path) + "/../bin"
+
+
+
+       return bin_path
+              
+    def get_fledgeRequirements(save_path=""):
+       ''' Freezes the current virtualenv requirements in the file called:
+               fl_docker_requirements.txt'''
+
+       import os
+       filename = "fl_docker_requirements.txt"
+       cmd = "pip freeze > "+ os.path.join(save_path, filename)
+       os.system(cmd)
+        
 
 
     # Clone Dockerfile
@@ -290,9 +313,33 @@ def dockerize_(compress):
     src = os.path.join(SITEPACKS,docker_dir,dockerfile_template)
     dst = os.path.join(SITEPACKS,docker_dir,tmp_dockerfile)
     copy(src,dst)
-    #os.system('cp '+ src +' '+ dst)
 
 
+    ### Dockerfile CONFIGURATION
+    ## Fledge files
+    # paths definition
+    fledge_libs = str(SITEPACKS)
+    fledge_bin  = get_binPath(fledge_libs)
+
+    # Create fl_docker_requirements.txt file
+    filename = "fl_docker_requirements.txt"
+    filepath = os.path.join(SITEPACKS, filename)
+    cmd = "pip freeze > "+ filepath
+    os.system(cmd)
+
+    os.system('sed -i "/fledge @ file:/d" ' + filepath)
+
+    ## Workspace files 
+    # Get relative WORKSPACE_PATH for the Dockerfile
+    dockerfile_to_workspace = os.path.relpath(WORKSPACE_PATH,SITEPACKS)
+
+    # Uncomment WORKSPACE_PATH details in Dockerfile
+    os.system('sed -i "s/#__RUN mkdir -p /RUN mkdir -p /g" ' + dst)
+    os.system('sed -i "s/#__COPY $WORKSPACE_PATH/COPY $WORKSPACE_PATH/g" ' + dst)
+    os.system('sed -i "s/#__RUN pip3 install/RUN pip3 install/g" ' + dst)
+
+
+    ### Docker BUILD COMMAND
     # Define "build_args". These are the equivalent of the "--build-arg" passed to "docker build"
     username = get_info(['whoami'])
     build_args = {'USERNAME':   username,
@@ -310,20 +357,16 @@ def dockerize_(compress):
     check_varenv('ftp_proxy',  build_args)
     check_varenv('no_proxy',   build_args)
 
-    ## Configure Dockerfile
-    # Uncomment WORKSPACE_PATH details in Dockerfile
-    os.system('sed -i "s/#__RUN mkdir -p /RUN mkdir -p /g" ' + dst)
-    os.system('sed -i "s/#__COPY $WORKSPACE_PATH/COPY $WORKSPACE_PATH/g" ' + dst)
-    os.system('sed -i "s/#__RUN pip3 install/RUN pip3 install/g" ' + dst)
-
-    # Update list of build args for "docker build"
-    build_args['WORKSPACE_PATH'] = WORKSPACE_PATH
+    # Update list of build args for "docker build" 
+    build_args['FLEDGE_BIN_PATH'] = fledge_bin
+    build_args['FLEDGE_LIB_PATH'] = fledge_libs
+    build_args['WORKSPACE_PATH'] = dockerfile_to_workspace
 
 
     ## Compose "build cmd"
     FLEDGE_IMG_NAME="fledge/docker_test"
 
-    args = ['--build-arg '+ var +'='+val for var,val in build_args.items()]   
+    args = ['--build-arg '+ var +'='+val for var,val in build_args.items()]
     build_cmd_args = ['docker build'] + args + ['-t', FLEDGE_IMG_NAME,'-f Dockerfile','.']
     build_command = ' '.join(build_cmd_args)
 
@@ -337,7 +380,7 @@ def dockerize_(compress):
     os.system("mv "+ os.path.join(dst,tmp_dockerfile) + " " + os.path.join(dst,dockerfile))
 
     ## Build the image
-    '''
+    print("BUILD COMMAND:\n\t",build_command)
     try:
         
         os.chdir(dst)
@@ -347,7 +390,7 @@ def dockerize_(compress):
     except:
         raise Exception("Error found while building the image. Aborting!")
         exit()
-    '''
+    
     echo('\nDone: Dockerfile successfully built')
 
 
@@ -368,3 +411,5 @@ def dockerize_(compress):
 
         echo('\nDone: Docker image compressed!')
 
+
+   

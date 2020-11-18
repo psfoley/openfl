@@ -24,6 +24,7 @@ def create_dirs(prefix):
     dst = prefix    /           'plan/defaults' #   to created workspace
 
     copytree(src = src, dst = dst, dirs_exist_ok = True)
+    copyfile(WORKSPACE / 'workspace' / '.workspace', prefix / '.workspace')
 
 def create_cert(prefix):
 
@@ -119,7 +120,13 @@ def export_(context):
     copytree('./cert/config', f'{tmpDir}/cert/config', ignore=ignore) # cert
     copytree('./plan', f'{tmpDir}/plan', ignore=ignore) # plan
     copy2('requirements.txt', tmpDir) # requirements
-    copy2('.workspace', tmpDir) # .workspace
+
+    if Path('.workspace').exists():
+        copy2('.workspace', tmpDir) # .workspace
+    else:
+        echo('\'.workspace\' file not found')
+        if confirm('Create a default \'.workspace\' file?'):
+            copy2(WORKSPACE / 'workspace' / '.workspace', tmpDir)      
    
     make_archive(archiveName, archiveType, tmpDir)      # Create Zip archive of directory
 

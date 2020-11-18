@@ -94,13 +94,6 @@ def export_(context):
     except:
         echo(f'Plan file "{planFile}" not found. No freeze performed.')
 
-    requirements_filename = f'requirements.txt'
-
-    with open(requirements_filename, "w") as f:
-        check_call([executable, "-m", "pip", "freeze"], stdout=f)
-
-    echo(f'{requirements_filename} written.')
-
     archiveType = 'zip'
     archiveName = basename(getcwd())
     archiveFileName = archiveName + '.' + archiveType

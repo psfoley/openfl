@@ -121,12 +121,15 @@ def export_(context):
     copytree('./plan', f'{tmpDir}/plan', ignore=ignore) # plan
     copy2('requirements.txt', tmpDir) # requirements
 
-    if Path('.workspace').exists():
+    try:
         copy2('.workspace', tmpDir) # .workspace
-    else:
-        echo('\'.workspace\' file not found')
+    except FileNotFoundError:
+        echo('\'.workspace\' file not found.')
         if confirm('Create a default \'.workspace\' file?'):
-            copy2(WORKSPACE / 'workspace' / '.workspace', tmpDir)      
+            copy2(WORKSPACE / 'workspace' / '.workspace', tmpDir)   
+        else:
+            echo('To proceed, you must have a \'.workspace\' file in the current directory.')
+            raise
    
     make_archive(archiveName, archiveType, tmpDir)      # Create Zip archive of directory
 

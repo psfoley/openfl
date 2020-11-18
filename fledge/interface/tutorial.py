@@ -1,0 +1,30 @@
+from fledge.interface.cli_helper import *
+from sys        import executable
+from subprocess import check_call
+
+logger = getLogger(__name__)
+
+@group()
+@pass_context
+def tutorial(context):
+    '''Manages Jupyter notebooks'''
+    context.obj['group'] = 'tutorial'
+
+@tutorial.command()
+@pass_context
+@option('-ip', '--ip', required = False, help = 'IP address the notebook that should start', default = '0.0.0.0')
+def start(context, ip):
+    """
+    Start the Jupyter notebook from the tutorials directory
+    """
+    if 'VIRTUAL_ENV' in environ:
+        venv = environ['VIRTUAL_ENV'].split('/')[-1]
+        check_call([executable, '-m', 'ipykernel', 'install', '--user', '--name', f'{venv}'])
+
+    jupyter_command = ['jupyter', 'notebook','--notebook-dir',f'{TUTORIALS}']
+
+    if ip is not None:
+        jupyter_command += ['--ip',f'{ip}']
+    
+    check_call(jupyter_command)
+

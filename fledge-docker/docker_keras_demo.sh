@@ -3,7 +3,7 @@
 HOST_USER="$(whoami)"
 
 ### VAR definition
-DOCKER_IMG=${1:-"fledge/docker"}
+DOCKER_IMG=${1:-""}			# name of docker image built through "fx workspace dockerize" cmd 
 HOST_WORKSPACE=${2:-''}
 
 if [  -z "$HOST_WORKSPACE" ]; then
@@ -11,70 +11,70 @@ if [  -z "$HOST_WORKSPACE" ]; then
 fi
 
 ## Fledge var
-WORKSPACE_DIR=${3:-'fed_work12345alpha81671'} 	# This can be whatever unique directory name you want
+WORKSPACE_DIR=${3:-'workspace'}  # This can be whatever unique directory name you want
 COL=${4:-'one123dragons'} 			# This can be any unique label
-FED_PATH=${5:-'/home/fledge'}    		# Federation workspace PATH within Docker
-TEMPLATE=${6:-'keras_cnn_mnist'}		# ['torch_cnn_mnist', 'keras_cnn_mnist']
+FED_PATH=${5:-'/home'}    		# Federation workspace PATH within Docker
 
 ## Local var
 HOST_AGG=${HOST_WORKSPACE}/host_agg_workspace
 HOST_COL=${HOST_WORKSPACE}/host_col_workspace
 
+HOST_AGG_DATA=${HOST_AGG}/data
+HOST_COL_DATA=${HOST_COL}/data
+HOST_AGG_CERT=${HOST_AGG}/cert
+HOST_COL_CERT=${HOST_COL}/cert
+
+AGGREGATOR_IMG_NAME="aggregator"
+COLLABORATOR_IMG_NAME=${COL}
+
+
 ## Prepare working env mkdir -p $HOST_WORKSPACE/host_agg_workspace
-mkdir -p ${HOST_AGG}
-mkdir -p ${HOST_COL}
+mkdir -p ${HOST_AGG_DATA}
+mkdir -p ${HOST_COL_DATA}
+mkdir -p ${HOST_AGG_CERT}
+mkdir -p ${HOST_COL_CERT}
+
+
+### Spin-up instances
+docker run -d --name ${AGGREGATOR_IMG_NAME} --network=host -v ${HOST_AGG_DATA}:/home/workspace/data ${DOCKER_IMG}
+docker run -d --name ${COLLABORATOR_IMG_NAME} --network=host -v ${HOST_COL_DATA}:/home/workspace/data ${DOCKER_IMG}
+
 
 ### AGGREGATOR
-## Create workspace
-docker run --rm -it --network=host -v ${HOST_AGG}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh init"
-## Export workspace
-docker run --rm -it --network=host -v ${HOST_AGG}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh export"
-
-## Copy workspace from AGGREGATOR to COLLABORATOR directories
-CMD=`cp ${HOST_AGG}/${WORKSPACE_DIR}/${WORKSPACE_DIR}.zip ${HOST_COL}/.`
-if ${CMD}; then
-     echo “Success”
-else
-     echo “Failure 1, exit status: $?”
-     exit
-fi
+## Init workspace
+docker exec ${AGGREGATOR_IMG_NAME} /bin/bash -c "bash docker_agg.sh init"
 
 ### COLLABORATOR
 ## Import workspace
-docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh import_ws"
-## Initialize collaborato
-docker run --rm -it --network=host -v ${HOST_COL}/:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh init"
+docker exec ${COLLABORATOR_IMG_NAME} /bin/bash -c "bash docker_col.sh init"
 
 ## Send COLLABORATOR request to AGGREGATOR
-CMD=`cp -r ${HOST_COL}/${WORKSPACE_DIR}/col_${COL}_to_agg_cert_request.zip ${HOST_AGG}/${WORKSPACE_DIR}/cert/.`
-if ${CMD}; then
-     echo “Success”
-else
-     echo “Failure2, exit status: $?”
-     exit
-fi
+docker cp ${COLLABORATOR_IMG_NAME}:/home/workspace/col_${COL}_to_agg_cert_request.zip ${HOST_COL_CERT}
+docker cp ${HOST_COL_CERT}/col_${COL}_to_agg_cert_request.zip ${AGGREGATOR_IMG_NAME}:/home/workspace/cert/.
+
 
 ### AGGREGATOR
 ## Certify collaborator
-docker run --rm -it --network=host -v ${HOST_AGG}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh col"
+docker exec ${AGGREGATOR_IMG_NAME} /bin/bash -c "bash docker_agg.sh col"
 
 ## Send verified certificate from AGGREGATOR to COLLABORATOR
-CMD=`cp ${HOST_AGG}/${WORKSPACE_DIR}/agg_to_col_${COL}_signed_cert.zip ${HOST_COL}/${WORKSPACE_DIR}/.`
-if ${CMD}; then
-     echo “Success”
-else
-     echo “Failure3, exit status: $?”
-     exit
-fi
+docker cp ${AGGREGATOR_IMG_NAME}:/home/workspace/agg_to_col_${COL}_signed_cert.zip ${HOST_AGG_CERT}
+docker cp ${HOST_AGG_CERT}/agg_to_col_${COL}_signed_cert.zip ${COLLABORATOR_IMG_NAME}:/home/workspace/.
+
 
 ### COLLABORATOR
 ## Import certificate
-docker run --rm -it --network=host -v ${HOST_COL}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh import_crt"
+docker exec ${COLLABORATOR_IMG_NAME} /bin/bash -c "bash docker_col.sh import_crt"
 
 ### AGGREGATOR
 ## Start the aggregator
-docker run --rm -it -d --network=host -v ${HOST_AGG}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_agg.sh start"
+docker exec -d ${AGGREGATOR_IMG_NAME} /bin/bash -c "bash docker_agg.sh start"
 
 ### COLLABORATOR
 ## Start the collaborator
-docker run --rm -it --network=host -v ${HOST_COL}:/home/fledge ${DOCKER_IMG} /bin/bash -c "bash docker_col.sh start"
+docker exec ${COLLABORATOR_IMG_NAME} /bin/bash -c "bash docker_col.sh start"
+
+
+## Stop and exit the services
+docker stop ${AGGREGATOR_IMG_NAME} ${COLLABORATOR_IMG_NAME} && docker rm ${AGGREGATOR_IMG_NAME} ${COLLABORATOR_IMG_NAME}
+

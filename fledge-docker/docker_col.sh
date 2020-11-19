@@ -3,9 +3,9 @@
 ## PARAMETER SETTING
 # Fledge params
 MODE=${1:-'import'}                # ['import', 'start']
-WORKSPACE_DIR=${2:-'fed_work12345alpha81671'}  # This can be whatever unique$
+WORKSPACE_DIR=${2:-'workspace'}    # This can be whatever unique$
 COL=${3:-'one123dragons'}          # This can be any unique label
-FED_PATH=${4:-'/home/fledge'}      # FED_WORKSPACE Path
+FED_PATH=${4:-'/home'}      # FED_WORKSPACE Path
 
 
 if [ ! -z "$FED_PATH" ]; then
@@ -62,10 +62,10 @@ import_crt() {
     ARCHIVE_NAME="agg_to_col_${COL}_signed_cert.zip"
 
     CURRENT_DIR=`pwd`
-    [[ ! -z "$FED_PATH" ]] && cd $FED_PATH
+    [[ ! -z "$FED_PATH" ]] && cd $FED_PATH/${FED_WORKSPACE}
 
-    fx collaborator certify --import ${FED_WORKSPACE}/${ARCHIVE_NAME}
-    yes | cp -rf ${FED_PATH}/cert/* ${FED_WORKSPACE}/cert/.
+    fx collaborator certify --import ${ARCHIVE_NAME}
+    #yes | cp -rf ${FED_PATH}/cert/* ${FED_WORKSPACE}/cert/.
 
     # Move back to initial dir
     cd $CURRENT_DIR

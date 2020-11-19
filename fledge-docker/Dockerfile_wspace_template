@@ -16,10 +16,6 @@ ARG socks_proxy
 ARG ftp_proxy
 ARG no_proxy
 
-ARG USERNAME
-ARG USER_ID
-ARG GROUP_ID
-
 ARG DOCKER_TMP
 
 ENV http_proxy=$http_proxy
@@ -32,6 +28,10 @@ ENV no_proxy=$no_proxy
 
 
 # Run this docker as User
+ENV USERNAME=docker_user
+ENV GROUP_ID=1000
+ENV USER_ID=1000
+
 RUN addgroup --gid $GROUP_ID $USERNAME
 RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USERNAME
 
@@ -87,6 +87,8 @@ RUN pip3 install -r /home/workspace/requirements.txt
 
 # Setting permissions to run container as user
 RUN mkdir -p /home/fledge
-RUN chown ${USERNAME} /usr/local/*
+RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge/*
+RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-workspace/*
+RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info/*
 
 USER $USERNAME

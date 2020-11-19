@@ -253,19 +253,6 @@ def dockerize_(compress):
     SITEPACKS = Path(__file__).parent.parent.parent
     WORKSPACE_PATH = os.getcwd()
 
-    def get_info(cmd=[]):
-
-        ''' Returns the output of the cmd executed at shell level
-            cmd is a list of strings that contains the actual instruction
-            followed by the parameters.
-            for example, the command "ls -a", would be ['ls','a'] '''
-
-        import subprocess
-        result = subprocess.run(cmd, stdout=subprocess.PIPE).stdout.decode('utf-8').strip('\n')
-
-        return result
-
-
     def check_varenv(env="", args={}):
         ''' Updates "args" (dictionary) with <env: env_value> if env has a defined value in the host'''
 
@@ -340,12 +327,9 @@ def dockerize_(compress):
 
     ### Docker BUILD COMMAND
     # Define "build_args". These are the equivalent of the "--build-arg" passed to "docker build"
-    username = get_info(['whoami'])
-    build_args = {'USERNAME':   username,
-                  'USER_ID':    get_info(['id','-u',username]),
-                  'GROUP_ID':   get_info(['id','-g',username]),
-                  'DOCKER_TMP': dirname
-                  }
+    build_args = {'DOCKER_TMP': dirname}
+    # Add here custom build_args for the build command
+    # i.e: build_args["CUSTOM_BUILD_ARG"] = custom_build_arg_var
 
 
     # Retrieve args from env vars

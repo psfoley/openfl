@@ -16,5 +16,6 @@ if (True if pkgutil.find_loader('tensorflow') else False):
   from .federated_data import    FederatedDataSet
 if (True if pkgutil.find_loader('torch') else False):
   from .loader_pt    import      PyTorchDataLoader
+  from .federated_data import    FederatedDataSet
 if (True if pkgutil.find_loader('torch') else False) and (True if pkgutil.find_loader('tensorflow') else False):
   from .loader_fe    import      FastEstimatorDataLoader

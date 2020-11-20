@@ -30,6 +30,7 @@ setup(
         'fledge.federated.data',
         'fledge-workspace',
         'fledge-docker'
+        'fledge-tutorials',
     ],
     include_package_data = True,
     install_requires = [
@@ -44,6 +45,9 @@ setup(
         'tqdm',
         'scikit-learn',
         'docker'
+        'jupyter',
+        'ipykernel',
+        'flatten_json',
     ],
     entry_points = {
         'console_scripts' : ['fx=fledge.interface.cli:entry']

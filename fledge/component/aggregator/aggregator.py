@@ -19,22 +19,22 @@ from logging import getLogger
 
 class Aggregator(object):
 
-    """An Aggregator is the central node in federated learning
+    """
+    An Aggregator is the central node in federated learning
 
-    Parameters
-    ----------
-    aggregator_uuid : str
-        Aggregation ID.
-    federation_uuid : str
-        Federation ID.
-    authorized_cols : list of str
-        The list of IDs of enrolled collaborators.
-    init_state_path : str
-        The location of the initial weight file.
-    last_state_path : str
-        The file location to store the latest weight.
-    best_state_path : str
-        The file location to store the weight of the best model.
+    Args:
+        aggregator_uuid : str
+            Aggregation ID.
+        federation_uuid : str
+            Federation ID.
+        authorized_cols : list of str
+            The list of IDs of enrolled collaborators.
+        init_state_path : str
+            The location of the initial weight file.
+        last_state_path : str
+            The file location to store the latest weight.
+        best_state_path : str
+            The file location to store the weight of the best model.
     """
 
     def __init__(self,
@@ -103,8 +103,8 @@ class Aggregator(object):
 
         1. Initial model
 
-        Parameters
-        ----------
+        Args:
+            None
         """
 
       # if the collaborator requests a delta, this value is set to true
@@ -123,26 +123,30 @@ class Aggregator(object):
         """
         Save the best or latest model
 
-        Params
-        ------
-        round_number:   Model round to be saved
-        file_path:      Either the best model or latest model file path
+        Args: 
+            round_number: int
+                Model round to be saved
+            file_path: str     
+                Either the best model or latest model file path
 
-        Returns
-        -------
-        None
+        Returns:
+            None
         """
         #Extract the model from TensorDB and set it to the new model
         og_tensor_dict,_ = deconstruct_model_proto(self.model,compression_pipeline=self.compression_pipeline)
         tensor_keys = [TensorKey(k,self.uuid,round_number,False,('model',)) for k,v in og_tensor_dict.items()]
-        best_tensor_dict = {}
+        tensor_dict = {}
         for tk in tensor_keys:
             tk_name,_,_,_,_ = tk
-            best_tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
-            if best_tensor_dict[tk_name] is None:
+            tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
+            if tensor_dict[tk_name] is None:
               self.logger.info('Cannot save model for round {}. Continuing...'.format(round_number))
               return
-        self.model = construct_model_proto(best_tensor_dict,round_number,self.compression_pipeline)
+        if file_path == self.best_state_path:
+            self.best_tensor_dict = tensor_dict
+        if file_path == self.last_state_path:
+            self.last_tensor_dict = tensor_dict
+        self.model = construct_model_proto(tensor_dict,round_number,self.compression_pipeline)
         dump_proto(self.model, file_path)
 
 
@@ -171,6 +175,10 @@ class Aggregator(object):
     def check_request(self, request):
         """
         Validate request header matches expected values
+
+        Args:
+            request : protobuf
+                Request sent from a collaborator that requires validation
         """
       # TODO improve this check. the sender name could be spoofed
         check_is_in(request.header.sender, self.authorized_cols, self.logger) 
@@ -187,24 +195,46 @@ class Aggregator(object):
     def get_header(self,collaborator_name):
         """
         Compose and return MessageHeader
+
+        Args:
+            collaborator_name : str
+                The collaborator the message is intended for
         """
         return MessageHeader(sender=self.uuid,receiver = collaborator_name,federation_uuid = self.federation_uuid,single_col_cert_common_name = self.single_col_cert_common_name)
 
     def get_sleep_time(self):
         """
         Sleep 10 seconds
+
+        Args:
+            None
         """
         return 10
 
     def time_to_quit(self):
         """
         If all rounds are complete, it's time to quit
+
+        Args:
+            None
         """
         if self.round_number >= self.rounds_to_train:
             return True
         return False
         
     def GetTasks(self, request):
+        """
+        RPC called by a collaborator to determine which tasks to perform.
+
+        Args:
+            request: protobuf
+                A simple request from a collaborator that queries what task should be performed
+
+        Returns:
+            TasksResponse : protobuf
+                List of tasks to be performed by the requesting collaborator for the current round.
+                This response can also include information like if it time to quit
+        """
 
         # all messages get sanity checked
         self.check_request(request)
@@ -253,6 +283,18 @@ class Aggregator(object):
                             quit = False)
 
     def GetAggregatedTensor(self, request):
+        """
+        RPC called by collaborator. Performs local lookup to determine if there 
+        is an aggregated tensor available that matches the request.
+
+        Args:
+            request : protobuf
+                Collaborator request for a tensorkey
+
+        Returns:
+            TensorResponse : protobuf
+                Protobuf message containing the tensor requested by the collaborator
+        """
         # all messages get sanity checked
         self.check_request(request)
 
@@ -304,6 +346,21 @@ class Aggregator(object):
         """
         This function constructs the NamedTensor Protobuf and also includes logic to create delta, 
         compress tensors with the TensorCodec, etc.
+
+        Args:
+            tensor_key : TensorKey (named_tuple)
+                The tensorkey identifier associated with the nparray
+            nparray : numpy array
+                The numpy array associated with the tensorkey that will be packaged in a protobuf
+            send_model_deltas : boolean
+                Whether or not the difference in the current numpy array and an earlier version should be sent.
+                If False, the full numpy array is sent
+            compress_lossless : boolean
+                If true, force the tensor to be compressed losslessly
+
+        Returns:
+            named_tensor : NamedTensor (protobuf)
+                Protobuf encoded with TensorKey:nparray mapping. Ready to be sent to collaborator
         """
 
         # if we have an aggregated tensor, we can make a delta
@@ -339,22 +396,34 @@ class Aggregator(object):
         The aggregator doesn't actually know which tensors should be sent from the collaborator
         so it must to rely specifically on the presence of previous results
 
-        Parameters
-        ----------
-        collaborator
-        task_name
-        round_number
+        Args:
+            collaborator : str
+                collaborator to check if their task has been completed
+            task_name : str
+                The name of the task (TaskRunner function) 
+            round_number : int 
 
-        Returns
-        -------
-        bool
-
+        Returns:
+            task_competed : bool
+                Whether or not the collaborator has completed the task for this round
         """
         task_key = TaskResultKey(task, collaborator, round_num)
         return task_key in self.collaborator_tasks_results
 
 
     def SendLocalTaskResults(self, request):
+        """
+        RPC called by collaborator. Transmits collaborator's task results to the
+        aggregator.
+
+        Args:
+            request : protobuf
+                Contains all of the information related to the task that the collaborator just completed (collaborator name, the task performed, what round, and which tensors were transfered)
+
+        Returns:
+             acknowledgement : protobuf
+                 Confirms the task results were received
+        """
         # all messages get sanity checked
         self.check_request(request)
 
@@ -408,10 +477,17 @@ class Aggregator(object):
         Extract the named tensor fields, performs decompression, delta computation, 
         and inserts results into TensorDB.
 
-        Parameters
-        ----------
-        named_tensor:       NamedTensor protobuf that will be extracted from and processed
-        collaborator_name:  Collaborator name is needed for proper tagging of resulting tensorkeys  
+        Args:
+            named_tensor:       NamedTensor (protobuf)
+                protobuf that will be extracted from and processed
+            collaborator_name:  str
+                Collaborator name is needed for proper tagging of resulting tensorkeys  
+
+        Returns:
+            tensor_key : TensorKey (named_tuple)
+                The tensorkey extracted from the protobuf
+            nparray : np.array
+                The numpy array associated with the returned tensorkey
         """
         raw_bytes = named_tensor.data_bytes
         metadata = [{'int_to_float': proto.int_to_float,
@@ -464,6 +540,7 @@ class Aggregator(object):
         """
         This function constructs the NamedTensor Protobuf and also includes logic to create delta, 
         compress tensors with the TensorCodec, etc.
+
         """
 
         tensor_name,origin,round_number,report,tags = tensor_key
@@ -492,11 +569,35 @@ class Aggregator(object):
 
 
     def end_of_task_check(self, task_name):
+        """
+        Have all collaborator's who are supposed to perform the task complete?
+
+        Args:
+            task_name : str
+                The task name to check
+
+        Returns:
+            complete : boolean
+                Is the task done
+        """
+
         if self.is_task_done(task_name):
             # now check for the end of the round
             self.end_of_round_check()
 
     def end_of_round_check(self):
+        """
+        Is the round complete? If so, perform many end of round operations, such as model aggregation, 
+        metric reporting, delta generation (+ associated tensorkey labeling), and save the model
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+
+
         if self.is_round_done():
             #Compute all validation related metrics
             all_tasks = self.assigner.get_all_tasks_for_round(self.round_number)

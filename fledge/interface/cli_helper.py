@@ -21,6 +21,7 @@ SITEPACKS = Path(__file__).parent.parent.parent
 WORKSPACE = SITEPACKS / 'fledge-workspace'
 TUTORIALS = SITEPACKS / 'fledge-tutorials'
 PKI_DIR   = Path('cert')
+FLEDGE_HOME = Path.home() / '.fledge'
 
 def pretty(o):
     m = max(map(len, o.keys()))

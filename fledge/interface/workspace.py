@@ -58,6 +58,8 @@ def create_(prefix, template):
 def create(prefix, template):
     """Create federated learning workspace"""
     from os.path  import isfile
+    if not FLEDGE_HOME.exists():
+        FLEDGE_HOME.mkdir()
 
     prefix   = Path(prefix)
     template = Path(template)
@@ -73,6 +75,9 @@ def create(prefix, template):
         echo(f"Successfully installed packages from {prefix}/requirements.txt.")
     else:
         echo("No additional requirements for workspace defined. Skipping...")
+    prefix_hash = _get_dir_hash(str(prefix))
+    with open(FLEDGE_HOME / f'requirements.{prefix_hash}.txt', 'w') as f:
+        check_call([executable, '-m', 'pip', 'freeze'], stdout=f)
 
     print_tree(prefix, level = 3)
 
@@ -96,9 +101,17 @@ def export_(context):
 
     requirements_filename = f'requirements.txt'
 
+    prefix = getcwd()
     with open(requirements_filename, "w") as f:
         check_call([executable, "-m", "pip", "freeze"], stdout=f)
-
+    workspace_hash = _get_dir_hash(prefix)
+    origin_dict = _get_requirements_dict(FLEDGE_HOME / f'requirements.{workspace_hash}.txt')
+    actual_dict = _get_requirements_dict(requirements_filename)
+    with open(requirements_filename, "w") as f:
+        for package, version in actual_dict.items():
+            if package not in origin_dict or version != origin_dict[package]:
+                echo(f'Writing {package}=={version} to {requirements_filename}...')
+                f.write(f'{package}=={version}\n')
     echo(f'{requirements_filename} written.')
 
     archiveType = 'zip'
@@ -236,3 +249,22 @@ def certify():
 
  
     echo('\nDone.')
+
+def _get_requirements_dict(txtfile):
+    with open(txtfile, 'r') as snapshot:
+        snapshot_dict = {}
+        for line in snapshot:
+            try:
+                k,v = line.split('==') # 'pip freeze' generates requirements with exact versions
+                snapshot_dict[k] = v
+            except ValueError:
+                snapshot_dict[line] = None
+        return snapshot_dict
+
+def _get_dir_hash(path):
+    from hashlib import md5
+    hash_ = md5()
+    hash_.update(path.encode('utf-8'))
+    hash_ = hash_.hexdigest()[:6]
+    print(f'Hash of {path} is {hash_}.')
+    return hash_

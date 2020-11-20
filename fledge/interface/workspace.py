@@ -110,6 +110,8 @@ def export_(context):
     with open(requirements_filename, "w") as f:
         for package, version in actual_dict.items():
             if package not in origin_dict or version != origin_dict[package]:
+                # we save only the difference between original workspace after 'fx create workspace' 
+                # and current one.
                 echo(f'Writing {package}=={version} to {requirements_filename}...')
                 f.write(f'{package}=={version}\n')
     echo(f'{requirements_filename} written.')

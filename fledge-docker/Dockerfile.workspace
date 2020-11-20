@@ -31,15 +31,19 @@ ENV GROUP_ID=1000
 ENV USER_ID=1000
 
 ########## WORKSPACE files ###############################################################
+#
+USER root
 COPY cert /home/workspace/cert
 COPY code /home/workspace/code
 COPY logs /home/workspace/logs
 COPY plan /home/workspace/plan
 COPY plan /home/workspace/save
 COPY requirements.txt /home/workspace/requirements.txt
-RUN mkdir data
+RUN mkdir /home/workspace/data
 RUN pip3 install -r /home/workspace/requirements.txt
 
 RUN chown -R ${USERNAME}:${USERNAME} /home/workspace
+
+USER $USERNAME
 
 CMD tail -f /dev/null

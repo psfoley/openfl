@@ -252,7 +252,8 @@ def dockerize_(save):
     from shutil import rmtree
     from os.path import basename
 
-    WORKSPACE_PATH = os.getcwd()
+    WORKSPACE_PATH   = os.getcwd()
+    WORKSPACE_PARENT = Path(WORKSPACE_PATH).parent
 
              
     ## ~TMP dir
@@ -269,18 +270,15 @@ def dockerize_(save):
     copy(fledge_bin, DOCKER_TMP)
     
     fx_file = os.path.join(DOCKER_TMP,'fx')
-    replace_line_in_file('#!/usr/bin/python3',0,fx_file)
+    replace_line_in_file('#!/usr/bin/python3\n',0,fx_file)
 
     # Create fl_docker_requirements.txt file
-    filename = "fl_docker_requirements.txt"
-    filepath = os.path.join(DOCKER_TMP, filename)
-    with open(filepath, "w") as f:
-        check_call([executable, "-m", "pip", "freeze"], stdout=f)
-
-    remove_line_from_file('fledge @',filepath)
+    docker_requirements = "requirements-docker.txt"
+    docker_dir = 'fledge-docker'
+    copy(os.path.join(SITEPACKS, docker_dir, docker_requirements), DOCKER_TMP)
 
     # Workspace content
-    copytree(WORKSPACE_PATH,os.path.join(DOCKER_TMP,"workspace"), dirs_exist_ok = True)
+    #copytree(WORKSPACE_PATH,os.path.join(DOCKER_TMP,"workspace"), dirs_exist_ok = True)
 
     ### Docker BUILD COMMAND
     # Define "build_args". These are the equivalent of the "--build-arg" passed to "docker build"
@@ -301,15 +299,22 @@ def dockerize_(save):
 
     ## Compose "build cmd"
     workspace_name = basename(WORKSPACE_PATH)
-    fledge_img_name="fledge/docker_" + workspace_name
+    fledge_img_base='fledge'
+    fledge_img_name=f'{fledge_img_base}/docker_{workspace_name}'
 
     # Clone Dockerfile within SITEPACKS
-    docker_dir          = "fledge-docker"
-    dockerfile          = "Dockerfile"
-    dockerfile_template = "Dockerfile_wspace_template"
+    docker_dir   = "fledge-docker"
+    base_df      = "Dockerfile.base"
+    workspace_df = "Dockerfile.workspace"
 
-    src = os.path.join(SITEPACKS, docker_dir, dockerfile_template )
-    dst = os.path.join(SITEPACKS, dockerfile)
+    #Copy base dockerfile
+    src = os.path.join(SITEPACKS, docker_dir, base_df )
+    dst = os.path.join(SITEPACKS, base_df)
+    copy(src,dst)
+    
+    #Copy workspace dockerfile to directory above workspace
+    src = os.path.join(SITEPACKS, docker_dir, workspace_df )
+    dst = os.path.join(WORKSPACE_PATH, workspace_df)
     copy(src,dst)
 
     client = docker.from_env(timeout=3600)
@@ -318,13 +323,23 @@ def dockerize_(save):
     try:
         
         os.chdir(SITEPACKS)
+        if f'{fledge_img_base}:latest' in str(client.images.list()):
+            if confirm(f'Base image {fledge_img_base} found. Would you like to rebuild?'):
+                echo(f'Building docker image {fledge_img_base}. This may take 5-10 minutes')   
+                client.images.build(path=str(SITEPACKS),tag=fledge_img_base,buildargs=build_args,dockerfile=base_df)
+        else:
+            echo(f'Building docker image {fledge_img_base}. This may take 5-10 minutes')   
+            client.images.build(path=str(SITEPACKS),tag=fledge_img_base,buildargs=build_args,dockerfile=base_df)
+
         echo(f'Building docker image {fledge_img_name}. This will likely take 5-10 minutes')   
-        client.images.build(path=str(SITEPACKS),tag=fledge_img_name,buildargs=build_args)
+        os.chdir(WORKSPACE_PARENT)
+        client.images.build(path=str(WORKSPACE_PATH),tag=fledge_img_name,buildargs=build_args,dockerfile=workspace_df)
 
     except:
-        raise Exception("Error found while building the image. Aborting!")
         rmtree(DOCKER_TMP)
-        os.remove(os.path.join(SITEPACKS,dockerfile))
+        os.remove(os.path.join(SITEPACKS,base_df))
+        os.remove(os.path.join(WORKSPACE_PATH,workspace_df))
+        raise Exception("Error found while building the image. Aborting!")
         exit()
     
     echo(f'Docker image {fledge_img_name} successfully built')
@@ -332,8 +347,8 @@ def dockerize_(save):
 
     # Clean environment
     rmtree(DOCKER_TMP)
-    os.remove(os.path.join(SITEPACKS,dockerfile))
-
+    os.remove(os.path.join(SITEPACKS,base_df))
+    os.remove(os.path.join(WORKSPACE_PATH,workspace_df))
 
     ## Produce .tar file containing the freshly built image
     if save:

@@ -4,7 +4,7 @@ from importlib  import import_module
 from socket     import getfqdn
 from click      import Group, CommandCollection, Choice, Path as ClickPath
 from click      import group, command, argument, option, pass_context
-from click      import clear, echo, style, progressbar
+from click      import clear, echo, style, progressbar, confirm
 from sys        import path, argv
 from time       import sleep
 from shutil     import copyfile, ignore_patterns

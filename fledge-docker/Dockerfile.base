@@ -74,25 +74,8 @@ COPY ${DOCKER_TMP}/fx /usr/local/bin/.
 # LIBs
 COPY fledge /usr/local/lib/python3.6/dist-packages/fledge
 COPY fledge-workspace /usr/local/lib/python3.6/dist-packages/fledge-workspace
-COPY fledge-0.20.dist-info /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info
+COPY fledge-0.20.dist-info  /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info
 
-COPY ${DOCKER_TMP}/fl_docker_requirements.txt /home/${USERNAME}/. 
-RUN pip3 install -r /home/${USERNAME}/fl_docker_requirements.txt 
+COPY ${DOCKER_TMP}/requirements-docker.txt /home/${USERNAME}/. 
+RUN pip3 install -r /home/${USERNAME}/requirements-docker.txt 
 
-
-########## WORKSPACE files ###############################################################
-COPY ${DOCKER_TMP}/workspace /home/workspace
-RUN pip3 install -r /home/workspace/requirements.txt
-
-
-# Setting permissions to run container as user
-RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge/*
-RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-workspace/*
-RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info/*
-RUN chown -R ${USERNAME}:${USERNAME} /home/workspace
-RUN chown ${USERNAME}:${USERNAME} /home/docker_agg.sh
-RUN chown ${USERNAME}:${USERNAME} /home/docker_col.sh
-
-USER $USERNAME
-
-CMD tail -f /dev/null

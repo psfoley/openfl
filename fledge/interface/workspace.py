@@ -107,14 +107,15 @@ def export_(context):
     workspace_hash = _get_dir_hash(prefix)
     origin_dict = _get_requirements_dict(FLEDGE_HOME / f'requirements.{workspace_hash}.txt')
     actual_dict = _get_requirements_dict(requirements_filename)
-    with open(requirements_filename, "w") as f:
+    export_requirements_filename = 'requirements.export.txt'
+    with open(export_requirements_filename, "w") as f:
         for package, version in actual_dict.items():
             if package not in origin_dict or version != origin_dict[package]:
                 # we save only the difference between original workspace after 'fx create workspace' 
                 # and current one.
                 echo(f'Writing {package}=={version} to {requirements_filename}...')
                 f.write(f'{package}=={version}\n')
-    echo(f'{requirements_filename} written.')
+    echo(f'{export_requirements_filename} written.')
 
     archiveType = 'zip'
     archiveName = basename(getcwd())
@@ -133,7 +134,7 @@ def export_(context):
     copytree('./code', f'{tmpDir}/code', ignore=ignore) # code
     copytree('./cert/config', f'{tmpDir}/cert/config', ignore=ignore) # cert
     copytree('./plan', f'{tmpDir}/plan', ignore=ignore) # plan
-    copy2('requirements.txt', tmpDir) # requirements
+    copy2(export_requirements_filename, f'{tmpDir}/requirements.txt') # requirements
     copy2('.workspace', tmpDir) # .workspace
    
     make_archive(archiveName, archiveType, tmpDir)      # Create Zip archive of directory

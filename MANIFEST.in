@@ -1,2 +1,3 @@
 recursive-include fledge-workspace *
+recursive-include fledge-docker *
 recursive-include fledge-tutorials *

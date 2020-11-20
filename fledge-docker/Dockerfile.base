@@ -16,9 +16,7 @@ ARG socks_proxy
 ARG ftp_proxy
 ARG no_proxy
 
-ARG USERNAME
-ARG USER_ID
-ARG GROUP_ID
+ARG DOCKER_TMP
 
 ENV http_proxy=$http_proxy
 ENV https_proxy=$https_proxy
@@ -30,6 +28,10 @@ ENV no_proxy=$no_proxy
 
 
 # Run this docker as User
+ENV USERNAME=docker_user
+ENV GROUP_ID=1000
+ENV USER_ID=1000
+
 RUN addgroup --gid $GROUP_ID $USERNAME
 RUN adduser --disabled-password --gecos '' --uid $USER_ID --gid $GROUP_ID $USERNAME
 
@@ -39,10 +41,8 @@ ENV install_dir=/usr/fledge/
 
 WORKDIR /home/
 
-ADD fledge $install_dir
-
-COPY fledge/docker/docker_agg.sh /home/.
-COPY fledge/docker/docker_col.sh /home/.
+COPY fledge-docker/docker_agg.sh /home/.
+COPY fledge-docker/docker_col.sh /home/.
 
 # Set locale details
 RUN apt-get update
@@ -59,16 +59,35 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
     echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new && \
     mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
+RUN apt-get install -y nano
 
 # Install the fledge package and its dependency.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv
 RUN apt-get install -y python3-pip
-RUN pip3 install $install_dir
+RUN pip3 install --upgrade pip
 
+########## FLEDGE files ##################################################################
+# BIN
+COPY ${DOCKER_TMP}/fx /usr/local/bin/.
+
+# LIBs
+COPY fledge /usr/local/lib/python3.6/dist-packages/fledge
+COPY fledge-workspace /usr/local/lib/python3.6/dist-packages/fledge-workspace
+COPY fledge-tutorials /usr/local/lib/python3.6/dist-packages/fledge-tutorials
+COPY fledge-0.20.dist-info  /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info
+
+COPY ${DOCKER_TMP}/requirements-docker.txt /home/${USERNAME}/. 
+RUN pip3 install -r /home/${USERNAME}/requirements-docker.txt 
 
 # Setting permissions to run container as user
-RUN mkdir -p /home/fledge
-RUN chown ${USERNAME} /home/fledge
+RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge/*
+RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-workspace/*
+RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info/*
+RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-tutorials/*
+RUN chown ${USERNAME}:${USERNAME} /home/docker_agg.sh
+RUN chown ${USERNAME}:${USERNAME} /home/docker_col.sh
 
 USER $USERNAME
+
+

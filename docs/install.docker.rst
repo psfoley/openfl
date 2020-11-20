@@ -66,6 +66,16 @@ In order to successfully build the image, the Dockerfile is expecting to access 
 Command
 ~~~~~~~
 
+If you have the |productName| repo available localy, run the following command from the base directory to build the docker image:
 .. code-block:: console
+
    $ export HOST_USER=`whoami`
-   $ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t fledge/docker -f fledge_containers/Dockerfile .
+   $ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t fledge/docker -f fledge-docker/Dockerfile .
+
+If you have installed |productName| from a pip wheel or pypi, you can easily add your local workspace to a docker image with the following commands:
+.. code-block:: console
+
+   $ fx workspace create --prefix ~/WORKSPACE_PATH --template keras_cnn_mnist
+   $ cd WORKSPACE_PATH
+   $ fx workspace dockerize
+

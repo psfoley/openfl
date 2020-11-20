@@ -40,15 +40,6 @@ COPY requirements.txt /home/workspace/requirements.txt
 RUN mkdir data
 RUN pip3 install -r /home/workspace/requirements.txt
 
-
-# Setting permissions to run container as user
-RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge/*
-RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-workspace/*
-RUN chown -R ${USERNAME}:${USERNAME} /usr/local/lib/python3.6/dist-packages/fledge-0.20.dist-info/*
 RUN chown -R ${USERNAME}:${USERNAME} /home/workspace
-RUN chown ${USERNAME}:${USERNAME} /home/docker_agg.sh
-RUN chown ${USERNAME}:${USERNAME} /home/docker_col.sh
-
-USER $USERNAME
 
 CMD tail -f /dev/null

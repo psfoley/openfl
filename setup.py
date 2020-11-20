@@ -29,7 +29,7 @@ setup(
         'fledge.federated.task',
         'fledge.federated.data',
         'fledge-workspace',
-        'fledge-docker'
+        'fledge-docker',
         'fledge-tutorials',
     ],
     include_package_data = True,

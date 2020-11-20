@@ -75,7 +75,7 @@ def create(prefix, template):
         echo(f"Successfully installed packages from {prefix}/requirements.txt.")
     else:
         echo("No additional requirements for workspace defined. Skipping...")
-    prefix_hash = _get_dir_hash(str(prefix))
+    prefix_hash = _get_dir_hash(str(prefix.absolute()))
     with open(FLEDGE_HOME / f'requirements.{prefix_hash}.txt', 'w') as f:
         check_call([executable, '-m', 'pip', 'freeze'], stdout=f)
 

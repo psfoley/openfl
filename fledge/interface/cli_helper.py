@@ -172,3 +172,47 @@ def get_workspace_parameter(name):
         return ''
     else:
         return doc[name]
+
+def check_varenv(env="", args={}):
+    ''' Updates "args" (dictionary) with <env: env_value> if env has a defined value in the host'''
+
+    env_val = environ.get(env)
+    if env and (env_val is not None):
+        args[env] = env_val
+
+    return args
+
+def get_fx_path(curr_path=""):
+   ''' Returns the absolute path to fx binary'''
+   import re
+   import os
+
+   match       =re.search("lib", curr_path)
+   idx         = match.end()
+   path_prefix = curr_path[0:idx]
+   bin_path    = re.sub("lib","bin",path_prefix) 
+   fx_path     = os.path.join(bin_path,"fx")
+
+   return fx_path
+
+
+def remove_line_from_file(pkg,filename):
+    with open(filename, "r+") as f:
+        d = f.readlines()
+        f.seek(0)
+        for i in d:
+            if pkg not in i:
+                f.write(i)
+        f.truncate()
+
+def replace_line_in_file(line,line_num_to_replace,filename):
+    with open(filename, "r+") as f:
+        d = f.readlines()
+        f.seek(0)
+        for idx,i in enumerate(d):
+            if idx == line_num_to_replace:
+                f.write(line)
+            else:
+                f.write(i)
+        f.truncate()
+

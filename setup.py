@@ -43,6 +43,7 @@ setup(
         'rich',
         'tqdm',
         'scikit-learn',
+        'docker'
     ],
     entry_points = {
         'console_scripts' : ['fx=fledge.interface.cli:entry']

@@ -239,62 +239,22 @@ def certify():
 
 
 @workspace.command(name='dockerize')
-@option('--compress',required = False, help = 'Compress the docker img into a .zip file saved in workspace/workspace.zip', is_flag=True)
-def dockerize_(compress):
+@option('--save',required = False, help = 'Save the Docker image into the workspace', is_flag=True)
+def dockerize_(save):
+    '''Package FL.Edge and the workspace as a Docker image'''
+
 
     import os
     import subprocess
+    import docker
     from shutil import copy
     from shutil import move
-    from shutil import copytree
     from shutil import rmtree
+    from os.path import basename
 
-    ## Retrieve SITEPACKS
-    SITEPACKS = Path(__file__).parent.parent.parent
     WORKSPACE_PATH = os.getcwd()
 
-    def check_varenv(env="", args={}):
-        ''' Updates "args" (dictionary) with <env: env_value> if env has a defined value in the host'''
-
-        env_val = os.environ.get(env)
-        if env and (env_val is not None):
-            args[env] = env_val
-
-        return args
-
-    def get_wspaceName(path=""):
-        ''' Returns the name of the workspace extracted from path'''
-
-        if (path[-1] == "/"):
-            path = path[0:-1]
-
-        return (path.split("/"))[-1]
-
-    def get_fxPath(curr_path=""):
-       ''' Returns the absolute path to fx binary'''
-       import re
-       import os
-
-       match       =re.search("lib", curr_path)
-       idx         = match.end()
-       path_prefix = curr_path[0:idx]
-       bin_path    = re.sub("lib","bin",path_prefix) 
-       fx_path     = os.path.join(bin_path,"fx")
-
-       return fx_path
- 
              
-    def get_fledgeRequirements(save_path=""):
-       ''' Freezes the current virtualenv requirements in the file called:
-               fl_docker_requirements.txt'''
-
-       import os
-       filename = "fl_docker_requirements.txt"
-       cmd = "pip freeze > "+ os.path.join(save_path, filename)
-       os.system(cmd)
-        
-
-
     ## ~TMP dir
     dirname = ".docker_tmp"
     (SITEPACKS / dirname     ).mkdir(parents = True, exist_ok = True)
@@ -305,25 +265,22 @@ def dockerize_(compress):
     # FL.edge BIN files
     # paths definition
     fledge_libs = str(SITEPACKS)
-    fledge_bin  = get_fxPath(fledge_libs)
+    fledge_bin  = get_fx_path(fledge_libs)
     copy(fledge_bin, DOCKER_TMP)
     
     fx_file = os.path.join(DOCKER_TMP,'fx')
-    cmd='sed -i "1s:.*:#!/usr/bin/python3:" '+ fx_file 
-    os.system(cmd)
-
+    replace_line_in_file('#!/usr/bin/python3',0,fx_file)
 
     # Create fl_docker_requirements.txt file
     filename = "fl_docker_requirements.txt"
     filepath = os.path.join(DOCKER_TMP, filename)
-    cmd = "pip freeze > "+ filepath
-    os.system(cmd)
-    os.system('sed -i "/fledge @ file:/d" ' + filepath)
+    with open(filepath, "w") as f:
+        check_call([executable, "-m", "pip", "freeze"], stdout=f)
+
+    remove_line_from_file('fledge @',filepath)
 
     # Workspace content
-    copytree(WORKSPACE_PATH,os.path.join(DOCKER_TMP,"workspace"))
-
-
+    copytree(WORKSPACE_PATH,os.path.join(DOCKER_TMP,"workspace"), dirs_exist_ok = True)
 
     ### Docker BUILD COMMAND
     # Define "build_args". These are the equivalent of the "--build-arg" passed to "docker build"
@@ -343,14 +300,8 @@ def dockerize_(compress):
 
 
     ## Compose "build cmd"
-    workspace_name = get_wspaceName(WORKSPACE_PATH)
-    FLEDGE_IMG_NAME="fledge/docker_" + workspace_name
-
-    args = ['--build-arg '+ var +'='+val for var,val in build_args.items()]
-    build_cmd_args = ['docker build'] + args + ['-t', FLEDGE_IMG_NAME,'-f Dockerfile','.']
-    build_command = ' '.join(build_cmd_args)
-
-
+    workspace_name = basename(WORKSPACE_PATH)
+    fledge_img_name="fledge/docker_" + workspace_name
 
     # Clone Dockerfile within SITEPACKS
     docker_dir          = "fledge-docker"
@@ -361,34 +312,40 @@ def dockerize_(compress):
     dst = os.path.join(SITEPACKS, dockerfile)
     copy(src,dst)
 
-
+    client = docker.from_env(timeout=3600)
+    
     ## Build the image
     try:
         
         os.chdir(SITEPACKS)
-        if os.system(build_command) != 0:
-            raise Exception("Error found while building the image. Aborting!")
+        echo(f'Building docker image {fledge_img_name}. This will likely take 5-10 minutes')   
+        client.images.build(path=str(SITEPACKS),tag=fledge_img_name,buildargs=build_args)
 
     except:
         raise Exception("Error found while building the image. Aborting!")
+        rmtree(DOCKER_TMP)
+        os.remove(os.path.join(SITEPACKS,dockerfile))
         exit()
     
-    echo('\nDone: Dockerfile successfully built')
+    echo(f'Docker image {fledge_img_name} successfully built')
 
 
     # Clean environment
     rmtree(DOCKER_TMP)
-    cmd = "rm "+ os.path.join(SITEPACKS,dockerfile)
-    os.system(cmd)
+    os.remove(os.path.join(SITEPACKS,dockerfile))
 
 
     ## Produce .tar file containing the freshly built image
-    if compress:
-        archiveType = "tar"
-        archiveFileName = "docker_"+ workspace_name + "." + archiveType
+    if save:
+        archive_fn = f'docker_{workspace_name}.tar'
 
         os.chdir(WORKSPACE_PATH)
-        compress_cmd = 'docker save -o '+ archiveFileName +' '+ FLEDGE_IMG_NAME
-        os.system(compress_cmd)
+        echo('Saving Docker image...')   
+        image = client.images.get(f'{fledge_img_name}')
+        resp = image.save()
+        f = open(archive_fn,'wb')
+        for chunk in resp:
+            f.write(chunk)
+        f.close()
 
-        echo('\nDone: Docker image compressed!')   
+        echo(f'{fledge_img_name} saved to {WORKSPACE_PATH}/{archive_fn}')   

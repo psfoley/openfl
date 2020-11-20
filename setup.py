@@ -44,7 +44,7 @@ setup(
         'rich',
         'tqdm',
         'scikit-learn',
-        'docker'
+        'docker',
         'jupyter',
         'ipykernel',
         'flatten_json',

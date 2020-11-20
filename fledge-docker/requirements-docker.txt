@@ -8,3 +8,6 @@ grpcio-tools==1.30.0
 rich
 tqdm
 scikit-learn
+jupyter
+ipykernel
+flatten_json

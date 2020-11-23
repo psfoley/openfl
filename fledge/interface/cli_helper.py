@@ -4,6 +4,7 @@ from sys import argv
 from pathlib import Path
 from itertools import islice
 from os import environ
+from logging import getLogger  # NOQA
 
 from yaml import load, FullLoader
 

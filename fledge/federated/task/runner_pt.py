@@ -1,8 +1,9 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
-import numpy    as np
-import torch    as pt
+import numpy as np
+import torch as pt
 import torch.nn as nn
 
 from copy import deepcopy
@@ -10,6 +11,7 @@ from copy import deepcopy
 from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
 
 from .runner import TaskRunner
+
 
 class PyTorchTaskRunner(nn.Module, TaskRunner):
     """PyTorch Model class for Federated Learning
@@ -27,7 +29,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         TaskRunner.__init__(self, **kwargs)
 
         self.device = device
-        #This is a map of all the required tensors for each of the public functions in PyTorchTaskRunner
+        # This is a map of all the required tensors for each of the public functions in PyTorchTaskRunner
         self.required_tensorkeys_for_function = {}
 
         self.optimizer = None
@@ -37,10 +39,10 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         # overwrite attribute to account for one optimizer param (in every child model that
         # does not overwrite get and set tensordict) that is not a numpy array
         self.tensor_dict_split_fn_kwargs.update({
-                                            'holdout_tensor_names': ['__opt_state_needed']
-                                           })
+            'holdout_tensor_names': ['__opt_state_needed']
+        })
 
-    def rebuild_model(self, round_num, input_tensor_dict,validation = False):
+    def rebuild_model(self, round_num, input_tensor_dict, validation=False):
         """
         Parse tensor names and update weights of model. Handles the optimizer treatment
 
@@ -49,13 +51,13 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         """
         if self.opt_treatment == 'RESET':
             self.reset_opt_vars()
-            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
+            self.set_tensor_dict(input_tensor_dict, with_opt_vars=False)
         elif self.training_round_completed and self.opt_treatment == 'CONTINUE_GLOBAL' and not validation:
-            self.set_tensor_dict(input_tensor_dict,with_opt_vars=True)
+            self.set_tensor_dict(input_tensor_dict, with_opt_vars=True)
         else:
-            self.set_tensor_dict(input_tensor_dict,with_opt_vars=False)
+            self.set_tensor_dict(input_tensor_dict, with_opt_vars=False)
 
-    def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
+    def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False, **kwargs):
         """Validate
 
         Run validation of the model on the local data.
@@ -65,14 +67,14 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
             round_num:           What round is it
             input_tensor_dict:   Required input tensors (for model)
             use_tqdm (bool):     Use tqdm to print a progress bar (Default=True)
-            
+
         Returns:
             global_output_dict:  Tensors to send back to the aggregator
             local_output_dict:   Tensors to maintain in the local TensorDB
 
         """
 
-        self.rebuild_model(round_num, input_tensor_dict, validation=True) 
+        self.rebuild_model(round_num, input_tensor_dict, validation=True)
         self.eval()
         self.to(self.device)
         val_score = 0
@@ -88,7 +90,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
                 total_samples += samples
                 data, target = pt.tensor(data).to(self.device), pt.tensor(target).to(self.device, dtype=pt.int64)
                 output = self(data)
-                pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+                pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
                 target_categorical = target.argmax(dim=1, keepdim=True)
                 val_score += pred.eq(target_categorical).sum().cpu().numpy()
 
@@ -98,14 +100,14 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
             suffix += '_local'
         else:
             suffix += '_agg'
-        tags = ('metric',suffix)
-        #TODO figure out a better way to pass in metric for this pytorch validate function
-        output_tensor_dict = {TensorKey('acc',origin,round_num,True,tags): np.array(val_score/total_samples)} 
-                
-        #Empty list represents metrics that should only be stored locally
-        return output_tensor_dict,{}
+        tags = ('metric', suffix)
+        # TODO figure out a better way to pass in metric for this pytorch validate function
+        output_tensor_dict = {TensorKey('acc', origin, round_num, True, tags): np.array(val_score / total_samples)}
 
-    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=False,**kwargs): 
+        # Empty list represents metrics that should only be stored locally
+        return output_tensor_dict, {}
+
+    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=False, **kwargs):
         """Train batches
 
         Train the model on the requested number of batches.
@@ -116,13 +118,13 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
             input_tensor_dict:   Required input tensors (for model)
             num_batches:         The number of batches to train on before returning
             use_tqdm (bool):     Use tqdm to print a progress bar (Default=True)
-            
+
         Returns:
             global_output_dict:  Tensors to send back to the aggregator
             local_output_dict:   Tensors to maintain in the local TensorDB
         """
 
-        self.rebuild_model(round_num,input_tensor_dict)
+        self.rebuild_model(round_num, input_tensor_dict)
         # set to "training" mode
         self.train()
         self.to(self.device)
@@ -141,42 +143,49 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
             self.optimizer.step()
             losses.append(loss.detach().cpu().numpy())
 
-        #Output metric tensors (scalar)
+        # Output metric tensors (scalar)
         origin = col_name
         tags = ('trained',)
-        output_metric_dict = {TensorKey(self.loss_fn.__name__,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
+        output_metric_dict = {
+            TensorKey(self.loss_fn.__name__, origin, round_num, True, ('metric',)): np.array(np.mean(losses))}
 
-        #output model tensors (Doesn't include TensorKey)
+        # output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
-        global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+        global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict,
+                                                                             **self.tensor_dict_split_fn_kwargs)
 
-        #Create global tensorkeys
-        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in global_model_dict.items()}
-        #Create tensorkeys that should stay local
-        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in local_model_dict.items()}
-        #The train/validate aggregated function of the next round will look for the updated model parameters. 
-        #This ensures they will be resolved locally
-        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,False,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
+        # Create global tensorkeys
+        global_tensorkey_model_dict = {TensorKey(tensor_name, origin, round_num, False, tags): nparray for
+                                       tensor_name, nparray in global_model_dict.items()}
+        # Create tensorkeys that should stay local
+        local_tensorkey_model_dict = {TensorKey(tensor_name, origin, round_num, False, tags): nparray for
+                                      tensor_name, nparray in local_model_dict.items()}
+        # The train/validate aggregated function of the next round will look for the updated model parameters.
+        # This ensures they will be resolved locally
+        next_local_tensorkey_model_dict = {
+            TensorKey(tensor_name, origin, round_num + 1, False, ('model',)): nparray
+            for tensor_name, nparray in local_model_dict.items()}
 
-        global_tensor_dict = {**output_metric_dict,**global_tensorkey_model_dict}
-        local_tensor_dict = {**local_tensorkey_model_dict,**next_local_tensorkey_model_dict}
+        global_tensor_dict = {**output_metric_dict, **global_tensorkey_model_dict}
+        local_tensor_dict = {**local_tensorkey_model_dict, **next_local_tensorkey_model_dict}
 
-        #Update the required tensors if they need to be pulled from the aggregator
-        #TODO this logic can break if different collaborators have different roles between rounds.
-        #For example, if a collaborator only performs validation in the first round but training
-        #in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
-        #because these are only created after training occurs. A work around could involve doing a single epoch of training
-        #on random data to get the optimizer names, and then throwing away the model.
+        # Update the required tensors if they need to be pulled from the aggregator
+        # TODO this logic can break if different collaborators have different roles between rounds.
+        # For example, if a collaborator only performs validation in the first round but training
+        # in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
+        # because these are only created after training occurs.
+        # A work around could involve doing a single epoch of training
+        # on random data to get the optimizer names, and then throwing away the model.
         if self.opt_treatment == 'CONTINUE_GLOBAL':
             self.initialize_tensorkeys_for_functions(with_opt_vars=True)
 
-        #This will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
+        # This will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
         self.train_round_completed = True
 
-        #Return global_tensor_dict, local_tensor_dict
-        return global_tensor_dict,local_tensor_dict
-    
-    def get_tensor_dict(self,with_opt_vars = False):
+        # Return global_tensor_dict, local_tensor_dict
+        return global_tensor_dict, local_tensor_dict
+
+    def get_tensor_dict(self, with_opt_vars=False):
         """Return the tensor dictionary
 
         Args:
@@ -200,7 +209,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
 
         return state
 
-    def _get_weights_names(self,with_opt_vars = False):
+    def _get_weights_names(self, with_opt_vars=False):
         # Gets information regarding tensor model layers and optimizer state.
         # FIXME: self.parameters() instead? Unclear if load_state_dict() or simple assignment is better
         # for now, state dict gives us names which is good
@@ -214,7 +223,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
 
         return state
 
-    def set_tensor_dict(self, tensor_dict,with_opt_vars = False):
+    def set_tensor_dict(self, tensor_dict, with_opt_vars=False):
         """Set the tensor dictionary
 
         Args:
@@ -267,9 +276,10 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         else:
             return self.required_tensorkeys_for_function[func_name]
 
-    def initialize_tensorkeys_for_functions(self,with_opt_vars=False):
+    def initialize_tensorkeys_for_functions(self, with_opt_vars=False):
         """Set the required tensors for all publicly accessible methods that could be called as part of a task.
-        By default, this is just all of the layers and optimizer of the model. Custom tensors should be added to this function
+        By default, this is just all of the layers and optimizer of the model.
+        Custom tensors should be added to this function
 
         Args:
             None
@@ -278,37 +288,51 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
             None
         """
 
-        #TODO there should be a way to programmatically iterate through all of the methods in the class and declare the tensors.
-        #For now this is done manually
+        # TODO there should be a way to programmatically iterate through
+        #  all of the methods in the class and declare the tensors.
+        # For now this is done manually
 
         output_model_dict = self.get_tensor_dict(with_opt_vars=with_opt_vars)
-        global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+        global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict,
+                                                                             **self.tensor_dict_split_fn_kwargs)
         if not with_opt_vars:
             validation_global_model_dict = global_model_dict
             validation_local_model_dict = local_model_dict
         else:
             output_model_dict = self.get_tensor_dict(with_opt_vars=False)
-            validation_global_model_dict, validation_local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+            validation_global_model_dict, validation_local_model_dict = split_tensor_dict_for_holdouts(
+                self.logger,
+                output_model_dict,
+                **self.tensor_dict_split_fn_kwargs)
 
+        self.required_tensorkeys_for_function['train_batches'] = [
+            TensorKey(tensor_name, 'GLOBAL', 0, False, ('model',))
+            for tensor_name in global_model_dict]
+        self.required_tensorkeys_for_function['train_batches'] += [
+            TensorKey(tensor_name, 'LOCAL', 0, False, ('model',))
+            for tensor_name in local_model_dict]
 
-        self.required_tensorkeys_for_function['train_batches'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in global_model_dict]
-        self.required_tensorkeys_for_function['train_batches'] += [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in local_model_dict]
-        
-        self.required_tensorkeys_for_function['train'] = [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in global_model_dict]
-        self.required_tensorkeys_for_function['train'] += [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in local_model_dict]
+        self.required_tensorkeys_for_function['train'] = [TensorKey(tensor_name, 'GLOBAL', 0, False, ('model',)) for
+                                                          tensor_name in global_model_dict]
+        self.required_tensorkeys_for_function['train'] += [TensorKey(tensor_name, 'LOCAL', 0, False, ('model',)) for
+                                                           tensor_name in local_model_dict]
 
-        #Validation may be performed on local or aggregated (global) model, so there is an extra lookup dimension for kwargs
+        # Validation may be performed on local or aggregated (global) model,
+        # so there is an extra lookup dimension for kwargs
         self.required_tensorkeys_for_function['validate'] = {}
-        #TODO This is not stateless. The optimizer will not be
+        # TODO This is not stateless. The optimizer will not be
         self.required_tensorkeys_for_function['validate']['apply=local'] = \
-                [TensorKey(tensor_name,'LOCAL',0,False,('trained',)) for tensor_name in {**validation_global_model_dict,**validation_local_model_dict}]
+            [TensorKey(tensor_name, 'LOCAL', 0, False, ('trained',)) for tensor_name in
+             {**validation_global_model_dict, **validation_local_model_dict}]
         self.required_tensorkeys_for_function['validate']['apply=global'] = \
-                [TensorKey(tensor_name,'GLOBAL',0,False,('model',)) for tensor_name in validation_global_model_dict]
+            [TensorKey(tensor_name, 'GLOBAL', 0, False, ('model',)) for tensor_name in validation_global_model_dict]
         self.required_tensorkeys_for_function['validate']['apply=global'] += \
-                [TensorKey(tensor_name,'LOCAL',0,False,('model',)) for tensor_name in validation_local_model_dict]
+            [TensorKey(tensor_name, 'LOCAL', 0, False, ('model',)) for tensor_name in validation_local_model_dict]
 
-    def load_native(self, filepath, model_state_dict_key='model_state_dict', optimizer_state_dict_key='optimizer_state_dict', **kwargs):
-        """Loads model and optimizer states from a pickled file specified by filepath. model_/optimizer_state_dict args can be specified if needed. Uses pt.load().
+    def load_native(self, filepath, model_state_dict_key='model_state_dict',
+                    optimizer_state_dict_key='optimizer_state_dict', **kwargs):
+        """Loads model and optimizer states from a pickled file specified by filepath.
+        model_/optimizer_state_dict args can be specified if needed. Uses pt.load().
 
         Args:
             filepath (string)                   : Path to pickle file created by pt.save().
@@ -323,8 +347,10 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
         self.load_state_dict(pickle_dict[model_state_dict_key])
         self.optimizer.load_state_dict(pickle_dict[optimizer_state_dict_key])
 
-    def save_native(self, filepath, model_state_dict_key='model_state_dict', optimizer_state_dict_key='optimizer_state_dict', **kwargs):
-        """Saves model and optimizer states in a picked file specified by the filepath. model_/optimizer_state_dicts are stored in the keys provided. Uses pt.save().
+    def save_native(self, filepath, model_state_dict_key='model_state_dict',
+                    optimizer_state_dict_key='optimizer_state_dict', **kwargs):
+        """Saves model and optimizer states in a picked file specified by the filepath.
+        model_/optimizer_state_dicts are stored in the keys provided. Uses pt.save().
 
         Args:
             filepath (string)                   : Path to pickle file to be created by pt.save().
@@ -380,7 +406,7 @@ def _derive_opt_state_dict(opt_state_dict):
         assert example_state_subkeys == set(opt_state_dict['state'][state_key].keys())
         for state_subkey in example_state_subkeys:
             assert isinstance(opt_state_dict['state'][example_state_key][state_subkey], pt.Tensor) == \
-                isinstance(opt_state_dict['state'][state_key][state_subkey], pt.Tensor)
+                   isinstance(opt_state_dict['state'][state_key][state_subkey], pt.Tensor)
 
     state_subkeys = list(opt_state_dict['state'][example_state_key].keys())
 
@@ -409,6 +435,7 @@ def _derive_opt_state_dict(opt_state_dict):
     derived_opt_state_dict['__opt_group_lengths'] = np.array(nb_params_per_group)
 
     return derived_opt_state_dict
+
 
 def expand_derived_opt_state_dict(derived_opt_state_dict, device):
     """Expand the optimizer state dictionary
@@ -458,11 +485,11 @@ def expand_derived_opt_state_dict(derived_opt_state_dict, device):
                     new_v = int(derived_opt_state_dict.pop(flat_key))
                 opt_state_dict['state'][this_id][subkey] = new_v
 
-
     # sanity check that we did not miss any optimizer state
     assert len(derived_opt_state_dict) == 0
 
     return opt_state_dict
+
 
 def _get_optimizer_state(optimizer):
     """Return the optimizer state
@@ -483,6 +510,7 @@ def _get_optimizer_state(optimizer):
     derived_opt_state_dict = _derive_opt_state_dict(opt_state_dict)
 
     return derived_opt_state_dict
+
 
 def _set_optimizer_state(optimizer, device, derived_opt_state_dict):
     """Sets the optimizer state
@@ -505,6 +533,7 @@ def _set_optimizer_state(optimizer, device, derived_opt_state_dict):
 
     optimizer.load_state_dict(temp_state_dict)
 
+
 def to_cpu_numpy(state):
     """Send data to CPU as Numpy array
 
@@ -519,6 +548,6 @@ def to_cpu_numpy(state):
         # When restoring, we currently assume all values are tensors.
         if not pt.is_tensor(v):
             raise ValueError('We do not currently support non-tensors '
-                                      'coming from model.state_dict()')
+                             'coming from model.state_dict()')
         state[k] = v.cpu().numpy()  # get as a numpy array, making sure is on cpu
     return state

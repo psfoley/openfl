@@ -1,9 +1,11 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 from fledge.federated import TensorFlowDataLoader
 
 from .mnist_utils import load_mnist_shard
+
 
 class TensorFlowMNISTInMemory(TensorFlowDataLoader):
     """
@@ -26,7 +28,7 @@ class TensorFlowMNISTInMemory(TensorFlowDataLoader):
         # TODO: There needs to be a method to ask how many collaborators and what index/rank is this collaborator.
         # Then we have a way to automatically shard based on rank and size of collaborator list.
 
-        _, num_classes, X_train, y_train, X_valid, y_valid = load_mnist_shard(shard_num = int(data_path), **kwargs)
+        _, num_classes, X_train, y_train, X_valid, y_valid = load_mnist_shard(shard_num=int(data_path), **kwargs)
 
         self.X_train = X_train
         self.y_train = y_train

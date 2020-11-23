@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 
 """
@@ -12,12 +13,13 @@ You may copy use this file or the appropriate framework-specific base-class to p
 
 from logging import getLogger
 
+
 class TaskRunner(object):
     """
     Federated Learning Task Runner Class
     """
 
-    def __init__(self, data_loader, tensor_dict_split_fn_kwargs = {}, **kwargs):
+    def __init__(self, data_loader, tensor_dict_split_fn_kwargs={}, **kwargs):
         """
         Intializer
 
@@ -27,7 +29,7 @@ class TaskRunner(object):
             **kwargs: Additional parameters to pass to the function
         """
 
-        self.data_loader   = data_loader
+        self.data_loader = data_loader
         self.feature_shape = self.data_loader.get_feature_shape()
 
         # key word arguments for determining which parameters to hold out from aggregation.
@@ -48,7 +50,7 @@ class TaskRunner(object):
         """
         self.logger = getLogger(__name__)
 
-    def set_optimizer_treatment(self,opt_treatment):
+    def set_optimizer_treatment(self, opt_treatment):
         self.opt_treatment = opt_treatment
 
     def get_data_loader(self):
@@ -71,7 +73,7 @@ class TaskRunner(object):
             None
         """
 
-        if  data_loader.get_feature_shape() != self.data_loader.get_feature_shape():
+        if data_loader.get_feature_shape() != self.data_loader.get_feature_shape():
             raise ValueError('The data_loader feature shape is not compatible with model.')
 
         self.data_loader = data_loader
@@ -98,7 +100,7 @@ class TaskRunner(object):
         """
         return self.data_loader.get_valid_data_size()
 
-    def train_batches(self, num_batches = None, use_tqdm = False):
+    def train_batches(self, num_batches=None, use_tqdm=False):
         """
         Perform the training for a specified number of batches.
 
@@ -174,10 +176,13 @@ class TaskRunner(object):
 
     def load_native(self, filepath, **kwargs):
         """
-        Loads model state from a filepath in ML-framework "native" format, e.g. PyTorch pickled models. May load from multiple files. Other filepaths may be derived from the passed filepath, or they may be in the kwargs.
+        Loads model state from a filepath in ML-framework "native" format, e.g. PyTorch pickled models.
+         May load from multiple files. Other filepaths may be derived from the passed filepath,
+          or they may be in the kwargs.
 
         Args:
-            filepath (string): Path to frame-work specific file to load. For frameworks that use multiple files, this string must be used to derive the other filepaths.
+            filepath (string): Path to frame-work specific file to load. For frameworks that use multiple files,
+             this string must be used to derive the other filepaths.
             kwargs           : For future-proofing
 
         Returns:
@@ -187,10 +192,12 @@ class TaskRunner(object):
 
     def save_native(self, filepath, **kwargs):
         """
-        Saves model state in ML-framework "native" format, e.g. PyTorch pickled models. May save one file or multiple files, depending on the framework.
+        Saves model state in ML-framework "native" format, e.g. PyTorch pickled models.
+         May save one file or multiple files, depending on the framework.
 
         Args:
-            filepath (string): If framework stores a single file, this should be a single file path. Frameworks that store multiple files may need to derive the other paths from this path.
+            filepath (string): If framework stores a single file, this should be a single file path.
+             Frameworks that store multiple files may need to derive the other paths from this path.
             kwargs           : For future-proofing
 
         Returns:

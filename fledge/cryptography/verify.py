@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 
 import base64
@@ -40,12 +41,12 @@ def verify_file(path,
             signature,
             contents,
             padding.PSS(
-                mgf = padding.MGF1(hashes.SHA256()),
-                salt_length = padding.PSS.MAX_LENGTH,
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH,
             ),
             hashes.SHA256(),
         )
         return True
-    except cryptography.exceptions.InvalidSignature as e:
+    except cryptography.exceptions.InvalidSignature:
         print('ERROR: Payload and/or signature files failed verification!')
         return False

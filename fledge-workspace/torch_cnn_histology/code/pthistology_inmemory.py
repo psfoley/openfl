@@ -1,9 +1,9 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 from .histology_utils import load_histology_shard
 from fledge.federated import PyTorchDataLoader
-import numpy as np
 
 
 class PyTorchHistologyInMemory(PyTorchDataLoader):

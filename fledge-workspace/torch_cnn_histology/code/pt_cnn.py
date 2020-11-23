@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 
 """
@@ -13,7 +14,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from fledge.federated import PyTorchTaskRunner
-from fledge.utilities import TensorKey,split_tensor_dict_for_holdouts
+from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
+
 
 class PyTorchCNN(PyTorchTaskRunner):
     """Simple CNN for classification.
@@ -30,7 +32,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         torch.manual_seed(0)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-        
+
         self.num_classes = self.data_loader.num_classes
         self.init_network(device=self.device, **kwargs)
         self._init_optimizer(lr=kwargs.get('lr'))
@@ -61,9 +63,9 @@ class PyTorchCNN(PyTorchTaskRunner):
         self.conv2 = nn.Conv2d(16, 32, **conv_kwargs)
         self.conv3 = nn.Conv2d(32, 64, **conv_kwargs)
         self.conv4 = nn.Conv2d(64, 128, **conv_kwargs)
-        self.conv5 = nn.Conv2d(128+32, 256, **conv_kwargs)
+        self.conv5 = nn.Conv2d(128 + 32, 256, **conv_kwargs)
         self.conv6 = nn.Conv2d(256, 512, **conv_kwargs)
-        self.conv7 = nn.Conv2d(512+128+32, 256, **conv_kwargs)
+        self.conv7 = nn.Conv2d(512 + 128 + 32, 256, **conv_kwargs)
         self.conv8 = nn.Conv2d(256, 512, **conv_kwargs)
         self.fc1 = nn.Linear(1184 * 9 * 9, 128)
         self.fc2 = nn.Linear(128, 8)
@@ -84,17 +86,17 @@ class PyTorchCNN(PyTorchTaskRunner):
 
         x = F.relu(self.conv3(maxpool))
         x = F.relu(self.conv4(x))
-        concat = torch.cat([maxpool, x], dim = 1)
+        concat = torch.cat([maxpool, x], dim=1)
         maxpool = F.max_pool2d(concat, 2, 2)
 
         x = F.relu(self.conv5(maxpool))
         x = F.relu(self.conv6(x))
-        concat = torch.cat([maxpool, x], dim = 1)
+        concat = torch.cat([maxpool, x], dim=1)
         maxpool = F.max_pool2d(concat, 2, 2)
 
         x = F.relu(self.conv7(maxpool))
         x = F.relu(self.conv8(x))
-        concat = torch.cat([maxpool, x], dim = 1)
+        concat = torch.cat([maxpool, x], dim=1)
         maxpool = F.max_pool2d(concat, 2, 2)
 
         x = maxpool.flatten(start_dim=1)
@@ -102,7 +104,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         x = self.fc2(x)
         return x
 
-    def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False,**kwargs):
+    def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False, **kwargs):
         """Validate
 
         Run validation of the model on the local data.
@@ -112,14 +114,14 @@ class PyTorchCNN(PyTorchTaskRunner):
             round_num:           What round is it
             input_tensor_dict:   Required input tensors (for model)
             use_tqdm (bool):     Use tqdm to print a progress bar (Default=True)
-            
+
         Returns:
             global_output_dict:  Tensors to send back to the aggregator
             local_output_dict:   Tensors to maintain in the local TensorDB
 
         """
 
-        self.rebuild_model(round_num, input_tensor_dict, validation=True) 
+        self.rebuild_model(round_num, input_tensor_dict, validation=True)
         self.eval()
         val_score = 0
         total_samples = 0
@@ -134,7 +136,7 @@ class PyTorchCNN(PyTorchTaskRunner):
                 total_samples += samples
                 data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device)
                 output = self(data)
-                pred = output.argmax(dim=1) # get the index of the max log-probability
+                pred = output.argmax(dim=1)  # get the index of the max log-probability
                 val_score += pred.eq(target).sum().cpu().numpy()
 
         origin = col_name
@@ -143,14 +145,14 @@ class PyTorchCNN(PyTorchTaskRunner):
             suffix += '_local'
         else:
             suffix += '_agg'
-        tags = ('metric',suffix)
-        #TODO figure out a better way to pass in metric for this pytorch validate function
-        output_tensor_dict = {TensorKey('acc',origin,round_num,True,tags): np.array(val_score/total_samples)} 
-                
-        # empty list represents metrics that should only be stored locally
-        return output_tensor_dict,{}
+        tags = ('metric', suffix)
+        # TODO figure out a better way to pass in metric for this pytorch validate function
+        output_tensor_dict = {TensorKey('acc', origin, round_num, True, tags): np.array(val_score / total_samples)}
 
-    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=True,**kwargs): 
+        # empty list represents metrics that should only be stored locally
+        return output_tensor_dict, {}
+
+    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=True, **kwargs):
         """Train batches
 
         Train the model on the requested number of batches.
@@ -161,13 +163,13 @@ class PyTorchCNN(PyTorchTaskRunner):
             input_tensor_dict:   Required input tensors (for model)
             num_batches:         The number of batches to train on before returning
             use_tqdm (bool):     Use tqdm to print a progress bar (Default=True)
-            
+
         Returns:
             global_output_dict:  Tensors to send back to the aggregator
             local_output_dict:   Tensors to maintain in the local TensorDB
         """
 
-        self.rebuild_model(round_num,input_tensor_dict)
+        self.rebuild_model(round_num, input_tensor_dict)
         # set to "training" mode
         self.train()
 
@@ -189,29 +191,36 @@ class PyTorchCNN(PyTorchTaskRunner):
         # output metric tensors (scalar)
         origin = col_name
         tags = ('trained',)
-        output_metric_dict = {TensorKey(self.loss_fn.__class__.__name__,origin,round_num,True,('metric',)): np.array(np.mean(losses))}
+        output_metric_dict = {
+            TensorKey(
+                self.loss_fn.__class__.__name__, origin, round_num, True, ('metric',)): np.array(np.mean(losses))}
 
         # output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
-        global_model_dict,local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict, **self.tensor_dict_split_fn_kwargs)
+        global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict,
+                                                                             **self.tensor_dict_split_fn_kwargs)
 
         # create global tensorkeys
-        global_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in global_model_dict.items()}
+        global_tensorkey_model_dict = {TensorKey(tensor_name, origin, round_num, False, tags): nparray for
+                                       tensor_name, nparray in global_model_dict.items()}
         # create tensorkeys that should stay local
-        local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num,False,tags): nparray for tensor_name,nparray in local_model_dict.items()}
+        local_tensorkey_model_dict = {TensorKey(tensor_name, origin, round_num, False, tags): nparray for
+                                      tensor_name, nparray in local_model_dict.items()}
         # the train/validate aggregated function of the next round will look for the updated model parameters
         # this ensures they will be resolved locally
-        next_local_tensorkey_model_dict = {TensorKey(tensor_name,origin,round_num+1,False,('model',)): nparray for tensor_name,nparray in local_model_dict.items()}
+        next_local_tensorkey_model_dict = {
+            TensorKey(tensor_name, origin, round_num + 1, False, ('model',)): nparray for
+            tensor_name, nparray in local_model_dict.items()}
 
-
-        global_tensor_dict = {**output_metric_dict,**global_tensorkey_model_dict}
-        local_tensor_dict = {**local_tensorkey_model_dict,**next_local_tensorkey_model_dict}
+        global_tensor_dict = {**output_metric_dict, **global_tensorkey_model_dict}
+        local_tensor_dict = {**local_tensorkey_model_dict, **next_local_tensorkey_model_dict}
 
         # update the required tensors if they need to be pulled from the aggregator
-        #TODO this logic can break if different collaborators have different roles between rounds.
+        # TODO this logic can break if different collaborators have different roles between rounds.
         # for example, if a collaborator only performs validation in the first round but training
         # in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
-        # because these are only created after training occurs. A work around could involve doing a single epoch of training
+        # because these are only created after training occurs. A work
+        # around could involve doing a single epoch of training
         # on random data to get the optimizer names, and then throwing away the model.
         if self.opt_treatment == 'CONTINUE_GLOBAL':
             self.initialize_tensorkeys_for_functions(with_opt_vars=True)
@@ -219,7 +228,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         # this will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
         self.train_round_completed = True
 
-        return global_tensor_dict,local_tensor_dict
+        return global_tensor_dict, local_tensor_dict
 
     def reset_opt_vars(self):
         """Reset optimizer variables
@@ -227,4 +236,4 @@ class PyTorchCNN(PyTorchTaskRunner):
         Resets the optimizer state variables.
 
         """
-        self._init_optimizer(lr = self.optimizer.defaults.get('lr'))
+        self._init_optimizer(lr=self.optimizer.defaults.get('lr'))

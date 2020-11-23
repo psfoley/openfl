@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 from .mnist_utils import load_mnist_shard
 from fledge.federated import PyTorchDataLoader
@@ -28,7 +29,7 @@ class PyTorchMNISTInMemory(PyTorchDataLoader):
         self.X_train = X_train
         self.y_train = y_train
         self.train_loader = self.get_train_loader()
-        
+
         self.X_valid = X_valid
         self.y_valid = y_valid
         self.val_loader = self.get_valid_loader()

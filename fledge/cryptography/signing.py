@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 
 import base64
@@ -22,18 +23,18 @@ def gen_keys(public_path='public.pem',
     """
     # Generate the public/private key pair.
     private_key = rsa.generate_private_key(
-        public_exponent = 65537,
-        key_size = 4096,
-        backend = default_backend(),
+        public_exponent=65537,
+        key_size=4096,
+        backend=default_backend(),
     )
 
     # Save the private key to a file.
     with open(private_path, 'wb') as f:
         f.write(
             private_key.private_bytes(
-               encoding = serialization.Encoding.PEM,
-               format = serialization.PrivateFormat.TraditionalOpenSSL,
-               encryption_algorithm = serialization.NoEncryption(),
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption(),
             )
         )
 
@@ -41,8 +42,8 @@ def gen_keys(public_path='public.pem',
     with open(public_path, 'wb') as f:
         f.write(
             private_key.public_key().public_bytes(
-                encoding = serialization.Encoding.PEM,
-                format = serialization.PublicFormat.SubjectPublicKeyInfo,
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo,
             )
         )
 
@@ -50,38 +51,40 @@ def gen_keys(public_path='public.pem',
 def sign_file(path,
               sig_path,
               private_key='private.key'):
-      """Generate SSL encryption keys
+    """Generate SSL encryption keys
 
-      Creates the private and public SSL files and saves them.
+    Creates the private and public SSL files and saves them.
 
-      Args:
-          public_path: Filename for the public key file (Default: public.pem)
-          private_path: Filename for the private key file (Default: private.key)
+    Args:
+        public_path: Filename for the public key file (Default: public.pem)
+        private_path: Filename for the private key file (Default: private.key)
 
-      """
+    """
 
     # Load the private key.
-    with open(private_key, 'rb') as key_file:
-        private_key = serialization.load_pem_private_key(
-            key_file.read(),
-            password = None,
-            backend = default_backend(),
-        )
+
+
+with open(private_key, 'rb') as key_file:
+    private_key = serialization.load_pem_private_key(
+        key_file.read(),
+        password=None,
+        backend=default_backend(),
+    )
 
     # Load the contents of the file to be signed.
-    with open(path, 'rb') as f:
-        payload = f.read()
+with open(path, 'rb') as f:
+    payload = f.read()
 
     # Sign the payload file.
-    signature = base64.b64encode(
-        private_key.sign(
-            payload,
-            padding.PSS(
-                mgf = padding.MGF1(hashes.SHA256()),
-                salt_length = padding.PSS.MAX_LENGTH,
-            ),
-            hashes.SHA256(),
-        )
+signature = base64.b64encode(
+    private_key.sign(
+        payload,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH,
+        ),
+        hashes.SHA256(),
     )
-    with open(sig_path, 'wb') as f:
-        f.write(signature)
+)
+with open(sig_path, 'wb') as f:
+    f.write(signature)

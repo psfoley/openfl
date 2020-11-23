@@ -1,15 +1,15 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
-import sys
 from logging import getLogger
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import ToTensor
 from torch.utils.data import random_split
 from urllib.request import urlretrieve
 from hashlib import md5
-from os import path, remove, makedirs
+from os import path, makedirs
 from zipfile import ZipFile
 from tqdm import tqdm
 import torch
@@ -38,7 +38,7 @@ class HistologyDataset(ImageFolder):
 
         super(HistologyDataset, self).__init__(
             path.join(root, HistologyDataset.FOLDER_NAME), **kwargs)
-        
+
     def report_hook(self, count, block_size, total_size):
         if self.pbar.total is None and total_size:
             self.pbar.total = total_size
@@ -49,7 +49,8 @@ class HistologyDataset(ImageFolder):
         if isinstance(index, Iterable):
             return [super(HistologyDataset, self).__getitem__(i) for i in index]
         else:
-            return super(HistologyDataset, self).__getitem__(index) 
+            return super(HistologyDataset, self).__getitem__(index)
+
 
 def one_hot(labels, classes):
     """
@@ -64,7 +65,8 @@ def one_hot(labels, classes):
     """
     return np.eye(classes)[labels]
 
-def _load_raw_datashards(shard_num, collaborator_count, train_split_ratio = 0.8):
+
+def _load_raw_datashards(shard_num, collaborator_count, train_split_ratio=0.8):
     """
     Load the raw data by shard
 
@@ -80,7 +82,7 @@ def _load_raw_datashards(shard_num, collaborator_count, train_split_ratio = 0.8)
     dataset = HistologyDataset(transform=ToTensor())
     n_train = int(train_split_ratio * len(dataset))
     n_valid = len(dataset) - n_train
-    ds_train, ds_val  = random_split(dataset, lengths=[n_train, n_valid], generator=torch.manual_seed(0))
+    ds_train, ds_val = random_split(dataset, lengths=[n_train, n_valid], generator=torch.manual_seed(0))
 
     # create the shards
     X_train, y_train = list(zip(*ds_train[shard_num::collaborator_count]))
@@ -92,7 +94,7 @@ def _load_raw_datashards(shard_num, collaborator_count, train_split_ratio = 0.8)
     return (X_train, y_train), (X_valid, y_valid)
 
 
-def load_histology_shard(shard_num, collaborator_count, categorical = False, channels_last = False, **kwargs):
+def load_histology_shard(shard_num, collaborator_count, categorical=False, channels_last=False, **kwargs):
     """
     Load the Histology dataset.
 
@@ -131,7 +133,7 @@ def load_histology_shard(shard_num, collaborator_count, categorical = False, cha
     logger.info(f'Histology > Valid Samples : {X_valid.shape[0]}')
 
     if categorical:
-      # convert class vectors to binary class matrices
+        # convert class vectors to binary class matrices
         y_train = one_hot(y_train, num_classes)
         y_valid = one_hot(y_valid, num_classes)
 

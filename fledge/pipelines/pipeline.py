@@ -1,8 +1,9 @@
-
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
+
 
 class Transformer(object):
     """Data transformation class
@@ -44,14 +45,16 @@ class Transformer(object):
         """
         raise NotImplementedError
 
+
 class Float32NumpyArrayToBytes(Transformer):
     """Converts float32 Numpy array to Bytes array
     """
+
     def __init__(self, **kwargs):
         """Initializer
         """
         self.lossy = False
-        
+
         pass
 
     def forward(self, data, **kwargs):
@@ -86,9 +89,10 @@ class Float32NumpyArrayToBytes(Transformer):
 
         """
         array_shape = tuple(metadata['int_list'])
-        flat_array = np.frombuffer(data,dtype = np.float32)
+        flat_array = np.frombuffer(data, dtype=np.float32)
         # For integer parameters we probably should unpack arrays with shape (1,)
-        return np.reshape(flat_array,newshape = array_shape, order='C')
+        return np.reshape(flat_array, newshape=array_shape, order='C')
+
 
 class TransformationPipeline(object):
     """Data Transformer Pipeline Class
@@ -129,7 +133,6 @@ class TransformationPipeline(object):
         # input:: numpy_data (float32)
         # input:: (data(bytes), transformer_metadata_list::a list of dictionary from int to float)
 
-        metadata_list = []
         data = data.copy()
         for transformer in self.transformers:
             data, metadata = transformer.forward(data=data, **kwargs)
@@ -150,9 +153,9 @@ class TransformationPipeline(object):
         """
 
         for transformer in self.transformers[::-1]:
-            data = transformer.backward(data=data,metadata = transformer_metadata.pop(), **kwargs)
+            data = transformer.backward(data=data, metadata=transformer_metadata.pop(), **kwargs)
         return data
-            
+
     def is_lossy(self):
         """
         If any of the transformers are lossy, then the pipeline is lossy

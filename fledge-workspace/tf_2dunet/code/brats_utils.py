@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 
 import os
@@ -47,7 +48,7 @@ def train_val_split(features, labels, percent_train, shuffle):
 
     nb_features = len(features)
     nb_labels = len(labels)
-    if nb_features!=nb_labels:
+    if nb_features != nb_labels:
         raise RuntimeError("Number of features and labels do not match.")
     if shuffle:
         new_order = np.random.permutation(np.arange(nb_features))
@@ -57,6 +58,7 @@ def train_val_split(features, labels, percent_train, shuffle):
     train_features, val_features = split(list=features, idx=split_idx)
     train_labels, val_labels = split(list=labels, idx=split_idx)
     return train_features, train_labels, val_features, val_labels
+
 
 def load_from_NIfTI(parent_dir,
                     percent_train,
@@ -127,4 +129,3 @@ def load_from_NIfTI(parent_dir,
     msks_val = np.concatenate(msks_all_val, axis=0)
 
     return imgs_train, msks_train, imgs_val, msks_val
-

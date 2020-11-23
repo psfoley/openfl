@@ -1,14 +1,11 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
-import numpy      as np
-import tensorflow as tf
-
-from tqdm import tqdm
-
-from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
+import numpy as np
 
 from .loader import DataLoader
+
 
 class KerasDataLoader(DataLoader):
     """
@@ -44,25 +41,25 @@ class KerasDataLoader(DataLoader):
             tuple: shape of an example feature array
         """
         return self.X_train[0].shape
-    
-    def get_train_loader(self,batch_size=None):
+
+    def get_train_loader(self, batch_size=None):
         """
-        Get training data loader 
+        Get training data loader
 
         Returns
         -------
         loader object
-        """      
-        return self._get_batch_generator(X=self.X_train,y = self.y_train,batch_size = batch_size)
-    
-    def get_valid_loader(self,batch_size=None):
         """
-        Get validation data loader 
+        return self._get_batch_generator(X=self.X_train, y=self.y_train, batch_size=batch_size)
+
+    def get_valid_loader(self, batch_size=None):
+        """
+        Get validation data loader
 
         Returns:
             loader object
         """
-        return self._get_batch_generator(X=self.X_valid,y = self.y_valid,batch_size = batch_size)
+        return self._get_batch_generator(X=self.X_valid, y=self.y_valid, batch_size=batch_size)
 
     def get_train_data_size(self):
         """
@@ -113,7 +110,7 @@ class KerasDataLoader(DataLoader):
             batch_size: The batch size for the data loader
 
         """
-        if batch_size == None:
+        if batch_size is None:
             batch_size = self.batch_size
 
         # shuffle data indices

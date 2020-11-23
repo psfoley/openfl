@@ -1,12 +1,14 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
 
-from logging                                  import getLogger
+from logging import getLogger
 from tensorflow.python.keras.utils.data_utils import get_file
 
 logger = getLogger(__name__)
+
 
 def one_hot(labels, classes):
     """
@@ -20,6 +22,7 @@ def one_hot(labels, classes):
         np.array: Matrix of one-hot encoded labels
     """
     return np.eye(classes)[labels]
+
 
 def _load_raw_datashards(shard_num, collaborator_count):
     """
@@ -36,11 +39,11 @@ def _load_raw_datashards(shard_num, collaborator_count):
     """
     origin_folder = 'https://storage.googleapis.com/tensorflow/tf-keras-datasets/'
     path = get_file('mnist.npz',
-                    origin = origin_folder + 'mnist.npz',
-                    file_hash = '731c5ac602752760c8e48fbffcf8c3b850d9dc2a2aedcf2cc48468fc17b673d1')
+                    origin=origin_folder + 'mnist.npz',
+                    file_hash='731c5ac602752760c8e48fbffcf8c3b850d9dc2a2aedcf2cc48468fc17b673d1')
 
     with np.load(path) as f:
-      # get all of mnist
+        # get all of mnist
         X_train_tot = f['x_train']
         y_train_tot = f['y_train']
 
@@ -58,7 +61,7 @@ def _load_raw_datashards(shard_num, collaborator_count):
     return (X_train, y_train), (X_valid, y_valid)
 
 
-def load_mnist_shard(shard_num, collaborator_count, categorical = True, channels_last = True, **kwargs):
+def load_mnist_shard(shard_num, collaborator_count, categorical=True, channels_last=True, **kwargs):
     """
     Load the MNIST dataset.
 
@@ -102,7 +105,7 @@ def load_mnist_shard(shard_num, collaborator_count, categorical = True, channels
     logger.info(f'MNIST > Valid Samples : {X_valid.shape[0]}')
 
     if categorical:
-      # convert class vectors to binary class matrices
+        # convert class vectors to binary class matrices
         y_train = one_hot(y_train, num_classes)
         y_valid = one_hot(y_valid, num_classes)
 

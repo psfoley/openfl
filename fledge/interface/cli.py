@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def setup_logging(log_config='logging.yaml', level='debug'):
-    from logging import basicConfig, NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
+    from logging import getLogger, basicConfig, NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL  # NOQA
     # from rich.traceback import install as colorTraces
     from rich.console import Console
     from rich.logging import RichHandler

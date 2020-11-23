@@ -2,6 +2,7 @@ from fledge.interface.cli_helper import *
 
 from subprocess import check_call
 from sys        import executable
+from warnings import warn
 
 @group()
 @pass_context
@@ -106,15 +107,17 @@ def export_(context):
         check_call([executable, "-m", "pip", "freeze"], stdout=f)
     workspace_hash = _get_dir_hash(prefix)
     origin_dict = _get_requirements_dict(FLEDGE_HOME / f'requirements.{workspace_hash}.txt')
-    actual_dict = _get_requirements_dict(requirements_filename)
+    current_dict = _get_requirements_dict(requirements_filename)
     export_requirements_filename = 'requirements.export.txt'
     with open(export_requirements_filename, "w") as f:
-        for package, version in actual_dict.items():
+        for package, version in current_dict.items():
             if package not in origin_dict or version != origin_dict[package]:
                 # we save only the difference between original workspace after 'fx create workspace' 
                 # and current one.
                 echo(f'Writing {package}=={version} to {requirements_filename}...')
                 f.write(f'{package}=={version}\n')
+            elif version is None: # local dependency
+                warn(f'Could not generate requirements for {package}. Consider installing it manually after workspace import.')
     echo(f'{export_requirements_filename} written.')
 
     archiveType = 'zip'

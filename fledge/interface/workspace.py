@@ -271,6 +271,5 @@ def _get_dir_hash(path):
     from hashlib import md5
     hash_ = md5()
     hash_.update(path.encode('utf-8'))
-    hash_ = hash_.hexdigest()[:6]
-    print(f'Hash of {path} is {hash_}.')
+    hash_ = hash_.hexdigest()
     return hash_

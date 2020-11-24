@@ -2,6 +2,7 @@ from fledge.interface.cli_helper import *
 
 from subprocess import check_call
 from sys        import executable
+from warnings import warn
 
 @group()
 @pass_context
@@ -59,6 +60,8 @@ def create_(prefix, template):
 def create(prefix, template):
     """Create federated learning workspace"""
     from os.path  import isfile
+    if not FLEDGE_USERDIR.exists():
+        FLEDGE_USERDIR.mkdir()
 
     prefix   = Path(prefix)
     template = Path(template)
@@ -74,6 +77,9 @@ def create(prefix, template):
         echo(f"Successfully installed packages from {prefix}/requirements.txt.")
     else:
         echo("No additional requirements for workspace defined. Skipping...")
+    prefix_hash = _get_dir_hash(str(prefix.absolute()))
+    with open(FLEDGE_USERDIR / f'requirements.{prefix_hash}.txt', 'w') as f:
+        check_call([executable, '-m', 'pip', 'freeze'], stdout=f)
 
     print_tree(prefix, level = 3)
 
@@ -97,10 +103,23 @@ def export_(context):
 
     requirements_filename = f'requirements.txt'
 
+    prefix = getcwd()
     with open(requirements_filename, "w") as f:
         check_call([executable, "-m", "pip", "freeze"], stdout=f)
-
-    echo(f'{requirements_filename} written.')
+    workspace_hash = _get_dir_hash(prefix)
+    origin_dict = _get_requirements_dict(FLEDGE_USERDIR / f'requirements.{workspace_hash}.txt')
+    current_dict = _get_requirements_dict(requirements_filename)
+    export_requirements_filename = 'requirements.export.txt'
+    with open(export_requirements_filename, "w") as f:
+        for package, version in current_dict.items():
+            if package not in origin_dict or version != origin_dict[package]:
+                # we save only the difference between original workspace after 'fx create workspace' 
+                # and current one.
+                echo(f'Writing {package}=={version} to {requirements_filename}...')
+                f.write(f'{package}=={version}\n')
+            elif version is None: # local dependency
+                warn(f'Could not generate requirements for {package}. Consider installing it manually after workspace import.')
+    echo(f'{export_requirements_filename} written.')
 
     archiveType = 'zip'
     archiveName = basename(getcwd())
@@ -119,7 +138,7 @@ def export_(context):
     copytree('./code', f'{tmpDir}/code', ignore=ignore) # code
     copytree('./cert/config', f'{tmpDir}/cert/config', ignore=ignore) # cert
     copytree('./plan', f'{tmpDir}/plan', ignore=ignore) # plan
-    copy2('requirements.txt', tmpDir) # requirements
+    copy2(export_requirements_filename, f'{tmpDir}/requirements.txt') # requirements
 
     try:
         copy2('.workspace', tmpDir) # .workspace
@@ -130,7 +149,7 @@ def export_(context):
         else:
             echo('To proceed, you must have a \'.workspace\' file in the current directory.')
             raise
-   
+
     make_archive(archiveName, archiveType, tmpDir)      # Create Zip archive of directory
 
     echo(f'Workspace exported to archive: {archiveFileName}')
@@ -247,6 +266,23 @@ def certify():
  
     echo('\nDone.')
 
+def _get_requirements_dict(txtfile):
+    with open(txtfile, 'r') as snapshot:
+        snapshot_dict = {}
+        for line in snapshot:
+            try:
+                k,v = line.split('==') # 'pip freeze' generates requirements with exact versions
+                snapshot_dict[k] = v
+            except ValueError:
+                snapshot_dict[line] = None
+        return snapshot_dict
+
+def _get_dir_hash(path):
+    from hashlib import md5
+    hash_ = md5()
+    hash_.update(path.encode('utf-8'))
+    hash_ = hash_.hexdigest()
+    return hash_
 
 @workspace.command(name='dockerize')
 @option('--save',required = False, help = 'Save the Docker image into the workspace', is_flag=True)

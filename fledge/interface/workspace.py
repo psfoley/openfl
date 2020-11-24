@@ -59,8 +59,8 @@ def create_(prefix, template):
 def create(prefix, template):
     """Create federated learning workspace"""
     from os.path  import isfile
-    if not FLEDGE_HOME.exists():
-        FLEDGE_HOME.mkdir()
+    if not FLEDGE_USERDIR.exists():
+        FLEDGE_USERDIR.mkdir()
 
     prefix   = Path(prefix)
     template = Path(template)
@@ -77,7 +77,7 @@ def create(prefix, template):
     else:
         echo("No additional requirements for workspace defined. Skipping...")
     prefix_hash = _get_dir_hash(str(prefix.absolute()))
-    with open(FLEDGE_HOME / f'requirements.{prefix_hash}.txt', 'w') as f:
+    with open(FLEDGE_USERDIR / f'requirements.{prefix_hash}.txt', 'w') as f:
         check_call([executable, '-m', 'pip', 'freeze'], stdout=f)
 
     print_tree(prefix, level = 3)
@@ -106,7 +106,7 @@ def export_(context):
     with open(requirements_filename, "w") as f:
         check_call([executable, "-m", "pip", "freeze"], stdout=f)
     workspace_hash = _get_dir_hash(prefix)
-    origin_dict = _get_requirements_dict(FLEDGE_HOME / f'requirements.{workspace_hash}.txt')
+    origin_dict = _get_requirements_dict(FLEDGE_USERDIR / f'requirements.{workspace_hash}.txt')
     current_dict = _get_requirements_dict(requirements_filename)
     export_requirements_filename = 'requirements.export.txt'
     with open(export_requirements_filename, "w") as f:

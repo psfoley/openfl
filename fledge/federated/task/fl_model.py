@@ -3,6 +3,8 @@
 # evaluation license agreement between Intel Corporation and you.
 
 import inspect
+from hashlib import md5
+
 from .runner import TaskRunner
 
 

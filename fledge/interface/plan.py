@@ -1,8 +1,14 @@
-from fledge.interface.cli_helper import *
+from socket import getfqdn
+from logging import getLogger
+from pathlib import Path
+from click import Path as ClickPath
+from click import group, option, pass_context
+from click import echo
 
 from fledge.protocols import dump_proto, construct_model_proto
 from fledge.utilities import split_tensor_dict_for_holdouts
 from fledge.federated import Plan
+from fledge.interface.cli_helper import get_workspace_parameter
 
 logger = getLogger(__name__)
 
@@ -191,7 +197,7 @@ def save_(context, name):
 @plan.command(name='remove')
 @pass_context
 @option('-n', '--name', required=False, help='Name of the Federated learning plan', default='default', type=str)
-def save_(context, name):
+def remove_(context, name):
     """
     Remove this plan
     """

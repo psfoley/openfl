@@ -557,40 +557,6 @@ class Aggregator(object):
 
         return final_tensor_key, final_nparray
 
-    def nparray_to_named_tensor(self, tensor_key, nparray, send_model_deltas, compress_lossless):
-        """
-        This function constructs the NamedTensor Protobuf and also includes logic to create delta,
-        compress tensors with the TensorCodec, etc.
-
-        """
-
-        tensor_name, origin, round_number, report, tags = tensor_key
-        # if we have an aggregated tensor, we can make a delta
-        if 'aggregated' in tensor_name and send_model_deltas:
-            # Should get the pretrained model to create the delta. If training has happened,
-            # Model should already be stored in the TensorDB
-            model_nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_name,
-                                                                           origin,
-                                                                           round_number - 1,
-                                                                           ('model',)))
-
-            assert model_nparray is not None, ("The original model layer should be "
-                                               "present if the latest aggregated model is present")
-            delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(tensor_key, nparray, model_nparray)
-            delta_comp_tensor_key, delta_comp_nparray, metadata = self.tensor_codec.compress(
-                delta_tensor_key, delta_nparray, lossless=compress_lossless)
-            named_tensor = construct_named_tensor(delta_comp_tensor_key, delta_comp_nparray, metadata,
-                                                  lossless=compress_lossless)
-
-        else:
-            # Assume every other tensor requires lossless compression
-            compressed_tensor_key, compressed_nparray, metadata = self.tensor_codec.compress(
-                tensor_key, nparray, require_lossless=True)
-            named_tensor = construct_named_tensor(compressed_tensor_key, compressed_nparray, metadata,
-                                                  lossless=compress_lossless)
-
-        return named_tensor
-
     def end_of_task_check(self, task_name):
         """
         Have all collaborator's who are supposed to perform the task complete?

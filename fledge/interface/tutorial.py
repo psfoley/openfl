@@ -1,6 +1,11 @@
-from fledge.interface.cli_helper import *
 from sys import executable
 from subprocess import check_call
+from os import environ
+from logging import getLogger
+
+from click import group, option, pass_context
+
+from fledge.interface.cli_helper import TUTORIALS
 
 logger = getLogger(__name__)
 

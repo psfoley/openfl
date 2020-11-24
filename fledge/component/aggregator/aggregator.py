@@ -76,6 +76,7 @@ class Aggregator(object):
         self.quit_job_sent_to = []
 
         self.tensor_db            = TensorDB()
+        self.db_store_rounds = kwargs.get('db_store_rounds', 1)
         self.compression_pipeline = compression_pipeline or NoCompressionPipeline() 
         self.tensor_codec         = TensorCodec(self.compression_pipeline)
         self.logger = getLogger(__name__)
@@ -209,6 +210,7 @@ class Aggregator(object):
         Args:
             None
         """
+        # Decrease sleep period for finer discretezation
         return 10
 
     def time_to_quit(self):
@@ -692,7 +694,6 @@ class Aggregator(object):
                         #Finally, cache the updated model tensor
                         self.tensor_db.cache_tensor({final_model_tk:new_model_nparray})
                         #self.logger.debug('TensorDB contents after training round {}: {}'.format(self.round_number,self.tensor_db))
-
            
             #Once all of the task results have been processed
             #Increment the round number
@@ -708,6 +709,9 @@ class Aggregator(object):
                 self.logger.info('Experiment Completed. Cleaning up...')
             else:
                 self.logger.info('Starting round {}...'.format(self.round_number))
+
+            # Cleaning tensor db
+            self.tensor_db.clean_up(self.db_store_rounds)
 
 
     def is_task_done(self, task_name):

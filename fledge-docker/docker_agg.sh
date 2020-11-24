@@ -5,10 +5,9 @@
 # Fledge params
 MODE=${1:-'init'}                  # ['init',...,'start']
 
-WORKSPACE_DIR=${2:-'fed_work12345alpha81671'}  # This can be whatever unique directory name you want
+WORKSPACE_DIR=${2:-'workspace'}    # This can be whatever unique directory name you want
 COL=${3:-'one123dragons'}          # This can be any unique label
-FED_PATH=${4:-'/home/fledge'}      # FED_WORKSPACE Path
-TEMPLATE=${5:-'keras_cnn_mnist'}   # ['torch_cnn_mnist', 'keras_cnn_mnist']
+FED_PATH=${4:-'/home'}             # FED_WORKSPACE Path
 
 
 if [ ! -z "$FED_PATH" ]; then
@@ -23,12 +22,9 @@ init() {
     FED_PATH=$2
     TEMPLATE=$3
 
-    #ARCHIVE_NAME="${FED_WORKSPACE}.zip"
     CURRENT_DIR=`pwd`
 
-    # Create FL workspace
     [[ ! -z "$FED_PATH" ]] && cd ${FED_PATH}
-    fx workspace create --prefix ${FED_WORKSPACE} --template ${TEMPLATE}
     cd ${WORKSPACE_DIR}
 
     # Initialize FL plan

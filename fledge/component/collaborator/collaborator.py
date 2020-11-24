@@ -75,6 +75,7 @@ class Collaborator(object):
         self.tensor_pipe       = tensor_pipe or NoCompressionPipeline()
         self.tensor_codec      = TensorCodec(self.tensor_pipe)
         self.tensor_db         = TensorDB()
+        self.db_store_rounds = kwargs.get('db_store_rounds', 1)
 
         self.task_runner       = task_runner
         self.delta_updates     = delta_updates
@@ -137,6 +138,9 @@ class Collaborator(object):
                 for task in tasks.tasks:
                     self.do_task(task, tasks.round_number)
 
+                # Cleaning tensor db
+                self.tensor_db.clean_up(self.db_store_rounds)
+
         self.logger.info('End of Federation reached. Exiting...')
 
     def run_simulation(self):
@@ -159,7 +163,9 @@ class Collaborator(object):
                 break
 
     def get_tasks(self):
-
+        # logging wait time to analyze training process
+        self.logger.info('Waiting for tasks...')
+        
         request  = TasksRequest(header = self.header)
         response = self.client.GetTasks(request)
         self.validate_response(response) # sanity checks and validation

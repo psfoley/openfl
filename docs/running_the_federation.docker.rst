@@ -12,19 +12,24 @@ First make sure you have :ref:`followed the Docker installation steps <install_d
 TL;DR
 =====
 
-Here's the :download:`DockerFile <../docker/Dockerfile>`. This image can be reused for aggregators and collaborators.
+Here's the :download:`DockerFile <../fledge-docker/Dockerfile>`. This image can be reused for aggregators and collaborators.
 
-.. literalinclude:: ../docker/Dockerfile
+.. literalinclude:: ../fledge-docker/Dockerfile
   :language: docker
   
 
-Here's the :download:`"Hello Docker Federation" <../docker/docker_keras_demo.sh>` demo. This is an end-to-end demo for the Keras CNN MNIST (:code:`docker_keras_demo.sh`).
+Here's the :download:`"Hello Docker Federation" <../fledge-docker/docker_keras_demo.sh>` demo. This is an end-to-end demo for the Keras CNN MNIST (:code:`docker_keras_demo.sh`).
 
-.. literalinclude:: ../docker/docker_keras_demo.sh
+.. literalinclude:: ../fledge-docker/docker_keras_demo.sh
   :language: bash
 
 Custom execution
 ================
+
+We provide two methods of packaging and running fledge through docker: The first is a set of bash scripts in the :code:`fledge-docker` directory that let you easily run the :code:`keras_mnist_cnn` template with a single collaborator. The second is the :code:`fx workspace dockerize` command, which packages an existing workspace into a docker image with relevant dependencies.
+
+Option #1: Simple script to run the federation
+==============================================
 
 Once built, the current image can be instantiated in two modes:
 
@@ -77,7 +82,7 @@ Single and Multi-node execution
 With the current image one can create a full federation within a single node or distributed across multiple nodes. 
 The complete pipeline on how to initiate a federation composed by one aggregator and one collaborator running on the same node is demonstrated in :code:`docker_keras_demo.sh`.
 The multinode execution has only been tested on an isolated cluster of three machines connected on the same internal network, respectively running one aggregator and two collaborators.
-To simulate a realistic environment, these machines didn’t have password-less access between each other. The file exchanged between the aggregator and the collaborators at the beginning of the process (workspace, certificate requests and validated certificates) have been manually performed by coping the files from one host to the others. The mechanism to automate such operations is currently under consideration by the development team.
+To simulate a realistic environment, these machines didn’t have password-less access between each other. The file exchanged between the aggregator and the collaborators at the beginning of the process (workspace, certificate requests and validated certificates) have been manually performed by copying the files from one host to the others. The mechanism to automate such operations is currently under consideration by the development team.
 At this stage, one can replicate the approach adopted in the attached demo to run a custom federation. 
 
 
@@ -105,3 +110,67 @@ You can run the same Docker container and pass your custom image name and path n
 .. code-block:: console
 
    $ bash docker_keras_demo.sh myDockerImg/name /My/Local/Path
+
+
+Option #2: Deploying your workspace in Docker
+=============================================
+
+These steps assume that you have already run `fx workspace dockerize` in your workspace directory. To simplify the setup experience, all partipants all use the same container.
+
+0. Open a terminal for each partipant (e.g. If you plan to run an experiment with two collaborators then open three terminals (1 aggregator + 2 collaborators)
+
+1. Start your docker container in detached-interactive mode:
+
+.. code-block:: console
+
+   $ host>> CONTAINER_ID=$(docker run -dit fledge/docker_WORKSPACE_NAME bash)
+
+If you have a data directory to mount into the container, run this command instead:
+
+.. code-block:: console
+
+   $ host>> CONTAINER_ID=$(docker run -dit -v /path/to/data:/home/workspace/data fledge/docker_WORKSPACE_NAME bash)
+
+2. In the first terminal (aggregator's terminal), enter the container:
+
+.. code-block:: console
+
+   $ host>> docker exec -it $CONTAINER_ID bash
+
+Repeat the same command for each of the collaborator terminals
+
+3. Because each of the partipants will be sharing a workspace for this example, you can run the following command to perform the full prerequisite setup. This can be run from any terminal, and assumes your experiment will include two collaborators:
+
+.. code-block:: console
+
+   $ container:          ~/home>> cd workspace
+   $ container:~/home/workspace>> fx workspace certify && \
+                                  fx aggregator generate-cert-request && \
+                                  fx aggregator certify -s && \
+                                  fx collaborator generate-cert-request -n one -d 1 && \
+                                  fx collaborator certify -n one -s && \
+                                  fx collaborator generate-cert-request -n two -d 2 && \
+                                  fx collaborator certify -n two -s
+
+
+4. Now that the workspace and collaborators are set up, we are ready to run the experiment.
+
+4.a. (From the aggregator terminal)
+
+.. code-block:: console
+
+   $ container:~/home/workspace>> fx aggregator start
+
+4.b. (From collaborator one's terminal)
+
+.. code-block:: console
+
+   $ container:~/home/workspace>> fx collaborator start -n one
+
+4.c. (From collaborator two's terminal)
+
+.. code-block:: console
+
+   $ container:~/home/workspace>> fx collaborator start -n two 
+
+

@@ -16,5 +16,6 @@ if (True if pkgutil.find_loader('tensorflow') else False):
   from .fl_model     import FederatedModel
 if (True if pkgutil.find_loader('torch') else False):
   from .runner_pt    import         PyTorchTaskRunner
+  from .fl_model     import FederatedModel
 if (True if pkgutil.find_loader('torch') else False) and (True if pkgutil.find_loader('tensorflow') else False):
   from .runner_fe    import         FastEstimatorTaskRunner

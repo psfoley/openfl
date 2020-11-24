@@ -62,29 +62,27 @@ def sign_file(path,
     """
 
     # Load the private key.
+    with open(private_key, 'rb') as key_file:
+        private_key = serialization.load_pem_private_key(
+            key_file.read(),
+            password=None,
+            backend=default_backend(),
+        )
 
+        # Load the contents of the file to be signed.
+    with open(path, 'rb') as f:
+        payload = f.read()
 
-with open(private_key, 'rb') as key_file:
-    private_key = serialization.load_pem_private_key(
-        key_file.read(),
-        password=None,
-        backend=default_backend(),
+        # Sign the payload file.
+    signature = base64.b64encode(
+        private_key.sign(
+            payload,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=padding.PSS.MAX_LENGTH,
+            ),
+            hashes.SHA256(),
+        )
     )
-
-    # Load the contents of the file to be signed.
-with open(path, 'rb') as f:
-    payload = f.read()
-
-    # Sign the payload file.
-signature = base64.b64encode(
-    private_key.sign(
-        payload,
-        padding.PSS(
-            mgf=padding.MGF1(hashes.SHA256()),
-            salt_length=padding.PSS.MAX_LENGTH,
-        ),
-        hashes.SHA256(),
-    )
-)
-with open(sig_path, 'wb') as f:
-    f.write(signature)
+    with open(sig_path, 'wb') as f:
+        f.write(signature)

@@ -3,7 +3,7 @@ from click import echo, style
 from sys import argv
 from pathlib import Path
 from itertools import islice
-from os import environ
+from os import environ, stat
 from logging import getLogger  # NOQA
 
 from yaml import load, FullLoader
@@ -145,17 +145,17 @@ def copytree(src, dst, symlinks=False, ignore=None, ignore_dangling_symlinks=Fal
                     copytree(srcobj, dstname, symlinks, ignore, dirs_exist_ok=dirs_exist_ok)
                 else:
                     copy_function(srcobj, dstname)
-            except Error as err:
-                errors.extend(err.args[0])
             except OSError as why:
                 errors.append((srcname, dstname, str(why)))
+            except Exception as err:
+                errors.extend(err.args[0])
         try:
             shutil.copystat(src, dst)
         except OSError as why:
             if getattr(why, 'winerror', None) is None:
                 errors.append((src, dst, str(why)))
         if errors:
-            raise Error(errors)
+            raise Exception(errors)
         return dst
 
     return _copytree()

@@ -11,8 +11,6 @@ from multiprocessing    import cpu_count
 from logging            import getLogger
 from time               import sleep
 
-logger = getLogger(__name__)
-
 class AggregatorGRPCServer(AggregatorServicer):
     """
     gRPC server class for the Aggregator
@@ -50,6 +48,8 @@ class AggregatorGRPCServer(AggregatorServicer):
         self.channel_options     = [('grpc.max_metadata_size',           32 * 1024 * 1024),
                                     ('grpc.max_send_message_length',    128 * 1024 * 1024),
                                     ('grpc.max_receive_message_length', 128 * 1024 * 1024)]
+
+        self.logger = getLogger(__name__)
 
     def validate_collaborator(self, request, context):
         """
@@ -122,7 +122,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
         if  self.disable_tls:
 
-            logger.warn('gRPC is running on insecure channel with TLS disabled.')
+            self.logger.warn('gRPC is running on insecure channel with TLS disabled.')
 
             self.server.add_insecure_port(self.uri)
 
@@ -134,7 +134,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
             if  self.disable_client_auth:
 
-                logger.warn('Client-side authentication is disabled.')
+                self.logger.warn('Client-side authentication is disabled.')
 
             self.server_credentials = ssl_server_credentials(((private_key, certificate_chain),),
                                                              root_certificates   = root_certificates,
@@ -142,7 +142,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
             self.server.add_secure_port(self.uri, self.server_credentials)
 
-        logger.info('Starting Aggregator gRPC Server')
+        self.logger.info('Starting Aggregator gRPC Server')
 
         self.server.start()
 

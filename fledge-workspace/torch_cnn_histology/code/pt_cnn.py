@@ -35,7 +35,6 @@ class PyTorchCNN(PyTorchTaskRunner):
         self.init_network(device=self.device, **kwargs)
         self._init_optimizer(lr=kwargs.get('lr'))
         self.loss_fn = nn.CrossEntropyLoss()
-        self.set_logger()
         self.initialize_tensorkeys_for_functions()
 
     def _init_optimizer(self, lr):

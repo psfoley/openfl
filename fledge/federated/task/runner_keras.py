@@ -171,6 +171,14 @@ class KerasTaskRunner(TaskRunner):
 
         return output_tensor_dict,{}
 
+    def save_native(self, filepath):
+        """Saves model"""
+        self.model.save(filepath)
+
+    def load_native(self, filepath):
+        """Loads model"""
+        self.model = tf.keras.models.load_model(filepath) 
+
     @staticmethod
     def _get_weights_names(obj):
         """
@@ -282,9 +290,8 @@ class KerasTaskRunner(TaskRunner):
         Resets the optimizer variables
 
         """
-        opt_config = serialize(self.model.optimizer)
-        reset_opt  = deserialize(opt_config)
-        self.model.optimizer = reset_opt
+        for var in self.model.optimizer.variables():
+            var.assign(tf.zeros_like(var))
         self.logger.debug('Optimizer variables reset')
 
 

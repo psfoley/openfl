@@ -10,23 +10,50 @@ from .runner_pt import PyTorchTaskRunner
 
 class FastEstimatorTaskRunner(TaskRunner):
     def __init__(self, estimator, **kwargs):
+        super().__init__(**kwargs)
         import fastestimator as fe
+        class ProgressLoader(fe.trace.Trace):
+            def __init__(self, get_progress) -> None:
+                super().__init__(mode="train")
+                self.get_progress = get_progress
+
+            def on_begin(self, data) -> None:
+                """Runs once at the beginning of training or testing.
+
+                Args:
+                    data: A dictionary through which traces can communicate with each other or write values for logging.
+                """
+                progress = self.get_progress()
+                self.system.epoch_idx = progress['epoch_idx']
+                self.system.global_step = progress['global_step']
+
+
         tf.config.run_functions_eagerly(True)
-        self.estimator = estimator
+        estimator_kwargs = {}
+        for k, v in estimator.system.__dict__.items():
+            if k in ['pipeline', 'network', 'log_steps', 'max_train_steps_per_epoch', 'max_eval_steps_per_epoch']:
+                estimator_kwargs[k] = v
+            if k == 'traces':
+                self.logger.debug(f'traces={estimator.system.traces}')
+                estimator_kwargs[k] = v + [ProgressLoader(lambda: {'epoch_idx': self.epoch_idx, 'global_step': self.global_step})]
+        estimator_kwargs.update({'epochs': estimator.system.total_epochs, 'monitor_names': estimator.monitor_names})
+        self.estimator = fe.Estimator(**estimator_kwargs)
         assert(len(estimator.network.models) == 1), 'Only one-model networks are currently supported'
         if isinstance(estimator.network, fe.network.TorchNetwork):
             impl = PyTorchTaskRunner
         elif isinstance(estimator.network, fe.network.TFNetwork):
             impl = KerasTaskRunner
-        self.model = estimator.network.models[0]
+        self.model = self.estimator.network.models[0]
         self.optimizer = self.model.optimizer
-        super().__init__(**kwargs)
         self.runner = impl(**kwargs)
         self.runner.model = self.model
         self.runner.optimizer = self.optimizer
         self.required_tensorkeys_for_function = {}
         self.tensor_dict_split_fn_kwargs = self.runner.tensor_dict_split_fn_kwargs
         self.initialize_tensorkeys_for_functions()
+        self.epoch_idx = 0
+        self.global_step = None
+        self.total_epochs = self.estimator.system.total_epochs
         
 
     def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
@@ -42,7 +69,9 @@ class FastEstimatorTaskRunner(TaskRunner):
 
         #Estimators need to be given an experiment name to produce an output summary
         summary = self.estimator.fit("experiment",warmup=False)
-
+        self.epoch_idx = self.estimator.system.epoch_idx
+        self.global_step = self.estimator.system.global_step
+        self.estimator.system.total_epochs += self.total_epochs
         #Define what the ouptut is to encapsulate in tensorkeys and return
         # output metric tensors (scalar)
         origin = col_name

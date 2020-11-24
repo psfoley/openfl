@@ -24,6 +24,15 @@ class TensorDB(object):
     def __str__(self):
         return self.__repr__()
 
+    def clean_up(self, remove_older_than=1):
+        # Remove old entries from the data base
+        # Preventing the db from becoming too large and slow
+        if remove_older_than < 0:
+            # Getting a negative argument calls off cleaning 
+            return
+        current_round = int(self.tensor_db['round'].max())
+        self.tensor_db = self.tensor_db[self.tensor_db['round'] > current_round - remove_older_than].reset_index(drop=True)
+
 
     def cache_tensor(self, tensor_key_dict):
         """Insert tensor into TensorDB (dataframe)
@@ -36,12 +45,14 @@ class TensorDB(object):
         """
 
         self.mutex.acquire(blocking=True)
+        entries_to_add = []
         try:
             for tensor_key,nparray in tensor_key_dict.items():
                 tensor_name,origin,fl_round,report,tags = tensor_key
-                df = pd.DataFrame([[tensor_name,origin,fl_round,report,tags,nparray]], \
-                                  columns=['tensor_name','origin','round','report','tags','nparray'])
-                self.tensor_db = pd.concat([self.tensor_db,df],ignore_index=True)
+                entries_to_add.append(pd.DataFrame([[tensor_name, origin, fl_round, report, tags,nparray]], \
+                                  columns=['tensor_name', 'origin', 'round', 'report', 'tags', 'nparray']))
+
+            self.tensor_db = pd.concat([self.tensor_db, *entries_to_add], ignore_index=True)
         finally:
             self.mutex.release()
 

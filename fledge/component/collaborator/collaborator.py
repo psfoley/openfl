@@ -15,8 +15,6 @@ from fledge.utilities import TensorKey, check_type, check_equal, check_not_equal
 from fledge.pipelines import TensorCodec, NoCompressionPipeline
 from fledge.databases import TensorDB
 
-logger = getLogger(__name__)
-
 class OptTreatment(Enum):
     """
     Optimizer Methods
@@ -77,6 +75,7 @@ class Collaborator(object):
         self.tensor_pipe       = tensor_pipe or NoCompressionPipeline()
         self.tensor_codec      = TensorCodec(self.tensor_pipe)
         self.tensor_db         = TensorDB()
+        self.db_store_rounds = kwargs.get('db_store_rounds', 1)
 
         self.task_runner       = task_runner
         self.delta_updates     = delta_updates
@@ -88,12 +87,14 @@ class Collaborator(object):
                                     single_col_cert_common_name = self.single_col_cert_common_name)
 
         self.task_config = task_config
+        
+        self.logger = getLogger(__name__)
 
         # RESET/CONTINUE_LOCAL/CONTINUE_GLOBAL
         if hasattr(OptTreatment, opt_treatment):
             self.opt_treatment = OptTreatment[opt_treatment]
         else:
-            logger.error("Unknown opt_treatment: %s." % opt_treatment)
+            self.logger.error("Unknown opt_treatment: %s." % opt_treatment)
             raise NotImplementedError("Unknown opt_treatment: %s." % opt_treatment)
         
         self.task_runner.set_optimizer_treatment(self.opt_treatment.name)
@@ -107,22 +108,22 @@ class Collaborator(object):
 
         """
         if self.opt_treatment in (OptTreatment.CONTINUE_LOCAL, OptTreatment.RESET):
-            logger.debug("Do not share the optimization variables.")
+            self.logger.debug("Do not share the optimization variables.")
             return False
         elif self.opt_treatment == OptTreatment.CONTINUE_GLOBAL:
-            logger.debug("Share the optimization variables.")
+            self.logger.debug("Share the optimization variables.")
             return True
 
     def validate_response(self, reply):
       # check that the message was intended to go to this collaborator
-        check_equal(reply.header.receiver, self.collaborator_name, logger)
-        check_equal(reply.header.sender, self.aggregator_uuid, logger)
+        check_equal(reply.header.receiver, self.collaborator_name, self.logger)
+        check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
 
       # check that federation id matches
-        check_equal(reply.header.federation_uuid, self.federation_uuid, logger)
+        check_equal(reply.header.federation_uuid, self.federation_uuid, self.logger)
 
       # check that there is aggrement on the single_col_cert_common_name
-        check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name, logger)
+        check_equal(reply.header.single_col_cert_common_name, self.single_col_cert_common_name, self.logger)
 
     def run(self):
 
@@ -133,11 +134,14 @@ class Collaborator(object):
             elif tasks.sleep_time > 0:
                 sleep(tasks.sleep_time) # some sleep function
             else:
-                logger.info('Received the following tasks: {}'.format(tasks.tasks))
+                self.logger.info('Received the following tasks: {}'.format(tasks.tasks))
                 for task in tasks.tasks:
                     self.do_task(task, tasks.round_number)
 
-        logger.info('End of Federation reached. Exiting...')
+                # Cleaning tensor db
+                self.tensor_db.clean_up(self.db_store_rounds)
+
+        self.logger.info('End of Federation reached. Exiting...')
 
     def run_simulation(self):
         """
@@ -147,19 +151,21 @@ class Collaborator(object):
         while True:
             tasks = self.get_tasks()
             if  tasks.quit:
-                logger.info('End of Federation reached. Exiting...')
+                self.logger.info('End of Federation reached. Exiting...')
                 break
             elif tasks.sleep_time > 0:
                 sleep(tasks.sleep_time) # some sleep function
             else:
-                logger.info('Received the following tasks: {}'.format(tasks.tasks))
+                self.logger.info('Received the following tasks: {}'.format(tasks.tasks))
                 for task in tasks.tasks:
                     self.do_task(task, tasks.round_number)
-                logger.info('All tasks completed on {} for round {}...'.format(self.collaborator_name,tasks.round_number))
+                self.logger.info('All tasks completed on {} for round {}...'.format(self.collaborator_name,tasks.round_number))
                 break
 
     def get_tasks(self):
-
+        # logging wait time to analyze training process
+        self.logger.info('Waiting for tasks...')
+        
         request  = TasksRequest(header = self.header)
         response = self.client.GetTasks(request)
         self.validate_response(response) # sanity checks and validation
@@ -215,26 +221,26 @@ class Collaborator(object):
         """
         # try to get from the store
         tensor_name,origin,round_number,report,tags = tensor_key
-        logger.debug('Attempting to retrieve tensor {} from local store'.format(tensor_key))
+        self.logger.debug('Attempting to retrieve tensor {} from local store'.format(tensor_key))
         nparray = self.tensor_db.get_tensor_from_cache(tensor_key)
 
         # if None and origin is our client, request it from the client
         if nparray is None:
             if origin == self.collaborator_name:
-                logger.info('Attempting to find locally stored {} tensor from prior round...'.format(tensor_name))
+                self.logger.info('Attempting to find locally stored {} tensor from prior round...'.format(tensor_name))
                 prior_round = round_number - 1
                 while prior_round >= 0:
                     nparray = self.tensor_db.get_tensor_from_cache(TensorKey(tensor_name,origin,prior_round,report,tags))
                     if nparray is not None:
-                        logger.debug('Found tensor {} in local TensorDB for round {}'.format(tensor_name, prior_round))
+                        self.logger.debug('Found tensor {} in local TensorDB for round {}'.format(tensor_name, prior_round))
                         return nparray
                     prior_round -= 1
-                logger.info('Cannot find any prior version of tensor {} locally...'.format(tensor_name))
-            logger.debug('Unable to get tensor from local store...attempting to retrieve from client')
+                self.logger.info('Cannot find any prior version of tensor {} locally...'.format(tensor_name))
+            self.logger.debug('Unable to get tensor from local store...attempting to retrieve from client')
             #Determine whether there are additional compression related dependencies. 
             #Typically, dependencies are only relevant to model layers
             tensor_dependencies = self.tensor_codec.find_dependencies(tensor_key,self.delta_updates)
-            #logger.info('tensor_dependencies = {}'.format(tensor_dependencies))
+            #self.logger.info('tensor_dependencies = {}'.format(tensor_dependencies))
             if len(tensor_dependencies) > 0:
                 #Resolve dependencies
                 #tensor_dependencies[0] corresponds to the prior version of the model. 
@@ -243,7 +249,7 @@ class Collaborator(object):
                 if prior_model_layer is not None:
                     uncompressed_delta = self.get_aggregated_tensor_from_aggregator(tensor_dependencies[1])
                     new_model_tk, nparray = self.tensor_codec.apply_delta(tensor_dependencies[1],uncompressed_delta,prior_model_layer)
-                    logger.debug('Applied delta to tensor {}'.format(tensor_dependencies[0][0]))
+                    self.logger.debug('Applied delta to tensor {}'.format(tensor_dependencies[0][0]))
                 else:
                     #The original model tensor should be fetched from client
                     nparray = self.get_aggregated_tensor_from_aggregator(tensor_key)
@@ -251,7 +257,7 @@ class Collaborator(object):
                 #Pulling the model for the first time or 
                 nparray = self.get_aggregated_tensor_from_aggregator(tensor_key,require_lossless=True)
         else:
-            logger.debug('Found tensor {} in local TensorDB'.format(tensor_key))
+            self.logger.debug('Found tensor {} in local TensorDB'.format(tensor_key))
 
         return nparray
 
@@ -279,7 +285,7 @@ class Collaborator(object):
                                report = report,
                                require_lossless = require_lossless)
 
-        logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
+        self.logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
         
         response = self.client.GetAggregatedTensor(request)
 
@@ -291,7 +297,7 @@ class Collaborator(object):
         
       # cache this tensor
         self.tensor_db.cache_tensor({tensor_key: nparray})
-      # logger.info('Printing updated TensorDB: {}'.format(self.tensor_db))
+      # self.logger.info('Printing updated TensorDB: {}'.format(self.tensor_db))
 
         return nparray
     
@@ -309,13 +315,13 @@ class Collaborator(object):
         if 'valid' in task_name:
             data_size = self.task_runner.get_valid_data_size()
 
-        logger.debug(f'{task_name} data size = {data_size}')
+        self.logger.debug(f'{task_name} data size = {data_size}')
 
         for tensor in tensor_dict:
             tensor_name,origin,fl_round,report,tags = tensor
 
             if  report:
-                logger.info(f'Sending metric for task {task_name}, round number {round_number}: {tensor_name}\t{tensor_dict[tensor]}')
+                self.logger.info(f'Sending metric for task {task_name}, round number {round_number}: {tensor_name}\t{tensor_dict[tensor]}')
 
         request  = TaskResults(header       = self.header,
                                round_number = round_number,
@@ -376,7 +382,7 @@ class Collaborator(object):
                     self.tensor_codec.decompress(tensor_key,data=raw_bytes,transformer_metadata=metadata)
         else:
             #There could be a case where the compression pipeline is bypassed entirely
-            logger.warning('Bypassing tensor codec...') 
+            self.logger.warning('Bypassing tensor codec...') 
             decompressed_tensor_key = tensor_key
             decompressed_nparray = raw_bytes
 

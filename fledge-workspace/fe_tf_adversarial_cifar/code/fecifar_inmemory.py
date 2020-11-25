@@ -21,19 +21,27 @@ class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
         Args:
             data_path: File path for the dataset
             batch_size (int): The batch size for the data loader
-            **kwargs: Additional arguments, passed to super init and load_mnist_shard
+            **kwargs: Additional arguments, passed to super init and
+             load_mnist_shard
         """
         # TODO: We should be downloading the dataset shard into a directory
-        # TODO: There needs to be a method to ask how many collaborators and what index/rank is this collaborator.
-        # Then we have a way to automatically shard based on rank and size of collaborator list.
+        # TODO: There needs to be a method to ask how many collaborators and
+        #  what index/rank is this collaborator.
+        # Then we have a way to automatically shard based on rank and size
+        # of collaborator list.
 
         train_data, eval_data = cifar10.load_data()
         test_data = eval_data.split(0.5)
 
         collaborator_count = kwargs['collaborator_count']
 
-        train_data, eval_data, test_data = self.split_data(train_data, eval_data, test_data, int(data_path),
-                                                           collaborator_count)
+        train_data, eval_data, test_data = self.split_data(
+            train_data,
+            eval_data,
+            test_data,
+            int(data_path),
+            collaborator_count
+        )
 
         print(f"train_data = {train_data}")
         print(f"eval_data = {eval_data}")

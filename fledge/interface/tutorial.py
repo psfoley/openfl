@@ -19,14 +19,18 @@ def tutorial(context):
 
 @tutorial.command()
 @pass_context
-@option('-ip', '--ip', required=False, help='IP address the notebook that should start', default='0.0.0.0')
+@option('-ip', '--ip', required=False,
+        help='IP address the notebook that should start', default='0.0.0.0')
 def start(context, ip):
     """
     Start the Jupyter notebook from the tutorials directory
     """
     if 'VIRTUAL_ENV' in environ:
         venv = environ['VIRTUAL_ENV'].split('/')[-1]
-        check_call([executable, '-m', 'ipykernel', 'install', '--user', '--name', f'{venv}'])
+        check_call([
+            executable, '-m', 'ipykernel', 'install',
+            '--user', '--name', f'{venv}'
+        ])
 
     jupyter_command = ['jupyter', 'notebook', '--notebook-dir', f'{TUTORIALS}']
 

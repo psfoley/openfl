@@ -39,7 +39,10 @@ def _load_raw_datashards(shard_num, collaborator_count, transform=None):
     Returns:
         2 tuples: (image, label) of the training, validation dataset
     """
-    train_data, val_data = (MNIST('data', train=train, download=True, transform=transform) for train in (True, False))
+    train_data, val_data = (
+        MNIST('data', train=train, download=True, transform=transform)
+        for train in (True, False)
+    )
     X_train_tot, y_train_tot = train_data.train_data, train_data.train_labels
     X_valid_tot, y_valid_tot = val_data.test_data, val_data.test_labels
 
@@ -54,15 +57,19 @@ def _load_raw_datashards(shard_num, collaborator_count, transform=None):
     return (X_train, y_train), (X_valid, y_valid)
 
 
-def load_mnist_shard(shard_num, collaborator_count, categorical=True, channels_last=True, **kwargs):
+def load_mnist_shard(shard_num, collaborator_count,
+                     categorical=True, channels_last=True, **kwargs):
     """
     Load the MNIST dataset.
 
     Args:
         shard_num (int): The shard to use from the dataset
-        collaborator_count (int): The number of collaborators in the federation
-        categorical (bool): True = convert the labels to one-hot encoded vectors (Default = True)
-        channels_last (bool): True = The input images have the channels last (Default = True)
+        collaborator_count (int): The number of collaborators in the
+                                  federation
+        categorical (bool): True = convert the labels to one-hot encoded
+                            vectors (Default = True)
+        channels_last (bool): True = The input images have the channels
+                              last (Default = True)
         **kwargs: Additional parameters to pass to the function
 
     Returns:
@@ -75,7 +82,8 @@ def load_mnist_shard(shard_num, collaborator_count, categorical=True, channels_l
     """
     num_classes = 10
 
-    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(shard_num, collaborator_count, transform=ToTensor())
+    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(
+        shard_num, collaborator_count, transform=ToTensor())
 
     logger.info(f'MNIST > X_train Shape : {X_train.shape}')
     logger.info(f'MNIST > y_train Shape : {y_train.shape}')

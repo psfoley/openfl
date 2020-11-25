@@ -106,7 +106,8 @@ def load_from_NIfTI(parent_dir,
                        **kwargs)
         # the needed files where not present if a tuple of None is returned
         if these_imgs is None:
-            logger.debug('Brain subdirectory: {} did not contain the needed files.'.format(brain_path))
+            logger.debug('Brain subdirectory: {} did not contain the'
+                         ' needed files.'.format(brain_path))
         else:
             imgs_all.append(these_imgs)
             msks_all.append(these_msks)

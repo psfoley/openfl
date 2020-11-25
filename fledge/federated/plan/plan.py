@@ -51,12 +51,17 @@ class Plan(object):
             yaml_path.write_text(dump(config))
 
     @staticmethod
-    def Parse(plan_config_path: Path, cols_config_path: Path = None, data_config_path: Path = None, resolve=True):
+    def Parse(plan_config_path: Path, cols_config_path: Path = None,
+              data_config_path: Path = None, resolve=True):
         """
         Args:
-            plan_config_path (string): The filepath to the federated learning plan
-            cols_config_path (string): The filepath to the federation collaborator list [optional]
-            data_config_path (string): The filepath to the federation collaborator data configuration [optional]
+            plan_config_path (string): The filepath to the federated learning
+                                       plan
+            cols_config_path (string): The filepath to the federation
+                                       collaborator list [optional]
+            data_config_path (string): The filepath to the federation
+                                       collaborator data configuration
+                                       [optional]
         Returns:
             A federated learning plan object
         """
@@ -84,23 +89,28 @@ class Plan(object):
 
                     if resolve:
                         Plan.logger.info(
-                            f'Loading DEFAULTS for section [red]{section}[/] from file [red]{defaults}[/].',
+                            f'Loading DEFAULTS for section [red]{section}[/] '
+                            f'from file [red]{defaults}[/].',
                             extra={'markup': True})
 
                     defaults = Plan.Load(Path(defaults))
 
                     if SETTINGS in defaults:
+                        # override defaults with section settings
                         defaults[SETTINGS].update(
-                            plan.config[section][SETTINGS])  # override defaults with section settings
+                            plan.config[section][SETTINGS])
                         plan.config[section][SETTINGS] = defaults[SETTINGS]
 
                     defaults.update(plan.config[section])
 
                     plan.config[section] = defaults
 
-            plan.authorized_cols = Plan.Load(cols_config_path).get('collaborators', [])
+            plan.authorized_cols = Plan.Load(cols_config_path).get(
+                'collaborators', []
+            )
 
-            # TODO: Does this need to be a YAML file? Probably want to use key value as the plan hash
+            # TODO: Does this need to be a YAML file? Probably want to use key
+            #  value as the plan hash
             plan.cols_data_paths = {}
             if data_config_path is not None:
                 data_config = open(data_config_path, "r")
@@ -115,21 +125,24 @@ class Plan(object):
                 plan.resolve()
 
                 Plan.logger.info(
-                    f'Parsing Federated Learning Plan : [green]SUCCESS[/] : [blue]{plan_config_path}[/].',
+                    f'Parsing Federated Learning Plan : [green]SUCCESS[/] : '
+                    f'[blue]{plan_config_path}[/].',
                     extra={'markup': True})
                 Plan.logger.info(dump(plan.config))
 
             return plan
 
         except Exception:
-            Plan.logger.error(f'Parsing Federated Learning Plan : [red]FAILURE[/] : [blue]{plan_config_path}[/].',
+            Plan.logger.error(f'Parsing Federated Learning Plan : '
+                              f'[red]FAILURE[/] : [blue]{plan_config_path}[/].',
                               extra={'markup': True})
             raise
 
     @staticmethod
     def Build(template, settings, **override):
         """
-        Create an instance of a FLedge Component or Federated DataLoader/TaskRunner
+        Create an instance of a FLedge Component or Federated
+        DataLoader/TaskRunner
 
         Args:
             template: Fully qualified class template path
@@ -147,10 +160,13 @@ class Plan(object):
         class_name = splitext(template)[1].strip('.')
         module_path = splitext(template)[0]
 
-        Plan.logger.info(f'Building [red]🡆[/] Object [red]{class_name}[/] from [red]{module_path}[/] Module.',
+        Plan.logger.info(f'Building [red]🡆[/] Object [red]{class_name}[/] '
+                         f'from [red]{module_path}[/] Module.',
                          extra={'markup': True})
-        Plan.logger.info(f'Settings [red]🡆[/] {settings}', extra={'markup': True})
-        Plan.logger.info(f'Override [red]🡆[/] {override}', extra={'markup': True})
+        Plan.logger.info(f'Settings [red]🡆[/] {settings}',
+                         extra={'markup': True})
+        Plan.logger.info(f'Override [red]🡆[/] {override}',
+                         extra={'markup': True})
 
         settings.update(**override)
 
@@ -184,7 +200,8 @@ class Plan(object):
     def hash(self):
 
         self.hash_ = md5(dump(self.config).encode('utf-8'))
-        Plan.logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]', extra={'markup': True})
+        Plan.logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]',
+                         extra={'markup': True})
 
         return self.hash_.hexdigest()
 
@@ -193,13 +210,16 @@ class Plan(object):
         self.federation_uuid = f'{self.name}_{self.hash[:8]}'
         self.aggregator_uuid = f'aggregator_{self.federation_uuid}'
 
-        self.rounds_to_train = self.config['aggregator'][SETTINGS]['rounds_to_train']
+        self.rounds_to_train = self.config['aggregator'][SETTINGS][
+            'rounds_to_train']
 
         if self.config['network'][SETTINGS]['agg_addr'] == AUTO:
             self.config['network'][SETTINGS]['agg_addr'] = getfqdn()
 
         if self.config['network'][SETTINGS]['agg_port'] == AUTO:
-            self.config['network'][SETTINGS]['agg_port'] = int(self.hash[:8], 16) % (60999 - 49152) + 49152
+            self.config['network'][SETTINGS]['agg_port'] = int(
+                self.hash[:8], 16
+            ) % (60999 - 49152) + 49152
 
     def get_assigner(self):
 
@@ -238,11 +258,13 @@ class Plan(object):
 
     def get_tensor_pipe(self):
 
-        defaults = self.config.get('compression_pipeline',
-                                   {
-                                       TEMPLATE: 'fledge.pipelines.NoCompressionPipeline',
-                                       SETTINGS: {}
-                                   })
+        defaults = self.config.get(
+            'compression_pipeline',
+            {
+                TEMPLATE: 'fledge.pipelines.NoCompressionPipeline',
+                SETTINGS: {}
+            }
+        )
 
         if self.pipe_ is None:
             self.pipe_ = Plan.Build(**defaults)
@@ -257,7 +279,9 @@ class Plan(object):
                                        SETTINGS: {}
                                    })
 
-        defaults[SETTINGS]['data_path'] = self.cols_data_paths[collaborator_name]
+        defaults[SETTINGS]['data_path'] = self.cols_data_paths[
+            collaborator_name
+        ]
 
         if self.loader_ is None:
             self.loader_ = Plan.Build(**defaults)
@@ -272,20 +296,25 @@ class Plan(object):
                                        SETTINGS: {}
                                    })
 
-        defaults[SETTINGS]['data_loader'] = self.get_data_loader(collaborator_name)
+        defaults[SETTINGS]['data_loader'] = self.get_data_loader(
+            collaborator_name
+        )
 
         if self.runner_ is None:
             self.runner_ = Plan.Build(**defaults)
 
         return self.runner_
 
-    def get_collaborator(self, collaborator_name, task_runner=None, client=None):
+    def get_collaborator(self, collaborator_name,
+                         task_runner=None, client=None):
 
-        defaults = self.config.get('collaborator',
-                                   {
-                                       TEMPLATE: 'fledge.component.Collaborator',
-                                       SETTINGS: {}
-                                   })
+        defaults = self.config.get(
+            'collaborator',
+            {
+                TEMPLATE: 'fledge.component.Collaborator',
+                SETTINGS: {}
+            }
+        )
 
         defaults[SETTINGS]['collaborator_name'] = collaborator_name
         defaults[SETTINGS]['aggregator_uuid'] = self.aggregator_uuid
@@ -293,7 +322,9 @@ class Plan(object):
         if task_runner is not None:
             defaults[SETTINGS]['task_runner'] = task_runner
         else:
-            defaults[SETTINGS]['task_runner'] = self.get_task_runner(collaborator_name)
+            defaults[SETTINGS]['task_runner'] = self.get_task_runner(
+                collaborator_name
+            )
         defaults[SETTINGS]['tensor_pipe'] = self.get_tensor_pipe()
         defaults[SETTINGS]['task_config'] = self.config.get('tasks', {})
         if client is not None:

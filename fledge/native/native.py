@@ -1,4 +1,5 @@
-# This file defines fledge entrypoints to be used directly through python (not CLI)
+# This file defines fledge entrypoints to be used directly through
+# python (not CLI)
 import os
 from logging import getLogger
 from pathlib import Path
@@ -45,7 +46,8 @@ def get_plan(return_complete=False):
     """
     Return the flattened dictionary associated with the plan
 
-    To read the output in a human readable format, we recommend interpreting it as follows:
+    To read the output in a human readable format, we recommend interpreting it
+     as follows:
 
     ```
     print(json.dumps(fx.get_plan(), indent=4, sort_keys=True))
@@ -53,7 +55,8 @@ def get_plan(return_complete=False):
 
     Args:
         return_complete : bool (default=False)
-            By default will not print the default file locations for each of the templates
+            By default will not print the default file locations for each of
+            the templates
 
     Returns:
         plan : dict
@@ -68,7 +71,9 @@ def get_plan(return_complete=False):
 
     flattened_config = flatten_preserve_lists(plan_config, '.')[0]
     if not return_complete:
-        keys_to_remove = [k for k, v in flattened_config.items() if ('defaults' in k or v is None)]
+        keys_to_remove = [
+            k for k, v in flattened_config.items()
+            if ('defaults' in k or v is None)]
     else:
         keys_to_remove = [k for k, v in flattened_config.items() if v is None]
     for k in keys_to_remove:
@@ -123,37 +128,47 @@ def setup_logging():
     from rich.console import Console
     from rich.logging import RichHandler
     import pkgutil
-    if (True if pkgutil.find_loader('tensorflow') else False):
+    if True if pkgutil.find_loader('tensorflow') else False:
         import tensorflow as tf
         tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
     console = Console(width=160)
-    basicConfig(level='INFO', format='%(message)s', datefmt='[%X]', handlers=[RichHandler(console=console)])
+    basicConfig(
+        level='INFO',
+        format='%(message)s',
+        datefmt='[%X]',
+        handlers=[RichHandler(console=console)]
+    )
 
 
 def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
     """
-    The initialization function for the fledge package. It performs the following tasks:
+    The initialization function for the fledge package. It performs the
+    following tasks:
 
-         1. Creates a workspace in ~/.local/workspace (Equivalent to `fx workspace
-         create --prefix ~/.local/workspace --template $workspace_template)
+         1. Creates a workspace in ~/.local/workspace (Equivalent to `fx
+         workspace create --prefix ~/.local/workspace --template
+         $workspace_template)
          2. Setup certificate authority (equivalent to `fx workspace certify`)
-         3. Setup aggregator PKI (equivalent to `fx aggregator generate-cert-request`
-         followed by `fx aggregator certify`)
-         4. Setup list of collaborators (col_names) and their PKI. (Equivalent to running
-         `fx collaborator generate-cert-request` followed by `fx collaborator certify`
-         for each of the collaborators in col_names)
+         3. Setup aggregator PKI (equivalent to `fx aggregator
+         generate-cert-request` followed by `fx aggregator certify`)
+         4. Setup list of collaborators (col_names) and their PKI. (Equivalent
+         to running `fx collaborator generate-cert-request` followed by `fx
+         collaborator certify` for each of the collaborators in col_names)
          5. Setup logging
 
     Args:
         workspace_template : str (default='default')
-            The template that should be used as the basis for the experiment. Other options
-            include are any of the template names [keras_cnn_mnist,tf_2dunet,tf_cnn_histology,
-            torch_cnn_histology,torch_cnn_mnist]
+            The template that should be used as the basis for the experiment.
+            Other options include are any of the template names [
+            keras_cnn_mnist, tf_2dunet, tf_cnn_histology, mtorch_cnn_histology,
+            torch_cnn_mnist]
         agg_fqdn : str
-           The local node's fully qualified domain name (if it can't be resolved automatically)
+           The local node's fully qualified domain name (if it can't be
+           resolved automatically)
         col_names: list[str]
-           The names of the collaborators that will be created. These collaborators will be
-           set up to participate in the experiment, but are not required to
+           The names of the collaborators that will be created. These
+           collaborators will be set up to participate in the experiment, but
+           are not required to
 
     Returns:
         None
@@ -166,7 +181,8 @@ def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
     aggregator.certify(agg_fqdn, silent=True)
     data_path = 1
     for col_name in col_names:
-        collaborator.generate_cert_request(col_name, str(data_path), silent=True, skip_package=True)
+        collaborator.generate_cert_request(
+            col_name, str(data_path), silent=True, skip_package=True)
         collaborator.certify(col_name, silent=True)
         data_path += 1
 
@@ -174,8 +190,9 @@ def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
 
 
 def create_collaborator(plan, name, model, aggregator):
-    # Using the same plan object to create multiple collaborators leads to identical collaborator objects.
-    # This function can be removed once collaborator generation is fixed in fledge/federated/plan/plan.py
+    # Using the same plan object to create multiple collaborators leads to
+    # identical collaborator objects. This function can be removed once
+    # collaborator generation is fixed in fledge/federated/plan/plan.py
     plan = copy(plan)
 
     return plan.get_collaborator(name, task_runner=model, client=aggregator)
@@ -187,11 +204,13 @@ def run_experiment(collaborator_dict, override_config={}):
 
     Args:
         collaborator_dict : dict {collaborator_name(str): FederatedModel}
-            This dictionary defines which collaborators will participate in the experiment,
-            as well as a reference to that collaborator's federated model.
+            This dictionary defines which collaborators will participate in the
+            experiment, as well as a reference to that collaborator's
+            federated model.
         override_config : dict {flplan.key : flplan.value}
-            Override any of the plan parameters at runtime using this dictionary. To get a list
-            of the available options, execute `fx.get_plan()`
+            Override any of the plan parameters at runtime using this
+            dictionary. To get a list of the available options, execute
+            `fx.get_plan()`
 
     Returns:
         final_federated_model : FederatedModel
@@ -225,15 +244,18 @@ def run_experiment(collaborator_dict, override_config={}):
     plan.authorized_cols = list(collaborator_dict)
     tensor_pipe = plan.get_tensor_pipe()
 
-    # This must be set to the final index of the list (this is the last tensorflow session to get created)
+    # This must be set to the final index of the list (this is the last
+    # tensorflow session to get created)
     plan.runner_ = list(collaborator_dict.values())[-1]
     model = plan.runner_
 
     # Initialize model weights
     init_state_path = plan.config['aggregator']['settings']['init_state_path']
     rounds_to_train = plan.config['aggregator']['settings']['rounds_to_train']
-    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger,
-                                                                 plan.runner_.get_tensor_dict(False))
+    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(
+        logger,
+        plan.runner_.get_tensor_dict(False)
+    )
 
     model_snap = construct_model_proto(tensor_dict=tensor_dict,
                                        round_number=0,
@@ -247,11 +269,16 @@ def run_experiment(collaborator_dict, override_config={}):
 
     aggregator = plan.get_aggregator()
 
-    model_states = {collaborator: None for collaborator in collaborator_dict.keys()}
+    model_states = {
+        collaborator: None for collaborator in collaborator_dict.keys()
+    }
 
     # Create the collaborators
-    collaborators = {collaborator: create_collaborator(plan, collaborator, model, aggregator) for collaborator in
-                     plan.authorized_cols}
+    collaborators = {
+        collaborator: create_collaborator(
+            plan, collaborator, model, aggregator
+        ) for collaborator in plan.authorized_cols
+    }
 
     for round_num in range(rounds_to_train):
         for col in plan.authorized_cols:
@@ -267,5 +294,6 @@ def run_experiment(collaborator_dict, override_config={}):
             model_states[col] = model.get_tensor_dict(with_opt_vars=True)
 
     # Set the weights for the final model
-    model.rebuild_model(rounds_to_train - 1, aggregator.last_tensor_dict, validation=True)
+    model.rebuild_model(
+        rounds_to_train - 1, aggregator.last_tensor_dict, validation=True)
     return model

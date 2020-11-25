@@ -28,7 +28,8 @@ class FederatedDataSet(PyTorchDataLoader):
 
     """
 
-    def __init__(self, X_train, y_train, X_valid, y_valid, batch_size=1, num_classes=None, **kwargs):
+    def __init__(self, X_train, y_train, X_valid, y_valid,
+                 batch_size=1, num_classes=None, **kwargs):
         """
         Initializer
 
@@ -58,7 +59,8 @@ class FederatedDataSet(PyTorchDataLoader):
 
         if num_classes is None:
             num_classes = np.unique(self.y_train).shape[0]
-            print('Inferred {} classes from the provided labels...'.format(num_classes))
+            print('Inferred {} classes from the provided'
+                  ' labels...'.format(num_classes))
         self.num_classes = num_classes
 
     def split(self, num_collaborators, shuffle=True, equally=False):
@@ -79,10 +81,14 @@ class FederatedDataSet(PyTorchDataLoader):
         # collaborator_datasets = []
 
         if shuffle:
-            train_shuffle = np.random.choice(len(self.X_train), len(self.X_train), replace=False)
+            train_shuffle = np.random.choice(
+                len(self.X_train), len(self.X_train), replace=False
+            )
             self.X_train = self.X_train[train_shuffle]
             self.y_train = self.y_train[train_shuffle]
-            val_shuffle = np.random.choice(len(self.X_valid), len(self.X_valid), replace=False)
+            val_shuffle = np.random.choice(
+                len(self.X_valid), len(self.X_valid), replace=False
+            )
             self.X_valid = self.X_valid[val_shuffle]
             self.y_valid = self.y_valid[val_shuffle]
 
@@ -95,13 +101,24 @@ class FederatedDataSet(PyTorchDataLoader):
             X_valid = np.array_split(self.X_valid, num_collaborators)
             y_valid = np.array_split(self.y_valid, num_collaborators)
         else:
-            train_split = np.sort(np.random.choice(len(self.X_train), num_collaborators - 1, replace=False))
-            val_split = np.sort(np.random.choice(len(self.X_val), num_collaborators - 1, replace=False))
+            train_split = np.sort(np.random.choice(
+                len(self.X_train), num_collaborators - 1, replace=False)
+            )
+            val_split = np.sort(np.random.choice(
+                len(self.X_val), num_collaborators - 1, replace=False)
+            )
             X_train = np.split(self.X_train, train_split)
             y_train = np.split(self.y_train, train_split)
             X_valid = np.split(self.X_valid, val_split)
             y_valid = np.split(self.y_valid, val_split)
 
-        return [FederatedDataSet(X_train[i], y_train[i], X_valid[i], y_valid[i], batch_size=self.batch_size,
-                                 num_classes=self.num_classes)
-                for i in range(num_collaborators)]
+        return [
+            FederatedDataSet(
+                X_train[i],
+                y_train[i],
+                X_valid[i],
+                y_valid[i],
+                batch_size=self.batch_size,
+                num_classes=self.num_classes
+            ) for i in range(num_collaborators)
+        ]

@@ -22,11 +22,15 @@ def aggregator(context):
 
 @aggregator.command(name='start')
 @pass_context
-@option('-p', '--plan', required=False, help='Federated learning plan [plan/plan.yaml]', default='plan/plan.yaml',
+@option('-p', '--plan', required=False,
+        help='Federated learning plan [plan/plan.yaml]',
+        default='plan/plan.yaml',
         type=ClickPath(exists=True))
-@option('-c', '--authorized_cols', required=False, help='Authorized collaborator list [plan/cols.yaml]',
+@option('-c', '--authorized_cols', required=False,
+        help='Authorized collaborator list [plan/cols.yaml]',
         default='plan/cols.yaml', type=ClickPath(exists=True))
-@option('-s', '--secure', required=False, help='Enable Intel SGX Enclave', is_flag=True, default=False)
+@option('-s', '--secure', required=False,
+        help='Enable Intel SGX Enclave', is_flag=True, default=False)
 def start_(context, plan, authorized_cols, secure):
     '''Start the aggregator service'''
 
@@ -39,7 +43,9 @@ def start_(context, plan, authorized_cols, secure):
 
 
 @aggregator.command(name='generate-cert-request')
-@option('--fqdn', required=False, help=f'The fully qualified domain name of aggregator node [{getfqdn()}]',
+@option('--fqdn', required=False,
+        help=f'The fully qualified domain name of'
+             f' aggregator node [{getfqdn()}]',
         default=getfqdn())
 def generate_cert_request_(fqdn):
     generate_cert_request(fqdn)
@@ -53,19 +59,24 @@ def generate_cert_request(fqdn):
     file_name = f'agg_{common_name}'
 
     echo(f'Creating AGGREGATOR certificate key pair with following settings: '
-         f'CN={style(common_name, fg="red")}, SAN={style(subject_alternative_name, fg="red")}')
+         f'CN={style(common_name, fg="red")},'
+         f' SAN={style(subject_alternative_name, fg="red")}')
 
     server_conf = 'config/server.conf'
     vex('openssl req -new '
         f'-config {server_conf} '
         f'-subj "/CN={common_name}" '
-        f'-out {file_name}.csr -keyout {file_name}.key', workdir=PKI_DIR, env={'SAN': subject_alternative_name})
+        f'-out {file_name}.csr -keyout {file_name}.key',
+        workdir=PKI_DIR, env={'SAN': subject_alternative_name})
 
-    echo('  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/server', fg='green'))
+    echo('  Moving AGGREGATOR certificate key pair to: ' + style(
+        f'{PKI_DIR}/server', fg='green'))
 
     (PKI_DIR / 'server').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / 'server' / f'{file_name}.csr')
-    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / 'server' / f'{file_name}.key')
+    (PKI_DIR / f'{file_name}.csr').rename(
+        PKI_DIR / 'server' / f'{file_name}.csr')
+    (PKI_DIR / f'{file_name}.key').rename(
+        PKI_DIR / 'server' / f'{file_name}.key')
 
 
 def findCertificateName(file_name):
@@ -92,15 +103,19 @@ def sign_certificate(file_name):
         f'-extensions server_ext '
         f'-in {file_name}.csr -out {file_name}.crt', workdir=PKI_DIR)
 
-    echo('  Moving AGGREGATOR certificate key pair to: ' + style(f'{PKI_DIR}/server', fg='green'))
+    echo('  Moving AGGREGATOR certificate key pair'
+         ' to: ' + style(f'{PKI_DIR}/server', fg='green'))
 
     (PKI_DIR / 'server').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / 'server' / f'{file_name}.crt')
+    (PKI_DIR / f'{file_name}.crt').rename(
+        PKI_DIR / 'server' / f'{file_name}.crt')
     (PKI_DIR / f'{file_name}.csr').unlink()
 
 
 @aggregator.command(name='certify')
-@option('-n', '--fqdn', help='The fully qualified domain name of aggregator node [{getfqdn()}]', default=getfqdn())
+@option('-n', '--fqdn',
+        help='The fully qualified domain name of aggregator node [{getfqdn()}]',
+        default=getfqdn())
 @option('-s', '--silent', help='Do not prompt', is_flag=True)
 def certify_(fqdn, silent):
     certify(fqdn, silent)
@@ -117,7 +132,8 @@ def certify(fqdn, silent):
     cert_name = f'server/{file_name}'
 
     # Copy PKI to cert directory
-    # TODO:  Circle back to this. Not sure if we need to copy the file or if we can call it directly from openssl
+    # TODO:  Circle back to this. Not sure if we need to copy the file or
+    #  if we can call it directly from openssl
     # Was getting a file not found error otherwise.
     copyfile(PKI_DIR / f'{cert_name}.csr', PKI_DIR / f'{file_name}.csr')
 
@@ -143,4 +159,5 @@ def certify(fqdn, silent):
 
         else:
             echo(style('Not signing certificate.', fg='red')
-                 + ' Please check with this AGGREGATOR to get the correct certificate for this federation.')
+                 + ' Please check with this AGGREGATOR to get the correct'
+                   ' certificate for this federation.')

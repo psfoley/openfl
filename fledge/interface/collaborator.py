@@ -19,12 +19,17 @@ def collaborator(context):
 
 @collaborator.command(name='start')
 @pass_context
-@option('-p', '--plan', required=False, help='Federated learning plan [plan/plan.yaml]', default='plan/plan.yaml',
+@option('-p', '--plan', required=False,
+        help='Federated learning plan [plan/plan.yaml]',
+        default='plan/plan.yaml',
         type=ClickPath(exists=True))
-@option('-d', '--data_config', required=False, help='The data set/shard configuration file [plan/data.yaml]',
+@option('-d', '--data_config', required=False,
+        help='The data set/shard configuration file [plan/data.yaml]',
         default='plan/data.yaml', type=ClickPath(exists=True))
-@option('-n', '--collaborator_name', required=True, help='The certified common name of the collaborator')
-@option('-s', '--secure', required=False, help='Enable Intel SGX Enclave', is_flag=True, default=False)
+@option('-n', '--collaborator_name', required=True,
+        help='The certified common name of the collaborator')
+@option('-s', '--secure', required=False,
+        help='Enable Intel SGX Enclave', is_flag=True, default=False)
 def start_(context, plan, collaborator_name, data_config, secure):
     '''Start a collaborator service'''
 
@@ -54,13 +59,15 @@ def RegisterDataPath(collaborator_name, data_path=None, silent=False):
     # Ask for the data directory
     default_data_path = f'data/{collaborator_name}'
     if not silent and data_path is None:
-        dirPath = prompt('\nWhere is the data (or what is the rank) for collaborator '
+        dirPath = prompt('\nWhere is the data (or what is the rank)'
+                         ' for collaborator '
                          + style(f'{collaborator_name}', fg='green')
                          + ' ? ', default=default_data_path)
     elif data_path is not None:
         dirPath = data_path
     else:
-        dirPath = default_data_path  # TODO: Need to figure out the default for this.
+        # TODO: Need to figure out the default for this.
+        dirPath = default_data_path
 
     # Read the data.yaml file
     d = {}
@@ -83,23 +90,32 @@ def RegisterDataPath(collaborator_name, data_path=None, silent=False):
 
 @collaborator.command(name='generate-cert-request')
 @pass_context
-@option('-n', '--collaborator_name', required=True, help='The certified common name of the collaborator')
-@option('-d', '--data_path', help='The data path to be associated with the collaborator')
+@option('-n', '--collaborator_name', required=True,
+        help='The certified common name of the collaborator')
+@option('-d', '--data_path',
+        help='The data path to be associated with the collaborator')
 @option('-s', '--silent', help='Do not prompt', is_flag=True)
-@option('-x', '--skip-package', help='Do not package the certificate signing request for export', is_flag=True)
-def generate_cert_request_(context, collaborator_name, data_path, silent, skip_package):
+@option('-x', '--skip-package',
+        help='Do not package the certificate signing request for export',
+        is_flag=True)
+def generate_cert_request_(context, collaborator_name,
+                           data_path, silent, skip_package):
     generate_cert_request(collaborator_name, data_path, silent, skip_package)
 
 
 def generate_cert_request(collaborator_name, data_path, silent, skip_package):
-    '''Create collaborator certificate key pair, then create a package with the CSR to send for signing'''
+    '''
+    Create collaborator certificate key pair, then create a package with the
+    CSR to send for signing
+     '''
 
     common_name = f'{collaborator_name}'.lower()
     subject_alternative_name = f'DNS:{common_name}'
     file_name = f'col_{common_name}'
 
     echo(f'Creating COLLABORATOR certificate key pair with following settings: '
-         f'CN={style(common_name, fg="red")}, SAN={style(subject_alternative_name, fg="red")}')
+         f'CN={style(common_name, fg="red")},'
+         f' SAN={style(subject_alternative_name, fg="red")}')
 
     if True:
         extensions = 'client_reqext_san'
@@ -114,13 +130,17 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
         f'-config {client_conf} '
         f'-subj "/CN={common_name}" '
         f'-out {file_name}.csr -keyout {file_name}.key '
-        f'-reqexts {extensions}', workdir=PKI_DIR, env={'SAN': subject_alternative_name})
+        f'-reqexts {extensions}', workdir=PKI_DIR,
+        env={'SAN': subject_alternative_name})
 
-    echo('  Moving COLLABORATOR certificate to: ' + style(f'{PKI_DIR}/{file_name}', fg='green'))
+    echo('  Moving COLLABORATOR certificate to: ' + style(
+        f'{PKI_DIR}/{file_name}', fg='green'))
 
     (PKI_DIR / 'client').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.csr').rename(PKI_DIR / 'client' / f'{file_name}.csr')
-    (PKI_DIR / f'{file_name}.key').rename(PKI_DIR / 'client' / f'{file_name}.key')
+    (PKI_DIR / f'{file_name}.csr').rename(
+        PKI_DIR / 'client' / f'{file_name}.csr')
+    (PKI_DIR / f'{file_name}.key').rename(
+        PKI_DIR / 'client' / f'{file_name}.key')
 
     if not skip_package:
         from shutil import make_archive, copytree, ignore_patterns
@@ -137,19 +157,23 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
         tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
         ignore = ignore_patterns('__pycache__', '*.key', '*.srl', '*.pem')
-        copytree('cert/client', tmpDir, ignore=ignore)  # Copy the current directory into the temporary directory
+        # Copy the current directory into the temporary directory
+        copytree('cert/client', tmpDir, ignore=ignore)
 
         for f in glob(f'{tmpDir}/{PKI_DIR}/client'):
             if common_name not in f:
                 remove(f)
 
-        make_archive(archiveName, archiveType, tmpDir)  # Create Zip archive of directory
+        # Create Zip archive of directory
+        make_archive(archiveName, archiveType, tmpDir)
 
-        echo(f'Archive {archiveFileName} with certificate signing request created')
-        echo('This file should be sent to the certificate authority (typically hosted by the aggregator) for signing')
+        echo(f'Archive {archiveFileName} with certificate signing'
+             f' request created')
+        echo('This file should be sent to the certificate authority'
+             ' (typically hosted by the aggregator) for signing')
 
-    RegisterDataPath(common_name, data_path=data_path,
-                     silent=silent)  # TODO: There should be some association with the plan made here as well
+    # TODO: There should be some association with the plan made here as well
+    RegisterDataPath(common_name, data_path=data_path, silent=silent)
 
 
 def findCertificateName(file_name):
@@ -184,7 +208,8 @@ def RegisterCollaborator(file_name):
     if not doc:  # YAML is not correctly formatted
         doc = {}  # Create empty dictionary
 
-    if 'collaborators' not in doc.keys() or not doc['collaborators']:  # List doesn't exist
+    # List doesn't exist
+    if 'collaborators' not in doc.keys() or not doc['collaborators']:
         doc['collaborators'] = []  # Create empty list
 
     if col_name in doc['collaborators']:
@@ -218,10 +243,12 @@ def sign_certificate(file_name):
         f'-extensions server_ext '
         f'-in {file_name}.csr -out {file_name}.crt', workdir=PKI_DIR)
 
-    echo('  Moving COLLABORATOR certificate key pair to: ' + style(f'{PKI_DIR}/client', fg='green'))
+    echo('  Moving COLLABORATOR certificate key pair to: ' + style(
+        f'{PKI_DIR}/client', fg='green'))
 
     (PKI_DIR / 'client').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.crt').rename(PKI_DIR / 'client' / f'{file_name}.crt')
+    (PKI_DIR / f'{file_name}.crt').rename(
+        PKI_DIR / 'client' / f'{file_name}.crt')
     (PKI_DIR / f'{file_name}.csr').unlink()
 
     RegisterCollaborator(PKI_DIR / 'client' / f'{file_name}.crt')
@@ -230,12 +257,15 @@ def sign_certificate(file_name):
 @collaborator.command(name='certify')
 @pass_context
 @option('-n', '--collaborator_name',
-        help='The certified common name of the collaborator. This is only needed for single node expiriments')
+        help='The certified common name of the collaborator. This is only'
+             ' needed for single node expiriments')
 @option('-s', '--silent', help='Do not prompt', is_flag=True)
 @option('-r', '--request-pkg',
-        help='The archive containing the certificate signing request (*.zip) for a collaborator')
+        help='The archive containing the certificate signing'
+             ' request (*.zip) for a collaborator')
 @option('-i', '--import', 'import_',
-        help='Import the archive containing the collaborator\'s certificate (signed by the CA)')
+        help='Import the archive containing the collaborator\'s'
+             ' certificate (signed by the CA)')
 def certify_(context, collaborator_name, silent, request_pkg, import_):
     certify(collaborator_name, silent, request_pkg, import_)
 
@@ -259,7 +289,8 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
             csr = glob(f'{PKI_DIR}/*.csr')[0]
         else:
             if len(common_name) == 0:
-                echo('collaborator_name must be set for single node experiments')
+                echo('collaborator_name must be set for'
+                     ' single node experiments')
                 return
             csr = glob(f'{PKI_DIR}/client/col_{common_name}.csr')[0]
             copy(csr, PKI_DIR)
@@ -288,11 +319,13 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
 
             else:
                 echo(style('Not signing certificate.', fg='red')
-                     + ' Please check with this collaborator to get the correct certificate for this federation.')
+                     + ' Please check with this collaborator to get the'
+                       ' correct certificate for this federation.')
                 return
 
         if len(common_name) == 0:
-            # If the collaborator name is provided, the collaborator and certificate does not need to be exported
+            # If the collaborator name is provided, the collaborator and
+            # certificate does not need to be exported
             return
 
         archiveType = 'zip'
@@ -303,11 +336,13 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
         tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
         Path(f'{tmpDir}/client').mkdir(parents=True, exist_ok=True)
-        copy(f'{PKI_DIR}/client/{file_name}.crt',
-             f'{tmpDir}/client/')  # Copy the signed cert to the temporary directory
-        copy(f'{PKI_DIR}/cert_chain.crt', tmpDir)  # Copy the CA certificate chain to the temporary directory
+        # Copy the signed cert to the temporary directory
+        copy(f'{PKI_DIR}/client/{file_name}.crt', f'{tmpDir}/client/')
+        # Copy the CA certificate chain to the temporary directory
+        copy(f'{PKI_DIR}/cert_chain.crt', tmpDir)
 
-        make_archive(archiveName, archiveType, tmpDir)  # Create Zip archive of directory
+        # Create Zip archive of directory
+        make_archive(archiveName, archiveType, tmpDir)
 
     else:
         # Copy the signed certificate and cert chain into PKI_DIR

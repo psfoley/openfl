@@ -5,14 +5,20 @@
 
 class Assigner(object):
     """
-    The task assigner maintains a list of tasks, and decides the policy for which collaborator should run those tasks
-    There may be many types of policies implemented, but a natural place to start is with a:
+    The task assigner maintains a list of tasks, and decides the policy for
+    which collaborator should run those tasks
+    There may be many types of policies implemented, but a natural place
+    to start is with a:
 
-    RandomGroupedTaskAssigner  - Given a set of task groups, and a percentage, assign that task group to that
-                                 percentage of collaborators in the federation. After assigning the tasks to
-                                 collaborator, those tasks should be carried out each round (no reassignment
+    RandomGroupedTaskAssigner  - Given a set of task groups, and a percentage,
+                                 assign that task group to that
+                                 percentage of collaborators in the federation.
+                                 After assigning the tasks to
+                                 collaborator, those tasks should be carried
+                                 out each round (no reassignment
                                  between rounds)
-    GroupedTaskAssigner - Given task groups and a list of collaborators that belong to that task group,
+    GroupedTaskAssigner - Given task groups and a list of collaborators that
+                          belong to that task group,
                           carry out tasks for each round of experiment
     """
 

@@ -1,5 +1,3 @@
-# CLEANUP FOR FLEDGE
-
 stages:
   - pep8
   - build

@@ -27,6 +27,11 @@ pages:
     - mkdir -p public/packages
     - python3 setup.py sdist bdist_wheel
     - mv dist/fledge*.whl public/packages/
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
 
 pep8:
   stage: pep8

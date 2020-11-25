@@ -121,3 +121,131 @@ hello_federation_pytorch:
     - jobs
     - echo "cleaning ...... $$"
     - kill -15 $$
+
+hello_federation_fe_tf_adversarial_cifar:
+  stage: test
+  tags:
+   - charlie
+  before_script:
+    - whoami
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
+    - pwd
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf fledge
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
+    - export COL1=one23
+    - export COL2=two34
+    - python3 -m pip install --user --upgrade pip
+  script:
+    - python3 -m pip install . --user
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh fe_tf_adversarial_cifar workspace_fe_tf_adversarial_cifar ${COL1} ${COL2}
+  after_script:
+    - jobs
+    - echo "cleaning ...... $$"
+    - kill -15 $$
+
+hello_federation_tf_cnn_histology:
+  stage: test
+  tags:
+   - charlie
+  before_script:
+    - whoami
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
+    - pwd
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf fledge
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
+    - export COL1=one23
+    - export COL2=two34
+    - python3 -m pip install --user --upgrade pip
+  script:
+    - python3 -m pip install . --user
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh tf_cnn_histology workspace_tf_cnn_histology ${COL1} ${COL2}
+  after_script:
+    - jobs
+    - echo "cleaning ...... $$"
+    - kill -15 $$
+
+hello_federation_fe_torch_adversarial_cifar:
+  stage: test
+  tags:
+   - charlie
+  before_script:
+    - whoami
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
+    - pwd
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf fledge
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
+    - export COL1=one23
+    - export COL2=two34
+    - python3 -m pip install --user --upgrade pip
+  script:
+    - python3 -m pip install . --user
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh fe_torch_adversarial_cifar workspace_fe_torch_adversarial_cifar ${COL1} ${COL2}
+  after_script:
+    - jobs
+    - echo "cleaning ...... $$"
+    - kill -15 $$
+
+hello_federation_torch_cnn_histology:
+  stage: test
+  tags:
+   - charlie
+  before_script:
+    - whoami
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
+    - pwd
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf fledge
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
+    - export COL1=one23
+    - export COL2=two34
+    - python3 -m pip install --user --upgrade pip
+  script:
+    - python3 -m pip install . --user
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh torch_cnn_histology workspace_torch_cnn_histology ${COL1} ${COL2}
+  after_script:
+    - jobs
+    - echo "cleaning ...... $$"
+    - kill -15 $$

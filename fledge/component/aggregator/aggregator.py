@@ -713,7 +713,6 @@ class Aggregator(object):
             # Cleaning tensor db
             self.tensor_db.clean_up(self.db_store_rounds)
 
-
     def is_task_done(self, task_name):
         collaborators_needed = self.assigner.get_collaborators_for_task(task_name, self.round_number)
 

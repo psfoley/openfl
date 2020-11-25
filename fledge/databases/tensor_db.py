@@ -36,8 +36,8 @@ class TensorDB(object):
             # Getting a negative argument calls off cleaning
             return
         current_round = int(self.tensor_db['round'].max())
-        self.tensor_db = self.tensor_db[self.tensor_db['round'] > current_round - remove_older_than].reset_index(drop=True)
-
+        self.tensor_db = self.tensor_db[
+            self.tensor_db['round'] > current_round - remove_older_than].reset_index(drop=True)
 
     def cache_tensor(self, tensor_key_dict):
         """Insert tensor into TensorDB (dataframe)

@@ -8,7 +8,7 @@ from warnings import warn
 from shutil import copyfile, ignore_patterns
 
 from fledge.interface.cli_helper import copytree, print_tree, vex, check_varenv, get_fx_path, replace_line_in_file
-from fledge.interface.cli_helper import WORKSPACE, PKI_DIR, SITEPACKS
+from fledge.interface.cli_helper import WORKSPACE, PKI_DIR, SITEPACKS, FLEDGE_USERDIR
 
 
 @group()
@@ -127,8 +127,9 @@ def export_(context):
                 # and current one.
                 echo(f'Writing {package}=={version} to {requirements_filename}...')
                 f.write(f'{package}=={version}\n')
-            elif version is None: # local dependency
-                warn(f'Could not generate requirements for {package}. Consider installing it manually after workspace import.')
+            elif version is None:  # local dependency
+                warn(f'Could not generate requirements for {package}.'
+                     f' Consider installing it manually after workspace import.')
     echo(f'{export_requirements_filename} written.')
 
     archiveType = 'zip'
@@ -286,16 +287,18 @@ def certify():
 
     echo('\nDone.')
 
+
 def _get_requirements_dict(txtfile):
     with open(txtfile, 'r') as snapshot:
         snapshot_dict = {}
         for line in snapshot:
             try:
-                k,v = line.split('==') # 'pip freeze' generates requirements with exact versions
+                k, v = line.split('==')  # 'pip freeze' generates requirements with exact versions
                 snapshot_dict[k] = v
             except ValueError:
                 snapshot_dict[line] = None
         return snapshot_dict
+
 
 def _get_dir_hash(path):
     from hashlib import md5
@@ -303,6 +306,7 @@ def _get_dir_hash(path):
     hash_.update(path.encode('utf-8'))
     hash_ = hash_.hexdigest()
     return hash_
+
 
 @workspace.command(name='dockerize')
 @option('--save', required=False, help='Save the Docker image into the workspace', is_flag=True)

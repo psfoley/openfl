@@ -411,80 +411,44 @@ class Aggregator(object):
                               round_number=round_number,
                               tensor=named_tensor)
 
-    def nparray_to_named_tensor(self, tensor_key, nparray,
-                                send_model_deltas, compress_lossless):
+    def nparray_to_named_tensor(self, tensor_key, nparray, send_model_deltas,
+                                compress_lossless):
         """
         This function constructs the NamedTensor Protobuf and also includes
         logic to create delta, compress tensors with the TensorCodec, etc.
-
-        Args:
-            tensor_key : TensorKey (named_tuple)
-                The tensorkey identifier associated with the nparray
-            nparray : numpy array
-                The numpy array associated with the tensorkey that will be
-                packaged in a protobuf
-            send_model_deltas : boolean
-                Whether or not the difference in the current numpy array and an
-                earlier version should be sent.
-                If False, the full numpy array is sent
-            compress_lossless : boolean
-                If true, force the tensor to be compressed losslessly
-
-        Returns:
-            named_tensor : NamedTensor (protobuf)
-                Protobuf encoded with TensorKey:nparray mapping. Ready to be
-                sent to collaborator
         """
 
-        # if we have an aggregated tensor, we can make a delta
         tensor_name, origin, round_number, report, tags = tensor_key
-        if 'aggregated' in tags and send_model_deltas:
+        # if we have an aggregated tensor, we can make a delta
+        if ('aggregated' in tensor_name and send_model_deltas):
             # Should get the pretrained model to create the delta. If training
-            # has happened,
-            # Model should already be stored in the TensorDB
+            # has happened, Model should already be stored in the TensorDB
             model_nparray = self.tensor_db.get_tensor_from_cache(
-                TensorKey(
-                    tensor_name,
-                    origin,
-                    round_number - 1,
-                    report,
-                    ('model',)
-                )
-            )
+                TensorKey(tensor_name,
+                          origin,
+                          round_number - 1,
+                          ('model',)))
 
-            assert model_nparray is not None, (
-                "The original model layer should be present if the latest"
-                " aggregated model is present")
+            assert (model_nparray is not None), (
+                "The original model layer should be present if the latest "
+                "aggregated model is present")
             delta_tensor_key, delta_nparray = self.tensor_codec.generate_delta(
-                tensor_key, nparray, model_nparray
-            )
+                tensor_key, nparray, model_nparray)
             delta_comp_tensor_key, delta_comp_nparray, metadata = \
-                self.tensor_codec.compress(
-                    delta_tensor_key,
-                    delta_nparray,
-                    lossless=compress_lossless
-                )
-            named_tensor = construct_named_tensor(
-                delta_comp_tensor_key,
-                delta_comp_nparray,
-                metadata,
-                lossless=compress_lossless
-            )
+                self.tensor_codec.compress(delta_tensor_key, delta_nparray,
+                                           lossless=compress_lossless)
+            named_tensor = construct_named_tensor(delta_comp_tensor_key,
+                                                  delta_comp_nparray, metadata,
+                                                  lossless=compress_lossless)
 
         else:
             # Assume every other tensor requires lossless compression
             compressed_tensor_key, compressed_nparray, metadata = \
-                self.tensor_codec.compress(
-                    tensor_key,
-                    nparray,
-                    require_lossless=True
-                )
-            named_tensor = construct_named_tensor(
-                compressed_tensor_key,
-                compressed_nparray,
-                metadata,
-                lossless=compress_lossless
-            )
+                self.tensor_codec.compress(tensor_key, nparray,
+                                           require_lossless=True)
+            named_tensor = construct_named_tensor(compressed_tensor_key,
+                                                  compressed_nparray, metadata,
+                                                  lossless=compress_lossless)
 
         return named_tensor
 

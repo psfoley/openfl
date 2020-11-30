@@ -8,7 +8,7 @@ aggregator :
     init_model_fname  : save/tf_2dunet_brats_init.pbuf
     last_model_fname: save/tf_2dunet_brats_latest.pbuf
     best_model_fname  : save/tf_2dunet_brats_best.pbuf
-    rounds_to_train : 10
+    rounds_to_train : 3
 
 collaborator :
   defaults : plan/defaults/collaborator.yaml

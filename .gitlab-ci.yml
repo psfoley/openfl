@@ -81,10 +81,12 @@ keras_cnn_mnist:
     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
     - export COL1=alpha32tr
     - export COL2=beta816r4
+    - export FED_DIRECTORY=workspace_keras
+    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" $FED_DIRECTORY/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh keras_cnn_mnist workspace_keras ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh keras_cnn_mnist ${FED_DIRECTORY}} ${COL1} ${COL2}
   after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -113,10 +115,12 @@ torch_cnn_mnist:
     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
     - export COL1=one23
     - export COL2=two34
+    - export FED_DIRECTORY=workspace_torch
+    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" $FED_DIRECTORY/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh torch_cnn_mnist workspace_torch ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh torch_cnn_mnist ${FED_DIRECTORY} ${COL1} ${COL2}
   after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -145,10 +149,12 @@ fe_tf_adversarial_cifar:
     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
     - export COL1=one23
     - export COL2=two34
+    - export FED_DIRECTORY=workspace_fe_tf_adversarial_cifar
+    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" $FED_DIRECTORY/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh fe_tf_adversarial_cifar workspace_fe_tf_adversarial_cifar ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh fe_tf_adversarial_cifar ${FED_DIRECTORY} ${COL1} ${COL2}
   after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -177,10 +183,12 @@ fe_torch_adversarial_cifar:
     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
     - export COL1=one23
     - export COL2=two34
+    - export FED_DIRECTORY=workspace_fe_torch_adversarial_cifar
+    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" $FED_DIRECTORY/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh fe_torch_adversarial_cifar workspace_fe_torch_adversarial_cifar ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh fe_torch_adversarial_cifar ${FED_DIRECTORY} ${COL1} ${COL2}
   after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -209,10 +217,12 @@ torch_cnn_histology:
     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
     - export COL1=one23
     - export COL2=two34
+    - export FED_DIRECTORY=workspace_torch_cnn_histology
+    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" $FED_DIRECTORY/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh torch_cnn_histology workspace_torch_cnn_histology ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh torch_cnn_histology ${FED_DIRECTORY} ${COL1} ${COL2}
   after_script:
     - jobs
     - echo "cleaning ...... $$"
@@ -241,10 +251,12 @@ tf_cnn_histology:
     - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
     - export COL1=one23
     - export COL2=two34
+    - export FED_DIRECTORY=workspace_tf_cnn_histology
+    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" $FED_DIRECTORY/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh tf_cnn_histology workspace_tf_cnn_histology ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh tf_cnn_histology ${FED_DIRECTORY} ${COL1} ${COL2}
   after_script:
     - jobs
     - echo "cleaning ...... $$"

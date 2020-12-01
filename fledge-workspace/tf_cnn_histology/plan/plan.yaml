@@ -8,7 +8,7 @@ aggregator :
     init_state_path  : save/tf_cnn_histology_init.pbuf
     last_state_path  : save/tf_cnn_histology_latest.pbuf
     best_state_path  : save/tf_cnn_histology_best.pbuf
-    rounds_to_train : 3
+    rounds_to_train : 10
 
 collaborator :
   defaults : plan/defaults/collaborator.yaml

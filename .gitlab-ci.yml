@@ -119,7 +119,7 @@ torch_cnn_mnist:
     - export COL2=two34
     - export FED_WORKSPACE=torch_cnn_mnist
     - export FED_DIRECTORY=workspace_torch
-    - "sed -i '/rounds_to_train/c\    rounds_to_train: 3' fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - "sed -i \"/rounds_to_train/c\\    rounds_to_train: 3\" fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user

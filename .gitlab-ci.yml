@@ -83,7 +83,8 @@ keras_cnn_mnist:
     - export COL2=beta816r4
     - export FED_WORKSPACE=keras_cnn_mnist
     - export FED_DIRECTORY=workspace_keras
-    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - "sed -i '/rounds_to_train/c\    rounds_to_train: 3' fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - cat fledge-workspace/$FED_WORKSPACE/plan/plan.yaml
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
@@ -118,7 +119,7 @@ torch_cnn_mnist:
     - export COL2=two34
     - export FED_WORKSPACE=torch_cnn_mnist
     - export FED_DIRECTORY=workspace_torch
-    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - "sed -i '/rounds_to_train/c\    rounds_to_train: 3' fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
@@ -153,7 +154,7 @@ fe_tf_adversarial_cifar:
     - export COL2=two34
     - export FED_WORKSPACE=fe_tf_adversarial_cifar
     - export FED_DIRECTORY=workspace_fe_tf_adversarial_cifar
-    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - "sed -i '/rounds_to_train/c\    rounds_to_train: 3' fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
@@ -188,7 +189,7 @@ fe_torch_adversarial_cifar:
     - export COL2=two34
     - export FED_WORKSPACE=fe_torch_adversarial_cifar
     - export FED_DIRECTORY=workspace_fe_torch_adversarial_cifar
-    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - "sed -i '/rounds_to_train/c\    rounds_to_train: 3' fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
@@ -223,7 +224,7 @@ torch_cnn_histology:
     - export COL2=two34
     - export FED_WORKSPACE=torch_cnn_histology
     - export FED_DIRECTORY=workspace_torch_cnn_histology
-    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - "sed -i '/rounds_to_train/c\    rounds_to_train: 3' fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
@@ -258,7 +259,7 @@ tf_cnn_histology:
     - export COL2=two34
     - export FED_WORKSPACE=tf_cnn_histology
     - export FED_DIRECTORY=workspace_tf_cnn_histology
-    - "sed -i \"/rounds_to_train/c\    rounds_to_train: 3\" fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
+    - "sed -i '/rounds_to_train/c\    rounds_to_train: 3' fledge-workspace/$FED_WORKSPACE/plan/plan.yaml"
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user

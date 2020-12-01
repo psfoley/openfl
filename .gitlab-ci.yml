@@ -192,7 +192,7 @@ fe_torch_adversarial_cifar:
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE}} ${FED_DIRECTORY} ${COL1} ${COL2}
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2}
   after_script:
     - jobs
     - echo "cleaning ...... $$"

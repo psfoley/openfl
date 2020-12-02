@@ -1,13 +1,15 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
 
-from logging                                  import getLogger
+from logging import getLogger
 from torchvision.datasets import MNIST
 from torchvision.transforms import ToTensor
 
 logger = getLogger(__name__)
+
 
 def one_hot(labels, classes):
     """
@@ -21,6 +23,7 @@ def one_hot(labels, classes):
         np.array: Matrix of one-hot encoded labels
     """
     return np.eye(classes)[labels]
+
 
 def _load_raw_datashards(shard_num, collaborator_count, transform=None):
     """
@@ -36,10 +39,13 @@ def _load_raw_datashards(shard_num, collaborator_count, transform=None):
     Returns:
         2 tuples: (image, label) of the training, validation dataset
     """
-    train_data, val_data = (MNIST('data', train=train, download=True, transform=transform) for train in (True, False))
+    train_data, val_data = (
+        MNIST('data', train=train, download=True, transform=transform)
+        for train in (True, False)
+    )
     X_train_tot, y_train_tot = train_data.train_data, train_data.train_labels
     X_valid_tot, y_valid_tot = val_data.test_data, val_data.test_labels
-    
+
     # create the shards
     shard_num = int(shard_num)
     X_train = X_train_tot[shard_num::collaborator_count].unsqueeze(1).float()
@@ -51,15 +57,19 @@ def _load_raw_datashards(shard_num, collaborator_count, transform=None):
     return (X_train, y_train), (X_valid, y_valid)
 
 
-def load_mnist_shard(shard_num, collaborator_count, categorical = True, channels_last = True, **kwargs):
+def load_mnist_shard(shard_num, collaborator_count,
+                     categorical=True, channels_last=True, **kwargs):
     """
     Load the MNIST dataset.
 
     Args:
         shard_num (int): The shard to use from the dataset
-        collaborator_count (int): The number of collaborators in the federation
-        categorical (bool): True = convert the labels to one-hot encoded vectors (Default = True)
-        channels_last (bool): True = The input images have the channels last (Default = True)
+        collaborator_count (int): The number of collaborators in the
+                                  federation
+        categorical (bool): True = convert the labels to one-hot encoded
+                            vectors (Default = True)
+        channels_last (bool): True = The input images have the channels
+                              last (Default = True)
         **kwargs: Additional parameters to pass to the function
 
     Returns:
@@ -70,10 +80,10 @@ def load_mnist_shard(shard_num, collaborator_count, categorical = True, channels
         numpy.ndarray: The validation data
         numpy.ndarray: The validation labels
     """
-    img_rows, img_cols = 28, 28
     num_classes = 10
 
-    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(shard_num, collaborator_count, transform=ToTensor())
+    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(
+        shard_num, collaborator_count, transform=ToTensor())
 
     logger.info(f'MNIST > X_train Shape : {X_train.shape}')
     logger.info(f'MNIST > y_train Shape : {y_train.shape}')
@@ -81,7 +91,7 @@ def load_mnist_shard(shard_num, collaborator_count, categorical = True, channels
     logger.info(f'MNIST > Valid Samples : {X_valid.shape[0]}')
 
     if categorical:
-      # convert class vectors to binary class matrices
+        # convert class vectors to binary class matrices
         y_train = one_hot(y_train, num_classes)
         y_valid = one_hot(y_valid, num_classes)
 

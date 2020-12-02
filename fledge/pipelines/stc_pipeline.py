@@ -1,17 +1,18 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
-import gzip  as gz
+import gzip as gz
 
 from .pipeline import TransformationPipeline, Transformer
-from .pipeline import Float32NumpyArrayToBytes
+
 
 class SparsityTransformer(Transformer):
     """A transformer class to sparsify input data.
     """
 
-    def __init__(self,p = 0.01):
+    def __init__(self, p=0.01):
         """Initializer
 
         Args:
@@ -37,7 +38,7 @@ class SparsityTransformer(Transformer):
         data = data.astype(np.float32)
         flatten_data = data.flatten()
         n_elements = flatten_data.shape[0]
-        k_op = int(np.ceil(n_elements*self.p))
+        k_op = int(np.ceil(n_elements * self.p))
         topk, topk_indices = self._topk_func(flatten_data, k_op)
         #
         condensed_data = topk
@@ -46,7 +47,7 @@ class SparsityTransformer(Transformer):
         nonzero_element_bool_indices = sparse_data != 0.0
         metadata['bool_list'] = list(nonzero_element_bool_indices)
         return condensed_data, metadata
-        #return sparse_data, metadata
+        # return sparse_data, metadata
 
     def backward(self, data, metadata, **kwargs):
         """ Recover data array with the right shape and numerical type.
@@ -85,13 +86,15 @@ class SparsityTransformer(Transformer):
         # get the top k magnitude
         topk_mag = np.asarray(x[idx[start_idx:]])
         indices = np.asarray(idx[start_idx:])
-        if min(topk_mag)-0 < 10e-8:# avoid zeros
+        if min(topk_mag) - 0 < 10e-8:  # avoid zeros
             topk_mag = topk_mag + 10e-8
         return topk_mag, indices
+
 
 class TernaryTransformer(Transformer):
     """ A transformer class to ternerize input data.
     """
+
     def __init__(self):
         self.lossy = True
         return
@@ -112,7 +115,7 @@ class TernaryTransformer(Transformer):
         out = np.where(data < 0.0, -mean_topk, out_)
         int_array, int2float_map = self._float_to_int(out)
         metadata = {}
-        metadata['int_to_float']  = int2float_map
+        metadata['int_to_float'] = int2float_map
         return int_array, metadata
 
     def backward(self, data, metadata, **kwargs):
@@ -147,7 +150,7 @@ class TernaryTransformer(Transformer):
         """
         flatten_array = np_array.reshape(-1)
         unique_value_array = np.unique(flatten_array)
-        int_array = np.zeros(flatten_array.shape,dtype = np.int)
+        int_array = np.zeros(flatten_array.shape, dtype=np.int)
         int_to_float_map = {}
         float_to_int_map = {}
         # create table
@@ -155,14 +158,16 @@ class TernaryTransformer(Transformer):
             int_to_float_map.update({idx: u_value})
             float_to_int_map.update({u_value: idx})
             # assign to the integer array
-            indices = np.where(flatten_array==u_value)
+            indices = np.where(flatten_array == u_value)
             int_array[indices] = idx
         int_array = int_array.reshape(np_array.shape)
         return int_array, int_to_float_map
 
+
 class GZIPTransformer(Transformer):
     """ A transformer class to losslessly compress data.
     """
+
     def __init__(self):
         """Initializer
         """
@@ -197,13 +202,15 @@ class GZIPTransformer(Transformer):
             data:
         """
         decompressed_bytes_ = gz.decompress(data)
-        data = np.frombuffer(decompressed_bytes_,dtype = np.float32)
+        data = np.frombuffer(decompressed_bytes_, dtype=np.float32)
         return data
+
 
 class STCPipeline(TransformationPipeline):
     """ A pipeline class to compress data lossly using sparsity and ternerization methods.
     """
-    def __init__(self,p_sparsity = 0.01,n_clusters = 6, **kwargs):
+
+    def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
         """ Initializing a pipeline of transformers.
 
         Args:

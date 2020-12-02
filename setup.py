@@ -1,14 +1,15 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
-    name = 'fledge',
-    version = '0.30',
-    author = 'Intel Corporation',
-    description = 'Federated Learning on the Edge',
-    packages = [
+    name='fledge',
+    version='0.30',
+    author='Intel Corporation',
+    description='Federated Learning on the Edge',
+    packages=[
         'fledge',
         'fledge.interface',
         'fledge.component',
@@ -32,8 +33,8 @@ setup(
         'fledge-docker',
         'fledge-tutorials',
     ],
-    include_package_data = True,
-    install_requires = [
+    include_package_data=True,
+    install_requires=[
         'Click>=7.0',
         'PyYAML>=5.1',
         'numpy',
@@ -49,7 +50,7 @@ setup(
         'ipykernel',
         'flatten_json',
     ],
-    entry_points = {
-        'console_scripts' : ['fx=fledge.interface.cli:entry']
+    entry_points={
+        'console_scripts': ['fx=fledge.interface.cli:entry']
     }
 )

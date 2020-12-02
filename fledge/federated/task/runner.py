@@ -1,23 +1,27 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 
 """
 Mixin class for FL models. No default implementation.
 
-Each framework will likely have its own baseclass implementation (e.g. TensorflowTaskRunner) that uses this mixin.
+Each framework will likely have its own baseclass implementation (e.g.
+TensorflowTaskRunner) that uses this mixin.
 
-You may copy use this file or the appropriate framework-specific base-class to port your own models.
+You may copy use this file or the appropriate framework-specific base-class to
+port your own models.
 """
 
 from logging import getLogger
+
 
 class TaskRunner(object):
     """
     Federated Learning Task Runner Class
     """
 
-    def __init__(self, data_loader, tensor_dict_split_fn_kwargs = {}, **kwargs):
+    def __init__(self, data_loader, tensor_dict_split_fn_kwargs={}, **kwargs):
         """
         Intializer
 
@@ -27,17 +31,21 @@ class TaskRunner(object):
             **kwargs: Additional parameters to pass to the function
         """
 
-        self.data_loader   = data_loader
+        self.data_loader = data_loader
         self.feature_shape = self.data_loader.get_feature_shape()
 
-        # key word arguments for determining which parameters to hold out from aggregation.
-        # If set to none, an empty dict will be passed, currently resulting in the defaults:
-        # holdout_types=['non_float'] # all param np.arrays of this type will be held out
+        # key word arguments for determining which parameters to hold out from
+        # aggregation.
+        # If set to none, an empty dict will be passed, currently resulting in
+        # the defaults:
+        # holdout_types=['non_float'] # all param np.arrays of this type will
+        # be held out
         # holdout_tensor_names=[]     # params with these names will be held out
         # TODO: params are restored from protobufs as float32 numpy arrays, so
-        # non-floats arrays and non-arrays are not currently supported for passing to and
-        # from protobuf (and as a result for aggregation) - for such params in current examples,
-        # aggregation does not make sense anyway, but if this changes support should be added.
+        # non-floats arrays and non-arrays are not currently supported for
+        # passing to and from protobuf (and as a result for aggregation) - for
+        # such params in current examples, aggregation does not make sense
+        # anyway, but if this changes support should be added.
         if type(tensor_dict_split_fn_kwargs) is not dict:
             tensor_dict_split_fn_kwargs = dict()
         self.tensor_dict_split_fn_kwargs = tensor_dict_split_fn_kwargs
@@ -48,7 +56,7 @@ class TaskRunner(object):
         """
         self.logger = getLogger(__name__)
 
-    def set_optimizer_treatment(self,opt_treatment):
+    def set_optimizer_treatment(self, opt_treatment):
         self.opt_treatment = opt_treatment
 
     def get_data_loader(self):
@@ -71,8 +79,10 @@ class TaskRunner(object):
             None
         """
 
-        if  data_loader.get_feature_shape() != self.data_loader.get_feature_shape():
-            raise ValueError('The data_loader feature shape is not compatible with model.')
+        if data_loader.get_feature_shape() != \
+                self.data_loader.get_feature_shape():
+            raise ValueError(
+                'The data_loader feature shape is not compatible with model.')
 
         self.data_loader = data_loader
 
@@ -98,7 +108,7 @@ class TaskRunner(object):
         """
         return self.data_loader.get_valid_data_size()
 
-    def train_batches(self, num_batches = None, use_tqdm = False):
+    def train_batches(self, num_batches=None, use_tqdm=False):
         """
         Perform the training for a specified number of batches.
 
@@ -126,7 +136,8 @@ class TaskRunner(object):
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
         """
-        When running a task, a map of named tensorkeys must be provided to the function as dependencies.
+        When running a task, a map of named tensorkeys must be provided to the
+        function as dependencies.
 
         Returns:
             list: (TensorKey(tensor_name, origin, round_number))
@@ -138,7 +149,8 @@ class TaskRunner(object):
         Get the weights.
 
         Args:
-            with_opt_vars (bool): Specify if we also want to get the variables of the optimizer.
+            with_opt_vars (bool): Specify if we also want to get the variables
+                                  of the optimizer.
 
         Returns:
             dict: The weight dictionary {<tensor_name>: <value>}
@@ -147,11 +159,13 @@ class TaskRunner(object):
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
         """
-        Set the model weights with a tensor dictionary: {<tensor_name>: <value>}.
+        Set the model weights with a tensor dictionary:
+        {<tensor_name>: <value>}.
 
         Args:
             tensor_dict (dict): The model weights dictionary.
-            with_opt_vars (bool): Specify if we also want to set the variables of the optimizer.
+            with_opt_vars (bool): Specify if we also want to set the variables
+                                  of the optimizer.
 
         Returns:
             None
@@ -174,10 +188,15 @@ class TaskRunner(object):
 
     def load_native(self, filepath, **kwargs):
         """
-        Loads model state from a filepath in ML-framework "native" format, e.g. PyTorch pickled models. May load from multiple files. Other filepaths may be derived from the passed filepath, or they may be in the kwargs.
+        Loads model state from a filepath in ML-framework "native" format, e.g.
+        PyTorch pickled models.
+        May load from multiple files. Other filepaths may be derived from the
+        passed filepath, or they may be in the kwargs.
 
         Args:
-            filepath (string): Path to frame-work specific file to load. For frameworks that use multiple files, this string must be used to derive the other filepaths.
+            filepath (string): Path to frame-work specific file to load. For
+            frameworks that use multiple files, this string must be used to
+            derive the other filepaths.
             kwargs           : For future-proofing
 
         Returns:
@@ -187,10 +206,15 @@ class TaskRunner(object):
 
     def save_native(self, filepath, **kwargs):
         """
-        Saves model state in ML-framework "native" format, e.g. PyTorch pickled models. May save one file or multiple files, depending on the framework.
+        Saves model state in ML-framework "native" format, e.g. PyTorch pickled
+        models.
+        May save one file or multiple files, depending on the framework.
 
         Args:
-            filepath (string): If framework stores a single file, this should be a single file path. Frameworks that store multiple files may need to derive the other paths from this path.
+            filepath (string): If framework stores a single file, this should
+                               be a single file path.
+            Frameworks that store multiple files may need to derive the other
+            paths from this path.
             kwargs           : For future-proofing
 
         Returns:

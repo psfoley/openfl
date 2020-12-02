@@ -1,14 +1,9 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
-
-import numpy      as np
-import tensorflow as tf
-
-from tqdm import tqdm
-
-from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 from .loader import DataLoader
+
 
 class FastEstimatorDataLoader(DataLoader):
     """
@@ -39,7 +34,6 @@ class FastEstimatorDataLoader(DataLoader):
         # (self, batch_size, **kwargs), should call this __init__ and then
         # define self.X_train, self.y_train, self.X_valid, and self.y_valid
 
-
     def get_train_data_size(self):
         """
         Get total number of training samples
@@ -60,5 +54,3 @@ class FastEstimatorDataLoader(DataLoader):
 
     def get_feature_shape(self):
         return self.pipeline.data['train']['x'].shape[1:]
-
-

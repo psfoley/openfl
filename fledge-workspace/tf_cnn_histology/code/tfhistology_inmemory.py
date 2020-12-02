@@ -1,9 +1,11 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 from fledge.federated import TensorFlowDataLoader
 
 from .tfds_utils import load_histology_shard
+
 
 class TensorFlowHistologyInMemory(TensorFlowDataLoader):
     """
@@ -22,7 +24,10 @@ class TensorFlowHistologyInMemory(TensorFlowDataLoader):
 
         super().__init__(batch_size, **kwargs)
 
-        _, num_classes, X_train, y_train, X_valid, y_valid = load_histology_shard(shard_num = data_path, categorical=False, **kwargs)
+        _, num_classes, X_train, y_train, X_valid, y_valid = load_histology_shard(
+            shard_num=data_path,
+            categorical=False, **kwargs
+        )
 
         self.X_train = X_train
         self.y_train = y_train

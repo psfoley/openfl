@@ -37,7 +37,7 @@ assigner :
   defaults : plan/defaults/assigner.yaml
 
 tasks:
-  defaults : plan/defaults/tasks_keras.yaml
+  defaults: plan/defaults/tasks_tensorflow.yaml
   aggregated_model_validation:
     function: validate
     kwargs:
@@ -45,7 +45,6 @@ tasks:
       batch_size: 32
       metrics:
       - sparse_categorical_accuracy
-  defaults: plan/defaults/tasks_tensorflow.yaml
   locally_tuned_model_validation:
     function: validate
     kwargs:

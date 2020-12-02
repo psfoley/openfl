@@ -8,19 +8,35 @@ COL2=${4:-'beta34unicorns'} # This can be any unique label (lowercase)
 
 FQDN=$(hostname --all-fqdns | awk '{print $1}')
 
-# Getting additional options
-OPTS=$(getopt -l "rounds-to-train:" -n test_hello_federation.sh -- "$@")
-eval set -- "$OPTS"
-unset OPTS
+col1_data_path=1
+col2_data_path=2
 
+help() {
+    echo "Usage: test_hello_federation.sh TEMPLATE FED_WORKSPACE COL1 COL2 [OPTIONS]"
+    echo
+    echo "Options:"
+    echo "--rounds-to-train     rounds to train"
+    echo "--col1-data-path      data path for collaborator 1"
+    echo "--col2-data-path      data path for collaborator 2"
+    echo "-h, --help            display this help and exit"
+}
+
+# Getting additional options
+ADD_OPTS=$(getopt -o "h" -l "rounds-to-train:,col1-data-path:,
+col2-data-path:,help" -n test_hello_federation.sh -- "$@")
+eval set -- "$ADD_OPTS"
 while true; do
     case "${1:-}" in
     (--rounds-to-train) rounds_to_train="$2" ; shift 2 ;;
+    (--col1-data-path) col1_data_path="$2" ; shift 2 ;;
+    (--col2-data-path) col2_data_path="$2" ; shift 2 ;;
+    (-h|--help) help ; exit 0 ;;
 
     (--)        shift ; break ;;
     (*)         echo "Invalid option: ${1:-}"; exit 1 ;;
     esac
 done
+
 
 
 create_collaborator() {
@@ -86,11 +102,11 @@ fx aggregator certify --fqdn ${FQDN} --silent # Remove '--silent' if you run thi
 
 # Create collaborator #1
 COL1_DIRECTORY=${FED_DIRECTORY}/${COL1}
-create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} 1
+create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} ${col1_data_path}
 
 # Create collaborator #2
 COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
-create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} 2
+create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} ${col2_data_path}
 
 # # Run the federation
 cd ${FED_DIRECTORY}

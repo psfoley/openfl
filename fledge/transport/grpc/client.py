@@ -30,17 +30,24 @@ class CollaboratorGRPCClient:
         self.certificate = certificate
         self.private_key = private_key
 
-        self.channel_options = [('grpc.max_metadata_size', 32 * 1024 * 1024),
-                                ('grpc.max_send_message_length', 128 * 1024 * 1024),
-                                ('grpc.max_receive_message_length', 128 * 1024 * 1024)]
+        self.channel_options = [
+            ('grpc.max_metadata_size', 32 * 1024 * 1024),
+            ('grpc.max_send_message_length', 128 * 1024 * 1024),
+            ('grpc.max_receive_message_length', 128 * 1024 * 1024)
+        ]
 
         self.logger = getLogger(__name__)
 
         if self.disable_tls:
             self.channel = self.create_insecure_channel(self.uri)
         else:
-            self.channel = self.create_tls_channel(self.uri, self.ca, self.disable_client_auth, self.certificate,
-                                                   self.private_key)
+            self.channel = self.create_tls_channel(
+                self.uri,
+                self.ca,
+                self.disable_client_auth,
+                self.certificate,
+                self.private_key
+            )
 
         self.logger.debug('Connecting to gRPC at {uri}')
 
@@ -48,7 +55,8 @@ class CollaboratorGRPCClient:
 
     def create_insecure_channel(self, uri):
         """
-        Sets an insecure gRPC channel (i.e. no TLS) if desired (warns user that this is not recommended)
+        Sets an insecure gRPC channel (i.e. no TLS) if desired (warns user
+         that this is not recommended)
 
         Args:
             uri: The uniform resource identifier fo the insecure channel
@@ -57,20 +65,23 @@ class CollaboratorGRPCClient:
             An insecure gRPC channel object
 
         """
-        self.logger.warn("gRPC is running on insecure channel with TLS disabled.")
+        self.logger.warn(
+            "gRPC is running on insecure channel with TLS disabled.")
 
         return grpc.insecure_channel(uri, options=self.channel_options)
 
-    def create_tls_channel(self, uri, ca, disable_client_auth, certificate, private_key):
+    def create_tls_channel(self, uri, ca, disable_client_auth,
+                           certificate, private_key):
         """
         Sets an secure gRPC channel (i.e. TLS)
 
         Args:
             uri: The uniform resource identifier fo the insecure channel
             ca: The Certificate Authority filename
-            disable_client_auth (boolean): True disabled client-side authentication
-            (not recommended, throws warning to user)
-            certificate: The client certficate filename from the collaborator (signed by the certificate authority)
+            disable_client_auth (boolean): True disabled client-side
+             authentication (not recommended, throws warning to user)
+            certificate: The client certficate filename from the collaborator
+             (signed by the certificate authority)
 
         Returns:
             An insecure gRPC channel object
@@ -95,7 +106,8 @@ class CollaboratorGRPCClient:
             certificate_chain=client_cert
         )
 
-        return grpc.secure_channel(uri, credentials, options=self.channel_options)
+        return grpc.secure_channel(
+            uri, credentials, options=self.channel_options)
 
     def GetTasks(self, message):
         return self.stub.GetTasks(message)

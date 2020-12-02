@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-from click import Group, command, argument, group, clear, echo, option, pass_context, style
+from click import Group, command, argument, group, clear
+from click import echo, option, pass_context, style
 from sys import argv
 from pathlib import Path
 
 
 def setup_logging(log_config='logging.yaml', level='debug'):
-    from logging import getLogger, basicConfig, NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL  # NOQA
+    from logging import basicConfig, NOTSET, DEBUG, INFO
+    from logging import WARNING, ERROR, CRITICAL
     # from rich.traceback import install as colorTraces
     from rich.console import Console
     from rich.logging import RichHandler
@@ -26,7 +28,8 @@ def setup_logging(log_config='logging.yaml', level='debug'):
 
     level = levels.get(level.lower(), levels['notset'])
 
-    basicConfig(level=level, format='%(message)s', datefmt='[%X]', handlers=[RichHandler(console=console)])
+    basicConfig(level=level, format='%(message)s',
+                datefmt='[%X]', handlers=[RichHandler(console=console)])
 
 
 class CLI(Group):
@@ -39,10 +42,16 @@ class CLI(Group):
 
     def format_help(self, ctx, formatter):
 
-        uses = [f'{ctx.command_path}', '[options]', style('[command]', fg='blue'), style('[subcommand]', fg='cyan'),
-                '[args]']
+        uses = [
+            f'{ctx.command_path}',
+            '[options]',
+            style('[command]', fg='blue'),
+            style('[subcommand]', fg='cyan'),
+            '[args]'
+        ]
 
-        formatter.write(style('CORRECT USAGE\n\n', bold=True, fg='bright_black'))
+        formatter.write(style(
+            'CORRECT USAGE\n\n', bold=True, fg='bright_black'))
         formatter.write(' '.join(uses) + '\n')
 
         opts = []
@@ -51,7 +60,8 @@ class CLI(Group):
             if rv is not None:
                 opts.append(rv)
 
-        formatter.write(style('\nGLOBAL OPTIONS\n\n', bold=True, fg='bright_black'))
+        formatter.write(style(
+            '\nGLOBAL OPTIONS\n\n', bold=True, fg='bright_black'))
         formatter.write_dl(opts)
 
         cmds = []
@@ -63,15 +73,20 @@ class CLI(Group):
                 sub = cmd.get_command(ctx, sub)
                 cmds.append((sub.name, sub, 1))
 
-        formatter.write(style('\nAVAILABLE COMMANDS\n', bold=True, fg='bright_black'))
+        formatter.write(style(
+            '\nAVAILABLE COMMANDS\n', bold=True, fg='bright_black'))
 
         for name, cmd, level in cmds:
             help = cmd.get_short_help_str()
             if level == 0:
-                formatter.write(f'\n{style(name, fg="blue", bold=True):<30} {style(help, bold=True)}' + '\n')
+                formatter.write(
+                    f'\n{style(name, fg="blue", bold=True):<30}'
+                    f' {style(help, bold=True)}' + '\n')
                 formatter.write('─' * 80 + '\n')
             if level == 1:
-                formatter.write(f'  {style("⮞", fg="green")} {style(name, fg="cyan"):<21} {help}' + '\n')
+                formatter.write(
+                    f'  {style("⮞", fg="green")}'
+                    f' {style(name, fg="cyan"):<21} {help}' + '\n')
 
 
 @group(cls=CLI)
@@ -112,11 +127,14 @@ def error_handler(error):
     if 'cannot import' in str(error):
         if 'TensorFlow' in str(error):
             echo(style('EXCEPTION', fg='red', bold=True) + ' : ' + style(
-                'Tensorflow must be installed prior to running this command', fg='red'))
+                'Tensorflow must be installed prior to running this command',
+                fg='red'))
         if 'PyTorch' in str(error):
             echo(style('EXCEPTION', fg='red', bold=True) + ' : ' + style(
-                'Torch must be installed prior to running this command', fg='red'))
-    echo(style('EXCEPTION', fg='red', bold=True) + ' : ' + style(f'{error}', fg='red'))
+                'Torch must be installed prior to running this command',
+                fg='red'))
+    echo(style('EXCEPTION', fg='red', bold=True)
+         + ' : ' + style(f'{error}', fg='red'))
     raise error
 
 
@@ -152,7 +170,8 @@ def entry():
         cli()
     except Exception as e:
         error_handler(e)
-        # echo(style(f'EXCEPTION', fg = 'red', bold = True) + ' : ' + style(f'{e}', fg = 'red'))
+        # echo(style(f'EXCEPTION', fg = 'red', bold = True) + ' : '
+        # + style(f'{e}', fg = 'red'))
         # raise e
 
 

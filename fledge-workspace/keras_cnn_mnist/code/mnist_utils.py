@@ -61,15 +61,18 @@ def _load_raw_datashards(shard_num, collaborator_count):
     return (X_train, y_train), (X_valid, y_valid)
 
 
-def load_mnist_shard(shard_num, collaborator_count, categorical=True, channels_last=True, **kwargs):
+def load_mnist_shard(shard_num, collaborator_count, categorical=True,
+                     channels_last=True, **kwargs):
     """
     Load the MNIST dataset.
 
     Args:
         shard_num (int): The shard to use from the dataset
         collaborator_count (int): The number of collaborators in the federation
-        categorical (bool): True = convert the labels to one-hot encoded vectors (Default = True)
-        channels_last (bool): True = The input images have the channels last (Default = True)
+        categorical (bool): True = convert the labels to one-hot encoded
+         vectors (Default = True)
+        channels_last (bool): True = The input images have the channels
+         last (Default = True)
         **kwargs: Additional parameters to pass to the function
 
     Returns:
@@ -83,7 +86,9 @@ def load_mnist_shard(shard_num, collaborator_count, categorical=True, channels_l
     img_rows, img_cols = 28, 28
     num_classes = 10
 
-    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(shard_num, collaborator_count)
+    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(
+        shard_num, collaborator_count
+    )
 
     if channels_last:
         X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, 1)

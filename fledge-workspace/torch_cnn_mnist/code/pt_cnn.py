@@ -71,23 +71,32 @@ class PyTorchCNN(PyTorchTaskRunner):
         Args:
             device: The hardware device to use for training
             print_model (bool): Print the model topology (Default=True)
-            pool_sqrkernel_size (int): Max pooling kernel size (Default=2), assumes square 2x2
-            conv_sqrkernel_size (int): Convolutional filter size (Default=5), assumes square 5x5
-            conv1_channels_out (int): Number of filters in first convolutional layer (Default=20)
-            conv2_channels_out: Number of filters in second convolutional layer (Default=50)
-            fc2_insize (int): Number of neurons in the fully-connected layer (Default = 500)
+            pool_sqrkernel_size (int): Max pooling kernel size (Default=2),
+                                       assumes square 2x2
+            conv_sqrkernel_size (int): Convolutional filter size (Default=5),
+                                       assumes square 5x5
+            conv1_channels_out (int): Number of filters in first
+                                      convolutional layer (Default=20)
+            conv2_channels_out: Number of filters in second convolutional
+                                layer (Default=50)
+            fc2_insize (int): Number of neurons in the
+                              fully-connected layer (Default = 500)
             **kwargs: Additional arguments to pass to the function
 
         """
         """
-        FIXME: We are tracking only side lengths (rather than length and width) as we are assuming square
+        FIXME: We are tracking only side lengths (rather than
+        length and width) as we are assuming square
         shapes for feature and kernels.
-        In order that all of the input and activation components are used (not cut off), we rely on a criterion:
-        appropriate integers are divisible so that all casting to int perfomed below does no rounding
-        (i.e. all int casting simply converts a float with '0' in the decimal part to an int.)
+        In order that all of the input and activation components are
+        used (not cut off), we rely on a criterion: appropriate integers
+        are divisible so that all casting to int perfomed below does no
+        rounding (i.e. all int casting simply converts a float with '0'
+        in the decimal part to an int.)
 
-        (Note this criterion held for the original input sizes considered for this model: 28x28 and 32x32
-        when used with the default values above)
+        (Note this criterion held for the original input sizes considered
+        for this model: 28x28 and 32x32 when used with the default values
+        above)
 
         """
         self.pool_sqrkernel_size = pool_sqrkernel_size
@@ -163,10 +172,12 @@ class PyTorchCNN(PyTorchTaskRunner):
             for data, target in loader:
                 samples = target.shape[0]
                 total_samples += samples
-                data, target = torch.tensor(data).to(self.device), torch.tensor(target).to(self.device,
-                                                                                           dtype=torch.int64)
+                data, target = torch.tensor(data).to(
+                    self.device), torch.tensor(target).to(
+                    self.device, dtype=torch.int64)
                 output = self(data)
-                pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+                # get the index of the max log-probability
+                pred = output.argmax(dim=1, keepdim=True)
                 target_categorical = target.argmax(dim=1, keepdim=True)
                 val_score += pred.eq(target_categorical).sum().cpu().numpy()
 
@@ -177,13 +188,18 @@ class PyTorchCNN(PyTorchTaskRunner):
         else:
             suffix += '_agg'
         tags = ('metric', suffix)
-        # TODO figure out a better way to pass in metric for this pytorch validate function
-        output_tensor_dict = {TensorKey('acc', origin, round_num, True, tags): np.array(val_score / total_samples)}
+        # TODO figure out a better way to pass
+        #  in metric for this pytorch validate function
+        output_tensor_dict = {
+            TensorKey('acc', origin, round_num, True, tags):
+                np.array(val_score / total_samples)
+        }
 
         # Empty list represents metrics that should only be stored locally
         return output_tensor_dict, {}
 
-    def train_batches(self, col_name, round_num, input_tensor_dict, num_batches=None, use_tqdm=False, **kwargs):
+    def train_batches(self, col_name, round_num, input_tensor_dict,
+                      num_batches=None, use_tqdm=False, **kwargs):
         """Train batches
 
         Train the model on the requested number of batches.
@@ -192,8 +208,10 @@ class PyTorchCNN(PyTorchTaskRunner):
             col_name:            Name of the collaborator
             round_num:           What round is it
             input_tensor_dict:   Required input tensors (for model)
-            num_batches:         The number of batches to train on before returning
-            use_tqdm (bool):     Use tqdm to print a progress bar (Default=True)
+            num_batches:         The number of batches to
+                                 train on before returning
+            use_tqdm (bool):     Use tqdm to print a progress
+                                 bar (Default=True)
 
         Returns:
             global_output_dict:  Tensors to send back to the aggregator
@@ -211,7 +229,8 @@ class PyTorchCNN(PyTorchTaskRunner):
             loader = tqdm.tqdm(loader, desc="train epoch")
         for data, target in loader:
             data, target = torch.tensor(data).to(
-                self.device), torch.tensor(target).to(self.device, dtype=torch.float32)
+                self.device), torch.tensor(target).to(
+                self.device, dtype=torch.float32)
             self.optimizer.zero_grad()
             output = self(data)
             loss = self.loss_fn(output=output, target=target)
@@ -223,20 +242,27 @@ class PyTorchCNN(PyTorchTaskRunner):
         origin = col_name
         tags = ('trained',)
         output_metric_dict = {
-            TensorKey(self.loss_fn.__name__, origin, round_num, True, ('metric',)): np.array(np.mean(losses))}
+            TensorKey(
+                self.loss_fn.__name__, origin, round_num, True, ('metric',)
+            ): np.array(np.mean(losses))}
 
         # output model tensors (Doesn't include TensorKey)
         output_model_dict = self.get_tensor_dict(with_opt_vars=True)
-        global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(self.logger, output_model_dict,
-                                                                             **self.tensor_dict_split_fn_kwargs)
+        global_model_dict, local_model_dict = split_tensor_dict_for_holdouts(
+            self.logger, output_model_dict,
+            **self.tensor_dict_split_fn_kwargs
+        )
 
         # Create global tensorkeys
-        global_tensorkey_model_dict = {TensorKey(tensor_name, origin, round_num, False, tags): nparray for
-                                       tensor_name, nparray in global_model_dict.items()}
+        global_tensorkey_model_dict = {
+            TensorKey(tensor_name, origin, round_num, False, tags):
+                nparray for tensor_name, nparray in global_model_dict.items()}
         # Create tensorkeys that should stay local
-        local_tensorkey_model_dict = {TensorKey(tensor_name, origin, round_num, False, tags): nparray for
-                                      tensor_name, nparray in local_model_dict.items()}
-        # The train/validate aggregated function of the next round will look for the updated model parameters.
+        local_tensorkey_model_dict = {
+            TensorKey(tensor_name, origin, round_num, False, tags):
+                nparray for tensor_name, nparray in local_model_dict.items()}
+        # The train/validate aggregated function of the next
+        # round will look for the updated model parameters.
         # This ensures they will be resolved locally
         next_local_tensorkey_model_dict = {TensorKey(
             tensor_name, origin, round_num + 1, False, ('model',)): nparray
@@ -245,17 +271,23 @@ class PyTorchCNN(PyTorchTaskRunner):
         global_tensor_dict = {**output_metric_dict, **global_tensorkey_model_dict}
         local_tensor_dict = {**local_tensorkey_model_dict, **next_local_tensorkey_model_dict}
 
-        # Update the required tensors if they need to be pulled from the aggregator
-        # TODO this logic can break if different collaborators have different roles between rounds.
-        # For example, if a collaborator only performs validation in the first round but training
-        # in the second, it has no way of knowing the optimizer state tensor names to request from the aggregator
+        # Update the required tensors if they need to be
+        # pulled from the aggregator
+        # TODO this logic can break if different collaborators
+        #  have different roles between rounds.
+        # For example, if a collaborator only performs validation
+        # in the first round but training
+        # in the second, it has no way of knowing the optimizer
+        # state tensor names to request from the aggregator
         # because these are only created after training occurs.
         # A work around could involve doing a single epoch of training
-        # on random data to get the optimizer names, and then throwing away the model.
+        # on random data to get the optimizer names,
+        # and then throwing away the model.
         if self.opt_treatment == 'CONTINUE_GLOBAL':
             self.initialize_tensorkeys_for_functions(with_opt_vars=True)
 
-        # This will signal that the optimizer values are now present, and can be loaded when the model is rebuilt
+        # This will signal that the optimizer values are now present,
+        # and can be loaded when the model is rebuilt
         self.train_round_completed = True
 
         # Return global_tensor_dict, local_tensor_dict

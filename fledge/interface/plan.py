@@ -22,19 +22,26 @@ def plan(context):
 
 @plan.command()
 @pass_context
-@option('-p', '--plan_config', required=False, help='Federated learning plan [plan/plan.yaml]',
+@option('-p', '--plan_config', required=False,
+        help='Federated learning plan [plan/plan.yaml]',
         default='plan/plan.yaml', type=ClickPath(exists=True))
-@option('-c', '--cols_config', required=False, help='Authorized collaborator list [plan/cols.yaml]',
+@option('-c', '--cols_config', required=False,
+        help='Authorized collaborator list [plan/cols.yaml]',
         default='plan/cols.yaml', type=ClickPath(exists=True))
-@option('-d', '--data_config', required=False, help='The data set/shard configuration file [plan/data.yaml]',
+@option('-d', '--data_config', required=False,
+        help='The data set/shard configuration file [plan/data.yaml]',
         default='plan/data.yaml', type=ClickPath(exists=True))
-@option('-a', '--aggregator_address', required=False, help='The FQDN of the federation agregator')
-@option('-f', '--feature_shape', required=False, help='The input shape to the model')
-def initialize(context, plan_config, cols_config, data_config, aggregator_address, feature_shape):
+@option('-a', '--aggregator_address', required=False,
+        help='The FQDN of the federation agregator')
+@option('-f', '--feature_shape', required=False,
+        help='The input shape to the model')
+def initialize(context, plan_config, cols_config, data_config,
+               aggregator_address, feature_shape):
     """
     Initialize Data Science plan
 
-    Create a protocol buffer file of the initial model weights for the federation.
+    Create a protocol buffer file of the initial model weights for
+     the federation.
     """
 
     plan = Plan.Parse(plan_config_path=Path(plan_config),
@@ -43,11 +50,13 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
 
     init_state_path = plan.config['aggregator']['settings']['init_state_path']
 
-    # TODO:  Is this part really needed?  Why would we need to collaborator name to know the input shape to the model?
+    # TODO:  Is this part really needed?  Why would we need to collaborator
+    #  name to know the input shape to the model?
 
     # if  feature_shape is None:
     #     if  cols_config is None:
-    #         exit('You must specify either a feature shape or authorized collaborator
+    #         exit('You must specify either a feature
+    #         shape or authorized collaborator
     #         list in order for the script to determine the input layer shape')
     print(plan.cols_data_paths)
 
@@ -55,7 +64,8 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
 
     # else:
 
-    #     logger.info(f'Using data object of type {type(data)} and feature shape {feature_shape}')
+    #     logger.info(f'Using data object of type {type(data)}
+    #     and feature shape {feature_shape}')
     #     raise NotImplementedError()
 
     # data_loader = plan.get_data_loader(collaborator_cname)
@@ -65,14 +75,18 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
     task_runner = plan.get_task_runner(collaborator_cname)
     tensor_pipe = plan.get_tensor_pipe()
 
-    # I believe there is no need for this line as task_runner has this variable initialized with empty dict
-    # tensor_dict_split_fn_kwargs = task_runner.tensor_dict_split_fn_kwargs or {}
-    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(logger,
-                                                                 task_runner.get_tensor_dict(False),
-                                                                 **task_runner.tensor_dict_split_fn_kwargs)
+    # I believe there is no need for this line as task_runner has this variable
+    # initialized with empty dict tensor_dict_split_fn_kwargs =
+    # task_runner.tensor_dict_split_fn_kwargs or {}
+    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(
+        logger,
+        task_runner.get_tensor_dict(False),
+        **task_runner.tensor_dict_split_fn_kwargs
+    )
 
     logger.warn(f'Following parameters omitted from global initial model, '
-                f'local initialization will determine values: {list(holdout_params.keys())}')
+                f'local initialization will determine'
+                f' values: {list(holdout_params.keys())}')
 
     model_snap = construct_model_proto(tensor_dict=tensor_dict,
                                        round_number=0,
@@ -84,11 +98,15 @@ def initialize(context, plan_config, cols_config, data_config, aggregator_addres
 
     plan_origin = Plan.Parse(Path(plan_config), resolve=False).config
 
-    if plan_origin['network']['settings']['agg_addr'] == 'auto' or aggregator_address:
-        plan_origin['network']['settings'] = plan_origin['network'].get('settings', {})
-        plan_origin['network']['settings']['agg_addr'] = aggregator_address or getfqdn()
+    if (plan_origin['network']['settings']['agg_addr'] == 'auto'
+            or aggregator_address):
+        plan_origin['network']['settings'] = plan_origin['network'].get(
+            'settings', {})
+        plan_origin['network']['settings']['agg_addr'] =\
+            aggregator_address or getfqdn()
 
-        logger.warn(f"Patching Aggregator Addr in Plan 🠆 {plan_origin['network']['settings']['agg_addr']}")
+        logger.warn(f"Patching Aggregator Addr in Plan"
+                    f" 🠆 {plan_origin['network']['settings']['agg_addr']}")
 
         Plan.Dump(Path(plan_config), plan_origin)
 
@@ -108,7 +126,8 @@ def FreezePlan(plan_config):
     init_state_path = plan.config['aggregator']['settings']['init_state_path']
 
     if not Path(init_state_path).exists():
-        logger.info("Plan has not been initialized! Run 'fx plan initialize' before proceeding")
+        logger.info("Plan has not been initialized! Run 'fx plan"
+                    " initialize' before proceeding")
         return
 
     Plan.Dump(Path(plan_config), plan.config, freeze=True)
@@ -116,14 +135,15 @@ def FreezePlan(plan_config):
 
 @plan.command(name='freeze')
 @pass_context
-@option('-p', '--plan_config', required=False, help='Federated learning plan [plan/plan.yaml]',
+@option('-p', '--plan_config', required=False,
+        help='Federated learning plan [plan/plan.yaml]',
         default='plan/plan.yaml', type=ClickPath(exists=True))
 def freeze(context, plan_config):
     """
     Finalize the Data Science plan
 
-    Create a new plan file that embeds its hash in the file name (plan.yaml -> plan_{hash}.yaml)
-    and changes the permissions to read only
+    Create a new plan file that embeds its hash in the file name
+    (plan.yaml -> plan_{hash}.yaml) and changes the permissions to read only
     """
 
     FreezePlan(plan_config)
@@ -167,7 +187,9 @@ def switch_plan(name):
 
 @plan.command(name='switch')
 @pass_context
-@option('-n', '--name', required=False, help='Name of the Federated learning plan', default='default', type=str)
+@option('-n', '--name', required=False,
+        help='Name of the Federated learning plan',
+        default='default', type=str)
 def switch_(context, name):
     """
     Switch the current plan to this plan
@@ -177,7 +199,9 @@ def switch_(context, name):
 
 @plan.command(name='save')
 @pass_context
-@option('-n', '--name', required=False, help='Name of the Federated learning plan', default='default', type=str)
+@option('-n', '--name', required=False,
+        help='Name of the Federated learning plan',
+        default='default', type=str)
 def save_(context, name):
     """
     Save the current plan to this plan and switch
@@ -186,7 +210,8 @@ def save_(context, name):
     from shutil import copyfile
 
     echo(f'Saving plan to {name}')
-    # TODO: How do we get the prefix path? What happens if this gets executed outside of the workspace top directory?
+    # TODO: How do we get the prefix path? What happens if this gets executed
+    #  outside of the workspace top directory?
 
     makedirs(f'plan/plans/{name}', exist_ok=True)
     copyfile('plan/plan.yaml', f'plan/plans/{name}/plan.yaml')
@@ -196,7 +221,9 @@ def save_(context, name):
 
 @plan.command(name='remove')
 @pass_context
-@option('-n', '--name', required=False, help='Name of the Federated learning plan', default='default', type=str)
+@option('-n', '--name', required=False,
+        help='Name of the Federated learning plan',
+        default='default', type=str)
 def remove_(context, name):
     """
     Remove this plan

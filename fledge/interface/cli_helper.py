@@ -4,7 +4,6 @@ from sys import argv
 from pathlib import Path
 from itertools import islice
 from os import environ, stat
-from logging import getLogger  # NOQA
 
 from yaml import load, FullLoader
 
@@ -27,7 +26,8 @@ def pretty(o):
 def vex(command, workdir='.', env=None, expectcode=0):
     if env:
         env = {**environ.copy(), **env}
-    r = run(command, shell=True, cwd=workdir, stdout=PIPE, stderr=PIPE, universal_newlines=True, env=env)
+    r = run(command, shell=True, cwd=workdir, stdout=PIPE,
+            stderr=PIPE, universal_newlines=True, env=env)
 
     if r.returncode != expectcode:
         echo('\n💔 ' + style(command, fg='red'))
@@ -53,7 +53,9 @@ def tree(path):
             echo(f'{space}d {path.name}')
 
 
-def print_tree(dir_path: Path, level: int = -1, limit_to_directories: bool = False, length_limit: int = 1000):
+def print_tree(dir_path: Path, level: int = -1,
+               limit_to_directories: bool = False,
+               length_limit: int = 1000):
     """Given a directory Path object print a visual tree structure"""
 
     space = '    '
@@ -81,7 +83,8 @@ def print_tree(dir_path: Path, level: int = -1, limit_to_directories: bool = Fal
                 yield prefix + pointer + path.name
                 directories += 1
                 extension = branch if pointer == tee else space
-                yield from inner(path, prefix=prefix + extension, level=level - 1)
+                yield from inner(path, prefix=prefix + extension,
+                                 level=level - 1)
             elif not limit_to_directories:
                 yield prefix + pointer + path.name
                 files += 1
@@ -95,7 +98,8 @@ def print_tree(dir_path: Path, level: int = -1, limit_to_directories: bool = Fal
     echo(f'\n{directories} directories' + (f', {files} files' if files else ''))
 
 
-def copytree(src, dst, symlinks=False, ignore=None, ignore_dangling_symlinks=False, dirs_exist_ok=False):
+def copytree(src, dst, symlinks=False, ignore=None,
+             ignore_dangling_symlinks=False, dirs_exist_ok=False):
     """From Python 3.8 'shutil' which include 'dirs_exist_ok' option"""
 
     import os
@@ -115,7 +119,8 @@ def copytree(src, dst, symlinks=False, ignore=None, ignore_dangling_symlinks=Fal
 
         os.makedirs(dst, exist_ok=dirs_exist_ok)
         errors = []
-        use_srcentry = copy_function is shutil.copy2 or copy_function is shutil.copy
+        use_srcentry = copy_function is shutil.copy2 or \
+            copy_function is shutil.copy
 
         for srcentry in entries:
             if srcentry.name in ignored_names:
@@ -133,16 +138,20 @@ def copytree(src, dst, symlinks=False, ignore=None, ignore_dangling_symlinks=Fal
                     linkto = os.readlink(srcname)
                     if symlinks:
                         os.symlink(linkto, dstname)
-                        shutil.copystat(srcobj, dstname, follow_symlinks=not symlinks)
+                        shutil.copystat(srcobj, dstname,
+                                        follow_symlinks=not symlinks)
                     else:
-                        if not os.path.exists(linkto) and ignore_dangling_symlinks:
+                        if (not os.path.exists(linkto)
+                                and ignore_dangling_symlinks):
                             continue
                         if srcentry.is_dir():
-                            copytree(srcobj, dstname, symlinks, ignore, dirs_exist_ok=dirs_exist_ok)
+                            copytree(srcobj, dstname, symlinks, ignore,
+                                     dirs_exist_ok=dirs_exist_ok)
                         else:
                             copy_function(srcobj, dstname)
                 elif srcentry.is_dir():
-                    copytree(srcobj, dstname, symlinks, ignore, dirs_exist_ok=dirs_exist_ok)
+                    copytree(srcobj, dstname, symlinks, ignore,
+                             dirs_exist_ok=dirs_exist_ok)
                 else:
                     copy_function(srcobj, dstname)
             except OSError as why:
@@ -182,7 +191,10 @@ def get_workspace_parameter(name):
 
 
 def check_varenv(env="", args={}):
-    ''' Updates "args" (dictionary) with <env: env_value> if env has a defined value in the host'''
+    '''
+    Updates "args" (dictionary) with <env: env_value> if env has a defined
+    value in the host
+     '''
 
     env_val = environ.get(env)
     if env and (env_val is not None):

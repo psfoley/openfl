@@ -10,7 +10,8 @@ from time import sleep
 
 from fledge.protocols import datastream_to_proto
 from fledge.protocols import TaskResults
-from fledge.protocols import AggregatorServicer, add_AggregatorServicer_to_server
+from fledge.protocols import AggregatorServicer
+from fledge.protocols import add_AggregatorServicer_to_server
 
 
 class AggregatorGRPCServer(AggregatorServicer):
@@ -34,7 +35,8 @@ class AggregatorGRPCServer(AggregatorServicer):
         Args:
             fltask (FLtask): The gRPC service task.
             disable_tls (bool): To disable the TLS. (Default: False)
-            disable_client_auth (bool): To disable the client side authentication. (Default: False)
+            disable_client_auth (bool): To disable the client side
+            authentication. (Default: False)
             ca (str): File path to the CA certificate.
             certificate (str): File path to the server certificate.
             private_key (str): File path to the private key.
@@ -48,9 +50,11 @@ class AggregatorGRPCServer(AggregatorServicer):
         self.ca = ca
         self.certificate = certificate
         self.private_key = private_key
-        self.channel_options = [('grpc.max_metadata_size', 32 * 1024 * 1024),
-                                ('grpc.max_send_message_length', 128 * 1024 * 1024),
-                                ('grpc.max_receive_message_length', 128 * 1024 * 1024)]
+        self.channel_options = [
+            ('grpc.max_metadata_size', 32 * 1024 * 1024),
+            ('grpc.max_send_message_length', 128 * 1024 * 1024),
+            ('grpc.max_receive_message_length', 128 * 1024 * 1024)
+        ]
 
         self.logger = getLogger(__name__)
 
@@ -63,13 +67,16 @@ class AggregatorGRPCServer(AggregatorServicer):
             context: The gRPC context
 
         Raises:
-            ValueError: If the collaborator or collaborator certificate is not valid then raises error.
+            ValueError: If the collaborator or collaborator certificate is not
+             valid then raises error.
 
         """
         if not self.disable_tls:
-            common_name = context.auth_context()['x509_common_name'][0].decode('utf-8')
+            common_name = context.auth_context()[
+                'x509_common_name'][0].decode('utf-8')
             collaborator_common_name = request.header.sender
-            if not self.aggregator.valid_collaborator_CN_and_id(common_name, collaborator_common_name):
+            if not self.aggregator.valid_collaborator_CN_and_id(
+                    common_name, collaborator_common_name):
                 raise ValueError(
                     f'Invalid collaborator. CN: |{common_name}| '
                     f'collaborator_common_name: |{collaborator_common_name}|')
@@ -127,7 +134,8 @@ class AggregatorGRPCServer(AggregatorServicer):
 
         if self.disable_tls:
 
-            self.logger.warn('gRPC is running on insecure channel with TLS disabled.')
+            self.logger.warn(
+                'gRPC is running on insecure channel with TLS disabled.')
 
             self.server.add_insecure_port(self.uri)
 
@@ -143,9 +151,11 @@ class AggregatorGRPCServer(AggregatorServicer):
             if self.disable_client_auth:
                 self.logger.warn('Client-side authentication is disabled.')
 
-            self.server_credentials = ssl_server_credentials(((private_key, certificate_chain),),
-                                                             root_certificates=root_certificates,
-                                                             require_client_auth=not self.disable_client_auth)
+            self.server_credentials = ssl_server_credentials(
+                ((private_key, certificate_chain),),
+                root_certificates=root_certificates,
+                require_client_auth=not self.disable_client_auth
+            )
 
             self.server.add_secure_port(self.uri, self.server_credentials)
 

@@ -24,7 +24,11 @@ class TensorFlowCNN(KerasTaskRunner):
         """
         super().__init__(**kwargs)
 
-        self.model = self.create_model(self.feature_shape, self.data_loader.num_classes, **kwargs)
+        self.model = self.create_model(
+            self.feature_shape,
+            self.data_loader.num_classes,
+            **kwargs
+        )
         self.initialize_tensorkeys_for_functions()
 
     def create_model(self,
@@ -56,22 +60,30 @@ class TensorFlowCNN(KerasTaskRunner):
         # Convolutional neural network model
 
         inputs = tf.keras.layers.Input(shape=input_shape)
-        conv = tf.keras.layers.Conv2D(filters=16, kernel_size=(3, 3), padding="same", activation="relu")(inputs)
-        conv = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), padding="same", activation="relu")(conv)
+        conv = tf.keras.layers.Conv2D(
+            filters=16, kernel_size=(3, 3), padding="same", activation="relu")(inputs)
+        conv = tf.keras.layers.Conv2D(
+            filters=32, kernel_size=(3, 3), padding="same", activation="relu")(conv)
         maxpool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(conv)
 
-        conv = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), padding="same", activation="relu")(maxpool)
-        conv = tf.keras.layers.Conv2D(filters=128, kernel_size=(3, 3), padding="same", activation="relu")(conv)
+        conv = tf.keras.layers.Conv2D(
+            filters=64, kernel_size=(3, 3), padding="same", activation="relu")(maxpool)
+        conv = tf.keras.layers.Conv2D(
+            filters=128, kernel_size=(3, 3), padding="same", activation="relu")(conv)
         concat = tf.keras.layers.concatenate([maxpool, conv])
         maxpool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(concat)
 
-        conv = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu")(maxpool)
-        conv = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu")(conv)
+        conv = tf.keras.layers.Conv2D(
+            filters=256, kernel_size=(3, 3), padding="same", activation="relu")(maxpool)
+        conv = tf.keras.layers.Conv2D(
+            filters=512, kernel_size=(3, 3), padding="same", activation="relu")(conv)
         concat = tf.keras.layers.concatenate([maxpool, conv])
         maxpool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(concat)
 
-        conv = tf.keras.layers.Conv2D(filters=256, kernel_size=(3, 3), padding="same", activation="relu")(maxpool)
-        conv = tf.keras.layers.Conv2D(filters=512, kernel_size=(3, 3), padding="same", activation="relu")(conv)
+        conv = tf.keras.layers.Conv2D(
+            filters=256, kernel_size=(3, 3), padding="same", activation="relu")(maxpool)
+        conv = tf.keras.layers.Conv2D(
+            filters=512, kernel_size=(3, 3), padding="same", activation="relu")(conv)
         concat = tf.keras.layers.concatenate([maxpool, conv])
         maxpool = tf.keras.layers.MaxPooling2D(pool_size=(2, 2))(concat)
 

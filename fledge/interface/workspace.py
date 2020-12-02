@@ -7,8 +7,10 @@ from sys import executable
 from warnings import warn
 from shutil import copyfile, ignore_patterns
 
-from fledge.interface.cli_helper import copytree, print_tree, vex, check_varenv, get_fx_path, replace_line_in_file
-from fledge.interface.cli_helper import WORKSPACE, PKI_DIR, SITEPACKS, FLEDGE_USERDIR
+from fledge.interface.cli_helper import copytree, print_tree, vex, check_varenv
+from fledge.interface.cli_helper import get_fx_path, replace_line_in_file
+from fledge.interface.cli_helper import WORKSPACE, PKI_DIR
+from fledge.interface.cli_helper import SITEPACKS, FLEDGE_USERDIR
 
 
 @group()
@@ -56,11 +58,13 @@ def get_templates():
     Grab the default templates from the distribution
     """
 
-    return [d.name for d in WORKSPACE.glob('*') if d.is_dir() and d.name not in ['__pycache__', 'workspace']]
+    return [d.name for d in WORKSPACE.glob('*') if d.is_dir()
+            and d.name not in ['__pycache__', 'workspace']]
 
 
 @workspace.command(name='create')
-@option('--prefix', required=True, help='Workspace name or path', type=ClickPath())
+@option('--prefix', required=True,
+        help='Workspace name or path', type=ClickPath())
 @option('--template', required=True, type=Choice(get_templates()))
 def create_(prefix, template):
     create(prefix, template)
@@ -82,7 +86,9 @@ def create(prefix, template):
     requirements_filename = "requirements.txt"
 
     if isfile(f'{str(prefix)}/{requirements_filename}'):
-        check_call([executable, "-m", "pip", "install", "-r", f"{prefix}/requirements.txt"])
+        check_call([
+            executable, "-m", "pip", "install", "-r",
+            f"{prefix}/requirements.txt"])
         echo(f"Successfully installed packages from {prefix}/requirements.txt.")
     else:
         echo("No additional requirements for workspace defined. Skipping...")
@@ -117,19 +123,22 @@ def export_(context):
     with open(requirements_filename, "w") as f:
         check_call([executable, "-m", "pip", "freeze"], stdout=f)
     workspace_hash = _get_dir_hash(prefix)
-    origin_dict = _get_requirements_dict(FLEDGE_USERDIR / f'requirements.{workspace_hash}.txt')
+    origin_dict = _get_requirements_dict(
+        FLEDGE_USERDIR / f'requirements.{workspace_hash}.txt')
     current_dict = _get_requirements_dict(requirements_filename)
     export_requirements_filename = 'requirements.export.txt'
     with open(export_requirements_filename, "w") as f:
         for package, version in current_dict.items():
             if package not in origin_dict or version != origin_dict[package]:
-                # we save only the difference between original workspace after 'fx create workspace'
-                # and current one.
-                echo(f'Writing {package}=={version} to {requirements_filename}...')
+                # we save only the difference between original workspace after
+                # 'fx create workspace' and current one.
+                echo(f'Writing {package}=={version} '
+                     f'to {requirements_filename}...')
                 f.write(f'{package}=={version}\n')
             elif version is None:  # local dependency
                 warn(f'Could not generate requirements for {package}.'
-                     f' Consider installing it manually after workspace import.')
+                     f' Consider installing it manually after workspace'
+                     f' import.')
     echo(f'{export_requirements_filename} written.')
 
     archiveType = 'zip'
@@ -139,7 +148,8 @@ def export_(context):
     # Aggregator workspace
     tmpDir = join(mkdtemp(), 'fledge', archiveName)
 
-    ignore = ignore_patterns('__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem', '*.pbuf')
+    ignore = ignore_patterns(
+        '__pycache__', '*.crt', '*.key', '*.csr', '*.srl', '*.pem', '*.pbuf')
 
     # We only export the minimum required files to set up a collaborator
     makedirs(f'{tmpDir}/save', exist_ok=True)
@@ -157,16 +167,20 @@ def export_(context):
         if confirm('Create a default \'.workspace\' file?'):
             copy2(WORKSPACE / 'workspace' / '.workspace', tmpDir)
         else:
-            echo('To proceed, you must have a \'.workspace\' file in the current directory.')
+            echo('To proceed, you must have a \'.workspace\' '
+                 'file in the current directory.')
             raise
 
-    make_archive(archiveName, archiveType, tmpDir)  # Create Zip archive of directory
+    # Create Zip archive of directory
+    make_archive(archiveName, archiveType, tmpDir)
 
     echo(f'Workspace exported to archive: {archiveFileName}')
 
 
 @workspace.command(name='import')
-@option('--archive', required=True, help='Zip file containing workspace to import', type=ClickPath(exists=True))
+@option('--archive', required=True,
+        help='Zip file containing workspace to import',
+        type=ClickPath(exists=True))
 def import_(archive):
     """Import federated learning workspace"""
 
@@ -181,7 +195,8 @@ def import_(archive):
     requirements_filename = "requirements.txt"
 
     if isfile(requirements_filename):
-        check_call([executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        check_call([
+            executable, "-m", "pip", "install", "-r", "requirements.txt"])
     else:
         echo("No " + requirements_filename + " file found.")
 
@@ -202,7 +217,8 @@ def certify():
     echo('1.  Create Root CA')
     echo('1.1 Create Directories')
 
-    (PKI_DIR / 'ca/root-ca/private').mkdir(parents=True, exist_ok=True, mode=0o700)
+    (PKI_DIR / 'ca/root-ca/private').mkdir(
+        parents=True, exist_ok=True, mode=0o700)
     (PKI_DIR / 'ca/root-ca/db').mkdir(parents=True, exist_ok=True)
 
     echo('1.2 Create Database')
@@ -240,7 +256,8 @@ def certify():
     echo('2.  Create Signing Certificate')
     echo('2.1 Create Directories')
 
-    (PKI_DIR / 'ca/signing-ca/private').mkdir(parents=True, exist_ok=True, mode=0o700)
+    (PKI_DIR / 'ca/signing-ca/private').mkdir(
+        parents=True, exist_ok=True, mode=0o700)
     (PKI_DIR / 'ca/signing-ca/db').mkdir(parents=True, exist_ok=True)
 
     echo('2.2 Create Database')
@@ -293,7 +310,8 @@ def _get_requirements_dict(txtfile):
         snapshot_dict = {}
         for line in snapshot:
             try:
-                k, v = line.split('==')  # 'pip freeze' generates requirements with exact versions
+                # 'pip freeze' generates requirements with exact versions
+                k, v = line.split('==')
                 snapshot_dict[k] = v
             except ValueError:
                 snapshot_dict[line] = None
@@ -309,7 +327,10 @@ def _get_dir_hash(path):
 
 
 @workspace.command(name='dockerize')
-@option('--save', required=False, help='Save the Docker image into the workspace', is_flag=True)
+@option('--save',
+        required=False,
+        help='Save the Docker image into the workspace',
+        is_flag=True)
 def dockerize_(save):
     '''Package FL.Edge and the workspace as a Docker image'''
 
@@ -344,10 +365,12 @@ def dockerize_(save):
     copy(os.path.join(SITEPACKS, docker_dir, docker_requirements), DOCKER_TMP)
 
     # Workspace content
-    # copytree(WORKSPACE_PATH,os.path.join(DOCKER_TMP,"workspace"), dirs_exist_ok = True)
+    # copytree(WORKSPACE_PATH,os.path.join(DOCKER_TMP,"workspace"),
+    # dirs_exist_ok = True)
 
     # Docker BUILD COMMAND
-    # Define "build_args". These are the equivalent of the "--build-arg" passed to "docker build"
+    # Define "build_args". These are the equivalent of the "--build-arg"
+    # passed to "docker build"
     build_args = {'DOCKER_TMP': dirname}
     # Add here custom build_args for the build command
     # i.e: build_args["CUSTOM_BUILD_ARG"] = custom_build_arg_var
@@ -388,17 +411,32 @@ def dockerize_(save):
 
         os.chdir(SITEPACKS)
         if f'{fledge_img_base}:latest' in str(client.images.list()):
-            if confirm(f'Base image {fledge_img_base} found. Would you like to rebuild?'):
-                echo(f'Building docker image {fledge_img_base}. This may take 5-10 minutes')
+            if confirm(f'Base image {fledge_img_base} found.'
+                       f' Would you like to rebuild?'):
+                echo(f'Building docker image {fledge_img_base}. '
+                     f'This may take 5-10 minutes')
                 client.images.build(
-                    path=str(SITEPACKS), tag=fledge_img_base, buildargs=build_args, dockerfile=base_df)
+                    path=str(SITEPACKS),
+                    tag=fledge_img_base,
+                    buildargs=build_args,
+                    dockerfile=base_df
+                )
         else:
-            echo(f'Building docker image {fledge_img_base}. This may take 5-10 minutes')
-            client.images.build(path=str(SITEPACKS), tag=fledge_img_base, buildargs=build_args, dockerfile=base_df)
+            echo(f'Building docker image {fledge_img_base}.'
+                 f' This may take 5-10 minutes')
+            client.images.build(
+                path=str(SITEPACKS),
+                tag=fledge_img_base,
+                buildargs=build_args,
+                dockerfile=base_df
+            )
 
-        echo(f'Building docker image {fledge_img_name}. This will likely take 5-10 minutes')
+        echo(f'Building docker image {fledge_img_name}.'
+             f' This will likely take 5-10 minutes')
         os.chdir(WORKSPACE_PARENT)
-        client.images.build(path=str(WORKSPACE_PATH), tag=fledge_img_name, buildargs=build_args,
+        client.images.build(path=str(WORKSPACE_PATH),
+                            tag=fledge_img_name,
+                            buildargs=build_args,
                             dockerfile=workspace_df)
 
     except Exception:

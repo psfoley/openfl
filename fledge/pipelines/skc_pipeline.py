@@ -26,7 +26,9 @@ class SparsityTransformer(Transformer):
         return
 
     def forward(self, data, **kwargs):
-        """ Sparsify data and pass over only non-sparsified elements by reducing the array size.
+        """
+        Sparsify data and pass over only non-sparsified elements by reducing
+         the array size.
 
         Args:
             data: an numpy array from the model tensor_dict.
@@ -57,7 +59,8 @@ class SparsityTransformer(Transformer):
 
         Args:
             data: an numpy array with non-zero values.
-            metadata: dictionary to contain information for recovering back to original data array.
+            metadata: dictionary to contain information for recovering back
+             to original data array.
 
         Returns:
             recovered_data: an numpy array with original shape.
@@ -115,7 +118,8 @@ class KmeansTransformer(Transformer):
         """
         # clustering
         data = data.reshape((-1, 1))
-        k_means = cluster.KMeans(n_clusters=self.n_cluster, n_init=self.n_cluster)
+        k_means = cluster.KMeans(
+            n_clusters=self.n_cluster, n_init=self.n_cluster)
         k_means.fit(data)
         quantized_values = k_means.cluster_centers_.squeeze()
         indices = k_means.labels_
@@ -131,7 +135,8 @@ class KmeansTransformer(Transformer):
 
         Args:
             data: an numpy array with non-zero values
-            metadata: dictionary to contain information for recovering back to original data array
+            metadata: dictionary to contain information for recovering back
+             to original data array
 
         Returns:
             data: an numpy array with original numerical type
@@ -145,7 +150,9 @@ class KmeansTransformer(Transformer):
         return data
 
     def _float_to_int(self, np_array):
-        """ Creating look-up table for conversion between floating and integer types.
+        """
+         Creating look-up table for conversion between floating and
+          integer types.
 
         Args:
             np_array
@@ -193,7 +200,8 @@ class GZIPTransformer(Transformer):
 
         Args:
             data: an numpy array with non-zero values
-            metadata: dictionary to contain information for recovering back to original data array
+            metadata: dictionary to contain information for recovering back
+             to original data array
 
         Returns:
             data:
@@ -204,7 +212,9 @@ class GZIPTransformer(Transformer):
 
 
 class SKCPipeline(TransformationPipeline):
-    """ A pipeline class to compress data lossly using sparsity and k-means methods.
+    """
+    A pipeline class to compress data lossly using sparsity and k-means
+     methods.
     """
 
     def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
@@ -220,5 +230,9 @@ class SKCPipeline(TransformationPipeline):
         # instantiate each transformer
         self.p = p_sparsity
         self.n_cluster = n_clusters
-        transformers = [SparsityTransformer(self.p), KmeansTransformer(self.n_cluster), GZIPTransformer()]
+        transformers = [
+            SparsityTransformer(self.p),
+            KmeansTransformer(self.n_cluster),
+            GZIPTransformer()
+        ]
         super(SKCPipeline, self).__init__(transformers=transformers, **kwargs)

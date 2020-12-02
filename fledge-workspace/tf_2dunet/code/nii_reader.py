@@ -31,7 +31,11 @@ def parse_segments(seg, msk_modes):
         curr = seg[:, :, slice]
         this_msk_parts = []
         for mode in msk_modes:
-            this_msk_parts.append(ma.masked_not_equal(curr, mode_to_key_value[mode]).filled(fill_value=0))
+            this_msk_parts.append(
+                ma.masked_not_equal(curr, mode_to_key_value[mode]).filled(
+                    fill_value=0
+                )
+            )
         msks_parsed.append(np.dstack(this_msk_parts))
 
     # Replace all tumorous areas with 1 (previously marked as 1, 2 or 4)
@@ -59,18 +63,19 @@ def resize_data(dataset, new_size=128, rotate=3):
     """Resize 2D images within data by cropping equally from their boundaries.
 
     Args:
-        dataset (np.array): Data containing 2D images whose dimensions are along the 1st
-        and 2nd axes.
-        new_size (int): Dimensions of square image to which resizing will occur. Assumed to be
-        an even distance away from both dimensions of the images within dataset. (default 128)
-        rotate (int): Number of counter clockwise 90 degree rotations to perform.
+        dataset (np.array): Data containing 2D images whose dimensions are
+        along the 1st and 2nd axes.
+        new_size (int): Dimensions of square image to which resizing will
+        occur. Assumed to be an even distance away from both dimensions of
+        the images within dataset. (default 128) rotate (int): Number of
+        counter clockwise 90 degree rotations to perform.
 
     Returns:
         (np.array): resized data
 
     Raises:
-        ValueError: If (dataset.shape[1] - new_size) and (dataset.shape[2] - new_size)
-            are not both even integers.
+        ValueError: If (dataset.shape[1] - new_size) and
+         (dataset.shape[2] - new_size) are not both even integers.
 
     """
 
@@ -92,18 +97,23 @@ def resize_data(dataset, new_size=128, rotate=3):
 
 
 # adapted from https://github.com/NervanaSystems/topologies
-def _update_channels(imgs, msks, img_channels_to_keep, msk_channels_to_keep, channels_last):
-    """Filter the channels of images and move placement of channels in shape if desired.
+def _update_channels(imgs, msks, img_channels_to_keep,
+                     msk_channels_to_keep, channels_last):
+    """Filter the channels of images and move placement of
+     channels in shape if desired.
 
     Args:
-        imgs (np.array): A stack of images with channels (channels could be anywhere in number from
-        one to four. Images are indexed along first axis, with channels along fourth (last) axis.
-        msks (np.array): A stack of binary masks with channels (channels could be anywhere in number from
-        one to four. Images are indexed along first axis, with channels along fourth (last) axis.
-        img_channels_to_keep (flat np.ndarray): the channels to keep in the image (remove others)
-        msk_channels_to_keep (flat np.ndarray): the channels to sum in the mask (resulting in
+        imgs (np.array): A stack of images with channels (channels could be
+        anywhere in number from one to four. Images are indexed along first
+        axis, with channels along fourth (last) axis. msks (np.array): A stack
+        of binary masks with channels (channels could be anywhere in number
+        from one to four. Images are indexed along first axis, with channels
+        along fourth (last) axis. img_channels_to_keep (flat np.ndarray): the
+        channels to keep in the image (remove others) msk_channels_to_keep
+        (flat np.ndarray): the channels to sum in the mask (resulting in
         a single channel array)
-        channels_last (bool): Return channels in last axis? otherwise just after first
+        channels_last (bool): Return channels in last axis? otherwise just
+         after first
 
     Returns:
         images, masks with selected channels
@@ -113,7 +123,9 @@ def _update_channels(imgs, msks, img_channels_to_keep, msk_channels_to_keep, cha
     # the mask channels that are kept are summed over to leave one channel
     # note the indices producing non-zero entries on these masks are mutually exclusive
     # so that the result continues to be an array with only ones and zeros
-    msk_summands = [msks[:, :, :, channel:channel + 1] for channel in msk_channels_to_keep]
+    msk_summands = [
+        msks[:, :, :, channel:channel + 1] for channel in msk_channels_to_keep
+    ]
     new_msks = np.sum(msk_summands, axis=0)
 
     if not channels_last:
@@ -128,7 +140,8 @@ def list_files(root, extension, parts):
     return files
 
 
-def nii_reader(brain_path, task, channels_last=True, numpy_type='float64', normalization='by_mode', **kwargs):
+def nii_reader(brain_path, task, channels_last=True,
+               numpy_type='float64', normalization='by_mode', **kwargs):
     """Fetch a whole brain 3D image from disc.
 
     Assumes data_dir contains only subdirectories, each containing exactly one
@@ -244,20 +257,29 @@ def nii_reader(brain_path, task, channels_last=True, numpy_type='float64', norma
 
     # determine which channels are wanted in our images in the case where we kept
     # extra scanning modes in order to normalize across all but only use a subset
-    msk_mode_to_channel = {mode: channel_num for (channel_num, mode) in enumerate(msk_modes)}
-    msk_channels_to_keep = np.array([msk_mode_to_channel[mode] for mode in task_to_msk_modes[task]])
-    # if we normalization is by_mode or None, we have already restricted the image channels
+    msk_mode_to_channel = {
+        mode: channel_num for (channel_num, mode) in enumerate(msk_modes)
+    }
+    msk_channels_to_keep = np.array(
+        [msk_mode_to_channel[mode] for mode in task_to_msk_modes[task]])
+    # if we normalization is by_mode or None,
+    # we have already restricted the image channels
     if normalization in ['by_mode', None]:
         img_channels_to_keep = np.arange(imgs.shape[-1])
     elif normalization == 'modes_together':
-        img_mode_to_channel = {mode: channel_num for (channel_num, mode) in enumerate(img_modes)}
-        img_channels_to_keep = np.array([img_mode_to_channel[mode] for mode in task_to_img_modes[task]])
+        img_mode_to_channel = {
+            mode: channel_num for (channel_num, mode) in enumerate(img_modes)
+        }
+        img_channels_to_keep = np.array(
+            [img_mode_to_channel[mode] for mode in task_to_img_modes[task]]
+        )
     else:
         raise ValueError('{} is not a supported normalization.'.format(normalization))
 
     img = imgs
     msk = msks
 
-    img, msk = _update_channels(img, msk, img_channels_to_keep, msk_channels_to_keep, channels_last)
+    img, msk = _update_channels(
+        img, msk, img_channels_to_keep, msk_channels_to_keep, channels_last)
 
     return img.astype(numpy_type), msk.astype(numpy_type)

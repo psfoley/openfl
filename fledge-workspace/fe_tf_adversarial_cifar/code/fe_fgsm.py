@@ -26,7 +26,8 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
             **kwargs: Additional parameters to pass to the function
         """
         TaskRunner.__init__(self, **kwargs)
-        # Now the data pipeline will be initialized and the rest of the network/estimator can be built
+        # Now the data pipeline will be initialized and the rest of the
+        # network/estimator can be built
         self.model = self.build_model()
         self.network = self.build_network()
         estimator = self.build_estimator()

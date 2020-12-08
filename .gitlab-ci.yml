@@ -1,5 +1,6 @@
 stages:
   - pep8
+  - unit-tests
   - build
   - test
 
@@ -57,6 +58,31 @@ pep8:
   script:
     - python3 -m pip install -r requirements-linters.txt --user
     - flake8
+
+unit-tests:
+  stage: unit-tests
+  tags:
+    - charlie
+  before_script:
+    - whoami
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
+    - pwd
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf fledge
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - python3 -m pip install --user --upgrade pip
+  script:
+    - python3 -m pip install -r requirements-test.txt --user
+    - pytest
 
 keras_cnn_mnist:
   stage: test

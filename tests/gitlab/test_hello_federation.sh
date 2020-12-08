@@ -8,8 +8,8 @@ COL2=${4:-'beta34unicorns'} # This can be any unique label (lowercase)
 
 FQDN=$(hostname --all-fqdns | awk '{print $1}')
 
-col1_data_path=1
-col2_data_path=2
+COL1_DATA_PATH=1
+COL2_DATA_PATH=2
 
 help() {
     echo "Usage: test_hello_federation.sh TEMPLATE FED_WORKSPACE COL1 COL2 [OPTIONS]"
@@ -25,11 +25,11 @@ help() {
 ADD_OPTS=$(getopt -o "h" -l "rounds-to-train:,col1-data-path:,
 col2-data-path:,help" -n test_hello_federation.sh -- "$@")
 eval set -- "$ADD_OPTS"
-while true; do
+while (($#)); do
     case "${1:-}" in
-    (--rounds-to-train) rounds_to_train="$2" ; shift 2 ;;
-    (--col1-data-path) col1_data_path="$2" ; shift 2 ;;
-    (--col2-data-path) col2_data_path="$2" ; shift 2 ;;
+    (--rounds-to-train) ROUNDS_TO_TRAIN="$2" ; shift 2 ;;
+    (--col1-data-path) COL1_DATA_PATH="$2" ; shift 2 ;;
+    (--col2-data-path) COL2_DATA_PATH="$2" ; shift 2 ;;
     (-h|--help) help ; exit 0 ;;
 
     (--)        shift ; break ;;
@@ -83,9 +83,9 @@ FED_DIRECTORY=`pwd`  # Get the absolute directory path for the workspace
 fx plan initialize -a ${FQDN}
 
 # Set rounds to train if given
-if [[ ! -z "$rounds_to_train" ]]
+if [[ ! -z "$ROUNDS_TO_TRAIN" ]]
 then
-    sed -i "/rounds_to_train/c\    rounds_to_train: $rounds_to_train" plan/plan.yaml
+    sed -i "/rounds_to_train/c\    rounds_to_train: $ROUNDS_TO_TRAIN" plan/plan.yaml
 fi
 
 # Create certificate authority for workspace
@@ -102,11 +102,11 @@ fx aggregator certify --fqdn ${FQDN} --silent # Remove '--silent' if you run thi
 
 # Create collaborator #1
 COL1_DIRECTORY=${FED_DIRECTORY}/${COL1}
-create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} ${col1_data_path}
+create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL1_DIRECTORY} ${COL1_DATA_PATH}
 
 # Create collaborator #2
 COL2_DIRECTORY=${FED_DIRECTORY}/${COL2}
-create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} ${col2_data_path}
+create_collaborator ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL2} ${COL2_DIRECTORY} ${COL2_DATA_PATH}
 
 # # Run the federation
 cd ${FED_DIRECTORY}

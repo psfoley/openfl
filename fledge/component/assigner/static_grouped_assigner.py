@@ -23,18 +23,6 @@ class StaticGroupedAssigner(Assigner):
                              each round of experiment
     """
 
-    def __init__(self, task_groups, authorized_cols, rounds_to_train, **kwargs):
-
-        self.task_groups = task_groups
-        self.rounds = rounds_to_train
-        self.authorized_cols = authorized_cols
-
-        self.task_group_collaborators = {}
-        self.collaborators_for_task = {}
-        self.collaborator_tasks = {}
-
-        self.define_task_assignments()
-
     def define_task_assignments(self):
         """
         All of the logic to set up the map of tasks to collaborators is done
@@ -74,20 +62,13 @@ class StaticGroupedAssigner(Assigner):
                 }
             # Now populate reverse lookup of tasks->group
             for task in group['tasks']:
-                for round in range(self.rounds):
+                for round_ in range(self.rounds):
                     # This should append the list of collaborators performing
                     # that task
-                    self.collaborators_for_task[task][round] += group_col_list
+                    self.collaborators_for_task[task][round_] += group_col_list
 
     def get_tasks_for_collaborator(self, collaborator_name, round_number):
         return self.collaborator_tasks[collaborator_name][round_number]
 
     def get_collaborators_for_task(self, task_name, round_number):
         return self.collaborators_for_task[task_name][round_number]
-
-    def get_all_tasks_for_round(self, round_number):
-        """
-        Currently all tasks are performed on each round, but there may be a
-         reason to change this
-        """
-        return self.all_tasks_in_groups

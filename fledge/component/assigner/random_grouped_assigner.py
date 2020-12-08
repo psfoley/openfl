@@ -25,20 +25,6 @@ class RandomGroupedAssigner(Assigner):
                              carry out tasks for each round of experiment
     """
 
-    def __init__(self, task_groups, tasks, authorized_cols,
-                 rounds_to_train, **kwargs):
-
-        self.task_groups = task_groups
-        self.tasks = tasks
-        self.rounds = rounds_to_train
-        self.authorized_cols = authorized_cols
-
-        self.task_group_collaborators = {}
-        self.collaborators_for_task = {}
-        self.collaborator_tasks = {}
-
-        self.define_task_assignments()
-
     def define_task_assignments(self):
         """
         All of the logic to set up the map of tasks to collaborators
@@ -96,15 +82,3 @@ class RandomGroupedAssigner(Assigner):
 
     def get_collaborators_for_task(self, task_name, round_number):
         return self.collaborators_for_task[task_name][round_number]
-
-    def get_aggregation_type_for_task(self, task_name):
-        if 'aggregation_type' not in self.tasks[task_name]:
-            return None
-        return self.tasks[task_name]['aggregation_type']
-
-    def get_all_tasks_for_round(self, round_number):
-        """
-        Currently all tasks are performed on each round, but there may be a
-        reason to change this
-        """
-        return self.all_tasks_in_groups

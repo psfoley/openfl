@@ -22,7 +22,8 @@ class Assigner:
                           carry out tasks for each round of experiment
     """
 
-    def __init__(self, task_groups, tasks, authorized_cols, rounds_to_train):
+    def __init__(self, task_groups, tasks, authorized_cols,
+                 rounds_to_train, **kwargs):
         self.task_groups = task_groups
         self.tasks = tasks
         self.authorized_cols = authorized_cols

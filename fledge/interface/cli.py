@@ -6,14 +6,13 @@ from sys import argv
 from pathlib import Path
 
 
-def setup_logging(log_config='logging.yaml', level='debug'):
+def setup_logging(level='info'):
     from logging import basicConfig, NOTSET, DEBUG, INFO
     from logging import WARNING, ERROR, CRITICAL
-    # from rich.traceback import install as colorTraces
     from rich.console import Console
     from rich.logging import RichHandler
+    import os
 
-    # traces = colorTraces(width=160)
     console = Console(width=160)
 
     levels = \
@@ -25,6 +24,9 @@ def setup_logging(log_config='logging.yaml', level='debug'):
             'error': ERROR,
             'critical': CRITICAL
         }
+
+    if level.lower() in ['debug', 'error']:
+        os.environ['GRPC_VERBOSITY'] = level.upper()
 
     level = levels.get(level.lower(), levels['notset'])
 
@@ -90,21 +92,19 @@ class CLI(Group):
 
 
 @group(cls=CLI)
-@option('--log-config', default='logging.yaml', help='Logging configuration file.')
-@option('--log-level', default='info', help='Logging verbosity level.')
+@option('-l', '--log-level', default='info', help='Logging verbosity level.')
 @pass_context
-def cli(context, log_config, log_level):
+def cli(context, log_level):
     '''Command-line Interface'''
 
     context.ensure_object(dict)
 
-    context.obj['log_config'] = log_config
     context.obj['log_level'] = log_level
     context.obj['fail'] = False
     context.obj['script'] = argv[0]
     context.obj['arguments'] = argv[1:]
 
-    setup_logging(log_config, log_level)
+    setup_logging(log_level)
 
 
 @cli.resultcallback()

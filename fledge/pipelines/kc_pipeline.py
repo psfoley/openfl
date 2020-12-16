@@ -1,19 +1,21 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
-import gzip  as gz
-import copy  as co
+import gzip as gz
+import copy as co
 
 from sklearn import cluster
 
 from .pipeline import TransformationPipeline, Transformer
-from .pipeline import Float32NumpyArrayToBytes
+
 
 class KmeansTransformer(Transformer):
     """ A K-means transformer class to quantize input data.
     """
-    def __init__(self,n_cluster = 6):
+
+    def __init__(self, n_cluster=6):
         """Class initializer
 
         Args:
@@ -34,15 +36,15 @@ class KmeansTransformer(Transformer):
         """
         metadata = {}
         metadata['int_list'] = list(data.shape)
-      # clustering
-        k_means = cluster.KMeans(n_clusters = self.n_cluster, n_init = self.n_cluster)
+        # clustering
+        k_means = cluster.KMeans(n_clusters=self.n_cluster, n_init=self.n_cluster)
         data = data.reshape((-1, 1))
         k_means.fit(data)
         quantized_values = k_means.cluster_centers_.squeeze()
         indices = k_means.labels_
         quant_array = np.choose(indices, quantized_values)
         int_array, int2float_map = self._float_to_int(quant_array)
-        metadata['int_to_float']  = int2float_map
+        metadata['int_to_float'] = int2float_map
 
         return int_array, metadata
 
@@ -80,7 +82,7 @@ class KmeansTransformer(Transformer):
 
         flatten_array = np_array.reshape(-1)
         unique_value_array = np.unique(flatten_array)
-        int_array = np.zeros(flatten_array.shape,dtype = np.int)
+        int_array = np.zeros(flatten_array.shape, dtype=np.int)
         int_to_float_map = {}
         float_to_int_map = {}
         # create table
@@ -88,10 +90,11 @@ class KmeansTransformer(Transformer):
             int_to_float_map.update({idx: u_value})
             float_to_int_map.update({u_value: idx})
             # assign to the integer array
-            indices = np.where(flatten_array==u_value)
+            indices = np.where(flatten_array == u_value)
             int_array[indices] = idx
         int_array = int_array.reshape(np_array.shape)
         return int_array, int_to_float_map
+
 
 class GZIPTransformer(Transformer):
     """ A GZIP transformer class to losslessly compress data.
@@ -125,14 +128,15 @@ class GZIPTransformer(Transformer):
             data: Numpy array
         """
         decompressed_bytes_ = gz.decompress(data)
-        data = np.frombuffer(decompressed_bytes_,dtype = np.float32)
+        data = np.frombuffer(decompressed_bytes_, dtype=np.float32)
         return data
+
 
 class KCPipeline(TransformationPipeline):
     """ A pipeline class to compress data lossly using k-means and GZIP methods.
     """
 
-    def __init__(self,p_sparsity = 0.01,n_clusters = 6, **kwargs):
+    def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
         """ Initializing a pipeline of transformers.
 
         Args:

@@ -1,13 +1,14 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
-import numpy               as np
+import numpy as np
 import tensorflow_datasets as tfds
 
-from logging                                  import getLogger
-from tensorflow.python.keras.utils.data_utils import get_file
+from logging import getLogger
 
 logger = getLogger(__name__)
+
 
 def one_hot(labels, classes):
     """
@@ -21,6 +22,7 @@ def one_hot(labels, classes):
         np.array: Matrix of one-hot encoded labels
     """
     return np.eye(classes)[labels]
+
 
 def _load_raw_datashards(shard_num, collaborator_count):
     """
@@ -37,16 +39,16 @@ def _load_raw_datashards(shard_num, collaborator_count):
     """
 
     (ds), metadata = tfds.load('colorectal_histology', data_dir='.',
-                             shuffle_files=False, split='train',batch_size=-1,
-                             with_info=True, as_supervised=True)
+                               shuffle_files=False, split='train', batch_size=-1,
+                               with_info=True, as_supervised=True)
 
-    image,label = tfds.as_numpy(ds)
+    image, label = tfds.as_numpy(ds)
 
     np.random.seed(42)
     shuf = np.random.permutation(len(image))
     image = image[shuf]
     label = label[shuf]
-    
+
     split = int(len(image) * 0.8)
 
     X_train_tot = image[:split]
@@ -56,7 +58,7 @@ def _load_raw_datashards(shard_num, collaborator_count):
     y_valid_tot = label[split:]
 
     shard_num = int(shard_num)
-    
+
     # create the shards
     X_train = X_train_tot[shard_num::collaborator_count]
     y_train = y_train_tot[shard_num::collaborator_count]
@@ -67,15 +69,18 @@ def _load_raw_datashards(shard_num, collaborator_count):
     return (X_train, y_train), (X_valid, y_valid)
 
 
-def load_histology_shard(shard_num, collaborator_count, categorical = True, channels_last = True, **kwargs):
+def load_histology_shard(shard_num, collaborator_count, categorical=True,
+                         channels_last=True, **kwargs):
     """
     Load the colorectal histology dataset.
 
     Args:
         shard_num (int): The shard to use from the dataset
         collaborator_count (int): The number of collaborators in the federation
-        categorical (bool): True = convert the labels to one-hot encoded vectors (Default = True)
-        channels_last (bool): True = The input images have the channels last (Default = True)
+        categorical (bool): True = convert the labels to one-hot encoded
+         vectors (Default = True)
+        channels_last (bool): True = The input images have the channels last
+         (Default = True)
         **kwargs: Additional parameters to pass to the function
 
     Returns:
@@ -91,7 +96,8 @@ def load_histology_shard(shard_num, collaborator_count, categorical = True, chan
     img_cols = 150
     channels = 3
 
-    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(shard_num, collaborator_count)
+    (X_train, y_train), (X_valid, y_valid) = _load_raw_datashards(
+        shard_num, collaborator_count)
 
     if channels_last:
         X_train = X_train.reshape(X_train.shape[0], img_rows, img_cols, channels)
@@ -113,7 +119,7 @@ def load_histology_shard(shard_num, collaborator_count, categorical = True, chan
     logger.info(f'Histology > Valid Samples : {X_valid.shape[0]}')
 
     if categorical:
-      # convert class vectors to binary class matrices
+        # convert class vectors to binary class matrices
         y_train = one_hot(y_train, num_classes)
         y_valid = one_hot(y_valid, num_classes)
 

@@ -1,11 +1,14 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
-import tensorflow.compat.v1        as tf
-tf.disable_v2_behavior()
-import numpy as np
+import tensorflow.compat.v1 as tf
 
 from fledge.federated import TensorFlowTaskRunner
+
+
+tf.disable_v2_behavior()
+
 
 class TensorFlow2DUNet(TensorFlowTaskRunner):
     """Initializer
@@ -40,7 +43,6 @@ class TensorFlow2DUNet(TensorFlowTaskRunner):
 
         """
 
-
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.intra_op_parallelism_threads = 112
@@ -53,7 +55,8 @@ class TensorFlow2DUNet(TensorFlowTaskRunner):
 
         self.loss = dice_coef_loss(self.y, self.output, smooth=training_smoothing)
         self.loss_name = dice_coef_loss.__name__
-        self.validation_metric = dice_coef(self.y, self.output, smooth=validation_smoothing)
+        self.validation_metric = dice_coef(
+            self.y, self.output, smooth=validation_smoothing)
         self.validation_metric_name = dice_coef.__name__
 
         self.global_step = tf.train.get_or_create_global_step()
@@ -91,9 +94,10 @@ def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):
         float: Dice cofficient metric
 
     """
-    intersection = tf.reduce_sum(y_true * y_pred, axis=[1,2,3])
+    intersection = tf.reduce_sum(y_true * y_pred, axis=[1, 2, 3])
     coef = (tf.constant(2.) * intersection + tf.constant(smooth)) / \
-           (tf.reduce_sum(y_true, axis=[1,2,3]) + tf.reduce_sum(y_pred, axis=(1,2,3)) + tf.constant(smooth))
+           (tf.reduce_sum(y_true, axis=[1, 2, 3]) + tf.reduce_sum(
+               y_pred, axis=(1, 2, 3)) + tf.constant(smooth))
     return tf.reduce_mean(coef)
 
 
@@ -116,8 +120,8 @@ def dice_coef_loss(y_true, y_pred, smooth=1.0, **kwargs):
     intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2, 3))
 
     term1 = -tf.log(tf.constant(2.0) * intersection + smooth)
-    term2 = tf.log(tf.reduce_sum(y_true, axis=(1, 2, 3)) +
-                   tf.reduce_sum(y_pred, axis=(1, 2, 3)) + smooth)
+    term2 = tf.log(tf.reduce_sum(y_true, axis=(1, 2, 3))
+                   + tf.reduce_sum(y_pred, axis=(1, 2, 3)) + smooth)
 
     term1 = tf.reduce_mean(term1)
     term2 = tf.reduce_mean(term2)
@@ -142,28 +146,30 @@ def define_model(input_tensor,
                  use_upsampling=False,
                  n_cl_out=1,
                  dropout=0.2,
-                 print_summary = True,
+                 print_summary=True,
                  activation_function='relu',
                  seed=0xFEEDFACE,
                  depth=5,
-                 dropout_at=[2,3],
+                 dropout_at=[2, 3],
                  initial_filters=32,
                  batch_norm=True,
                  **kwargs):
-
     """Define the TensorFlow model
 
     Args:
         input_tensor: input shape ot the model
-        use_upsampling (bool): True = use bilinear interpolation; False = use transposed convolution (Default=False)
+        use_upsampling (bool): True = use bilinear interpolation;
+                               False = use transposed convolution (Default=False)
         n_cl_out (int): Number of channels in input layer (Default=1)
         dropout (float): Dropout percentage (Default=0.2)
         print_summary (bool): True = print the model summary (Default = True)
-        activation_function: The activation function to use after convolutional layers (Default='relu')
+        activation_function: The activation function to use after convolutional
+         layers (Default='relu')
         seed: random seed (Default=0xFEEDFACE)
         depth (int): Number of max pooling layers in encoder (Default=5)
         dropout_at: Layers to perform dropout after (Default=[2,3])
-        initial_filters (int): Number of filters in first convolutional layer (Default=32)
+        initial_filters (int): Number of filters in first convolutional
+         layer (Default=32)
         batch_norm (bool): True = use batch normalization (Default=True)
         **kwargs: Additional parameters to pass to the function
 
@@ -191,18 +197,18 @@ def define_model(input_tensor,
     net = inputs
     filters = initial_filters
     for i in range(depth):
-        name = 'conv{}a'.format(i+1)
+        name = 'conv{}a'.format(i + 1)
         net = tf.keras.layers.Conv2D(name=name, filters=filters, **params)(net)
         if i in dropout_at:
             net = tf.keras.layers.Dropout(dropout)(net)
-        name = 'conv{}b'.format(i+1)
+        name = 'conv{}b'.format(i + 1)
         net = tf.keras.layers.Conv2D(name=name, filters=filters, **params)(net)
         if batch_norm:
             net = tf.keras.layers.BatchNormalization()(net)
         convb_layers[name] = net
         # only pool if not last level
         if i != depth - 1:
-            name = 'pool{}'.format(i+1)
+            name = 'pool{}'.format(i + 1)
             net = tf.keras.layers.MaxPooling2D(name=name, pool_size=(2, 2))(net)
             filters *= 2
 
@@ -210,20 +216,31 @@ def define_model(input_tensor,
     filters //= 2
     for i in range(depth - 1):
         if use_upsampling:
-            up = tf.keras.layers.UpSampling2D(name='up{}'.format(depth + i + 1), size=(2, 2))(net)
+            up = tf.keras.layers.UpSampling2D(
+                name='up{}'.format(depth + i + 1), size=(2, 2))(net)
         else:
-            up = tf.keras.layers.Conv2DTranspose(name='transConv6', filters=filters, data_format=data_format, kernel_size=(2, 2), strides=(2, 2), padding='same')(net)
-        net = tf.keras.layers.concatenate([up, convb_layers['conv{}b'.format(depth - i - 1)]], axis=concat_axis)
-        net = tf.keras.layers.Conv2D(name='conv{}a'.format(depth + i + 1), filters=filters, **params)(net)
-        net = tf.keras.layers.Conv2D(name='conv{}b'.format(depth + i + 1), filters=filters, **params)(net)
+            up = tf.keras.layers.Conv2DTranspose(
+                name='transConv6', filters=filters, data_format=data_format,
+                kernel_size=(2, 2), strides=(2, 2), padding='same')(net)
+        net = tf.keras.layers.concatenate(
+            [up, convb_layers['conv{}b'.format(depth - i - 1)]],
+            axis=concat_axis
+        )
+        net = tf.keras.layers.Conv2D(
+            name='conv{}a'.format(depth + i + 1),
+            filters=filters, **params)(net)
+        net = tf.keras.layers.Conv2D(
+            name='conv{}b'.format(depth + i + 1),
+            filters=filters, **params)(net)
         filters //= 2
 
-    net = tf.keras.layers.Conv2D(name='Mask', filters=n_cl_out, kernel_size=(1, 1), data_format=data_format, activation='sigmoid')(net)
+    net = tf.keras.layers.Conv2D(name='Mask', filters=n_cl_out,
+                                 kernel_size=(1, 1), data_format=data_format,
+                                 activation='sigmoid')(net)
 
     model = tf.keras.models.Model(inputs=[inputs], outputs=[net])
 
     if print_summary:
-        print (model.summary())
+        print(model.summary())
 
     return net
-

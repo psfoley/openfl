@@ -8,6 +8,21 @@ COL2=${4:-'beta34unicorns'} # This can be any unique label (lowercase)
 
 FQDN=$(hostname --all-fqdns | awk '{print $1}')
 
+# Getting additional options
+OPTS=$(getopt -l "rounds-to-train:" -n test_hello_federation.sh -- "$@")
+eval set -- "$OPTS"
+unset OPTS
+
+while true; do
+    case "${1:-}" in
+    (--rounds-to-train) rounds_to_train="$2" ; shift 2 ;;
+
+    (--)        shift ; break ;;
+    (*)         echo "Invalid option: ${1:-}"; exit 1 ;;
+    esac
+done
+
+
 create_collaborator() {
 
     FED_WORKSPACE=$1
@@ -51,6 +66,12 @@ FED_DIRECTORY=`pwd`  # Get the absolute directory path for the workspace
 # Initialize FL plan
 fx plan initialize -a ${FQDN}
 
+# Set rounds to train if given
+if [[ ! -z "$rounds_to_train" ]]
+then
+    sed -i "/rounds_to_train/c\    rounds_to_train: $rounds_to_train" plan/plan.yaml
+fi
+
 # Create certificate authority for workspace
 fx workspace certify
 
@@ -79,4 +100,5 @@ cd ${COL1_DIRECTORY}/${FED_WORKSPACE}
 fx collaborator start -n ${COL1} & 
 cd ${COL2_DIRECTORY}/${FED_WORKSPACE}
 fx collaborator start -n ${COL2}
+wait
 rm -rf ${FED_DIRECTORY}

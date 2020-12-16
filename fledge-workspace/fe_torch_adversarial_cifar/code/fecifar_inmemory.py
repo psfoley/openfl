@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 from fledge.federated import FastEstimatorDataLoader
 
@@ -24,47 +25,54 @@ class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
         """
 
         # TODO: We should be downloading the dataset shard into a directory
-        # TODO: There needs to be a method to ask how many collaborators and what index/rank is this collaborator.
-        # Then we have a way to automatically shard based on rank and size of collaborator list.
+        # TODO: There needs to be a method to ask how many collaborators and
+        #  what index/rank is this collaborator.
+        # Then we have a way to automatically shard based on rank and size of
+        # collaborator list.
 
         train_data, eval_data = cifar10.load_data()
         test_data = eval_data.split(0.5)
 
-        train_data, eval_data, test_data = self.split_data(train_data, eval_data, test_data, int(data_path), collaborator_count)
+        train_data, eval_data, test_data = self.split_data(
+            train_data,
+            eval_data,
+            test_data,
+            int(data_path),
+            collaborator_count
+        )
         super().__init__(fe.Pipeline(
-                                     train_data=train_data,
-                                     eval_data=eval_data,
-                                     test_data=test_data,
-                                     batch_size=batch_size,
-                                     ops=[
-                                         Normalize(inputs="x", outputs="x",
-                                                   mean=(0.4914, 0.4822, 0.4465), 
-                                                   std=(0.2471, 0.2435, 0.2616)),
-                                         ChannelTranspose(inputs="x", outputs="x")
-                                     ]), **kwargs)
-        
+            train_data=train_data,
+            eval_data=eval_data,
+            test_data=test_data,
+            batch_size=batch_size,
+            ops=[
+                Normalize(inputs="x", outputs="x",
+                          mean=(0.4914, 0.4822, 0.4465),
+                          std=(0.2471, 0.2435, 0.2616)),
+                ChannelTranspose(inputs="x", outputs="x")
+            ]), **kwargs)
+
         print(f"train_data = {train_data}")
         print(f"eval_data = {eval_data}")
         print(f"test_data = {test_data}")
 
         print(f"batch_size = {batch_size}")
 
-
-    def split_data(self,train,eva,test,rank,collaborator_count):
+    def split_data(self, train, eva, test, rank, collaborator_count):
         """
         Split data into N parts, where N is the collaborator count
         """
 
         if collaborator_count == 1:
-            return train,eva,test
+            return train, eva, test
 
-        fraction = [ 1.0 / float(collaborator_count) ] 
+        fraction = [1.0 / float(collaborator_count)]
         fraction *= (collaborator_count - 1)
-        
-        #Expand the split list into individual parameters
+
+        # Expand the split list into individual parameters
         train_split = train.split(*fraction)
-        eva_split   = eva.split(*fraction)
-        test_split  = test.split(*fraction)
+        eva_split = eva.split(*fraction)
+        test_split = test.split(*fraction)
 
         train = [train]
         eva = [eva]
@@ -75,17 +83,14 @@ class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
             eva.append(eva_split)
             test.append(test_split)
         else:
-            #Combine all partitions into a single list
+            # Combine all partitions into a single list
             train = [train] + train_split
-            eva   = [eva] + eva_split
-            test  = [test] + test_split
+            eva = [eva] + eva_split
+            test = [test] + test_split
 
-        #Extract the right shard
-        train = train[rank-1]
-        eva   = eva[rank-1]
-        test  = test[rank-1]
+        # Extract the right shard
+        train = train[rank - 1]
+        eva = eva[rank - 1]
+        test = test[rank - 1]
 
-        return train,eva,test
-
-        
-
+        return train, eva, test

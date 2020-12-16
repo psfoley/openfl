@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 
 # Configuration file for the Sphinx documentation builder.
@@ -25,8 +26,8 @@ sys.path.insert(0, os.path.abspath('../'))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-import sphinx_rtd_theme
-import sphinxcontrib.napoleon
+# import sphinx_rtd_theme
+# import sphinxcontrib.napoleon
 
 extensions = [
     "sphinx_rtd_theme",
@@ -43,9 +44,9 @@ extensions = [
 # This will replace the |variables| within the rST documents automatically
 
 PRODUCT_VERSION = "Intel"
-#PRODUCT_VERSION = "OFL"
+# PRODUCT_VERSION = "OFL"
 
-tags.add(PRODUCT_VERSION)
+# tags.add(PRODUCT_VERSION)
 
 if PRODUCT_VERSION == "Intel":
 
@@ -58,7 +59,7 @@ if PRODUCT_VERSION == "Intel":
 
     # Global variables for rST
     rst_prolog = """
-    .. |productName| replace:: Intel\ :sup:`®` \ Federated Learning (FL.Edge)
+    .. |productName| replace:: Intel\\ :sup:`®` \\ Federated Learning (FL.Edge)
     .. |productZip| replace:: fledge.zip
     .. |productDir| replace:: fledge
     .. |productWheel| replace:: fledge-***-py3-none-any.whl
@@ -97,7 +98,6 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', "tutorials/*", "graveyard/*"]
-
 
 # -- Options for HTML output -------------------------------------------------
 

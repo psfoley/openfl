@@ -1,10 +1,12 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 import numpy as np
 
 from .pipeline import TransformationPipeline, Transformer
 from .pipeline import Float32NumpyArrayToBytes
+
 
 class RandomShiftTransformer(Transformer):
     """Random Shift Transformer
@@ -31,7 +33,8 @@ class RandomShiftTransformer(Transformer):
 
         """
         shape = data.shape
-        random_shift = np.random.uniform(low=-20,high = 20,size = shape).astype(np.float32)
+        random_shift = np.random.uniform(
+            ow=-20, high=20, size=shape).astype(np.float32)
         transformed_data = data + random_shift
 
         # construct metadata
@@ -56,11 +59,16 @@ class RandomShiftTransformer(Transformer):
         """
 
         shape = tuple(metadata['int_list'])
-        # this is an awkward use of the metadata into to float dict, usually it will
-        # trully be treated as a dict. Here (and in 'forward' above) we use it essentially as an array.
-        shift = np.reshape(np.array([metadata['int_to_float'][idx] for idx in range(len(metadata['int_to_float']))]),
-                                   newshape = shape,
-                                    order='C')
+        # this is an awkward use of the metadata into to float dict, usually
+        # it will trully be treated as a dict. Here (and in 'forward' above)
+        # we use it essentially as an array.
+        shift = np.reshape(
+            np.array([
+                metadata['int_to_float'][idx]
+                for idx in range(len(metadata['int_to_float']))]),
+            newshape=shape,
+            order='C'
+        )
         return data - shift
 
 
@@ -71,5 +79,5 @@ class RandomShiftPipeline(TransformationPipeline):
     def __init__(self, **kwargs):
         """Initializer
         """
-        transformers=[RandomShiftTransformer(), Float32NumpyArrayToBytes()]
+        transformers = [RandomShiftTransformer(), Float32NumpyArrayToBytes()]
         super(RandomShiftPipeline, self).__init__(transformers=transformers)

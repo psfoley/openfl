@@ -1,5 +1,6 @@
 # Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Licensed subject to the terms of the separately executed
+# evaluation license agreement between Intel Corporation and you.
 
 class DataLoader(object):
     """
@@ -44,7 +45,7 @@ class DataLoader(object):
 
     def get_infer_loader(self):
         """
-        Get inferencing data loader 
+        Get inferencing data loader
 
         Returns
         -------

@@ -316,6 +316,7 @@ python_native:
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install . --user
+    - python3 -m pip install mnist --user
     - python3 /home/gitlab-runner/workspace/fledge/tests/gitlab/python_native_test.py
   after_script:
     - jobs

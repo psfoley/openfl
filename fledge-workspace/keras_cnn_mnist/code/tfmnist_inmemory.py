@@ -8,20 +8,17 @@ from .mnist_utils import load_mnist_shard
 
 
 class TensorFlowMNISTInMemory(TensorFlowDataLoader):
-    """
-    TensorFlow Data Loader for MNIST Dataset
-    """
+    """TensorFlow Data Loader for MNIST Dataset."""
 
     def __init__(self, data_path, batch_size, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             data_path: File path for the dataset
             batch_size (int): The batch size for the data loader
             **kwargs: Additional arguments, passed to super init and load_mnist_shard
         """
-
         super().__init__(batch_size, **kwargs)
 
         # TODO: We should be downloading the dataset shard into a directory

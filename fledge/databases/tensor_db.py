@@ -11,8 +11,9 @@ from fledge.utilities import TensorKey
 
 class TensorDB(object):
     """
-    The TensorDB stores a tensor key and the data that it corresponds to. It is
-     built on top of a pandas dataframe
+    The TensorDB stores a tensor key and the data that it corresponds to.
+
+    It is built on top of a pandas dataframe
     for it's easy insertion, retreival and aggregation capabilities. Each
     collaborator and aggregator has its own TensorDB.
     """
@@ -45,7 +46,7 @@ class TensorDB(object):
         ].reset_index(drop=True)
 
     def cache_tensor(self, tensor_key_dict):
-        """Insert tensor into TensorDB (dataframe)
+        """Insert tensor into TensorDB (dataframe).
 
         Args:
             tensor_key_dict: The Tensor Key
@@ -53,7 +54,6 @@ class TensorDB(object):
         Returns:
             None
         """
-
         self.mutex.acquire(blocking=True)
         entries_to_add = []
         try:
@@ -81,11 +81,11 @@ class TensorDB(object):
 
     def get_tensor_from_cache(self, tensor_key):
         """
-        Performs a lookup of the tensor_key in the TensorDB. Returns the
-         nparray if it is available
+        Perform a lookup of the tensor_key in the TensorDB.
+
+        Returns the nparray if it is available
         Otherwise, it returns 'None'
         """
-
         tensor_name, origin, fl_round, report, tags = tensor_key
 
         # TODO come up with easy way to ignore compression
@@ -102,8 +102,9 @@ class TensorDB(object):
     def get_aggregated_tensor(self, tensor_key, collaborator_weight_dict,
                               aggregation_functions):
         """
-        Determines whether all of the collaborator tensors are present for a
-        given tensor key, and returns their weighted average
+        Determine whether all of the collaborator tensors are present for a given tensor key.
+
+        Returns their weighted average.
 
         Args:
             tensor_key: The tensor key to be resolved. If origin 'agg_uuid' is

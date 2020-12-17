@@ -8,20 +8,17 @@ from .tfds_utils import load_histology_shard
 
 
 class TensorFlowHistologyInMemory(TensorFlowDataLoader):
-    """
-    TensorFlow Data Loader for Colorectal Histology Dataset
-    """
+    """TensorFlow Data Loader for Colorectal Histology Dataset."""
 
     def __init__(self, data_path, batch_size, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             data_path: File path for the dataset
             batch_size (int): The batch size for the data loader
             **kwargs: Additional arguments, passed to super init and load_mnist_shard
         """
-
         super().__init__(batch_size, **kwargs)
 
         _, num_classes, X_train, y_train, X_valid, y_valid = load_histology_shard(

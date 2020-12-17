@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 
 def one_hot(labels, classes):
     """
-    One Hot encode a vector
+    One Hot encode a vector.
 
     Args:
         labels (list):  List of labels to onehot encode
@@ -26,7 +26,7 @@ def one_hot(labels, classes):
 
 def _load_raw_datashards(shard_num, collaborator_count):
     """
-    Load the raw data by shard
+    Load the raw data by shard.
 
     Returns tuples of the dataset shard divided into training and validation.
 

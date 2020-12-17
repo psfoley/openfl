@@ -148,10 +148,7 @@ class FederatedFastEstimator:
 
 
 def split_data(train, eva, test, rank, collaborator_count):
-    """
-    Split data into N parts, where N is the collaborator count
-    """
-
+    """Split data into N parts, where N is the collaborator count."""
     if collaborator_count == 1:
         return train, eva, test
 

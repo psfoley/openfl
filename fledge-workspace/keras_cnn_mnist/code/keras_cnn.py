@@ -11,13 +11,11 @@ from fledge.federated import KerasTaskRunner
 
 
 class KerasCNN(KerasTaskRunner):
-    """
-    A basic convolutional neural network model.
-    """
+    """A basic convolutional neural network model."""
 
     def __init__(self, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             **kwargs: Additional parameters to pass to the function
@@ -54,7 +52,6 @@ class KerasCNN(KerasTaskRunner):
             tensorflow.python.keras.engine.sequential.Sequential: The model defined in Keras
 
         """
-
         model = Sequential()
 
         model.add(Conv2D(conv1_channels_out,

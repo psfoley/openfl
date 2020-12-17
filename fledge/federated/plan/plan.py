@@ -53,6 +53,8 @@ class Plan(object):
     def Parse(plan_config_path: Path, cols_config_path: Path = None,
               data_config_path: Path = None, resolve=True):
         """
+        Parse the Federated Learning plan.
+
         Args:
             plan_config_path (string): The filepath to the federated learning
                                        plan
@@ -64,7 +66,6 @@ class Plan(object):
         Returns:
             A federated learning plan object
         """
-
         try:
 
             plan = Plan()
@@ -140,8 +141,7 @@ class Plan(object):
     @staticmethod
     def Build(template, settings, **override):
         """
-        Create an instance of a FLedge Component or Federated
-        DataLoader/TaskRunner
+        Create an instance of a FLedge Component or Federated DataLoader/TaskRunner.
 
         Args:
             template: Fully qualified class template path
@@ -150,7 +150,6 @@ class Plan(object):
         Returns:
             A Python object
         """
-
         # from sys import path
 
         # for x in path:

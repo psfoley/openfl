@@ -22,7 +22,7 @@ WORKSPACE_PREFIX = os.path.join(os.path.expanduser('~'), '.local', 'workspace')
 
 def setup_plan(save=True):
     """
-    Dumps the plan with all defaults + overrides set.
+    Dump the plan with all defaults + overrides set.
 
     Args:
         save : bool (default=True)
@@ -45,7 +45,7 @@ def setup_plan(save=True):
 
 def get_plan(return_complete=False):
     """
-    Return the flattened dictionary associated with the plan
+    Return the flattened dictionary associated with the plan.
 
     To read the output in a human readable format, we recommend interpreting it
      as follows:
@@ -63,7 +63,6 @@ def get_plan(return_complete=False):
         plan : dict
             flattened dictionary of the current plan
     """
-
     getLogger().setLevel('CRITICAL')
 
     plan_config = setup_plan().config
@@ -85,7 +84,7 @@ def get_plan(return_complete=False):
 
 def update_plan(override_config):
     """
-    Update the plan with the provided override and save it to disk
+    Update the plan with the provided override and save it to disk.
 
     For a list of available override options, call `fx.get_plan()`
 
@@ -143,8 +142,9 @@ def setup_logging():
 
 def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
     """
-    The initialization function for the fledge package. It performs the
-    following tasks:
+    Initialize the fledge package.
+
+    It performs the following tasks:
 
          1. Creates a workspace in ~/.local/workspace (Equivalent to `fx
          workspace create --prefix ~/.local/workspace --template
@@ -174,7 +174,6 @@ def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
     Returns:
         None
     """
-
     workspace.create(WORKSPACE_PREFIX, workspace_template)
     os.chdir(WORKSPACE_PREFIX)
     workspace.certify()
@@ -217,7 +216,6 @@ def run_experiment(collaborator_dict, override_config={}):
         final_federated_model : FederatedModel
             The final model resulting from the federated learning experiment
     """
-
     from sys import path
 
     file = Path(__file__).resolve()

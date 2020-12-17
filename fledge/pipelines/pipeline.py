@@ -5,16 +5,14 @@ import numpy as np
 
 
 class Transformer(object):
-    """Data transformation class
-    """
+    """Data transformation class."""
 
     def __init__(self):
-        """Initializer
-        """
+        """Initialize."""
         raise NotImplementedError
 
     def forward(self, data, **kwargs):
-        """Forward pass data transformation
+        """Forward pass data transformation.
 
         Implement the data transformation.
 
@@ -29,7 +27,7 @@ class Transformer(object):
         raise NotImplementedError
 
     def backward(self, data, metadata, **kwargs):
-        """Backward pass data transformation
+        """Backward pass data transformation.
 
         Implement the data transformation needed when going the opposite
         direction to the forward method.
@@ -46,18 +44,16 @@ class Transformer(object):
 
 
 class Float32NumpyArrayToBytes(Transformer):
-    """Converts float32 Numpy array to Bytes array
-    """
+    """Converts float32 Numpy array to Bytes array."""
 
     def __init__(self, **kwargs):
-        """Initializer
-        """
+        """Initialize."""
         self.lossy = False
 
         pass
 
     def forward(self, data, **kwargs):
-        """Forward pass
+        """Forward pass.
 
         Args:
             data:
@@ -77,7 +73,7 @@ class Float32NumpyArrayToBytes(Transformer):
         return data_bytes, metadata
 
     def backward(self, data, metadata):
-        """Backward pass
+        """Backward pass.
 
         Args:
             data:
@@ -95,7 +91,7 @@ class Float32NumpyArrayToBytes(Transformer):
 
 
 class TransformationPipeline(object):
-    """Data Transformer Pipeline Class
+    """Data Transformer Pipeline Class.
 
     A sequential pipeline to transform (e.x. compress) data (e.x. layer of
     model_weights) as well as return metadata (if needed) for the
@@ -103,7 +99,7 @@ class TransformationPipeline(object):
     """
 
     def __init__(self, transformers, **kwargs):
-        """Initializer
+        """Initialize.
 
         Args:
             transformers:
@@ -112,7 +108,7 @@ class TransformationPipeline(object):
         self.transformers = transformers
 
     def forward(self, data, **kwargs):
-        """Forward pass of pipeline data transformer
+        """Forward pass of pipeline data transformer.
 
         Args:
             data: Data to transform
@@ -144,7 +140,7 @@ class TransformationPipeline(object):
         return data, transformer_metadata
 
     def backward(self, data, transformer_metadata, **kwargs):
-        """Backward pass of pipeline data transformer
+        """Backward pass of pipeline data transformer.
 
         Args:
             data: Data to transform
@@ -155,14 +151,11 @@ class TransformationPipeline(object):
             data:
 
         """
-
         for transformer in self.transformers[::-1]:
             data = transformer.backward(
                 data=data, metadata=transformer_metadata.pop(), **kwargs)
         return data
 
     def is_lossy(self):
-        """
-        If any of the transformers are lossy, then the pipeline is lossy
-        """
+        """If any of the transformers are lossy, then the pipeline is lossy."""
         return any([transformer.lossy for transformer in self.transformers])

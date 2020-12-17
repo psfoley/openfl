@@ -8,13 +8,11 @@ from math import ceil
 
 
 class PyTorchDataLoader(DataLoader):
-    """
-    Federation Data Loader for TensorFlow Models
-    """
+    """Federation Data Loader for TensorFlow Models."""
 
     def __init__(self, batch_size, random_seed=None, **kwargs):
         """
-        Instantiate the data object
+        Instantiate the data object.
 
         Args:
             batch_size: Size of batches used for all data loaders
@@ -23,7 +21,6 @@ class PyTorchDataLoader(DataLoader):
         Returns:
             None
         """
-
         self.batch_size = batch_size
         self.X_train = None
         self.y_train = None
@@ -36,7 +33,7 @@ class PyTorchDataLoader(DataLoader):
         # define self.X_train, self.y_train, self.X_valid, and self.y_valid
 
     def get_feature_shape(self):
-        """Get the shape of an example feature array
+        """Get the shape of an example feature array.
 
         Returns:
             tuple: shape of an example feature array
@@ -45,7 +42,7 @@ class PyTorchDataLoader(DataLoader):
 
     def get_train_loader(self, batch_size=None, num_batches=None):
         """
-        Get training data loader
+        Get training data loader.
 
         Returns
         -------
@@ -56,7 +53,7 @@ class PyTorchDataLoader(DataLoader):
 
     def get_valid_loader(self, batch_size=None):
         """
-        Get validation data loader
+        Get validation data loader.
 
         Returns:
             loader object
@@ -65,7 +62,7 @@ class PyTorchDataLoader(DataLoader):
 
     def get_train_data_size(self):
         """
-        Get total number of training samples
+        Get total number of training samples.
 
         Returns:
             int: number of training samples
@@ -74,7 +71,7 @@ class PyTorchDataLoader(DataLoader):
 
     def get_valid_data_size(self):
         """
-        Get total number of validation samples
+        Get total number of validation samples.
 
         Returns:
             int: number of validation samples
@@ -84,7 +81,7 @@ class PyTorchDataLoader(DataLoader):
     @staticmethod
     def _batch_generator(X, y, idxs, batch_size, num_batches):
         """
-        Generate batch of data
+        Generate batch of data.
 
         Args:
             X: input data
@@ -104,7 +101,7 @@ class PyTorchDataLoader(DataLoader):
 
     def _get_batch_generator(self, X, y, batch_size, num_batches=None):
         """
-        Returns the dataset generator
+        Return the dataset generator.
 
         Args:
             X: input data

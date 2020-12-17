@@ -7,11 +7,10 @@ from fledge.federated import PyTorchDataLoader
 
 
 class PyTorchHistologyInMemory(PyTorchDataLoader):
-    """PyTorch data loader for Histology dataset
-    """
+    """PyTorch data loader for Histology dataset."""
 
     def __init__(self, data_path, batch_size, **kwargs):
-        """Instantiate the data object
+        """Instantiate the data object.
 
         Args:
             data_path: The file path to the data

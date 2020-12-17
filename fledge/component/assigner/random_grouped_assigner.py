@@ -8,7 +8,9 @@ from .assigner import Assigner
 
 class RandomGroupedAssigner(Assigner):
     """
-    The task assigner maintains a list of tasks, and decides the policy for
+    The task assigner maintains a list of tasks.
+
+    Also it decides the policy for
     which collaborator should run those tasks
     There may be many types of policies implemented, but a natural place to
     start is with a:
@@ -25,11 +27,7 @@ class RandomGroupedAssigner(Assigner):
     """
 
     def define_task_assignments(self):
-        """
-        All of the logic to set up the map of tasks to collaborators
-        is done here
-        """
-
+        """All of the logic to set up the map of tasks to collaborators is done here."""
         assert (np.abs(1.0 - np.sum([group['percentage']
                                      for group in self.task_groups])) < 0.01), (
             'Task group percentages must sum to 100%')

@@ -54,8 +54,9 @@ class CollaboratorGRPCClient:
 
     def create_insecure_channel(self, uri):
         """
-        Sets an insecure gRPC channel (i.e. no TLS) if desired (warns user
-         that this is not recommended)
+        Set an insecure gRPC channel (i.e. no TLS) if desired.
+
+        Warns user that this is not recommended.
 
         Args:
             uri: The uniform resource identifier fo the insecure channel
@@ -72,7 +73,7 @@ class CollaboratorGRPCClient:
     def create_tls_channel(self, uri, ca, disable_client_auth,
                            certificate, private_key):
         """
-        Sets an secure gRPC channel (i.e. TLS)
+        Set an secure gRPC channel (i.e. TLS).
 
         Args:
             uri: The uniform resource identifier fo the insecure channel
@@ -85,7 +86,6 @@ class CollaboratorGRPCClient:
         Returns:
             An insecure gRPC channel object
         """
-
         with open(ca, 'rb') as f:
             root_certificates = f.read()
 

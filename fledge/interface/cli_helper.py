@@ -59,8 +59,7 @@ def tree(path):
 def print_tree(dir_path: Path, level: int = -1,
                limit_to_directories: bool = False,
                length_limit: int = 1000):
-    """Given a directory Path object print a visual tree structure"""
-
+    """Given a directory Path object print a visual tree structure."""
     space = '    '
     branch = '│   '
     tee = '├── '
@@ -103,8 +102,7 @@ def print_tree(dir_path: Path, level: int = -1,
 
 def copytree(src, dst, symlinks=False, ignore=None,
              ignore_dangling_symlinks=False, dirs_exist_ok=False):
-    """From Python 3.8 'shutil' which include 'dirs_exist_ok' option"""
-
+    """From Python 3.8 'shutil' which include 'dirs_exist_ok' option."""
     import os
     import shutil
 
@@ -174,10 +172,7 @@ def copytree(src, dst, symlinks=False, ignore=None,
 
 
 def get_workspace_parameter(name):
-    """
-    Gets a parameter from the workspace config file (.workspace)
-    """
-
+    """Get a parameter from the workspace config file (.workspace)."""
     # Update the .workspace file to show the current workspace plan
     workspace_file = '.workspace'
 
@@ -194,11 +189,7 @@ def get_workspace_parameter(name):
 
 
 def check_varenv(env="", args={}):
-    '''
-    Updates "args" (dictionary) with <env: env_value> if env has a defined
-    value in the host
-     '''
-
+    """Update "args" (dictionary) with <env: env_value> if env has a defined value in the host."""
     env_val = environ.get(env)
     if env and (env_val is not None):
         args[env] = env_val
@@ -207,7 +198,7 @@ def check_varenv(env="", args={}):
 
 
 def get_fx_path(curr_path=""):
-    ''' Returns the absolute path to fx binary'''
+    """Return the absolute path to fx binary."""
     import re
     import os
 

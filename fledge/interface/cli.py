@@ -96,8 +96,7 @@ class CLI(Group):
 @option('--log-level', default='info', help='Logging verbosity level.')
 @pass_context
 def cli(context, log_config, log_level):
-    '''Command-line Interface'''
-
+    """Command-line Interface."""
     context.ensure_object(dict)
 
     context.obj['log_config'] = log_config

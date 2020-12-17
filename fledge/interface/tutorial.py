@@ -16,7 +16,7 @@ logger = getLogger(__name__)
 @group()
 @pass_context
 def tutorial(context):
-    '''Manages Jupyter notebooks'''
+    """Manage Jupyter notebooks."""
     context.obj['group'] = 'tutorial'
 
 
@@ -25,9 +25,7 @@ def tutorial(context):
 @option('-ip', '--ip', required=False,
         help='IP address the notebook that should start', default='0.0.0.0')
 def start(context, ip):
-    """
-    Start the Jupyter notebook from the tutorials directory
-    """
+    """Start the Jupyter notebook from the tutorials directory."""
     if 'VIRTUAL_ENV' in environ:
         venv = environ['VIRTUAL_ENV'].split('/')[-1]
         check_call([

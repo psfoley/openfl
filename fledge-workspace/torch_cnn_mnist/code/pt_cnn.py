@@ -3,9 +3,7 @@
 # evaluation license agreement between Intel Corporation and you.
 
 
-"""
-You may copy this file as the starting point of your own model.
-"""
+"""You may copy this file as the starting point of your own model."""
 import numpy as np
 import tqdm
 import torch
@@ -18,7 +16,7 @@ from fledge.utilities import TensorKey, split_tensor_dict_for_holdouts
 
 
 def cross_entropy(output, target):
-    """Binary cross-entropy metric
+    """Binary cross-entropy metric.
 
     Args:
         output: The mode prediction
@@ -32,11 +30,10 @@ def cross_entropy(output, target):
 
 
 class PyTorchCNN(PyTorchTaskRunner):
-    """Simple CNN for classification.
-    """
+    """Simple CNN for classification."""
 
     def __init__(self, device='cpu', **kwargs):
-        """Initializer
+        """Initialize.
 
         Args:
             data: The data loader class
@@ -53,8 +50,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         self.initialize_tensorkeys_for_functions()
 
     def _init_optimizer(self):
-        """Initializer the optimizer
-        """
+        """Initialize the optimizer."""
         self.optimizer = optim.Adam(self.parameters(), lr=1e-4)
 
     def init_network(self,
@@ -66,7 +62,7 @@ class PyTorchCNN(PyTorchTaskRunner):
                      conv2_channels_out=50,
                      fc2_insize=500,
                      **kwargs):
-        """Create the network (model)
+        """Create the network (model).
 
         Args:
             device: The hardware device to use for training
@@ -126,12 +122,11 @@ class PyTorchCNN(PyTorchTaskRunner):
         self.to(device)
 
     def forward(self, x):
-        """Forward pass of the model
+        """Forward pass of the model.
 
         Args:
             x: Data input to the model for the forward pass
         """
-
         x = F.relu(self.conv1(x))
         pl = self.pool_sqrkernel_size
         x = F.max_pool2d(x, pl, pl)
@@ -143,7 +138,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         return F.log_softmax(x, dim=1)
 
     def validate(self, col_name, round_num, input_tensor_dict, use_tqdm=False, **kwargs):
-        """Validate
+        """Validate.
 
         Run validation of the model on the local data.
 
@@ -158,7 +153,6 @@ class PyTorchCNN(PyTorchTaskRunner):
             local_output_dict:   Tensors to maintain in the local TensorDB
 
         """
-
         self.rebuild_model(round_num, input_tensor_dict, validation=True)
         self.eval()
         val_score = 0
@@ -200,7 +194,7 @@ class PyTorchCNN(PyTorchTaskRunner):
 
     def train_batches(self, col_name, round_num, input_tensor_dict,
                       num_batches=None, use_tqdm=False, **kwargs):
-        """Train batches
+        """Train batches.
 
         Train the model on the requested number of batches.
 
@@ -217,7 +211,6 @@ class PyTorchCNN(PyTorchTaskRunner):
             global_output_dict:  Tensors to send back to the aggregator
             local_output_dict:   Tensors to maintain in the local TensorDB
         """
-
         self.rebuild_model(round_num, input_tensor_dict)
         # set to "training" mode
         self.train()
@@ -294,7 +287,7 @@ class PyTorchCNN(PyTorchTaskRunner):
         return global_tensor_dict, local_tensor_dict
 
     def reset_opt_vars(self):
-        """Reset optimizer variables
+        """Reset optimizer variables.
 
         Resets the optimizer state variables.
 

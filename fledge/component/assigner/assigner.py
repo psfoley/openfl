@@ -3,10 +3,10 @@
 
 class Assigner:
     """
-    The task assigner maintains a list of tasks, and decides the policy for
-    which collaborator should run those tasks
-    There may be many types of policies implemented, but a natural place
-    to start is with a:
+    The task assigner maintains a list of tasks.
+
+    Also it decides the policy for which collaborator should run those tasks.
+    There may be many types of policies implemented, but a natural place to start is with a:
 
     RandomGroupedTaskAssigner  - Given a set of task groups, and a percentage,
                                  assign that task group to that
@@ -45,8 +45,10 @@ class Assigner:
 
     def get_all_tasks_for_round(self, round_number):
         """
-        Currently all tasks are performed on each round, but there may be a
-        reason to change this
+        Return tasks for the current round.
+
+        Currently all tasks are performed on each round,
+        But there may be a reason to change this.
         """
         return self.all_tasks_in_groups
 

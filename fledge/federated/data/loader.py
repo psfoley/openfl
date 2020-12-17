@@ -2,13 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 class DataLoader(object):
-    """
-    Federated Learning Data Loader Class
-    """
+    """Federated Learning Data Loader Class."""
 
     def __init__(self, **kwargs):
         """
-        Instantiate the data object
+        Instantiate the data object.
 
         Returns:
             None
@@ -17,7 +15,7 @@ class DataLoader(object):
 
     def get_feature_shape(self):
         """
-        Gets the shape of an example feature array
+        Get the shape of an example feature array.
 
         Returns:
             tuple: shape of an example feature array
@@ -26,7 +24,7 @@ class DataLoader(object):
 
     def get_train_loader(self, **kwargs):
         """
-        Get training data loader
+        Get training data loader.
 
         Returns:
             loader object (class defined by inheritor)
@@ -35,7 +33,7 @@ class DataLoader(object):
 
     def get_valid_loader(self):
         """
-        Get validation data loader
+        Get validation data loader.
 
         Returns:
             loader object (class defined by inheritor)
@@ -44,7 +42,7 @@ class DataLoader(object):
 
     def get_infer_loader(self):
         """
-        Get inferencing data loader
+        Get inferencing data loader.
 
         Returns
         -------
@@ -54,7 +52,7 @@ class DataLoader(object):
 
     def get_train_data_size(self):
         """
-        Get total number of training samples
+        Get total number of training samples.
 
         Returns:
             int: number of training samples
@@ -63,7 +61,7 @@ class DataLoader(object):
 
     def get_valid_data_size(self):
         """
-        Get total number of validation samples
+        Get total number of validation samples.
 
         Returns:
             int: number of validation samples

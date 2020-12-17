@@ -14,13 +14,11 @@ from fastestimator.trace.metric import Accuracy
 
 
 class FastEstimatorFGSM(FastEstimatorTaskRunner):
-    """
-    An FGSM example based on the LeNet model
-    """
+    """An FGSM example based on the LeNet model."""
 
     def __init__(self, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             **kwargs: Additional parameters to pass to the function
@@ -52,14 +50,13 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
             model: Union[tf.keras.sequential, nn.module]
 
         """
-
         model = fe.build(model_fn=lambda: LeNet(input_shape=(3, 32, 32)),
                          optimizer_fn="adam", model_name="adv_model")
         return model
 
     def build_network(self):
         """
-        Define the FastEstimator network flow
+        Define the FastEstimator network flow.
 
         Args:
             None
@@ -67,7 +64,6 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         Returns:
             network: KerasNetwork object
         """
-
         epsilon = 0.04
 
         network = fe.Network(ops=[
@@ -85,8 +81,9 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
 
     def build_estimator(self):
         """
-        Define the estimator to run the experiment (this will persist throughout the lifetime
-        of the TaskRunner)
+        Define the estimator to run the experiment.
+
+        This will persist throughout the lifetime of the TaskRunner.
 
         Args:
             None
@@ -94,7 +91,6 @@ class FastEstimatorFGSM(FastEstimatorTaskRunner):
         Returns:
             estimator: Estimator object
         """
-
         max_train_steps_per_epoch = None
         max_eval_steps_per_epoch = None
 

@@ -3,6 +3,7 @@
 
 """
 Base classes for developing a ke.Model() Federated Learning model.
+
 You may copy this file as the starting point of your own keras model.
 """
 from warnings import catch_warnings, simplefilter
@@ -21,13 +22,11 @@ from .runner import TaskRunner
 
 
 class KerasTaskRunner(TaskRunner):
-    """
-    The base model for Keras models in the federation.
-    """
+    """The base model for Keras models in the federation."""
 
     def __init__(self, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             **kwargs: Additional parameters to pass to the function
@@ -44,14 +43,12 @@ class KerasTaskRunner(TaskRunner):
 
     def rebuild_model(self, round, input_tensor_dict, validation=False):
         """
-        Parse tensor names and update weights of model. Handles the optimizer
-         treatment
+        Parse tensor names and update weights of model. Handles the optimizer treatment.
 
         Returns
         -------
         None
         """
-
         if self.opt_treatment == 'RESET':
             self.reset_opt_vars()
             self.set_tensor_dict(input_tensor_dict, with_opt_vars=False)
@@ -63,8 +60,9 @@ class KerasTaskRunner(TaskRunner):
 
     def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
         """
-        Perform the training for a specified number of batches. Is expected to
-        perform draws randomly, without replacement until data is exausted.
+        Perform the training for a specified number of batches.
+
+        Is expected to perform draws randomly, without replacement until data is exausted.
         Then data is replaced and shuffled and draws continue.
 
         Returns
@@ -72,7 +70,6 @@ class KerasTaskRunner(TaskRunner):
         dict
             'TensorKey: nparray'
         """
-
         if 'metrics' not in kwargs:
             raise KeyError('metrics must be included in kwargs')
         # if 'batch_size' in kwargs:
@@ -170,7 +167,8 @@ class KerasTaskRunner(TaskRunner):
 
     def validate(self, col_name, round_num, input_tensor_dict, **kwargs):
         """
-        Run the trained model on validation data; report results
+        Run the trained model on validation data; report results.
+
         Parameters
         ----------
         input_tensor_dict : either the last aggregated or locally trained model
@@ -180,7 +178,6 @@ class KerasTaskRunner(TaskRunner):
         output_tensor_dict : {TensorKey: nparray} (these correspond to acc,
          precision, f1_score, etc.)
         """
-
         batch_size = 1
         if 'batch_size' in kwargs:
             batch_size = kwargs['batch_size']
@@ -224,17 +221,18 @@ class KerasTaskRunner(TaskRunner):
         return output_tensor_dict, {}
 
     def save_native(self, filepath):
-        """Saves model"""
+        """Save model."""
         self.model.save(filepath)
 
     def load_native(self, filepath):
-        """Loads model"""
+        """Load model."""
         self.model = tf.keras.models.load_model(filepath)
 
     @staticmethod
     def _get_weights_names(obj):
         """
         Get the list of weight names.
+
         Parameters
         ----------
         obj : Model or Optimizer
@@ -245,7 +243,6 @@ class KerasTaskRunner(TaskRunner):
         dict
             The weight name list
         """
-
         weight_names = [weight.name for weight in obj.weights]
         return weight_names
 
@@ -253,6 +250,7 @@ class KerasTaskRunner(TaskRunner):
     def _get_weights_dict(obj, suffix=''):
         """
         Get the dictionary of weights.
+
         Parameters
         ----------
         obj : Model or Optimizer
@@ -315,13 +313,12 @@ class KerasTaskRunner(TaskRunner):
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
         """
-        Sets the model weights with a tensor dictionary.
+        Set the model weights with a tensor dictionary.
 
         Args:
             tensor_dict: the tensor dictionary
             with_opt_vars (bool): True = include the optimizer's status.
         """
-
         if with_opt_vars is False:
             # self._set_weights_dict(self.model, tensor_dict)
             # It is possible to pass in opt variables from the input tensor dict
@@ -349,7 +346,7 @@ class KerasTaskRunner(TaskRunner):
 
     def reset_opt_vars(self):
         """
-        Reset optimizer variables
+        Reset optimizer variables.
 
         Resets the optimizer variables
 
@@ -361,8 +358,8 @@ class KerasTaskRunner(TaskRunner):
     def set_required_tensorkeys_for_function(self, func_name,
                                              tensor_key, **kwargs):
         """
-        Set the required tensors for specified function that could be called as
-         part of a task.
+        Set the required tensors for specified function that could be called as part of a task.
+
         By default, this is just all of the layers and optimizer of the model.
          Custom tensors should be added to this function
 
@@ -376,7 +373,6 @@ class KerasTaskRunner(TaskRunner):
         -------
         None
         """
-
         # TODO there should be a way to programmatically iterate through all
         #  of the methods in the class and declare the tensors.
         # For now this is done manually
@@ -391,8 +387,8 @@ class KerasTaskRunner(TaskRunner):
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
         """
-        Get the required tensors for specified function that could be called as
-        part of a task.
+        Get the required tensors for specified function that could be called as part of a task.
+
         By default, this is just all of the layers and optimizer of the model.
 
         Parameters
@@ -404,7 +400,6 @@ class KerasTaskRunner(TaskRunner):
         List
             [TensorKey]
         """
-
         if func_name == 'validate':
             local_model = 'apply=' + str(kwargs['apply'])
             return self.required_tensorkeys_for_function[func_name][local_model]
@@ -413,8 +408,9 @@ class KerasTaskRunner(TaskRunner):
 
     def update_tensorkeys_for_functions(self):
         """
-        Update the required tensors for all publicly accessible methods that
-        could be called as part of a task.
+        Update the required tensors for all publicly accessible methods \
+            that could be called as part of a task.
+
         By default, this is just all of the layers and optimizer of the model.
         Custom tensors should be added to this function
 
@@ -426,7 +422,6 @@ class KerasTaskRunner(TaskRunner):
         -------
         None
         """
-
         # TODO complete this function. It is only needed for opt_treatment,
         #  and making the model stateless
 
@@ -454,8 +449,9 @@ class KerasTaskRunner(TaskRunner):
 
     def initialize_tensorkeys_for_functions(self, with_opt_vars=False):
         """
-        Set the required tensors for all publicly accessible methods that could
-        be called as part of a task.
+        Set the required tensors for all publicly accessible methods \
+            that could be called as part of a task.
+
         By default, this is just all of the layers and optimizer of the model.
         Custom tensors should be added to this function
 
@@ -467,7 +463,6 @@ class KerasTaskRunner(TaskRunner):
         -------
         None
         """
-
         # TODO there should be a way to programmatically iterate through all
         #  of the methods in the class and declare the tensors.
         # For now this is done manually

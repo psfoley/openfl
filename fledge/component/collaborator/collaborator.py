@@ -14,9 +14,7 @@ from fledge.databases import TensorDB
 
 
 class OptTreatment(Enum):
-    """
-    Optimizer Methods
-    """
+    """Optimizer Methods."""
 
     RESET = 1
     """
@@ -37,7 +35,7 @@ class OptTreatment(Enum):
 
 class Collaborator(object):
     """
-    The Collaborator object class
+    The Collaborator object class.
 
     Args:
         collaborator_name (string): The common name for the collaborator
@@ -110,7 +108,7 @@ class Collaborator(object):
 
     def _with_opt_vars(self):
         """
-        Determines optimizer operation to perform.
+        Determine optimizer operation to perform.
 
         Returns:
            bool: True means *CONTINUE_GLOBAL* method for optimizer.
@@ -165,7 +163,9 @@ class Collaborator(object):
 
     def run_simulation(self):
         """
-        This function is specifically for the simulation. After the tasks have
+        Specific function for the simulation.
+
+        After the tasks have
         been performed for a roundquit, and then the collaborator object will
         be reinitialized after the next round
         """
@@ -250,8 +250,7 @@ class Collaborator(object):
 
     def get_data_for_tensorkey(self, tensor_key):
         """
-        This function resolves the tensor corresponding to the requested
-         tensorkey
+        Resolve the tensor corresponding to the requested tensorkey.
 
         Args
         ----
@@ -338,8 +337,8 @@ class Collaborator(object):
     def get_aggregated_tensor_from_aggregator(self, tensor_key,
                                               require_lossless=False):
         """
-        This function returns the decompressed tensor associated with the
-        requested tensor key.
+        Return the decompressed tensor associated with the requested tensor key.
+
         If the key requests a compressed tensor (in the tag), the tensor will
         be decompressed before returning
         If the key specifies an uncompressed tensor (or just omits a compressed
@@ -426,10 +425,10 @@ class Collaborator(object):
 
     def nparray_to_named_tensor(self, tensor_key, nparray):
         """
-        This function constructs the NamedTensor Protobuf and also includes
-        logic to create delta, compress tensors with the TensorCodec, etc.
-        """
+        Construct the NamedTensor Protobuf.
 
+        Includes logic to create delta, compress tensors with the TensorCodec, etc.
+        """
         # if we have an aggregated tensor, we can make a delta
         tensor_name, origin, round_number, report, tags = tensor_key
         if 'trained' in tags and self.delta_updates:

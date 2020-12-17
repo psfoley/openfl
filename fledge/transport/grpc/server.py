@@ -14,9 +14,7 @@ from fledge.protocols import add_AggregatorServicer_to_server
 
 
 class AggregatorGRPCServer(AggregatorServicer):
-    """
-    gRPC server class for the Aggregator
-    """
+    """gRPC server class for the Aggregator."""
 
     def __init__(self,
                  aggregator,
@@ -28,7 +26,8 @@ class AggregatorGRPCServer(AggregatorServicer):
                  private_key=None,
                  **kwargs):
         """
-        Class initializer
+        Class initializer.
+
         Args:
             aggregator: The aggregator
         Args:
@@ -41,7 +40,6 @@ class AggregatorGRPCServer(AggregatorServicer):
             private_key (str): File path to the private key.
             kwargs (dict): Additional arguments to pass into function
         """
-
         self.aggregator = aggregator
         self.uri = f'[::]:{agg_port}'
         self.disable_tls = disable_tls
@@ -59,7 +57,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
     def validate_collaborator(self, request, context):
         """
-        Validate the collaborator
+        Validate the collaborator.
 
         Args:
             request: The gRPC message request
@@ -82,7 +80,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
     def GetTasks(self, request, context):
         """
-        gRPC request for a job from aggregator
+        Request a job from aggregator.
 
         Args:
             request: The gRPC message request
@@ -94,7 +92,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
     def GetAggregatedTensor(self, request, context):
         """
-        gRPC request for a job from aggregator
+        Request a job from aggregator.
 
         Args:
             request: The gRPC message request
@@ -106,7 +104,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
     def SendLocalTaskResults(self, request, context):
         """
-        gRPC request for a model download from aggregator
+        Request a model download from aggregator.
 
         Args:
             request: The gRPC message request
@@ -122,10 +120,7 @@ class AggregatorGRPCServer(AggregatorServicer):
         return self.aggregator.SendLocalTaskResults(proto)
 
     def serve(self):
-        """
-        Start an aggregator gRPC service.
-        """
-
+        """Start an aggregator gRPC service."""
         self.server = server(ThreadPoolExecutor(max_workers=cpu_count()),
                              options=self.channel_options)
 

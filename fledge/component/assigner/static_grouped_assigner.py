@@ -6,7 +6,9 @@ from .assigner import Assigner
 
 class StaticGroupedAssigner(Assigner):
     """
-    The task assigner maintains a list of tasks, and decides the policy for
+    The task assigner maintains a list of tasks.
+
+    Also it decides the policy for
     which collaborator should run those tasks
     There may be many types of policies implemented, but a natural place to
     start is with a:
@@ -23,10 +25,7 @@ class StaticGroupedAssigner(Assigner):
     """
 
     def define_task_assignments(self):
-        """
-        All of the logic to set up the map of tasks to collaborators is done
-        here
-        """
+        """All of the logic to set up the map of tasks to collaborators is done here."""
         assert (sum(
             [len(group['collaborators']) for group in self.task_groups]
         ) == len(self.authorized_cols) and set(

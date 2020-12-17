@@ -6,7 +6,7 @@ import numpy as np
 
 def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
     """
-    Splits the tensor dictionary into float and non-floating point values
+    Split the tensor dictionary into float and non-floating point values.
 
     Splits a tensor dictionary into float and non-float values.
 
@@ -18,7 +18,6 @@ def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
         and the second contains all of the non-floating point tensors
 
     """
-
     float_dict = {}
     non_float_dict = {}
     for k, v in tensor_dict.items():
@@ -32,7 +31,8 @@ def split_tensor_dict_into_floats_and_non_floats(tensor_dict):
 def split_tensor_dict_into_supported_and_not_supported_types(
         tensor_dict, keep_types):
     """
-    Splits the tensor dictionary into supported and not supported types
+    Split the tensor dictionary into supported and not supported types.
+
     Args:
         tensor_dict: A dictionary of tensors
         keep_types: An iterable of supported types
@@ -41,7 +41,6 @@ def split_tensor_dict_into_supported_and_not_supported_types(
         and the second contains all of the not supported tensors
 
     """
-
     keep_dict = {}
     holdout_dict = {}
     for k, v in tensor_dict.items():
@@ -56,7 +55,7 @@ def split_tensor_dict_for_holdouts(logger, tensor_dict,
                                    keep_types=(np.floating, np.integer),
                                    holdout_tensor_names=()):
     """
-    Splits a tensor according to tensor types.
+    Split a tensor according to tensor types.
 
     Args:
         logger: The log object

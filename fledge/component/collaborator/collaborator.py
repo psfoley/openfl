@@ -192,9 +192,7 @@ class Collaborator(object):
         self.logger.info('Waiting for tasks...')
 
         request = TasksRequest(header=self.header)
-        self.client.reconnect()
         response = self.client.GetTasks(request)
-        self.client.disconnect()
         self.validate_response(response)  # sanity checks and validation
 
         return response
@@ -376,9 +374,7 @@ class Collaborator(object):
 
         self.logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
 
-        self.client.reconnect()
         response = self.client.GetAggregatedTensor(request)
-        self.client.disconnect()
 
         # also do other validation, like on the round_number
         self.validate_response(response)
@@ -428,9 +424,7 @@ class Collaborator(object):
                               data_size=data_size,
                               tensors=named_tensors)
 
-        self.client.reconnect()
         response = self.client.SendLocalTaskResults(request)
-        self.client.disconnect()
 
         self.validate_response(response)
 

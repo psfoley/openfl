@@ -204,12 +204,23 @@ class CollaboratorGRPCClient:
             grpc.intercept_channel(self.channel, *self.interceptors)
         )
 
+    def _atomic_connection(func):
+        def wrapper(self, *args, **kwargs):
+            self.reconnect()
+            message = func(self, *args, **kwargs)
+            self.disconnect()
+            return message
+        return wrapper
+
+    @_atomic_connection
     def GetTasks(self, message):
         return self.stub.GetTasks(message)
 
+    @_atomic_connection
     def GetAggregatedTensor(self, message):
         return self.stub.GetAggregatedTensor(message)
 
+    @_atomic_connection
     def SendLocalTaskResults(self, message):
         # convert (potentially) long list of tensors into stream
         stream = []

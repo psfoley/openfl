@@ -61,17 +61,13 @@ class Net(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
-def optimizer(x):
-    optim.Adam(x, lr=1e-4)
-
-
 def cross_entropy(output, target):
     """Binary cross-entropy metric
     """
     return F.binary_cross_entropy_with_logits(input=output, target=target)
 
 
-fl_model = FederatedModel(build_model=Net, optimizer=optimizer,
+fl_model = FederatedModel(build_model=Net, optimizer=lambda x: optim.Adam(x, lr=1e-4),
                           loss_fn=cross_entropy, data_loader=fl_data)
 collaborator_models = fl_model.setup(num_collaborators=2)
 collaborators = {'one': collaborator_models[0], 'two': collaborator_models[1]}

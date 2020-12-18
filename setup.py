@@ -1,6 +1,5 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 from setuptools import setup
 
@@ -17,8 +16,6 @@ setup(
         'fledge.component.assigner',
         'fledge.component.aggregator',
         'fledge.component.collaborator',
-        'fledge.component.envoy',
-        'fledge.component.governor',
         'fledge.utilities',
         'fledge.protocols',
         'fledge.pipelines',

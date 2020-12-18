@@ -1,6 +1,5 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 from .assigner import Assigner
 from .random_grouped_assigner import RandomGroupedAssigner

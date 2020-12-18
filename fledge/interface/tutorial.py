@@ -1,3 +1,6 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from sys import executable
 from subprocess import check_call
 from os import environ

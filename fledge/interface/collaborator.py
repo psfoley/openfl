@@ -1,3 +1,6 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from logging import getLogger
 from pathlib import Path
 from click import group, option, pass_context

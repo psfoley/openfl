@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 from click import Group, command, argument, group, clear
 from click import echo, option, pass_context, style

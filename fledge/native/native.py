@@ -1,5 +1,6 @@
-# This file defines fledge entrypoints to be used directly through
-# python (not CLI)
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 import os
 from logging import getLogger
 from pathlib import Path

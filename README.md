@@ -24,7 +24,7 @@ Intel Internet of Things Group. It is released under the [Apache License, Versio
 
 ## Requirements
 
-- OS: Primarily tested on Ubuntu 16.04 and 18.04, but code should be OS-agnostic. (Optional shell scripts may not be).
+- OS: Tested on Ubuntu Linux 16.04 and 18.04.
 - Python 3.6+ with a Python virtual environment (e.g. [conda](https://docs.conda.io/en/latest/))
 - TensorFlow 2+ or PyTorch 1.6+ (depending on your training requirements-- other frameworks can be supported)
 

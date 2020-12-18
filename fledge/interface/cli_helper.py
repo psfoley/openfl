@@ -1,3 +1,6 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
 from subprocess import run, PIPE
 from click import echo, style
 from sys import argv

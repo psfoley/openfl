@@ -3,20 +3,21 @@
 [![pipeline status](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/pipeline.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 [![coverage report](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/coverage.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 
-Intel® Federated Learning is a Python 3 library for 
-[federated learning](https://en.wikipedia.org/wiki/Federated_learning). 
-It enables organizations to collaborately train a model without 
-sharing sensitive information.
 
-There are basically two components in the library: the collaborator which 
-uses local dataset to train a global model 
-and the aggregator which receives model updates from 
-collaborators and combines them to form the global model.
+[Federated learning](https://en.wikipedia.org/wiki/Federated_learning) is a distributed machine learning approach that
+enables organizations to collaborate on machine learning projects
+without sharing sensitive data, such as, patient records, financial data,
+or classified secrets ([McMahan, 2016](https://arxiv.org/abs/1602.05629);
+[Sheller, Reina, Edwards, Martin, & Bakas, 2019](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6589345);
+[Yang, Liu, Chen, & Tong, 2019](https://arxiv.org/abs/1902.04885); 
+[Sheller et al., 2020](https://www.nature.com/articles/s41598-020-69250-1)).
+The basic premise behind federated learning
+is that the model moves to meet the data rather than the data moving
+to meet the model. Therefore, the minimum data movement needed
+across the federation is solely the model parameters and their updates.
 
-The aggregator is framework-agnostic, while the collaborator can use any 
-deep learning frameworks, such as TensorFlow or PyTorch.
 
-Intel® Federated Learning is developed by Intel Labs and 
+Intel® Federated Learning is a Python 3 project developed by Intel Labs and 
 Intel Internet of Things Group.
 
 

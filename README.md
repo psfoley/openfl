@@ -57,6 +57,6 @@ and Intel have integrated UPenn’s medical AI expertise with Intel’s framewor
 to create a federated learning solution for medical imaging. 
 
 Although initially developed for use in medical imaging, this project was 
-built to be agnostic to the use-case, the domain, and the 
+built to be agnostic to the use-case, the industry, and the 
 machine learning framework.
 

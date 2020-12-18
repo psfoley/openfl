@@ -19,7 +19,7 @@ across the federation is solely the model parameters and their updates.
 Intel® Federated Learning is a Python 3 project developed by Intel Labs and 
 Intel Internet of Things Group. It is released under the [Apache License, Version 2](https://www.apache.org/licenses/LICENSE-2.0).
 
-
+![Federated Learning](docs/images/diagram_fl.png)
 
 ## Requirements
 

@@ -27,6 +27,7 @@ Intel Internet of Things Group. It is released under the [Apache License, Versio
 - Python 3.6+ with a Python virtual environment (e.g. [conda](https://docs.conda.io/en/latest/))
 - TensorFlow 2+ or PyTorch 1.6+ (depending on your training requirements). Other frameworks can be supported.
 
+![fx commandline interface](docs/images/fx_help.png)
 
 
 ### OpenFL and the Federated Tumor Segmentation (FeTS) Initiative

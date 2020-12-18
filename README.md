@@ -3,7 +3,7 @@
 [![pipeline status](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/pipeline.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 [![coverage report](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/coverage.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 
-Intel\ :sup:`|reg|` Federated Learning is a Python 3 library for 
+Intel |reg| Federated Learning is a Python 3 library for 
 [federated learning](https://en.wikipedia.org/wiki/Federated_learning). 
 It enables organizations to collaborately train a model without 
 sharing sensitive information.
@@ -16,7 +16,7 @@ collaborators and combines them to form the global model.
 The aggregator is framework-agnostic, while the collaborator can use any 
 deep learning frameworks, such as TensorFlow or PyTorch.
 
-Intel\ :sup:`|reg|` Federated Learning is developed by Intel Labs and 
+Intel |reg| Federated Learning is developed by Intel Labs and 
 Intel Internet of Things Group.
 
 

@@ -10,7 +10,7 @@ or classified secrets
 ([Sheller et al., 2020](https://www.nature.com/articles/s41598-020-69250-1);
 [Sheller, Reina, Edwards, Martin, & Bakas, 2019](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6589345);
 [Yang, Liu, Chen, & Tong, 2019](https://arxiv.org/abs/1902.04885);
-[McMahan, 2016](https://arxiv.org/abs/1602.05629)).
+[McMahan, Moore, Ramage, Hampson, Agüera y Arcas, 2016](https://arxiv.org/abs/1602.05629)).
 The basic premise behind federated learning
 is that the model moves to meet the data rather than the data moving
 to meet the model. Therefore, the minimum data movement needed

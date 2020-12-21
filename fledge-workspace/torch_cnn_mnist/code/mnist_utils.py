@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""You may copy this file as the starting point of your own model."""
+
 import numpy as np
 
 from logging import getLogger
@@ -12,7 +14,7 @@ logger = getLogger(__name__)
 
 def one_hot(labels, classes):
     """
-    One Hot encode a vector
+    One Hot encode a vector.
 
     Args:
         labels (list):  List of labels to onehot encode
@@ -26,7 +28,7 @@ def one_hot(labels, classes):
 
 def _load_raw_datashards(shard_num, collaborator_count, transform=None):
     """
-    Load the raw data by shard
+    Load the raw data by shard.
 
     Returns tuples of the dataset shard divided into training and validation.
 

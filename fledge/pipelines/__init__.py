@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""fledge.pipelines module."""
 
 from .no_compression_pipeline import NoCompressionPipeline
 from .random_shift_pipeline import RandomShiftPipeline

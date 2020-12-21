@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""You may copy this file as the starting point of your own model."""
+
 from fledge.federated import FastEstimatorDataLoader
 
 import fastestimator as fe
@@ -9,13 +11,11 @@ from fastestimator.op.numpyop.univariate import Normalize
 
 
 class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
-    """
-    TensorFlow Data Loader for MNIST Dataset
-    """
+    """TensorFlow Data Loader for MNIST Dataset."""
 
     def __init__(self, data_path, batch_size, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             data_path: File path for the dataset
@@ -60,10 +60,7 @@ class FastEstimatorCifarInMemory(FastEstimatorDataLoader):
             ]), **kwargs)
 
     def split_data(self, train, eva, test, rank, collaborator_count):
-        """
-        Split data into N parts, where N is the collaborator count
-        """
-
+        """Split data into N parts, where N is the collaborator count."""
         if collaborator_count == 1:
             return train, eva, test
 

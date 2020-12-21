@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""FederatedDataset module."""
+
 import numpy as np
 
 from .loader_pt import PyTorchDataLoader
@@ -8,7 +10,7 @@ from .loader_pt import PyTorchDataLoader
 
 class FederatedDataSet(PyTorchDataLoader):
     """
-    Data Loader for in memory Numpy data
+    Data Loader for in memory Numpy data.
 
     Args:
         X_train: np.array
@@ -30,7 +32,7 @@ class FederatedDataSet(PyTorchDataLoader):
     def __init__(self, X_train, y_train, X_valid, y_valid,
                  batch_size=1, num_classes=None, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             X_train: np.array
@@ -48,7 +50,6 @@ class FederatedDataSet(PyTorchDataLoader):
             **kwargs: Additional arguments to pass to the function
 
         """
-
         super().__init__(batch_size)
 
         self.X_train = X_train
@@ -63,7 +64,7 @@ class FederatedDataSet(PyTorchDataLoader):
         self.num_classes = num_classes
 
     def split(self, num_collaborators, shuffle=True, equally=False):
-        """Create a Federated Dataset for each of the collaborators
+        """Create a Federated Dataset for each of the collaborators.
 
         Args:
             num_collaborators: int

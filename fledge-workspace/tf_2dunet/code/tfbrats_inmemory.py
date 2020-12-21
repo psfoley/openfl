@@ -1,16 +1,17 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""You may copy this file as the starting point of your own model."""
+
 from .brats_utils import load_from_NIfTI
 from fledge.federated import TensorFlowDataLoader
 
 
 class TensorFlowBratsInMemory(TensorFlowDataLoader):
-    """TensorFlow Data Loader for the BraTS dataset
-    """
+    """TensorFlow Data Loader for the BraTS dataset."""
 
     def __init__(self, data_path, batch_size, percent_train=0.8, pre_split_shuffle=True, **kwargs):
-        """Initializer
+        """Initialize.
 
         Args:
             data_path: The file path for the BraTS dataset
@@ -23,7 +24,6 @@ class TensorFlowBratsInMemory(TensorFlowDataLoader):
         Returns:
             Data loader with BraTS data
         """
-
         super().__init__(batch_size, **kwargs)
 
         X_train, y_train, X_valid, y_valid = load_from_NIfTI(parent_dir=data_path,

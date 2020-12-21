@@ -1,17 +1,17 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""FastEsitmatorDataLoader module."""
+
 from .loader import DataLoader
 
 
 class FastEstimatorDataLoader(DataLoader):
-    """
-    Federation Data Loader for FastEstimator
-    """
+    """Federation Data Loader for FastEstimator."""
 
     def __init__(self, pipeline, **kwargs):
         """
-        Instantiate the data object
+        Instantiate the data object.
 
         Args:
             batch_size: Size of batches used for all data loaders
@@ -20,7 +20,6 @@ class FastEstimatorDataLoader(DataLoader):
         Returns:
             None
         """
-
         self.pipeline = pipeline
 
         self.batch_size = pipeline.batch_size
@@ -35,7 +34,7 @@ class FastEstimatorDataLoader(DataLoader):
 
     def get_train_data_size(self):
         """
-        Get total number of training samples
+        Get total number of training samples.
 
         Returns:
             int: number of training samples
@@ -44,7 +43,7 @@ class FastEstimatorDataLoader(DataLoader):
 
     def get_valid_data_size(self):
         """
-        Get total number of validation samples
+        Get total number of validation samples.
 
         Returns:
             int: number of validation samples
@@ -52,4 +51,10 @@ class FastEstimatorDataLoader(DataLoader):
         return len(self.pipeline.data['test'])
 
     def get_feature_shape(self):
+        """
+        Get feature shape.
+
+        Returns:
+            tuple: shape of the input data.
+        """
         return self.pipeline.data['train']['x'].shape[1:]

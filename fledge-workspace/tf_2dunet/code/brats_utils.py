@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""You may copy this file as the starting point of your own model."""
 
 import os
 import logging
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def train_val_split(features, labels, percent_train, shuffle):
-    """Train/validation splot of the BraTS dataset
+    """Train/validation splot of the BraTS dataset.
 
     Splits incoming feature and labels into training and validation. The value
     of shuffle determines whether shuffling occurs before the split is performed.
@@ -30,7 +31,7 @@ def train_val_split(features, labels, percent_train, shuffle):
     """
 
     def split(list, idx):
-        """Split a Python list into 2 lists
+        """Split a Python list into 2 lists.
 
         Args:
             list: The Python list to split
@@ -64,7 +65,7 @@ def load_from_NIfTI(parent_dir,
                     channels_last=True,
                     task='whole_tumor',
                     **kwargs):
-    """Load the BraTS dataset from the NiFTI file format
+    """Load the BraTS dataset from the NiFTI file format.
 
     Loads data from the parent directory (NIfTI files for whole brains are
     assumed to be contained in subdirectories of the parent directory).
@@ -88,7 +89,6 @@ def load_from_NIfTI(parent_dir,
         val_labels: The ground truth labels for the validation dataset
 
     """
-
     path = os.path.join(parent_dir)
     subdirs = os.listdir(path)
     subdirs.sort()

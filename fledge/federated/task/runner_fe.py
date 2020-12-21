@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""FastEstimatorTaskRunner module."""
 
 import numpy as np
 import tensorflow as tf
@@ -12,7 +13,14 @@ from .runner_pt import PyTorchTaskRunner
 
 
 class FastEstimatorTaskRunner(TaskRunner):
+    """A wrapper for fastestimator.estimator."""
+
     def __init__(self, estimator, **kwargs):
+        """Initialize.
+
+        Args:
+            estimator: object of type fastestimator.estimator
+        """
         super().__init__(**kwargs)
         import fastestimator as fe
 
@@ -22,7 +30,7 @@ class FastEstimatorTaskRunner(TaskRunner):
                 self.get_progress = get_progress
 
             def on_begin(self, data) -> None:
-                """Runs once at the beginning of training or testing.
+                """Run once at the beginning of training or testing.
 
                 Args:
                     data: A dictionary through which traces can communicate with
@@ -70,10 +78,7 @@ class FastEstimatorTaskRunner(TaskRunner):
         self.total_epochs = self.estimator.system.total_epochs
 
     def train(self, col_name, round_num, input_tensor_dict, epochs, **kwargs):
-        """
-        Perform training for a specified number of epochs
-        """
-
+        """Perform training for a specified number of epochs."""
         if 'metrics' not in kwargs:
             raise KeyError('metrics must be included in kwargs')
         param_metrics = kwargs['metrics']
@@ -154,7 +159,8 @@ class FastEstimatorTaskRunner(TaskRunner):
 
     def validate(self, col_name, round_num, input_tensor_dict, **kwargs):
         """
-        Run the trained model on validation data; report results
+        Run the trained model on validation data; report results.
+
         Parameters
         ----------
         input_tensor_dict : either the last aggregated or locally trained model
@@ -164,7 +170,6 @@ class FastEstimatorTaskRunner(TaskRunner):
         output_tensor_dict : {TensorKey: nparray} (these correspond to acc,
          precision, f1_score, etc.)
         """
-
         self.rebuild_model(round_num, input_tensor_dict, validation=True)
         param_metrics = kwargs['metrics']
 
@@ -192,8 +197,9 @@ class FastEstimatorTaskRunner(TaskRunner):
 
     def initialize_tensorkeys_for_functions(self, with_opt_vars=False):
         """
-        Set the required tensors for all publicly accessible methods that could
-         be called as part of a task.
+        Set the required tensors for all publicly accessible methods that could \
+            be called as part of a task.
+
         By default, this is just all of the layers and optimizer of the model.
          Custom tensors should be added to this function
 
@@ -205,16 +211,16 @@ class FastEstimatorTaskRunner(TaskRunner):
         -------
         None
         """
-
         self.runner.initialize_tensorkeys_for_functions(with_opt_vars)
 
     def build_model(self):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
         """
-        When running a task, a map of named tensorkeys must be provided to the
-        function as dependencies.
+        When running a task, a map of named tensorkeys must be provided to the \
+            function as dependencies.
 
         Returns:
             list: (TensorKey(tensor_name, origin, round_number))
@@ -237,8 +243,7 @@ class FastEstimatorTaskRunner(TaskRunner):
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
         """
-        Set the model weights with a tensor dictionary:
-        {<tensor_name>: <value>}.
+        Set the model weights with a tensor dictionary: {<tensor_name>: <value>}.
 
         Args:
             tensor_dict (dict): The model weights dictionary.
@@ -251,13 +256,12 @@ class FastEstimatorTaskRunner(TaskRunner):
         return self.runner.set_tensor_dict(tensor_dict, with_opt_vars)
 
     def reset_opt_vars(self):
-        """
-        Reinitialize the optimizer variables."""
+        """Reinitialize the optimizer variables."""
         return self.runner.reset_opt_vars()
 
     def initialize_globals(self):
         """
-        Initialize all global variables
+        Initialize all global variables.
 
         Returns:
             None
@@ -266,8 +270,9 @@ class FastEstimatorTaskRunner(TaskRunner):
 
     def load_native(self, filepath, **kwargs):
         """
-        Loads model state from a filepath in ML-framework "native" format, e.g.
-        PyTorch pickled models.
+        Load model state from a filepath in ML-framework "native" format, \
+            e.g. PyTorch pickled models.
+
         May load from multiple files. Other filepaths may be derived from the
         passed filepath, or they may be in the kwargs.
 
@@ -284,8 +289,9 @@ class FastEstimatorTaskRunner(TaskRunner):
 
     def save_native(self, filepath, **kwargs):
         """
-        Saves model state in ML-framework "native" format, e.g. PyTorch pickled
-         models.
+        Save model state in ML-framework "native" format, \
+            e.g. PyTorch pickled models.
+
         May save one file or multiple files, depending on the framework.
 
         Args:
@@ -302,8 +308,7 @@ class FastEstimatorTaskRunner(TaskRunner):
 
     def rebuild_model(self, round_num, input_tensor_dict, validation=False):
         """
-        Parse tensor names and update weights of model. Handles the optimizer
-        treatment
+        Parse tensor names and update weights of model. Handles the optimizer treatment.
 
         Returns:
             None
@@ -312,5 +317,6 @@ class FastEstimatorTaskRunner(TaskRunner):
             round_num, input_tensor_dict, validation)
 
     def set_optimizer_treatment(self, opt_treatment):
+        """Change treatment of current instance optimizer."""
         super().set_optimizer_treatment(opt_treatment)
         self.runner.opt_treatment = opt_treatment

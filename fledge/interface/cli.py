@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""CLI module."""
 
 from click import Group, command, argument, group, clear
 from click import echo, option, pass_context, style
@@ -9,6 +10,7 @@ from pathlib import Path
 
 
 def setup_logging(log_config='logging.yaml', level='debug'):
+    """Initialize logging settings."""
     from logging import basicConfig, NOTSET, DEBUG, INFO
     from logging import WARNING, ERROR, CRITICAL
     # from rich.traceback import install as colorTraces
@@ -35,15 +37,19 @@ def setup_logging(log_config='logging.yaml', level='debug'):
 
 
 class CLI(Group):
+    """CLI class."""
+
     def __init__(self, name=None, commands=None, **kwargs):
+        """Initialize."""
         super(CLI, self).__init__(name, commands, **kwargs)
         self.commands = commands or {}
 
     def list_commands(self, ctx):
+        """Display all available commands."""
         return self.commands
 
     def format_help(self, ctx, formatter):
-
+        """Dislpay user-friendly help."""
         uses = [
             f'{ctx.command_path}',
             '[options]',
@@ -96,8 +102,7 @@ class CLI(Group):
 @option('--log-level', default='info', help='Logging verbosity level.')
 @pass_context
 def cli(context, log_config, log_level):
-    '''Command-line Interface'''
-
+    """Command-line Interface."""
     context.ensure_object(dict)
 
     context.obj['log_config'] = log_config
@@ -112,6 +117,7 @@ def cli(context, log_config, log_level):
 @cli.resultcallback()
 @pass_context
 def end(context, result, **kwargs):
+    """Print the result of the operation."""
     if context.obj['fail']:
         echo('\n ❌ :(')
     else:
@@ -122,10 +128,12 @@ def end(context, result, **kwargs):
 @pass_context
 @argument('subcommand', required=False)
 def help(context, subcommand):
+    """Display help."""
     pass
 
 
 def error_handler(error):
+    """Handle the error."""
     if 'cannot import' in str(error):
         if 'TensorFlow' in str(error):
             echo(style('EXCEPTION', fg='red', bold=True) + ' : ' + style(
@@ -141,6 +149,7 @@ def error_handler(error):
 
 
 def entry():
+    """Entry point of the Command-Line Interface."""
     from importlib import import_module
     from sys import path
 

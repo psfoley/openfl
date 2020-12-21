@@ -1,16 +1,17 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""You may copy this file as the starting point of your own model."""
+
 from .histology_utils import load_histology_shard
 from fledge.federated import PyTorchDataLoader
 
 
 class PyTorchHistologyInMemory(PyTorchDataLoader):
-    """PyTorch data loader for Histology dataset
-    """
+    """PyTorch data loader for Histology dataset."""
 
     def __init__(self, data_path, batch_size, **kwargs):
-        """Instantiate the data object
+        """Instantiate the data object.
 
         Args:
             data_path: The file path to the data

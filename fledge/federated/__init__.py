@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""fledge.federated package."""
+
 import pkgutil
 from .plan import Plan  # NOQA
 from .task import TaskRunner  # NOQA

@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""TensorFlowTaskRunner module."""
+
 import numpy as np
 import tensorflow.compat.v1 as tf
 from tqdm import tqdm
@@ -11,13 +13,11 @@ from .runner import TaskRunner
 
 
 class TensorFlowTaskRunner(TaskRunner):
-    """
-    Base class for TensorFlow models in the Federated Learning solution
-    """
+    """Base class for TensorFlow models in the Federated Learning solution."""
 
     def __init__(self, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             **kwargs: Additional parameters to pass to the function
@@ -68,8 +68,7 @@ class TensorFlowTaskRunner(TaskRunner):
 
     def rebuild_model(self, round, input_tensor_dict, validation=False):
         """
-        Parse tensor names and update weights of model. Handles the optimizer
-        treatment
+        Parse tensor names and update weights of model. Handles the optimizer treatment.
 
         Returns:
             None
@@ -86,8 +85,9 @@ class TensorFlowTaskRunner(TaskRunner):
     def train_batches(self, col_name, round_num, input_tensor_dict,
                       num_batches, use_tqdm=False, **kwargs):
         """
-        Perform the training for a specified number of batches. Is expected to
-        perform draws randomly, without replacement until data is exausted. Then
+        Perform the training for a specified number of batches.
+
+        Is expected to perform draws randomly, without replacement until data is exausted. Then
         data is replaced and shuffled and draws continue.
 
         Args:
@@ -184,7 +184,7 @@ class TensorFlowTaskRunner(TaskRunner):
 
     def train_batch(self, X, y):
         """
-        Train the model on a single batch
+        Train the model on a single batch.
 
         Args:
             X: Input to the model
@@ -193,7 +193,6 @@ class TensorFlowTaskRunner(TaskRunner):
         Returns:
             float: loss metric
         """
-
         feed_dict = {self.X: X, self.y: y}
 
         # run the train step and return the loss
@@ -245,7 +244,7 @@ class TensorFlowTaskRunner(TaskRunner):
         return output_tensor_dict, {}
 
     def validate_batch(self, X, y):
-        """Validate the model on a single local batch
+        """Validate the model on a single local batch.
 
         Args:
             X: Input to the model
@@ -261,7 +260,7 @@ class TensorFlowTaskRunner(TaskRunner):
             [self.output, self.validation_metric], feed_dict=feed_dict)
 
     def get_tensor_dict(self, with_opt_vars=True):
-        """Get the dictionary weights
+        """Get the dictionary weights.
 
         Get the weights from the tensor
 
@@ -283,7 +282,7 @@ class TensorFlowTaskRunner(TaskRunner):
             variables, self.sess.run(variables))}
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
-        """Set the tensor dictionary
+        """Set the tensor dictionary.
 
         Set the model weights with a tensor
          dictionary: {<tensor_name>: <value>}.
@@ -311,12 +310,11 @@ class TensorFlowTaskRunner(TaskRunner):
 
     def reset_opt_vars(self):
         """Reinitialize the optimizer variables."""
-
         for v in self.opt_vars:
             v.initializer.run(session=self.sess)
 
     def initialize_globals(self):
-        """Initialize Global Variables
+        """Initialize Global Variables.
 
         Initialize all global variables
 
@@ -344,15 +342,13 @@ class TensorFlowTaskRunner(TaskRunner):
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
         """
-        Get the required tensors for specified function that could be called
-        as part of a task.
+        Get the required tensors for specified function that could be called as part of a task.
+
         By default, this is just all of the layers and optimizer of the model.
 
         Returns:
-
             list : [TensorKey]
         """
-
         if func_name == 'validate':
             local_model = 'apply=' + str(kwargs['apply'])
             return self.required_tensorkeys_for_function[func_name][local_model]
@@ -361,13 +357,13 @@ class TensorFlowTaskRunner(TaskRunner):
 
     def initialize_tensorkeys_for_functions(self, with_opt_vars=False):
         """
-        Set the required tensors for all publicly accessible methods that could
-        be called as part of a task.
+        Set the required tensors for all publicly accessible methods \
+            that could be called as part of a task.
+
         By default, this is just all of the layers and optimizer of the model.
         Custom tensors should be added to this function
 
         """
-
         # TODO there should be a way to programmatically iterate through
         #  all of the methods in the class and declare the tensors.
         # For now this is done manually
@@ -421,7 +417,7 @@ class TensorFlowTaskRunner(TaskRunner):
 # It is good if it is the subset of the original variables.
 def tf_set_tensor_dict(tensor_dict, session, variables,
                        assign_ops=None, placeholders=None):
-    """TensorFlow set tensor dictionary
+    """Tensorflow set tensor dictionary.
 
     Args:
         tensor_dict: Dictionary of tensors

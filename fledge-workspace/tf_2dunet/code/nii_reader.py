@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""You may copy this file as the starting point of your own model."""
+
 import os
 import numpy.ma as ma
 import numpy as np
@@ -8,7 +10,7 @@ import nibabel as nib
 
 
 def parse_segments(seg, msk_modes):
-    """Parse the label segments
+    """Parse the label segments.
 
     Each channel corresponds to a different region of the tumor, decouple and stack these
 
@@ -22,7 +24,6 @@ def parse_segments(seg, msk_modes):
         The processed mask labels
 
     """
-
     msks_parsed = []
     for slice in range(seg.shape[-1]):
         # which mask values indicicate which label mode
@@ -45,7 +46,7 @@ def parse_segments(seg, msk_modes):
 
 
 def normalize_stack(imgs):
-    """Z-score normalization of the input images
+    """Z-score normalization of the input images.
 
     Args:
         imgs: The input images
@@ -77,7 +78,6 @@ def resize_data(dataset, new_size=128, rotate=3):
          (dataset.shape[2] - new_size) are not both even integers.
 
     """
-
     # Determine whether dataset and new_size are compatible with existing logic
     if (dataset.shape[1] - new_size) % 2 != 0 and (dataset.shape[2] - new_size) % 2 != 0:
         raise ValueError('dataset shape: {} and new_size: {} are not compatible with '
@@ -98,8 +98,7 @@ def resize_data(dataset, new_size=128, rotate=3):
 # adapted from https://github.com/NervanaSystems/topologies
 def _update_channels(imgs, msks, img_channels_to_keep,
                      msk_channels_to_keep, channels_last):
-    """Filter the channels of images and move placement of
-     channels in shape if desired.
+    """Filter the channels of images and move placement of channels in shape if desired.
 
     Args:
         imgs (np.array): A stack of images with channels (channels could be
@@ -117,7 +116,6 @@ def _update_channels(imgs, msks, img_channels_to_keep,
     Returns:
         images, masks with selected channels
     """
-
     new_imgs = imgs[:, :, :, img_channels_to_keep]
     # the mask channels that are kept are summed over to leave one channel
     # note the indices producing non-zero entries on these masks are mutually exclusive
@@ -135,6 +133,7 @@ def _update_channels(imgs, msks, img_channels_to_keep,
 
 
 def list_files(root, extension, parts):
+    """Construct files from root, parts."""
     files = [root + part + extension for part in parts]
     return files
 
@@ -182,7 +181,6 @@ def nii_reader(brain_path, task, channels_last=True,
                     to a file with incomplete data
 
     """
-
     files = os.listdir(brain_path)
     # link task to appropriate image and mask channels of interest
     img_modes = ["t1", "t2", "flair", "t1ce"]

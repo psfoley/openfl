@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""CollaboratorGRPCClient module."""
+
 import grpc
 
 from fledge.protocols import proto_to_datastream
@@ -21,7 +23,7 @@ class CollaboratorGRPCClient:
                  certificate,
                  private_key,
                  **kwargs):
-
+        """Initialize."""
         self.uri = f'{agg_addr}:{agg_port}'
         self.disable_tls = disable_tls
         self.disable_client_auth = disable_client_auth
@@ -54,8 +56,9 @@ class CollaboratorGRPCClient:
 
     def create_insecure_channel(self, uri):
         """
-        Sets an insecure gRPC channel (i.e. no TLS) if desired (warns user
-         that this is not recommended)
+        Set an insecure gRPC channel (i.e. no TLS) if desired.
+
+        Warns user that this is not recommended.
 
         Args:
             uri: The uniform resource identifier fo the insecure channel
@@ -72,7 +75,7 @@ class CollaboratorGRPCClient:
     def create_tls_channel(self, uri, ca, disable_client_auth,
                            certificate, private_key):
         """
-        Sets an secure gRPC channel (i.e. TLS)
+        Set an secure gRPC channel (i.e. TLS).
 
         Args:
             uri: The uniform resource identifier fo the insecure channel
@@ -85,7 +88,6 @@ class CollaboratorGRPCClient:
         Returns:
             An insecure gRPC channel object
         """
-
         with open(ca, 'rb') as f:
             root_certificates = f.read()
 
@@ -109,12 +111,15 @@ class CollaboratorGRPCClient:
             uri, credentials, options=self.channel_options)
 
     def GetTasks(self, message):
+        """Get tasks from the aggregator."""
         return self.stub.GetTasks(message)
 
     def GetAggregatedTensor(self, message):
+        """Get aggregated tensor from the aggregator."""
         return self.stub.GetAggregatedTensor(message)
 
     def SendLocalTaskResults(self, message):
+        """Send task results to the aggregator."""
         # convert (potentially) long list of tensors into stream
         stream = []
         stream += proto_to_datastream(message, self.logger)

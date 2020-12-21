@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""RandomShiftPipeline module."""
+
 import numpy as np
 
 from .pipeline import TransformationPipeline, Transformer
@@ -8,18 +10,16 @@ from .pipeline import Float32NumpyArrayToBytes
 
 
 class RandomShiftTransformer(Transformer):
-    """Random Shift Transformer
-    """
+    """Random Shift Transformer."""
 
     def __init__(self):
-        """Initializer
-        """
+        """Initialize."""
         self.lossy = False
 
         return
 
     def forward(self, data, **kwargs):
-        """Forward pass - compress data
+        """Forward pass - compress data.
 
         Implement the data transformation.
 
@@ -44,7 +44,7 @@ class RandomShiftTransformer(Transformer):
         return transformed_data, metadata
 
     def backward(self, data, metadata, **kwargs):
-        """Backward pass - Decompress data
+        """Backward pass - Decompress data.
 
         Implement the data transformation needed when going the oppposite
         direction to the forward method.
@@ -56,7 +56,6 @@ class RandomShiftTransformer(Transformer):
         Returns:
             transformed_data:
         """
-
         shape = tuple(metadata['int_list'])
         # this is an awkward use of the metadata into to float dict, usually
         # it will trully be treated as a dict. Here (and in 'forward' above)
@@ -72,11 +71,9 @@ class RandomShiftTransformer(Transformer):
 
 
 class RandomShiftPipeline(TransformationPipeline):
-    """Random Shift Pipeline
-    """
+    """Random Shift Pipeline."""
 
     def __init__(self, **kwargs):
-        """Initializer
-        """
+        """Initialize."""
         transformers = [RandomShiftTransformer(), Float32NumpyArrayToBytes()]
         super(RandomShiftPipeline, self).__init__(transformers=transformers)

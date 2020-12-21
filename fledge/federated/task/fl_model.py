@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""FederatedModel module."""
+
 import inspect
 from hashlib import md5
 
@@ -9,8 +11,7 @@ from .runner import TaskRunner
 
 class FederatedModel(TaskRunner):
     """
-    A wrapper that adapts to Tensorflow and Pytorch models to a federated
-    context.
+    A wrapper that adapts to Tensorflow and Pytorch models to a federated context.
 
     Args:
         model : tensorflow/keras (function) , pytorch (class)
@@ -23,18 +24,16 @@ class FederatedModel(TaskRunner):
             allows the optimizer to be attached to the federated models spawned
             for each collaborator.
         loss_fn : pytorch loss_fun (only required for pytorch)
-
     """
 
     def __init__(self, build_model, optimizer=None, loss_fn=None, **kwargs):
-        """Initializer
+        """Initialize.
 
         Args:
             model:    build_model function
             **kwargs: Additional parameters to pass to the function
 
         """
-
         super().__init__(**kwargs)
 
         self.build_model = build_model
@@ -67,9 +66,7 @@ class FederatedModel(TaskRunner):
         self.initialize_tensorkeys_for_functions()
 
     def __getattribute__(self, attr):
-        """
-        Direct call into self.runner methods if necessary
-        """
+        """Direct call into self.runner methods if necessary."""
         if attr in ['reset_opt_vars', 'initialize_globals',
                     'set_tensor_dict', 'get_tensor_dict',
                     'get_required_tensorkeys_for_function',
@@ -81,13 +78,15 @@ class FederatedModel(TaskRunner):
         return super(FederatedModel, self).__getattribute__(attr)
 
     def setup(self, num_collaborators):
-        """Create new models for all of the collaborators in the experiment
+        """
+        Create new models for all of the collaborators in the experiment.
 
         Args:
             num_collaborators:  Number of experiment collaborators
 
         Returns:
-            List of models"""
+            List of models
+        """
         return [
             FederatedModel(
                 self.build_model,
@@ -100,5 +99,5 @@ class FederatedModel(TaskRunner):
             )]
 
     def __hash__(self):
-        """Return a hash of the model structure"""
+        """Return a hash of the model structure."""
         return md5.model.summary()

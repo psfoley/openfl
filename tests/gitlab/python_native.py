@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""Python native tests."""
+
 import numpy as np
 import torch
 import json
@@ -17,6 +19,7 @@ fx.init('torch_cnn_mnist')
 
 
 def one_hot(labels, classes):
+    """One-hot encode `labels` using `classes` classes."""
     return np.eye(classes)[labels]
 
 
@@ -45,7 +48,10 @@ fl_data = FederatedDataSet(train_images, train_labels, valid_images, valid_label
 
 
 class Net(nn.Module):
+    """PyTorch Neural Network."""
+
     def __init__(self):
+        """Initialize."""
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 16, 3)
         self.pool = nn.MaxPool2d(2, 2)
@@ -55,6 +61,7 @@ class Net(nn.Module):
         self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
+        """Forward pass of the network."""
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
         x = x.view(x.size(0), -1)
@@ -65,8 +72,7 @@ class Net(nn.Module):
 
 
 def cross_entropy(output, target):
-    """Binary cross-entropy metric
-    """
+    """Binary cross-entropy metric."""
     return F.binary_cross_entropy_with_logits(input=output, target=target)
 
 

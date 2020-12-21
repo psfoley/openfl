@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""Static grouped assigner module."""
+
 from .assigner import Assigner
 
 
@@ -66,7 +68,9 @@ class StaticGroupedAssigner(Assigner):
                     self.collaborators_for_task[task][round_] += group_col_list
 
     def get_tasks_for_collaborator(self, collaborator_name, round_number):
+        """Get tasks for the collaborator specified."""
         return self.collaborator_tasks[collaborator_name][round_number]
 
     def get_collaborators_for_task(self, task_name, round_number):
+        """Get collaborators for the task specified."""
         return self.collaborators_for_task[task_name][round_number]

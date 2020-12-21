@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""AggregatorGRPCServer module."""
+
 from grpc import server, ssl_server_credentials
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import cpu_count

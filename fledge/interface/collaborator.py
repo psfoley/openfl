@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""Collaborator module."""
 
 from logging import getLogger
 from pathlib import Path
@@ -101,6 +102,7 @@ def RegisterDataPath(collaborator_name, data_path=None, silent=False):
         is_flag=True)
 def generate_cert_request_(context, collaborator_name,
                            data_path, silent, skip_package):
+    """Generate certificate request for the collaborator."""
     generate_cert_request(collaborator_name, data_path, silent, skip_package)
 
 
@@ -264,6 +266,7 @@ def sign_certificate(file_name):
         help='Import the archive containing the collaborator\'s'
              ' certificate (signed by the CA)')
 def certify_(context, collaborator_name, silent, request_pkg, import_):
+    """Certify the collaborator."""
     certify(collaborator_name, silent, request_pkg, import_)
 
 

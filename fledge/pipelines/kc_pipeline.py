@@ -1,6 +1,9 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""KCPipeline module."""
+
+
 import numpy as np
 import gzip as gz
 import copy as co
@@ -97,6 +100,7 @@ class GZIPTransformer(Transformer):
     """A GZIP transformer class to losslessly compress data."""
 
     def __init__(self):
+        """Initialize."""
         self.lossy = False
         return
 

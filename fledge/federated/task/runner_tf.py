@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""TensorFlowTaskRunner module."""
+
 import numpy as np
 import tensorflow.compat.v1 as tf
 from tqdm import tqdm

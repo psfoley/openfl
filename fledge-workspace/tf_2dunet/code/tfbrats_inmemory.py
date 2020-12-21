@@ -2,6 +2,8 @@
 # Licensed subject to the terms of the separately executed
 # evaluation license agreement between Intel Corporation and you.
 
+"""You may copy this file as the starting point of your own model."""
+
 from .brats_utils import load_from_NIfTI
 from fledge.federated import TensorFlowDataLoader
 

@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""This package includes dependencies of the FLedge project."""
+
 from setuptools import setup
 
 setup(

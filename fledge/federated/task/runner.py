@@ -51,6 +51,7 @@ class TaskRunner(object):
         self.logger = getLogger(__name__)
 
     def set_optimizer_treatment(self, opt_treatment):
+        """Change the treatment of current instance optimizer."""
         self.opt_treatment = opt_treatment
 
     def get_data_loader(self):

@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""TensorDB Module."""
+
 import pandas as pd
 import numpy as np
 
@@ -19,12 +21,14 @@ class TensorDB(object):
     """
 
     def __init__(self):
+        """Initialize."""
         self.tensor_db = pd.DataFrame([], columns=[
             'tensor_name', 'origin', 'round', 'report', 'tags', 'nparray'
         ])
         self.mutex = Lock()
 
     def __repr__(self):
+        """Representation of the object."""
         with pd.option_context('display.max_rows', None):
             return 'TensorDB contents:\n{}'.format(
                 self.tensor_db[
@@ -32,11 +36,11 @@ class TensorDB(object):
                 ])
 
     def __str__(self):
+        """Printable string representation."""
         return self.__repr__()
 
     def clean_up(self, remove_older_than=1):
-        # Remove old entries from the data base
-        # Preventing the db from becoming too large and slow
+        """Remove old entries from database preventing the db from becoming too large and slow."""
         if remove_older_than < 0:
             # Getting a negative argument calls off cleaning
             return

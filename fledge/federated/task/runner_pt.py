@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""PyTorchTaskRunner module."""
+
 import numpy as np
 import torch as pt
 import torch.nn as nn
@@ -294,6 +296,7 @@ class PyTorchTaskRunner(nn.Module, TaskRunner):
             assert len(tensor_dict) == 0
 
     def get_optimizer(self):
+        """Get the optimizer of this instance."""
         return self.optimizer
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):

@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""Plan module."""
 
 from socket import getfqdn
 from logging import getLogger
@@ -122,6 +123,7 @@ def initialize(context, plan_config, cols_config, data_config,
 
 
 def FreezePlan(plan_config):
+    """Dump the plan to YAML file."""
     plan = Plan()
     plan.config = Plan.Parse(Path(plan_config), resolve=False).config
 

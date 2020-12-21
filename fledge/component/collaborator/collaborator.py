@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""Collaborator module."""
+
 from logging import getLogger
 from enum import Enum
 from time import sleep
@@ -34,10 +36,22 @@ class OptTreatment(Enum):
 
 
 class Collaborator(object):
-    """
-    The Collaborator object class.
+    """The Collaborator object class."""
 
-    Args:
+    def __init__(self,
+                 collaborator_name,
+                 aggregator_uuid,
+                 federation_uuid,
+                 client,
+                 task_runner,
+                 tensor_pipe,
+                 task_config,
+                 opt_treatment=OptTreatment.RESET,
+                 delta_updates=False,
+                 **kwargs):
+        """Initialize.
+
+        Args:
         collaborator_name (string): The common name for the collaborator
         aggregator_uuid: The unique id for the client
         federation_uuid: The unique id for the federation
@@ -52,20 +66,7 @@ class Collaborator(object):
             gets sent to collaborator. (Defaults to False)
         single_col_cert_common_name: (Defaults to None)
         **kwargs : Additional parameters to pass to collaborator object
-    """
-
-    def __init__(self,
-                 collaborator_name,
-                 aggregator_uuid,
-                 federation_uuid,
-                 client,
-                 task_runner,
-                 tensor_pipe,
-                 task_config,
-                 opt_treatment=OptTreatment.RESET,
-                 delta_updates=False,
-                 **kwargs):
-
+        """
         self.single_col_cert_common_name = None
 
         if self.single_col_cert_common_name is None:
@@ -124,6 +125,7 @@ class Collaborator(object):
             return True
 
     def validate_response(self, reply):
+        """Validate the aggregator response."""
         # check that the message was intended to go to this collaborator
         check_equal(reply.header.receiver, self.collaborator_name, self.logger)
         check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
@@ -143,7 +145,7 @@ class Collaborator(object):
         )
 
     def run(self):
-
+        """Run the collaborator."""
         while True:
             tasks = self.get_tasks()
             if tasks.quit:
@@ -187,6 +189,7 @@ class Collaborator(object):
                 break
 
     def get_tasks(self):
+        """Get tasks from the aggregator."""
         # logging wait time to analyze training process
         self.logger.info('Waiting for tasks...')
 
@@ -197,6 +200,7 @@ class Collaborator(object):
         return response
 
     def do_task(self, task, round_number):
+        """Do the specified task."""
         # map this task to an actual function name and kwargs
         func_name = self.task_config[task]['function']
         kwargs = self.task_config[task]['kwargs']
@@ -246,6 +250,7 @@ class Collaborator(object):
         self.send_task_results(global_output_tensor_dict, round_number, task)
 
     def get_numpy_dict_for_tensorkeys(self, tensor_keys):
+        """Get tensor dictionary for specified tensorkey set."""
         return {k.tensor_name: self.get_data_for_tensorkey(k) for k in tensor_keys}
 
     def get_data_for_tensorkey(self, tensor_key):
@@ -386,7 +391,7 @@ class Collaborator(object):
         return nparray
 
     def send_task_results(self, tensor_dict, round_number, task_name):
-
+        """Send task results to the aggregator."""
         named_tensors = [
             self.nparray_to_named_tensor(k, v) for k, v in tensor_dict.items()
         ]
@@ -479,6 +484,7 @@ class Collaborator(object):
         return named_tensor
 
     def named_tensor_to_nparray(self, named_tensor):
+        """Convert named tensor to a numpy array."""
         # do the stuff we do now for decompression and frombuffer and stuff
         # This should probably be moved back to protoutils
         raw_bytes = named_tensor.data_bytes

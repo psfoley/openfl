@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""Workspace module."""
 
 from pathlib import Path
 from click import Choice, Path as ClickPath
@@ -24,6 +25,7 @@ def workspace(context):
 
 
 def create_dirs(prefix):
+    """Create workspace directories."""
     echo('Creating Workspace Directories')
 
     (prefix / 'cert').mkdir(parents=True, exist_ok=True)  # certifications
@@ -41,6 +43,7 @@ def create_dirs(prefix):
 
 
 def create_cert(prefix):
+    """Create workspace certifications."""
     echo('Creating Workspace Certifications')
 
     src = WORKSPACE / 'workspace/cert/config'  # from default workspace
@@ -50,6 +53,7 @@ def create_cert(prefix):
 
 
 def create_temp(prefix, template):
+    """Create workspace templates."""
     echo('Creating Workspace Templates')
 
     copytree(src=WORKSPACE / template, dst=prefix, dirs_exist_ok=True,
@@ -67,6 +71,7 @@ def get_templates():
         help='Workspace name or path', type=ClickPath())
 @option('--template', required=True, type=Choice(get_templates()))
 def create_(prefix, template):
+    """Create the workspace."""
     create(prefix, template)
 
 
@@ -204,6 +209,7 @@ def import_(archive):
 
 @workspace.command(name='certify')
 def certify_():
+    """Create certificate authority for federation."""
     certify()
 
 

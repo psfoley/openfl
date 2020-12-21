@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""FastEstimatorTaskRunner module."""
 
 import numpy as np
 import tensorflow as tf
@@ -12,7 +13,14 @@ from .runner_pt import PyTorchTaskRunner
 
 
 class FastEstimatorTaskRunner(TaskRunner):
+    """A wrapper for fastestimator.estimator."""
+
     def __init__(self, estimator, **kwargs):
+        """Initialize.
+
+        Args:
+            estimator: object of type fastestimator.estimator
+        """
         super().__init__(**kwargs)
         import fastestimator as fe
 
@@ -206,6 +214,7 @@ class FastEstimatorTaskRunner(TaskRunner):
         self.runner.initialize_tensorkeys_for_functions(with_opt_vars)
 
     def build_model(self):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
@@ -308,5 +317,6 @@ class FastEstimatorTaskRunner(TaskRunner):
             round_num, input_tensor_dict, validation)
 
     def set_optimizer_treatment(self, opt_treatment):
+        """Change treatment of current instance optimizer."""
         super().set_optimizer_treatment(opt_treatment)
         self.runner.opt_treatment = opt_treatment

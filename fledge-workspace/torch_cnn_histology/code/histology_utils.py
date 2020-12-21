@@ -2,6 +2,8 @@
 # Licensed subject to the terms of the separately executed
 # evaluation license agreement between Intel Corporation and you.
 
+"""You may copy this file as the starting point of your own model."""
+
 import numpy as np
 from logging import getLogger
 from torchvision.datasets import ImageFolder
@@ -19,6 +21,8 @@ logger = getLogger(__name__)
 
 
 class HistologyDataset(ImageFolder):
+    """Colorectal Histology Dataset."""
+
     URL = "https://zenodo.org/record/53169/files/Kather_" \
           "texture_2016_image_tiles_5000.zip?download=1"
     FILENAME = "Kather_texture_2016_image_tiles_5000.zip"
@@ -27,6 +31,7 @@ class HistologyDataset(ImageFolder):
     DEFAULT_PATH = path.join(path.expanduser('~'), '.fledge', 'data')
 
     def __init__(self, root: str = DEFAULT_PATH, **kwargs) -> None:
+        """Initialize."""
         makedirs(root, exist_ok=True)
         filepath = path.join(root, HistologyDataset.FILENAME)
         if not path.exists(filepath):
@@ -41,12 +46,14 @@ class HistologyDataset(ImageFolder):
             path.join(root, HistologyDataset.FOLDER_NAME), **kwargs)
 
     def report_hook(self, count, block_size, total_size):
+        """Update progressbar."""
         if self.pbar.total is None and total_size:
             self.pbar.total = total_size
         progress_bytes = count * block_size
         self.pbar.update(progress_bytes - self.pbar.n)
 
     def __getitem__(self, index):
+        """Allow getting items by slice index."""
         if isinstance(index, Iterable):
             return [super(HistologyDataset, self).__getitem__(i) for i in index]
         else:

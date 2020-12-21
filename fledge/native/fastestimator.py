@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""FederatedFastEstimator module."""
 
 import os
 from pathlib import Path
@@ -13,7 +14,10 @@ from fledge.federated.task import FastEstimatorTaskRunner
 
 
 class FederatedFastEstimator:
+    """A wrapper for fastestimator.estimator that allows running in federated mode."""
+
     def __init__(self, estimator, override_config={}, **kwargs):
+        """Initialize."""
         self.estimator = estimator
         self.logger = getLogger(__name__)
         fx.init(**kwargs)
@@ -21,6 +25,7 @@ class FederatedFastEstimator:
             fx.update_plan(override_config)
 
     def fit(self):
+        """Run the estimator."""
         import fastestimator as fe
         from fastestimator.trace.io.best_model_saver import BestModelSaver
         from sys import path

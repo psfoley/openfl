@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""Aggregator module."""
+
 from logging import getLogger
 
 import numpy as np
@@ -197,6 +199,7 @@ class Aggregator(object):
                     and collaborator_common_name in self.authorized_cols)
 
     def all_quit_jobs_sent(self):
+        """Assert all quit jobs are sent to collaborators."""
         return set(self.quit_job_sent_to) == set(self.authorized_cols)
 
     def check_request(self, request):
@@ -891,6 +894,7 @@ class Aggregator(object):
             self.tensor_db.clean_up(self.db_store_rounds)
 
     def is_task_done(self, task_name):
+        """Check that task is done."""
         collaborators_needed = self.assigner.get_collaborators_for_task(
             task_name, self.round_number
         )
@@ -902,6 +906,7 @@ class Aggregator(object):
         ])
 
     def is_round_done(self):
+        """Check that round is done."""
         tasks_for_round = self.assigner.get_all_tasks_for_round(
             self.round_number
         )
@@ -909,6 +914,7 @@ class Aggregator(object):
         return all([self.is_task_done(t) for t in tasks_for_round])
 
     def log_big_warning(self):
+        """Warn user about single collaborator cert mode."""
         self.logger.warning(
             "\n{}\nYOU ARE RUNNING IN SINGLE COLLABORATOR CERT MODE! THIS IS"
             " NOT PROPER PKI AND "

@@ -2,6 +2,8 @@
 # Licensed subject to the terms of the separately executed
 # evaluation license agreement between Intel Corporation and you.
 
+"""You may copy this file as the starting point of your own model."""
+
 import tensorflow.compat.v1 as tf
 
 from fledge.federated import TensorFlowTaskRunner

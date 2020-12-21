@@ -1,5 +1,7 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""Assigner module."""
+
 
 class Assigner:
     """
@@ -22,6 +24,7 @@ class Assigner:
 
     def __init__(self, task_groups, tasks, authorized_cols,
                  rounds_to_train, **kwargs):
+        """Initialize."""
         self.task_groups = task_groups
         self.tasks = tasks
         self.authorized_cols = authorized_cols
@@ -35,12 +38,15 @@ class Assigner:
         self.define_task_assignments()
 
     def define_task_assignments(self):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_tasks_for_collaborator(self, collaborator_name, round_number):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_collaborators_for_task(self, task_name, round_number):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_all_tasks_for_round(self, round_number):
@@ -53,6 +59,7 @@ class Assigner:
         return self.all_tasks_in_groups
 
     def get_aggregation_type_for_task(self, task_name):
+        """Extract aggregation type from self.tasks."""
         if 'aggregation_type' not in self.tasks[task_name]:
             return None
         return self.tasks[task_name]['aggregation_type']

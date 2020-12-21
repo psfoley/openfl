@@ -2,6 +2,8 @@
 # Licensed subject to the terms of the separately executed
 # evaluation license agreement between Intel Corporation and you.
 
+"""You may copy this file as the starting point of your own model."""
+
 import os
 import numpy.ma as ma
 import numpy as np
@@ -132,6 +134,7 @@ def _update_channels(imgs, msks, img_channels_to_keep,
 
 
 def list_files(root, extension, parts):
+    """Construct files from root, parts."""
     files = [root + part + extension for part in parts]
     return files
 

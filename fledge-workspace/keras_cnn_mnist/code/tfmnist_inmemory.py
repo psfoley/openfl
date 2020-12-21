@@ -2,6 +2,8 @@
 # Licensed subject to the terms of the separately executed
 # evaluation license agreement between Intel Corporation and you.
 
+"""You may copy this file as the starting point of your own model."""
+
 from fledge.federated import TensorFlowDataLoader
 
 from .mnist_utils import load_mnist_shard

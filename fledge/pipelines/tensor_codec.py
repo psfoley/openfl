@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""TensorCodec module."""
+
 import numpy as np
 
 from fledge.pipelines import NoCompressionPipeline
@@ -8,16 +10,14 @@ from fledge.utilities import TensorKey
 
 
 class TensorCodec(object):
+    """TensorCodec is responsible for the following.
+
+    1. Tracking the compression/decompression related dependencies of a given tensor
+    2. Acting as a TensorKey aware wrapper for the compression_pipeline functionality
+    """
 
     def __init__(self, compression_pipeline):
-        """Initialize.
-
-        TensorCodec is responsible for:
-            1. Tracking the compression/decompression related dependencies
-             of a given tensor
-            2. Acting as a TensorKey aware wrapper for the compression_pipeline
-             functionality
-        """
+        """Initialize."""
         self.compression_pipeline = compression_pipeline
         if self.compression_pipeline.is_lossy():
             self.lossless_pipeline = NoCompressionPipeline()
@@ -25,6 +25,7 @@ class TensorCodec(object):
             self.lossless_pipeline = compression_pipeline
 
     def set_lossless_pipeline(self, lossless_pipeline):
+        """Set lossless pipeline."""
         assert lossless_pipeline.is_lossy() is False, (
             "The provided pipeline is not lossless")
         self.lossless_pipeline = lossless_pipeline

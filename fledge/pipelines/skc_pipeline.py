@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""SKCPipeline module."""
+
 import numpy as np
 import gzip as gz
 import copy as co
@@ -98,6 +100,7 @@ class KmeansTransformer(Transformer):
     """A transformer class to quantize input data."""
 
     def __init__(self, n_cluster=6):
+        """Initialize."""
         self.n_cluster = n_cluster
         self.lossy = True
         return
@@ -175,6 +178,7 @@ class GZIPTransformer(Transformer):
     """A transformer class to losslessly compress data."""
 
     def __init__(self):
+        """Initialize."""
         self.lossy = False
         return
 

@@ -1,5 +1,6 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""Module with auxiliary CLI helper functions."""
 
 from subprocess import run, PIPE
 from click import echo, style
@@ -20,6 +21,7 @@ FLEDGE_USERDIR = Path.home() / '.fledge'
 
 
 def pretty(o):
+    """Pretty-print the dictionary given."""
     m = max(map(len, o.keys()))
 
     for k, v in o.items():
@@ -27,6 +29,7 @@ def pretty(o):
 
 
 def vex(command, workdir='.', env=None, expectcode=0):
+    """Execute the specified command."""
     if env:
         env = {**environ.copy(), **env}
     r = run(command, shell=True, cwd=workdir, stdout=PIPE,
@@ -43,6 +46,7 @@ def vex(command, workdir='.', env=None, expectcode=0):
 
 
 def tree(path):
+    """Print current directory file tree."""
     echo(f'+ {path}')
 
     for path in sorted(path.rglob('*')):
@@ -212,6 +216,7 @@ def get_fx_path(curr_path=""):
 
 
 def remove_line_from_file(pkg, filename):
+    """Remove line that contains `pkg` from the `filename` file."""
     with open(filename, "r+") as f:
         d = f.readlines()
         f.seek(0)
@@ -222,6 +227,7 @@ def remove_line_from_file(pkg, filename):
 
 
 def replace_line_in_file(line, line_num_to_replace, filename):
+    """Replace line at `line_num_to_replace` with `line`."""
     with open(filename, "r+") as f:
         d = f.readlines()
         f.seek(0)

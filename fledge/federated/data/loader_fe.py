@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""FastEsitmatorDataLoader module."""
+
 from .loader import DataLoader
 
 
@@ -49,4 +51,10 @@ class FastEstimatorDataLoader(DataLoader):
         return len(self.pipeline.data['test'])
 
     def get_feature_shape(self):
+        """
+        Get feature shape.
+
+        Returns:
+            tuple: shape of the input data.
+        """
         return self.pipeline.data['train']['x'].shape[1:]

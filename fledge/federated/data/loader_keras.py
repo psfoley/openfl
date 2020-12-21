@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""KerasDataLoader module."""
+
 import numpy as np
 
 from .loader import DataLoader

@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""STCPipelinemodule."""
+
 import numpy as np
 import gzip as gz
 
@@ -93,6 +95,7 @@ class TernaryTransformer(Transformer):
     """A transformer class to ternerize input data."""
 
     def __init__(self):
+        """Initialize."""
         self.lossy = True
         return
 

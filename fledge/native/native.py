@@ -1,5 +1,9 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
+"""FLedge Native functions module.
+
+This file defines fledge entrypoints to be used directly through python (not CLI)
+"""
 
 import os
 from logging import getLogger
@@ -107,6 +111,7 @@ def update_plan(override_config):
 
 
 def unflatten(config, separator='.'):
+    """Unfold `config` settings that have `separator` in their names."""
     keys_to_separate = [k for k in config if separator in k]
     if len(keys_to_separate) > 0:
         for key in keys_to_separate:
@@ -123,6 +128,7 @@ def unflatten(config, separator='.'):
 
 
 def setup_logging():
+    """Initialize logging settings."""
     # Setup logging
     from logging import basicConfig
     from rich.console import Console
@@ -190,9 +196,13 @@ def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
 
 
 def create_collaborator(plan, name, model, aggregator):
-    # Using the same plan object to create multiple collaborators leads to
-    # identical collaborator objects. This function can be removed once
-    # collaborator generation is fixed in fledge/federated/plan/plan.py
+    """
+    Create the collaborator.
+
+    Using the same plan object to create multiple collaborators leads to
+    identical collaborator objects. This function can be removed once
+    collaborator generation is fixed in fledge/federated/plan/plan.py
+    """
     plan = copy(plan)
 
     return plan.get_collaborator(name, task_runner=model, client=aggregator)

@@ -1,6 +1,8 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plan module."""
+
 from hashlib import md5
 from logging import getLogger
 from os.path import splitext
@@ -18,16 +20,14 @@ DEFAULTS = 'defaults'
 AUTO = 'auto'
 
 
-class Network(object):
-    pass
-
-
 class Plan(object):
+    """Federated Learning plan."""
+
     logger = getLogger(__name__)
 
     @staticmethod
     def Load(yaml_path: Path, default={}):
-
+        """Load the plan from YAML file."""
         if yaml_path and yaml_path.exists():
             return safe_load(yaml_path.read_text())
 
@@ -35,6 +35,7 @@ class Plan(object):
 
     @staticmethod
     def Dump(yaml_path, config, freeze=False):
+        """Dump the plan config to YAML file."""
         if freeze:
             plan = Plan()
             plan.config = config
@@ -174,7 +175,7 @@ class Plan(object):
         return instance
 
     def __init__(self):
-
+        """Initialize."""
         self.config = {}  # dictionary containing patched plan definition
         self.authorized_cols = []  # authorized collaborator list
         self.cols_data_paths = {}  # collaborator data paths dict
@@ -196,7 +197,7 @@ class Plan(object):
 
     @property
     def hash(self):
-
+        """Generate hash for this instance."""
         self.hash_ = md5(dump(self.config).encode('utf-8'))
         Plan.logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]',
                          extra={'markup': True})
@@ -204,7 +205,7 @@ class Plan(object):
         return self.hash_.hexdigest()
 
     def resolve(self):
-
+        """Resolve the federation settings."""
         self.federation_uuid = f'{self.name}_{self.hash[:8]}'
         self.aggregator_uuid = f'aggregator_{self.federation_uuid}'
 
@@ -220,7 +221,7 @@ class Plan(object):
             ) % (60999 - 49152) + 49152
 
     def get_assigner(self):
-
+        """Get the plan task assigner."""
         defaults = self.config.get('assigner',
                                    {
                                        TEMPLATE: 'fledge.component.Assigner',
@@ -237,7 +238,7 @@ class Plan(object):
         return self.assigner_
 
     def get_aggregator(self):
-
+        """Get federation aggregator."""
         defaults = self.config.get('aggregator',
                                    {
                                        TEMPLATE: 'fledge.component.Aggregator',
@@ -255,7 +256,7 @@ class Plan(object):
         return self.aggregator_
 
     def get_tensor_pipe(self):
-
+        """Get data tensor pipeline."""
         defaults = self.config.get(
             'compression_pipeline',
             {
@@ -270,7 +271,7 @@ class Plan(object):
         return self.pipe_
 
     def get_data_loader(self, collaborator_name):
-
+        """Get data loader."""
         defaults = self.config.get('data_loader',
                                    {
                                        TEMPLATE: 'fledge.federation.DataLoader',
@@ -287,7 +288,7 @@ class Plan(object):
         return self.loader_
 
     def get_task_runner(self, collaborator_name):
-
+        """Get task runner."""
         defaults = self.config.get('task_runner',
                                    {
                                        TEMPLATE: 'fledge.federation.TaskRunner',
@@ -305,7 +306,7 @@ class Plan(object):
 
     def get_collaborator(self, collaborator_name,
                          task_runner=None, client=None):
-
+        """Get collaborator."""
         defaults = self.config.get(
             'collaborator',
             {
@@ -336,7 +337,7 @@ class Plan(object):
         return self.collaborator_
 
     def get_client(self, collaborator_name):
-
+        """Get gRPC client for the specified collaborator."""
         common_name = collaborator_name
 
         chain = 'cert/cert_chain.crt'
@@ -357,7 +358,7 @@ class Plan(object):
         return self.client_
 
     def get_server(self):
-
+        """Get gRPC server of the aggregator instance."""
         common_name = self.config['network'][SETTINGS]['agg_addr'].lower()
 
         chain = 'cert/cert_chain.crt'

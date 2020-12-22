@@ -39,7 +39,6 @@ pep8:
   tags:
     - charlie
   before_script:
-    - sudo apt-get install python3-venv
     - whoami
     - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
@@ -55,15 +54,15 @@ pep8:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    - python3 -m venv venv
-    - source venv/bin/activate
     - pip install --user --upgrade pip
-    - pip uninstall -y flake8-docstrings
+    - pip install virtualenv
+    - virtualenv .venv
+    - source .venv/bin/activate
   script:
     - pip install -r requirements-linters.txt --user
     - flake8
   after_script:
-    - deactivate && rm -rf venv
+    - deactivate && rm -rf .venv
 
 unit-tests:
   stage: unit-tests

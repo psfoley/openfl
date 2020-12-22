@@ -189,13 +189,13 @@ class AggregatorGRPCServer(AggregatorServicer):
 
         self.validate_collaborator(proto, context)
         # all messages get sanity checked
-        self.check_request(request)
+        self.check_request(proto)
 
-        collaborator_name = request.header.sender
-        task_name = request.task_name
-        round_number = request.round_number
-        data_size = request.data_size
-        named_tensors = request.tensors
+        collaborator_name = proto.header.sender
+        task_name = proto.task_name
+        round_number = proto.round_number
+        data_size = proto.data_size
+        named_tensors = proto.tensors
 
         self.aggregator.send_local_task_results(
             collaborator_name, task_name, round_number, data_size, named_tensors)

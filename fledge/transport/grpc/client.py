@@ -16,11 +16,15 @@ from typing import Optional, Tuple
 
 
 class ConstantBackoff:
+    """Constant Backoff policy."""
+
     def __init__(self, reconnect_interval, logger):
+        """Initialize Constant Backoff."""
         self.reconnect_interval = reconnect_interval
         self.logger = logger
 
     def sleep(self):
+        """Sleep for specified interval."""
         self.logger.info("Attempting to connect to aggregator...")
         time.sleep(self.reconnect_interval)
 
@@ -28,16 +32,19 @@ class ConstantBackoff:
 class RetryOnRpcErrorClientInterceptor(
     grpc.UnaryUnaryClientInterceptor, grpc.StreamUnaryClientInterceptor
 ):
+    """Retry gRPC connection on failure."""
+
     def __init__(
         self,
         sleeping_policy,
         status_for_retry: Optional[Tuple[grpc.StatusCode]] = None,
     ):
+        """Initialize function for gRPC retry."""
         self.sleeping_policy = sleeping_policy
         self.status_for_retry = status_for_retry
 
     def _intercept_call(self, continuation, client_call_details, request_or_iterator):
-
+        """Intercept the call to the gRPC server."""
         while True:
             response = continuation(client_call_details, request_or_iterator)
 
@@ -55,11 +62,13 @@ class RetryOnRpcErrorClientInterceptor(
                 return response
 
     def intercept_unary_unary(self, continuation, client_call_details, request):
+        """Wrap intercept call for unary->unary RPC."""
         return self._intercept_call(continuation, client_call_details, request)
 
     def intercept_stream_unary(
         self, continuation, client_call_details, request_iterator
     ):
+        """Wrap intercept call for stream->unary RPC."""
         return self._intercept_call(continuation, client_call_details, request_iterator)
 
 
@@ -174,17 +183,12 @@ class CollaboratorGRPCClient:
             uri, credentials, options=self.channel_options)
 
     def disconnect(self):
-        """
-        Close the gRPC channel
-        """
+        """Close the gRPC channel."""
         self.logger.debug(f'Disconnecting from gRPC server at {self.uri}')
         self.channel.close()
 
     def reconnect(self):
-        """
-        Create a new channel with the gRPC server
-        """
-
+        """Create a new channel with the gRPC server."""
         # channel.close() is idempotent. Call again here in case it wasn't issued previously
         self.disconnect()
 

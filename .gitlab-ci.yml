@@ -39,6 +39,7 @@ pep8:
   tags:
     - charlie
   before_script:
+    - python3 -m pip freeze | xargs python3 -m pip uninstall -y
     - whoami
     - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd

@@ -1,7 +1,5 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
-
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 """
 Mixin class for FL models. No default implementation.
@@ -17,20 +15,17 @@ from logging import getLogger
 
 
 class TaskRunner(object):
-    """
-    Federated Learning Task Runner Class
-    """
+    """Federated Learning Task Runner Class."""
 
     def __init__(self, data_loader, tensor_dict_split_fn_kwargs={}, **kwargs):
         """
-        Intializer
+        Intialize.
 
         Args:
             data_loader: The data_loader object
             tensor_dict_split_fn_kwargs: (Default=None)
             **kwargs: Additional parameters to pass to the function
         """
-
         self.data_loader = data_loader
         self.feature_shape = self.data_loader.get_feature_shape()
 
@@ -52,11 +47,11 @@ class TaskRunner(object):
         self.set_logger()
 
     def set_logger(self):
-        """Sets up the log object
-        """
+        """Set up the log object."""
         self.logger = getLogger(__name__)
 
     def set_optimizer_treatment(self, opt_treatment):
+        """Change the treatment of current instance optimizer."""
         self.opt_treatment = opt_treatment
 
     def get_data_loader(self):
@@ -78,7 +73,6 @@ class TaskRunner(object):
         Returns:
             None
         """
-
         if data_loader.get_feature_shape() != \
                 self.data_loader.get_feature_shape():
             raise ValueError(
@@ -136,8 +130,8 @@ class TaskRunner(object):
 
     def get_required_tensorkeys_for_function(self, func_name, **kwargs):
         """
-        When running a task, a map of named tensorkeys must be provided to the
-        function as dependencies.
+        When running a task, a map of named tensorkeys \
+            must be provided to the function as dependencies.
 
         Returns:
             list: (TensorKey(tensor_name, origin, round_number))
@@ -159,7 +153,7 @@ class TaskRunner(object):
 
     def set_tensor_dict(self, tensor_dict, with_opt_vars):
         """
-        Set the model weights with a tensor dictionary:
+        Set the model weights with a tensor dictionary:\
         {<tensor_name>: <value>}.
 
         Args:
@@ -173,13 +167,12 @@ class TaskRunner(object):
         raise NotImplementedError
 
     def reset_opt_vars(self):
-        """
-        Reinitialize the optimizer variables."""
+        """Reinitialize the optimizer variables."""
         raise NotImplementedError
 
     def initialize_globals(self):
         """
-        Initialize all global variables
+        Initialize all global variables.
 
         Returns:
             None
@@ -188,8 +181,9 @@ class TaskRunner(object):
 
     def load_native(self, filepath, **kwargs):
         """
-        Loads model state from a filepath in ML-framework "native" format, e.g.
-        PyTorch pickled models.
+        Load model state from a filepath in ML-framework "native" format, \
+            e.g. PyTorch pickled models.
+
         May load from multiple files. Other filepaths may be derived from the
         passed filepath, or they may be in the kwargs.
 
@@ -206,8 +200,8 @@ class TaskRunner(object):
 
     def save_native(self, filepath, **kwargs):
         """
-        Saves model state in ML-framework "native" format, e.g. PyTorch pickled
-        models.
+        Save model state in ML-framework "native" format, e.g. PyTorch pickled models.
+
         May save one file or multiple files, depending on the framework.
 
         Args:

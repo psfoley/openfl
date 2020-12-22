@@ -1,6 +1,7 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""You may copy this file as the starting point of your own model."""
 
 import tensorflow.compat.v1 as tf
 
@@ -11,7 +12,7 @@ tf.disable_v2_behavior()
 
 
 class TensorFlow2DUNet(TensorFlowTaskRunner):
-    """Initializer
+    """Initialize.
 
     Args:
         **kwargs: Additional parameters to pass to the function
@@ -19,7 +20,7 @@ class TensorFlow2DUNet(TensorFlowTaskRunner):
     """
 
     def __init__(self, **kwargs):
-        """Initializer
+        """Initialize.
 
         Args:
             **kwargs: Additional parameters to pass to the function
@@ -34,7 +35,7 @@ class TensorFlow2DUNet(TensorFlowTaskRunner):
                      training_smoothing=32.0,
                      validation_smoothing=1.0,
                      **kwargs):
-        """Create the TensorFlow 2D U-Net model
+        """Create the TensorFlow 2D U-Net model.
 
         Args:
             training_smoothing (float): (Default=32.0)
@@ -42,7 +43,6 @@ class TensorFlow2DUNet(TensorFlowTaskRunner):
             **kwargs: Additional parameters to pass to the function
 
         """
-
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         config.intra_op_parallelism_threads = 112
@@ -80,7 +80,7 @@ class TensorFlow2DUNet(TensorFlowTaskRunner):
 
 
 def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):
-    """Dice coefficient
+    """Dice coefficient.
 
     Calculate the Dice Coefficient
 
@@ -102,7 +102,7 @@ def dice_coef(y_true, y_pred, smooth=1.0, **kwargs):
 
 
 def dice_coef_loss(y_true, y_pred, smooth=1.0, **kwargs):
-    """Dice coefficient loss
+    """Dice coefficient loss.
 
     Calculate the -log(Dice Coefficient) loss
 
@@ -116,7 +116,6 @@ def dice_coef_loss(y_true, y_pred, smooth=1.0, **kwargs):
         float: -log(Dice cofficient) metric
 
     """
-
     intersection = tf.reduce_sum(y_true * y_pred, axis=(1, 2, 3))
 
     term1 = -tf.log(tf.constant(2.0) * intersection + smooth)
@@ -154,7 +153,7 @@ def define_model(input_tensor,
                  initial_filters=32,
                  batch_norm=True,
                  **kwargs):
-    """Define the TensorFlow model
+    """Define the TensorFlow model.
 
     Args:
         input_tensor: input shape ot the model
@@ -174,7 +173,6 @@ def define_model(input_tensor,
         **kwargs: Additional parameters to pass to the function
 
     """
-
     # Set keras learning phase to train
     tf.keras.backend.set_learning_phase(True)
 

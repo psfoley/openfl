@@ -1,6 +1,7 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""TensorCodec module."""
 
 import numpy as np
 
@@ -9,15 +10,14 @@ from fledge.utilities import TensorKey
 
 
 class TensorCodec(object):
+    """TensorCodec is responsible for the following.
+
+    1. Tracking the compression/decompression related dependencies of a given tensor
+    2. Acting as a TensorKey aware wrapper for the compression_pipeline functionality
+    """
 
     def __init__(self, compression_pipeline):
-        """
-        TensorCodec is responsible for:
-            1. Tracking the compression/decompression related dependencies
-             of a given tensor
-            2. Acting as a TensorKey aware wrapper for the compression_pipeline
-             functionality
-        """
+        """Initialize."""
         self.compression_pipeline = compression_pipeline
         if self.compression_pipeline.is_lossy():
             self.lossless_pipeline = NoCompressionPipeline()
@@ -25,14 +25,16 @@ class TensorCodec(object):
             self.lossless_pipeline = compression_pipeline
 
     def set_lossless_pipeline(self, lossless_pipeline):
+        """Set lossless pipeline."""
         assert lossless_pipeline.is_lossy() is False, (
             "The provided pipeline is not lossless")
         self.lossless_pipeline = lossless_pipeline
 
     def compress(self, tensor_key, data, require_lossless=False, **kwargs):
         """
-        Wrapper around the tensor_pipeline.forward function, but it also keeps
-        track of the tensorkeys associated with the compressed nparray
+        Function-wrapper around the tensor_pipeline.forward function.
+
+        It also keeps track of the tensorkeys associated with the compressed nparray
 
         Args:
             tensor_key:             TensorKey is provided to verify it should
@@ -50,7 +52,6 @@ class TensorCodec(object):
             compressed_nparray:     The compressed tensor
             metadata:               metadata associated with compressed tensor
         """
-
         if require_lossless:
             compressed_nparray, metadata = self.lossless_pipeline.forward(
                 data, **kwargs)
@@ -71,8 +72,9 @@ class TensorCodec(object):
     def decompress(self, tensor_key, data, transformer_metadata,
                    require_lossless=False, **kwargs):
         """
-        Wrapper around the tensor_pipeline.backward function, but it also keeps
-        track of the tensorkeys associated with the decompressed nparray
+        Function-wrapper around the tensor_pipeline.backward function.
+
+        It also keeps track of the tensorkeys associated with the decompressed nparray
 
         Args:
             tensor_key:             TensorKey is provided to verify it should
@@ -129,7 +131,7 @@ class TensorCodec(object):
 
     def generate_delta(self, tensor_key, nparray, base_model_nparray):
         """
-        Create delta from the updated layer and base layer
+        Create delta from the updated layer and base layer.
 
         Args:
             tensor_key:         This is the tensor_key associated with the
@@ -164,7 +166,7 @@ class TensorCodec(object):
 
     def apply_delta(self, tensor_key, delta, base_model_nparray):
         """
-        Adds delta to the nparray
+        Add delta to the nparray.
 
         Args:
             tensor_key:             This is the tensor_key associated with the
@@ -201,10 +203,7 @@ class TensorCodec(object):
         return new_model_tensor_key, base_model_nparray + delta
 
     def find_dependencies(self, tensor_key, send_model_deltas):
-        """
-        This function resolves the tensors required to do the
-         specified operation.
-        """
+        """Resolve the tensors required to do the specified operation."""
         tensor_key_dependencies = []
 
         tensor_name, origin, round_number, report, tags = tensor_key

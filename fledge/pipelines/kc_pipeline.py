@@ -1,6 +1,8 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""KCPipeline module."""
+
 
 import numpy as np
 import gzip as gz
@@ -12,11 +14,10 @@ from .pipeline import TransformationPipeline, Transformer
 
 
 class KmeansTransformer(Transformer):
-    """ A K-means transformer class to quantize input data.
-    """
+    """A K-means transformer class to quantize input data."""
 
     def __init__(self, n_cluster=6):
-        """Class initializer
+        """Class initializer.
 
         Args:
             n_cluster (int): Number of clusters for the K-means
@@ -70,7 +71,7 @@ class KmeansTransformer(Transformer):
         return data
 
     def _float_to_int(self, np_array):
-        """ Creating look-up table for conversion between floating and integer types.
+        """Create look-up table for conversion between floating and integer types.
 
         Args:
             np_array: A Numpy array
@@ -79,7 +80,6 @@ class KmeansTransformer(Transformer):
             int_array: The input Numpy float array converted to an integer array
             int_to_float_map
         """
-
         flatten_array = np_array.reshape(-1)
         unique_value_array = np.unique(flatten_array)
         int_array = np.zeros(flatten_array.shape, dtype=np.int)
@@ -97,10 +97,10 @@ class KmeansTransformer(Transformer):
 
 
 class GZIPTransformer(Transformer):
-    """ A GZIP transformer class to losslessly compress data.
-    """
+    """A GZIP transformer class to losslessly compress data."""
 
     def __init__(self):
+        """Initialize."""
         self.lossy = False
         return
 
@@ -119,7 +119,7 @@ class GZIPTransformer(Transformer):
         return compressed_bytes_, metadata
 
     def backward(self, data, metadata, **kwargs):
-        """ Decompress data into numpy of float32.
+        """Decompress data into numpy of float32.
 
         Args:
             data: Compressed GZIP data
@@ -133,11 +133,10 @@ class GZIPTransformer(Transformer):
 
 
 class KCPipeline(TransformationPipeline):
-    """ A pipeline class to compress data lossly using k-means and GZIP methods.
-    """
+    """A pipeline class to compress data lossly using k-means and GZIP methods."""
 
     def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
-        """ Initializing a pipeline of transformers.
+        """Initialize a pipeline of transformers.
 
         Args:
             p_sparsity (float): Amount of sparsity for compression (Default = 0.01)

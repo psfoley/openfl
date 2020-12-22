@@ -1,14 +1,14 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+"""Assigner module."""
 
 
 class Assigner:
     """
-    The task assigner maintains a list of tasks, and decides the policy for
-    which collaborator should run those tasks
-    There may be many types of policies implemented, but a natural place
-    to start is with a:
+    The task assigner maintains a list of tasks.
+
+    Also it decides the policy for which collaborator should run those tasks.
+    There may be many types of policies implemented, but a natural place to start is with a:
 
     RandomGroupedTaskAssigner  - Given a set of task groups, and a percentage,
                                  assign that task group to that
@@ -24,6 +24,7 @@ class Assigner:
 
     def __init__(self, task_groups, tasks, authorized_cols,
                  rounds_to_train, **kwargs):
+        """Initialize."""
         self.task_groups = task_groups
         self.tasks = tasks
         self.authorized_cols = authorized_cols
@@ -37,22 +38,28 @@ class Assigner:
         self.define_task_assignments()
 
     def define_task_assignments(self):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_tasks_for_collaborator(self, collaborator_name, round_number):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_collaborators_for_task(self, task_name, round_number):
+        """Abstract method."""
         raise NotImplementedError
 
     def get_all_tasks_for_round(self, round_number):
         """
-        Currently all tasks are performed on each round, but there may be a
-        reason to change this
+        Return tasks for the current round.
+
+        Currently all tasks are performed on each round,
+        But there may be a reason to change this.
         """
         return self.all_tasks_in_groups
 
     def get_aggregation_type_for_task(self, task_name):
+        """Extract aggregation type from self.tasks."""
         if 'aggregation_type' not in self.tasks[task_name]:
             return None
         return self.tasks[task_name]['aggregation_type']

@@ -1,3 +1,7 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+"""Module with auxiliary CLI helper functions."""
+
 from subprocess import run, PIPE
 from click import echo, style
 from sys import argv
@@ -17,6 +21,7 @@ FLEDGE_USERDIR = Path.home() / '.fledge'
 
 
 def pretty(o):
+    """Pretty-print the dictionary given."""
     m = max(map(len, o.keys()))
 
     for k, v in o.items():
@@ -24,6 +29,7 @@ def pretty(o):
 
 
 def vex(command, workdir='.', env=None, expectcode=0):
+    """Execute the specified command."""
     if env:
         env = {**environ.copy(), **env}
     r = run(command, shell=True, cwd=workdir, stdout=PIPE,
@@ -40,6 +46,7 @@ def vex(command, workdir='.', env=None, expectcode=0):
 
 
 def tree(path):
+    """Print current directory file tree."""
     echo(f'+ {path}')
 
     for path in sorted(path.rglob('*')):
@@ -56,8 +63,7 @@ def tree(path):
 def print_tree(dir_path: Path, level: int = -1,
                limit_to_directories: bool = False,
                length_limit: int = 1000):
-    """Given a directory Path object print a visual tree structure"""
-
+    """Given a directory Path object print a visual tree structure."""
     space = '    '
     branch = '│   '
     tee = '├── '
@@ -100,8 +106,7 @@ def print_tree(dir_path: Path, level: int = -1,
 
 def copytree(src, dst, symlinks=False, ignore=None,
              ignore_dangling_symlinks=False, dirs_exist_ok=False):
-    """From Python 3.8 'shutil' which include 'dirs_exist_ok' option"""
-
+    """From Python 3.8 'shutil' which include 'dirs_exist_ok' option."""
     import os
     import shutil
 
@@ -171,10 +176,7 @@ def copytree(src, dst, symlinks=False, ignore=None,
 
 
 def get_workspace_parameter(name):
-    """
-    Gets a parameter from the workspace config file (.workspace)
-    """
-
+    """Get a parameter from the workspace config file (.workspace)."""
     # Update the .workspace file to show the current workspace plan
     workspace_file = '.workspace'
 
@@ -191,11 +193,7 @@ def get_workspace_parameter(name):
 
 
 def check_varenv(env="", args={}):
-    '''
-    Updates "args" (dictionary) with <env: env_value> if env has a defined
-    value in the host
-     '''
-
+    """Update "args" (dictionary) with <env: env_value> if env has a defined value in the host."""
     env_val = environ.get(env)
     if env and (env_val is not None):
         args[env] = env_val
@@ -204,7 +202,7 @@ def check_varenv(env="", args={}):
 
 
 def get_fx_path(curr_path=""):
-    ''' Returns the absolute path to fx binary'''
+    """Return the absolute path to fx binary."""
     import re
     import os
 
@@ -218,6 +216,7 @@ def get_fx_path(curr_path=""):
 
 
 def remove_line_from_file(pkg, filename):
+    """Remove line that contains `pkg` from the `filename` file."""
     with open(filename, "r+") as f:
         d = f.readlines()
         f.seek(0)
@@ -228,6 +227,7 @@ def remove_line_from_file(pkg, filename):
 
 
 def replace_line_in_file(line, line_num_to_replace, filename):
+    """Replace line at `line_num_to_replace` with `line`."""
     with open(filename, "r+") as f:
         d = f.readlines()
         f.seek(0)

@@ -1,6 +1,7 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""TensorDB Module."""
 
 import pandas as pd
 import numpy as np
@@ -12,19 +13,22 @@ from fledge.utilities import TensorKey
 
 class TensorDB(object):
     """
-    The TensorDB stores a tensor key and the data that it corresponds to. It is
-     built on top of a pandas dataframe
+    The TensorDB stores a tensor key and the data that it corresponds to.
+
+    It is built on top of a pandas dataframe
     for it's easy insertion, retreival and aggregation capabilities. Each
     collaborator and aggregator has its own TensorDB.
     """
 
     def __init__(self):
+        """Initialize."""
         self.tensor_db = pd.DataFrame([], columns=[
             'tensor_name', 'origin', 'round', 'report', 'tags', 'nparray'
         ])
         self.mutex = Lock()
 
     def __repr__(self):
+        """Representation of the object."""
         with pd.option_context('display.max_rows', None):
             return 'TensorDB contents:\n{}'.format(
                 self.tensor_db[
@@ -32,11 +36,11 @@ class TensorDB(object):
                 ])
 
     def __str__(self):
+        """Printable string representation."""
         return self.__repr__()
 
     def clean_up(self, remove_older_than=1):
-        # Remove old entries from the data base
-        # Preventing the db from becoming too large and slow
+        """Remove old entries from database preventing the db from becoming too large and slow."""
         if remove_older_than < 0:
             # Getting a negative argument calls off cleaning
             return
@@ -46,7 +50,7 @@ class TensorDB(object):
         ].reset_index(drop=True)
 
     def cache_tensor(self, tensor_key_dict):
-        """Insert tensor into TensorDB (dataframe)
+        """Insert tensor into TensorDB (dataframe).
 
         Args:
             tensor_key_dict: The Tensor Key
@@ -54,7 +58,6 @@ class TensorDB(object):
         Returns:
             None
         """
-
         self.mutex.acquire(blocking=True)
         entries_to_add = []
         try:
@@ -82,11 +85,11 @@ class TensorDB(object):
 
     def get_tensor_from_cache(self, tensor_key):
         """
-        Performs a lookup of the tensor_key in the TensorDB. Returns the
-         nparray if it is available
+        Perform a lookup of the tensor_key in the TensorDB.
+
+        Returns the nparray if it is available
         Otherwise, it returns 'None'
         """
-
         tensor_name, origin, fl_round, report, tags = tensor_key
 
         # TODO come up with easy way to ignore compression
@@ -103,8 +106,9 @@ class TensorDB(object):
     def get_aggregated_tensor(self, tensor_key, collaborator_weight_dict,
                               aggregation_functions):
         """
-        Determines whether all of the collaborator tensors are present for a
-        given tensor key, and returns their weighted average
+        Determine whether all of the collaborator tensors are present for a given tensor key.
+
+        Returns their weighted average.
 
         Args:
             tensor_key: The tensor key to be resolved. If origin 'agg_uuid' is

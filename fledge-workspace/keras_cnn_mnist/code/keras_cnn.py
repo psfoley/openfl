@@ -1,6 +1,7 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""You may copy this file as the starting point of your own model."""
 
 import tensorflow.keras as ke
 
@@ -11,13 +12,11 @@ from fledge.federated import KerasTaskRunner
 
 
 class KerasCNN(KerasTaskRunner):
-    """
-    A basic convolutional neural network model.
-    """
+    """A basic convolutional neural network model."""
 
     def __init__(self, **kwargs):
         """
-        Initializer
+        Initialize.
 
         Args:
             **kwargs: Additional parameters to pass to the function
@@ -54,7 +53,6 @@ class KerasCNN(KerasTaskRunner):
             tensorflow.python.keras.engine.sequential.Sequential: The model defined in Keras
 
         """
-
         model = Sequential()
 
         model.add(Conv2D(conv1_channels_out,

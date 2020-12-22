@@ -1,5 +1,10 @@
-# This file defines fledge entrypoints to be used directly through
-# python (not CLI)
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+"""FLedge Native functions module.
+
+This file defines fledge entrypoints to be used directly through python (not CLI)
+"""
+
 import os
 from logging import getLogger
 from pathlib import Path
@@ -21,7 +26,7 @@ WORKSPACE_PREFIX = os.path.join(os.path.expanduser('~'), '.local', 'workspace')
 
 def setup_plan(save=True):
     """
-    Dumps the plan with all defaults + overrides set.
+    Dump the plan with all defaults + overrides set.
 
     Args:
         save : bool (default=True)
@@ -44,7 +49,7 @@ def setup_plan(save=True):
 
 def get_plan(return_complete=False):
     """
-    Return the flattened dictionary associated with the plan
+    Return the flattened dictionary associated with the plan.
 
     To read the output in a human readable format, we recommend interpreting it
      as follows:
@@ -62,7 +67,6 @@ def get_plan(return_complete=False):
         plan : dict
             flattened dictionary of the current plan
     """
-
     getLogger().setLevel('CRITICAL')
 
     plan_config = setup_plan().config
@@ -84,7 +88,7 @@ def get_plan(return_complete=False):
 
 def update_plan(override_config):
     """
-    Update the plan with the provided override and save it to disk
+    Update the plan with the provided override and save it to disk.
 
     For a list of available override options, call `fx.get_plan()`
 
@@ -107,6 +111,7 @@ def update_plan(override_config):
 
 
 def unflatten(config, separator='.'):
+    """Unfold `config` settings that have `separator` in their names."""
     keys_to_separate = [k for k in config if separator in k]
     if len(keys_to_separate) > 0:
         for key in keys_to_separate:
@@ -123,6 +128,7 @@ def unflatten(config, separator='.'):
 
 
 def setup_logging():
+    """Initialize logging settings."""
     # Setup logging
     from logging import basicConfig
     from rich.console import Console
@@ -142,8 +148,9 @@ def setup_logging():
 
 def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
     """
-    The initialization function for the fledge package. It performs the
-    following tasks:
+    Initialize the fledge package.
+
+    It performs the following tasks:
 
          1. Creates a workspace in ~/.local/workspace (Equivalent to `fx
          workspace create --prefix ~/.local/workspace --template
@@ -173,7 +180,6 @@ def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
     Returns:
         None
     """
-
     workspace.create(WORKSPACE_PREFIX, workspace_template)
     os.chdir(WORKSPACE_PREFIX)
     workspace.certify()
@@ -190,9 +196,13 @@ def init(workspace_template='default', agg_fqdn=None, col_names=['one', 'two']):
 
 
 def create_collaborator(plan, name, model, aggregator):
-    # Using the same plan object to create multiple collaborators leads to
-    # identical collaborator objects. This function can be removed once
-    # collaborator generation is fixed in fledge/federated/plan/plan.py
+    """
+    Create the collaborator.
+
+    Using the same plan object to create multiple collaborators leads to
+    identical collaborator objects. This function can be removed once
+    collaborator generation is fixed in fledge/federated/plan/plan.py
+    """
     plan = copy(plan)
 
     return plan.get_collaborator(name, task_runner=model, client=aggregator)
@@ -216,7 +226,6 @@ def run_experiment(collaborator_dict, override_config={}):
         final_federated_model : FederatedModel
             The final model resulting from the federated learning experiment
     """
-
     from sys import path
 
     file = Path(__file__).resolve()

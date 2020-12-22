@@ -1,3 +1,7 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+"""Collaborator module."""
+
 from logging import getLogger
 from pathlib import Path
 from click import group, option, pass_context
@@ -13,7 +17,7 @@ logger = getLogger(__name__)
 @group()
 @pass_context
 def collaborator(context):
-    '''Manage Federated Learning Collaborators'''
+    """Manage Federated Learning Collaborators."""
     context.obj['group'] = 'service'
 
 
@@ -31,8 +35,7 @@ def collaborator(context):
 @option('-s', '--secure', required=False,
         help='Enable Intel SGX Enclave', is_flag=True, default=False)
 def start_(context, plan, collaborator_name, data_config, secure):
-    '''Start a collaborator service'''
-
+    """Start a collaborator service."""
     plan = Plan.Parse(plan_config_path=Path(plan),
                       data_config_path=Path(data_config))
 
@@ -45,14 +48,13 @@ def start_(context, plan, collaborator_name, data_config, secure):
 
 
 def RegisterDataPath(collaborator_name, data_path=None, silent=False):
-    '''Register dataset path in the plan/data.yaml file
+    """Register dataset path in the plan/data.yaml file.
 
     Args:
         collaborator_name (str): The collaborator whose data path to be defined
         data_path (str)        : Data path (optional)
         silent (bool)          : Silent operation (don't prompt)
-    '''
-
+    """
     from click import prompt
     from os.path import isfile
 
@@ -100,15 +102,16 @@ def RegisterDataPath(collaborator_name, data_path=None, silent=False):
         is_flag=True)
 def generate_cert_request_(context, collaborator_name,
                            data_path, silent, skip_package):
+    """Generate certificate request for the collaborator."""
     generate_cert_request(collaborator_name, data_path, silent, skip_package)
 
 
 def generate_cert_request(collaborator_name, data_path, silent, skip_package):
-    '''
-    Create collaborator certificate key pair, then create a package with the
-    CSR to send for signing
-     '''
+    """
+    Create collaborator certificate key pair.
 
+    Then create a package with the CSR to send for signing.
+    """
     common_name = f'{collaborator_name}'.lower()
     subject_alternative_name = f'DNS:{common_name}'
     file_name = f'col_{common_name}'
@@ -177,9 +180,7 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
 
 
 def findCertificateName(file_name):
-    '''Searches the CRT for the actual collaborator name
-    '''
-
+    """Search the CRT for the actual collaborator name."""
     # This loop looks for the collaborator name in the key
     with open(file_name, 'r') as f:
         for line in f:
@@ -190,12 +191,12 @@ def findCertificateName(file_name):
 
 
 def RegisterCollaborator(file_name):
-    '''Register the collaborator name in the cols.yaml list
+    """Register the collaborator name in the cols.yaml list.
 
     Args:
         file_name (str): The name of the collaborator in this federation
 
-    '''
+    """
     from yaml import load, dump, FullLoader
 
     col_name = findCertificateName(file_name)
@@ -232,9 +233,7 @@ def RegisterCollaborator(file_name):
 
 
 def sign_certificate(file_name):
-    '''Sign the certificate
-    '''
-
+    """Sign the certificate."""
     echo(' Signing COLLABORATOR certificate key pair')
 
     signing_conf = 'config/signing-ca.conf'
@@ -267,12 +266,12 @@ def sign_certificate(file_name):
         help='Import the archive containing the collaborator\'s'
              ' certificate (signed by the CA)')
 def certify_(context, collaborator_name, silent, request_pkg, import_):
+    """Certify the collaborator."""
     certify(collaborator_name, silent, request_pkg, import_)
 
 
 def certify(collaborator_name, silent, request_pkg=False, import_=False):
-    '''Sign/certify collaborator certificate key pair'''
-
+    """Sign/certify collaborator certificate key pair."""
     from click import confirm
 
     from shutil import unpack_archive

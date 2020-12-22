@@ -1,6 +1,8 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""Random grouped assigner module."""
+
 
 import numpy as np
 
@@ -9,7 +11,9 @@ from .assigner import Assigner
 
 class RandomGroupedAssigner(Assigner):
     """
-    The task assigner maintains a list of tasks, and decides the policy for
+    The task assigner maintains a list of tasks.
+
+    Also it decides the policy for
     which collaborator should run those tasks
     There may be many types of policies implemented, but a natural place to
     start is with a:
@@ -26,11 +30,7 @@ class RandomGroupedAssigner(Assigner):
     """
 
     def define_task_assignments(self):
-        """
-        All of the logic to set up the map of tasks to collaborators
-        is done here
-        """
-
+        """All of the logic to set up the map of tasks to collaborators is done here."""
         assert (np.abs(1.0 - np.sum([group['percentage']
                                      for group in self.task_groups])) < 0.01), (
             'Task group percentages must sum to 100%')
@@ -78,7 +78,9 @@ class RandomGroupedAssigner(Assigner):
                 'Task groups were not divided properly')
 
     def get_tasks_for_collaborator(self, collaborator_name, round_number):
+        """Get tasks for the collaborator specified."""
         return self.collaborator_tasks[collaborator_name][round_number]
 
     def get_collaborators_for_task(self, task_name, round_number):
+        """Get collaborators for the task specified."""
         return self.collaborators_for_task[task_name][round_number]

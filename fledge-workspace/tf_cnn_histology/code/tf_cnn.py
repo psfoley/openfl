@@ -1,6 +1,7 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""You may copy this file as the starting point of your own model."""
 
 import tensorflow as tf
 
@@ -8,7 +9,7 @@ from fledge.federated import KerasTaskRunner
 
 
 class TensorFlowCNN(KerasTaskRunner):
-    """Initializer
+    """Initialize.
 
     Args:
         **kwargs: Additional parameters to pass to the function
@@ -16,7 +17,7 @@ class TensorFlowCNN(KerasTaskRunner):
     """
 
     def __init__(self, **kwargs):
-        """Initializer
+        """Initialize.
 
         Args:
             **kwargs: Additional parameters to pass to the function
@@ -37,7 +38,7 @@ class TensorFlowCNN(KerasTaskRunner):
                      training_smoothing=32.0,
                      validation_smoothing=1.0,
                      **kwargs):
-        """Create the TensorFlow CNN Histology model
+        """Create the TensorFlow CNN Histology model.
 
         Args:
             training_smoothing (float): (Default=32.0)
@@ -45,7 +46,6 @@ class TensorFlowCNN(KerasTaskRunner):
             **kwargs: Additional parameters to pass to the function
 
         """
-
         print(tf.config.threading.get_intra_op_parallelism_threads())
         print(tf.config.threading.get_inter_op_parallelism_threads())
         # physical_devices = tf.config.list_physical_devices('GPU')

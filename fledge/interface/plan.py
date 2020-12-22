@@ -1,3 +1,7 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+"""Plan module."""
+
 from socket import getfqdn
 from logging import getLogger
 from pathlib import Path
@@ -16,7 +20,7 @@ logger = getLogger(__name__)
 @group()
 @pass_context
 def plan(context):
-    '''Manage Federated Learning Plans'''
+    """Manage Federated Learning Plans."""
     context.obj['group'] = 'plan'
 
 
@@ -38,12 +42,11 @@ def plan(context):
 def initialize(context, plan_config, cols_config, data_config,
                aggregator_address, feature_shape):
     """
-    Initialize Data Science plan
+    Initialize Data Science plan.
 
     Create a protocol buffer file of the initial model weights for
      the federation.
     """
-
     plan = Plan.Parse(plan_config_path=Path(plan_config),
                       cols_config_path=Path(cols_config),
                       data_config_path=Path(data_config))
@@ -120,6 +123,7 @@ def initialize(context, plan_config, cols_config, data_config,
 
 
 def FreezePlan(plan_config):
+    """Dump the plan to YAML file."""
     plan = Plan()
     plan.config = Plan.Parse(Path(plan_config), resolve=False).config
 
@@ -140,19 +144,16 @@ def FreezePlan(plan_config):
         default='plan/plan.yaml', type=ClickPath(exists=True))
 def freeze(context, plan_config):
     """
-    Finalize the Data Science plan
+    Finalize the Data Science plan.
 
     Create a new plan file that embeds its hash in the file name
     (plan.yaml -> plan_{hash}.yaml) and changes the permissions to read only
     """
-
     FreezePlan(plan_config)
 
 
 def switch_plan(name):
-    """
-    Switch the FL plan to this one
-    """
+    """Switch the FL plan to this one."""
     from shutil import copyfile
     from os.path import isfile
 
@@ -191,9 +192,7 @@ def switch_plan(name):
         help='Name of the Federated learning plan',
         default='default', type=str)
 def switch_(context, name):
-    """
-    Switch the current plan to this plan
-    """
+    """Switch the current plan to this plan."""
     switch_plan(name)
 
 
@@ -203,9 +202,7 @@ def switch_(context, name):
         help='Name of the Federated learning plan',
         default='default', type=str)
 def save_(context, name):
-    """
-    Save the current plan to this plan and switch
-    """
+    """Save the current plan to this plan and switch."""
     from os import makedirs
     from shutil import copyfile
 
@@ -225,9 +222,7 @@ def save_(context, name):
         help='Name of the Federated learning plan',
         default='default', type=str)
 def remove_(context, name):
-    """
-    Remove this plan
-    """
+    """Remove this plan."""
     from shutil import rmtree
 
     if name != 'default':
@@ -245,8 +240,6 @@ def remove_(context, name):
 
 @plan.command(name='print')
 def print_():
-    """
-    Print the current plan
-    """
+    """Print the current plan."""
     current_plan_name = get_workspace_parameter("current_plan_name")
     echo(f'The current plan is: {current_plan_name}')

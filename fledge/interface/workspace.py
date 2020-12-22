@@ -1,3 +1,7 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+"""Workspace module."""
+
 from pathlib import Path
 from click import Choice, Path as ClickPath
 from click import group, option, pass_context
@@ -16,11 +20,12 @@ from fledge.interface.cli_helper import SITEPACKS, FLEDGE_USERDIR
 @group()
 @pass_context
 def workspace(context):
-    '''Manage Federated Learning Workspaces'''
+    """Manage Federated Learning Workspaces."""
     context.obj['group'] = 'workspace'
 
 
 def create_dirs(prefix):
+    """Create workspace directories."""
     echo('Creating Workspace Directories')
 
     (prefix / 'cert').mkdir(parents=True, exist_ok=True)  # certifications
@@ -38,6 +43,7 @@ def create_dirs(prefix):
 
 
 def create_cert(prefix):
+    """Create workspace certifications."""
     echo('Creating Workspace Certifications')
 
     src = WORKSPACE / 'workspace/cert/config'  # from default workspace
@@ -47,6 +53,7 @@ def create_cert(prefix):
 
 
 def create_temp(prefix, template):
+    """Create workspace templates."""
     echo('Creating Workspace Templates')
 
     copytree(src=WORKSPACE / template, dst=prefix, dirs_exist_ok=True,
@@ -54,10 +61,7 @@ def create_temp(prefix, template):
 
 
 def get_templates():
-    """
-    Grab the default templates from the distribution
-    """
-
+    """Grab the default templates from the distribution."""
     return [d.name for d in WORKSPACE.glob('*') if d.is_dir()
             and d.name not in ['__pycache__', 'workspace']]
 
@@ -67,11 +71,12 @@ def get_templates():
         help='Workspace name or path', type=ClickPath())
 @option('--template', required=True, type=Choice(get_templates()))
 def create_(prefix, template):
+    """Create the workspace."""
     create(prefix, template)
 
 
 def create(prefix, template):
-    """Create federated learning workspace"""
+    """Create federated learning workspace."""
     from os.path import isfile
     if not FLEDGE_USERDIR.exists():
         FLEDGE_USERDIR.mkdir()
@@ -102,8 +107,7 @@ def create(prefix, template):
 @workspace.command(name='export')
 @pass_context
 def export_(context):
-    """Export federated learning workspace"""
-
+    """Export federated learning workspace."""
     from shutil import make_archive, copytree, copy2, ignore_patterns
     from tempfile import mkdtemp
     from os import getcwd, makedirs
@@ -182,8 +186,7 @@ def export_(context):
         help='Zip file containing workspace to import',
         type=ClickPath(exists=True))
 def import_(archive):
-    """Import federated learning workspace"""
-
+    """Import federated learning workspace."""
     from shutil import unpack_archive
     from os.path import isfile, basename
     from os import chdir
@@ -206,12 +209,12 @@ def import_(archive):
 
 @workspace.command(name='certify')
 def certify_():
+    """Create certificate authority for federation."""
     certify()
 
 
 def certify():
-    '''Create certificate authority for federation'''
-
+    """Create certificate authority for federation."""
     echo('Setting Up Certificate Authority...\n')
 
     echo('1.  Create Root CA')
@@ -332,8 +335,7 @@ def _get_dir_hash(path):
         help='Save the Docker image into the workspace',
         is_flag=True)
 def dockerize_(save):
-    '''Package FL.Edge and the workspace as a Docker image'''
-
+    """Pack FL.Edge and the workspace as a Docker image."""
     import os
     import docker
     from shutil import copy

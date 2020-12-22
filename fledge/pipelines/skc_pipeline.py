@@ -1,6 +1,7 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""SKCPipeline module."""
 
 import numpy as np
 import gzip as gz
@@ -12,11 +13,10 @@ from .pipeline import TransformationPipeline, Transformer
 
 
 class SparsityTransformer(Transformer):
-    """ A transformer class to sparsify input data.
-    """
+    """A transformer class to sparsify input data."""
 
     def __init__(self, p=0.01):
-        """Initializer
+        """Initialize.
 
         Args:
             p (float): sparsity ratio (Default=0.01)
@@ -27,8 +27,7 @@ class SparsityTransformer(Transformer):
 
     def forward(self, data, **kwargs):
         """
-        Sparsify data and pass over only non-sparsified elements by reducing
-         the array size.
+        Sparsify data and pass over only non-sparsified elements by reducing the array size.
 
         Args:
             data: an numpy array from the model tensor_dict.
@@ -55,7 +54,7 @@ class SparsityTransformer(Transformer):
         return condensed_data, metadata
 
     def backward(self, data, metadata, **kwargs):
-        """ Recover data array with the right shape and numerical type.
+        """Recover data array with the right shape and numerical type.
 
         Args:
             data: an numpy array with non-zero values.
@@ -74,7 +73,7 @@ class SparsityTransformer(Transformer):
         return recovered_data
 
     def _topk_func(self, x, k):
-        """ Select top k values.
+        """Select top k values.
 
         Args:
             x: an numpy array to be sorted out for top-k components.
@@ -98,16 +97,16 @@ class SparsityTransformer(Transformer):
 
 
 class KmeansTransformer(Transformer):
-    """ A transformer class to quantize input data.
-    """
+    """A transformer class to quantize input data."""
 
     def __init__(self, n_cluster=6):
+        """Initialize."""
         self.n_cluster = n_cluster
         self.lossy = True
         return
 
     def forward(self, data, **kwargs):
-        """ Quantize data into n_cluster levels of values.
+        """Quantize data into n_cluster levels of values.
 
         Args:
             data: an flattened numpy array.
@@ -131,7 +130,7 @@ class KmeansTransformer(Transformer):
         return int_array, metadata
 
     def backward(self, data, metadata, **kwargs):
-        """ Recover data array back to the original numerical type.
+        """Recover data array back to the original numerical type.
 
         Args:
             data: an numpy array with non-zero values
@@ -151,8 +150,7 @@ class KmeansTransformer(Transformer):
 
     def _float_to_int(self, np_array):
         """
-         Creating look-up table for conversion between floating and
-          integer types.
+         Create look-up table for conversion between floating and integer types.
 
         Args:
             np_array
@@ -177,15 +175,15 @@ class KmeansTransformer(Transformer):
 
 
 class GZIPTransformer(Transformer):
-    """ A transformer class to losslessly compress data.
-    """
+    """A transformer class to losslessly compress data."""
 
     def __init__(self):
+        """Initialize."""
         self.lossy = False
         return
 
     def forward(self, data, **kwargs):
-        """ Compress data into bytes.
+        """Compress data into bytes.
 
         Args:
             data: an numpy array with non-zero values
@@ -196,7 +194,7 @@ class GZIPTransformer(Transformer):
         return compressed_bytes_, metadata
 
     def backward(self, data, metadata, **kwargs):
-        """ Decompress data into numpy of float32.
+        """Decompress data into numpy of float32.
 
         Args:
             data: an numpy array with non-zero values
@@ -212,13 +210,10 @@ class GZIPTransformer(Transformer):
 
 
 class SKCPipeline(TransformationPipeline):
-    """
-    A pipeline class to compress data lossly using sparsity and k-means
-     methods.
-    """
+    """A pipeline class to compress data lossly using sparsity and k-means methods."""
 
     def __init__(self, p_sparsity=0.01, n_clusters=6, **kwargs):
-        """ Initializing a pipeline of transformers.
+        """Initialize a pipeline of transformers.
 
         Args:
             p_sparsity (float): Sparsity factor (Default=0.01)

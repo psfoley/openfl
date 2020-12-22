@@ -5,9 +5,9 @@ aggregator :
   defaults : plan/defaults/aggregator.yaml
   template : fledge.component.Aggregator
   settings :
-    init_model_fname  : save/tf_2dunet_brats_init.pbuf
-    last_model_fname: save/tf_2dunet_brats_latest.pbuf
-    best_model_fname  : save/tf_2dunet_brats_best.pbuf
+    init_state_path : save/tf_2dunet_brats_init.pbuf
+    last_state_path : save/tf_2dunet_brats_latest.pbuf
+    best_state_path : save/tf_2dunet_brats_best.pbuf
     rounds_to_train : 10
 
 collaborator :

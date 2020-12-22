@@ -1,6 +1,7 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+"""Aggregator module."""
 
 from logging import getLogger
 
@@ -20,23 +21,7 @@ from fledge.protocols import construct_model_proto, deconstruct_model_proto
 
 
 class Aggregator(object):
-    """
-    An Aggregator is the central node in federated learning
-
-    Args:
-        aggregator_uuid : str
-            Aggregation ID.
-        federation_uuid : str
-            Federation ID.
-        authorized_cols : list of str
-            The list of IDs of enrolled collaborators.
-        init_state_path : str
-            The location of the initial weight file.
-        last_state_path : str
-            The file location to store the latest weight.
-        best_state_path : str
-            The file location to store the weight of the best model.
-    """
+    """An Aggregator is the central node in federated learning."""
 
     def __init__(self,
 
@@ -58,7 +43,22 @@ class Aggregator(object):
                  compression_pipeline=None,
 
                  **kwargs):
+        """Initialize.
 
+        Args:
+        aggregator_uuid : str
+            Aggregation ID.
+        federation_uuid : str
+            Federation ID.
+        authorized_cols : list of str
+            The list of IDs of enrolled collaborators.
+        init_state_path : str
+            The location of the initial weight file.
+        last_state_path : str
+            The file location to store the latest weight.
+        best_state_path : str
+            The file location to store the weight of the best model.
+        """
         self.round_number = 0
         self.single_col_cert_common_name = single_col_cert_common_name
 
@@ -107,14 +107,14 @@ class Aggregator(object):
 
     def load_initial_tensors(self):
         """
-        Load all of the tensors required to begin federated learning:
+        Load all of the tensors required to begin federated learning.
 
-        1. Initial model
+        Required tensors are: \
+            1. Initial model.
 
         Args:
             None
         """
-
         # if the collaborator requests a delta, this value is set to true
         self.model = load_proto(self.init_state_path)
         tensor_dict, round_number = deconstruct_model_proto(
@@ -136,7 +136,7 @@ class Aggregator(object):
 
     def save_model(self, round_number, file_path):
         """
-        Save the best or latest model
+        Save the best or latest model.
 
         Args:
             round_number: int
@@ -174,8 +174,7 @@ class Aggregator(object):
     def valid_collaborator_CN_and_id(self, cert_common_name,
                                      collaborator_common_name):
         """
-        Determine if the collaborator certificate and ID are valid for this
-        federation.
+        Determine if the collaborator certificate and ID are valid for this federation.
 
         Args:
             cert_common_name: Common name for security certificate
@@ -200,11 +199,12 @@ class Aggregator(object):
                     and collaborator_common_name in self.authorized_cols)
 
     def all_quit_jobs_sent(self):
+        """Assert all quit jobs are sent to collaborators."""
         return set(self.quit_job_sent_to) == set(self.authorized_cols)
 
     def check_request(self, request):
         """
-        Validate request header matches expected values
+        Validate request header matches expected values.
 
         Args:
             request : protobuf
@@ -229,7 +229,7 @@ class Aggregator(object):
 
     def get_header(self, collaborator_name):
         """
-        Compose and return MessageHeader
+        Compose and return MessageHeader.
 
         Args:
             collaborator_name : str
@@ -244,7 +244,7 @@ class Aggregator(object):
 
     def get_sleep_time(self):
         """
-        Sleep 10 seconds
+        Sleep 10 seconds.
 
         Args:
             None
@@ -254,7 +254,7 @@ class Aggregator(object):
 
     def time_to_quit(self):
         """
-        If all rounds are complete, it's time to quit
+        If all rounds are complete, it's time to quit.
 
         Args:
             None
@@ -279,7 +279,6 @@ class Aggregator(object):
                 This response can also include information like if it time to
                 quit
         """
-
         # all messages get sanity checked
         self.check_request(request)
 
@@ -339,8 +338,10 @@ class Aggregator(object):
 
     def GetAggregatedTensor(self, request):
         """
-        RPC called by collaborator. Performs local lookup to determine if there
-        is an aggregated tensor available that matches the request.
+        RPC called by collaborator.
+
+        Performs local lookup to determine if there is an aggregated tensor available \
+            that matches the request.
 
         Args:
             request : protobuf
@@ -414,10 +415,10 @@ class Aggregator(object):
     def nparray_to_named_tensor(self, tensor_key, nparray, send_model_deltas,
                                 compress_lossless):
         """
-        This function constructs the NamedTensor Protobuf and also includes
-        logic to create delta, compress tensors with the TensorCodec, etc.
-        """
+        Construct the NamedTensor Protobuf.
 
+        Also includes logic to create delta, compress tensors with the TensorCodec, etc.
+        """
         tensor_name, origin, round_number, report, tags = tensor_key
         # if we have an aggregated tensor, we can make a delta
         if ('aggregated' in tensor_name and send_model_deltas):
@@ -455,9 +456,9 @@ class Aggregator(object):
     def collaborator_task_completed(self, collaborator, task, round_num):
         """
         Check if the collaborator has completed the task for the round.
-        The aggregator doesn't actually know which tensors should be sent from
-        the collaborator
-        so it must to rely specifically on the presence of previous results
+
+        The aggregator doesn't actually know which tensors should be sent from the collaborator \
+            so it must to rely specifically on the presence of previous results
 
         Args:
             collaborator : str
@@ -476,8 +477,9 @@ class Aggregator(object):
 
     def SendLocalTaskResults(self, request):
         """
-        RPC called by collaborator. Transmits collaborator's task results to the
-        aggregator.
+        RPC called by collaborator.
+
+        Transmits collaborator's task results to the aggregator.
 
         Args:
             request : protobuf
@@ -555,8 +557,9 @@ class Aggregator(object):
 
     def process_named_tensor(self, named_tensor, collaborator_name):
         """
-        Extract the named tensor fields, performs decompression, delta
-        computation, and inserts results into TensorDB.
+        Extract the named tensor fields.
+
+        Performs decompression, delta computation, and inserts results into TensorDB.
 
         Args:
             named_tensor:       NamedTensor (protobuf)
@@ -648,7 +651,7 @@ class Aggregator(object):
 
     def end_of_task_check(self, task_name):
         """
-        Have all collaborator's who are supposed to perform the task complete?
+        Check whether all collaborators who are supposed to perform the task complete.
 
         Args:
             task_name : str
@@ -658,14 +661,15 @@ class Aggregator(object):
             complete : boolean
                 Is the task done
         """
-
         if self.is_task_done(task_name):
             # now check for the end of the round
             self.end_of_round_check()
 
     def end_of_round_check(self):
         """
-        Is the round complete? If so, perform many end of round operations,
+        Check if the round complete.
+
+        If so, perform many end of round operations,
         such as model aggregation, metric reporting, delta generation (+
         associated tensorkey labeling), and save the model
 
@@ -675,7 +679,6 @@ class Aggregator(object):
         Returns:
             None
         """
-
         if self.is_round_done():
             # Compute all validation related metrics
             all_tasks = self.assigner.get_all_tasks_for_round(self.round_number)
@@ -891,6 +894,7 @@ class Aggregator(object):
             self.tensor_db.clean_up(self.db_store_rounds)
 
     def is_task_done(self, task_name):
+        """Check that task is done."""
         collaborators_needed = self.assigner.get_collaborators_for_task(
             task_name, self.round_number
         )
@@ -902,6 +906,7 @@ class Aggregator(object):
         ])
 
     def is_round_done(self):
+        """Check that round is done."""
         tasks_for_round = self.assigner.get_all_tasks_for_round(
             self.round_number
         )
@@ -909,6 +914,7 @@ class Aggregator(object):
         return all([self.is_task_done(t) for t in tasks_for_round])
 
     def log_big_warning(self):
+        """Warn user about single collaborator cert mode."""
         self.logger.warning(
             "\n{}\nYOU ARE RUNNING IN SINGLE COLLABORATOR CERT MODE! THIS IS"
             " NOT PROPER PKI AND "

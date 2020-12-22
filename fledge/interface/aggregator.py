@@ -1,3 +1,7 @@
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+"""Aggregator module."""
+
 from socket import getfqdn
 from logging import getLogger
 from pathlib import Path
@@ -16,7 +20,7 @@ logger = getLogger(__name__)
 @group()
 @pass_context
 def aggregator(context):
-    '''Manage Federated Learning Aggregator'''
+    """Manage Federated Learning Aggregator."""
     context.obj['group'] = 'aggregator'
 
 
@@ -32,8 +36,7 @@ def aggregator(context):
 @option('-s', '--secure', required=False,
         help='Enable Intel SGX Enclave', is_flag=True, default=False)
 def start_(context, plan, authorized_cols, secure):
-    '''Start the aggregator service'''
-
+    """Start the aggregator service."""
     plan = Plan.Parse(plan_config_path=Path(plan),
                       cols_config_path=Path(authorized_cols))
 
@@ -47,13 +50,12 @@ def start_(context, plan, authorized_cols, secure):
         help=f'The fully qualified domain name of'
              f' aggregator node [{getfqdn()}]',
         default=getfqdn())
-def generate_cert_request_(fqdn):
+def _generate_cert_request(fqdn):
     generate_cert_request(fqdn)
 
 
 def generate_cert_request(fqdn):
-    '''Create aggregator certificate key pair'''
-
+    """Create aggregator certificate key pair."""
     common_name = f'{fqdn}'.lower()
     subject_alternative_name = f'DNS:{common_name}'
     file_name = f'agg_{common_name}'
@@ -80,9 +82,7 @@ def generate_cert_request(fqdn):
 
 
 def findCertificateName(file_name):
-    '''Searches the CRT for the actual aggregator name
-    '''
-
+    """Search the CRT for the actual aggregator name."""
     # This loop looks for the collaborator name in the key
     with open(file_name, 'r') as f:
         for line in f:
@@ -93,8 +93,7 @@ def findCertificateName(file_name):
 
 
 def sign_certificate(file_name):
-    '''Sign the certificate
-    '''
+    """Sign the certificate."""
     echo(' Signing AGGREGATOR certificate key pair')
 
     signing_conf = 'config/signing-ca.conf'
@@ -117,12 +116,12 @@ def sign_certificate(file_name):
         help='The fully qualified domain name of aggregator node [{getfqdn()}]',
         default=getfqdn())
 @option('-s', '--silent', help='Do not prompt', is_flag=True)
-def certify_(fqdn, silent):
+def _certify(fqdn, silent):
     certify(fqdn, silent)
 
 
 def certify(fqdn, silent):
-    '''Sign/certify the aggregator certificate key pair'''
+    """Sign/certify the aggregator certificate key pair."""
     from shutil import copyfile
 
     from click import confirm

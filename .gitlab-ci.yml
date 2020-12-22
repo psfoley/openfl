@@ -87,6 +87,7 @@ unit-tests:
     - virtualenv .venv
     - source .venv/bin/activate
   script:
+    - pip install .
     - pip install -r requirements-test.txt
     - pytest
   after_script:

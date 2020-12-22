@@ -39,6 +39,7 @@ pep8:
   tags:
     - charlie
   before_script:
+    - apt-get install python3-venv
     - whoami
     - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
@@ -55,9 +56,10 @@ pep8:
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - python3 -m venv venv
-    - python3 -m pip install --user --upgrade pip
+    - source venv/bin/activate
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install -r requirements-linters.txt --user
+    - pip install -r requirements-linters.txt --user
     - flake8
   after_script:
     - deactivate && rm -rf venv
@@ -82,10 +84,13 @@ unit-tests:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
-    - python3 -m pip install --user --upgrade pip
+    - python3 -m venv venv
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install -r requirements-test.txt --user
+    - pip install -r requirements-test.txt --user
     - pytest
+  after_script:
+    - deactivate && rm -rf venv
 
 keras_cnn_mnist:
   stage: test

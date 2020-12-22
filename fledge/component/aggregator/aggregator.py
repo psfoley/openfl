@@ -343,7 +343,6 @@ class Aggregator:
             named_tensor : protobuf NamedTensor
                 the tensor requested by the collaborator
         """
-
         self.logger.debug(
             'Retrieving aggregated tensor {} for collaborator {}'.format(
                 tensor_name, collaborator_name))
@@ -632,6 +631,16 @@ class Aggregator:
             self.end_of_round_check()
 
     def prepare_trained(self, tensor_name, origin, round_number, report, agg_results):
+        """
+       Prepare aggregated tensorkey tags.
+
+       Args:
+           tensor_name : str
+           origin:
+           round_number: int
+           report: bool
+           agg_results: np.array
+       """
         # The aggregated tensorkey tags should have the form of
         # 'trained' or 'trained.lossy_decompressed'
         # They need to be relabeled to 'aggregated' and
@@ -719,6 +728,13 @@ class Aggregator:
         # {}'.format(self.round_number,self.tensor_db))
 
     def compute_validation_related_task_metrics(self, task_name):
+        """
+        Computation of validation related task metrics
+
+        Args:
+            task_name : str
+                The task name to compute
+        """
         self.logger.info('{} task metrics...'.format(task_name))
         # By default, print out all of the metrics that the validation
         # task sent

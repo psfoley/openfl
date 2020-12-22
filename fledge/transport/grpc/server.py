@@ -93,7 +93,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
         Args:
             collaborator_name : str
-                The collaborator the message is intended for
+                The collaborator the message is intended for.
         """
         return MessageHeader(
             sender=self.aggregator.uuid,
@@ -108,7 +108,7 @@ class AggregatorGRPCServer(AggregatorServicer):
 
         Args:
             request : protobuf
-                Request sent from a collaborator that requires validation
+                Request sent from a collaborator that requires validation.
         """
         # TODO improve this check. the sender name could be spoofed
         check_is_in(request.header.sender, self.aggregator.authorized_cols, self.logger)

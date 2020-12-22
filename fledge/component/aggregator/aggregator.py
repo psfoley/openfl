@@ -751,59 +751,37 @@ class Aggregator:
                 ' correctly'.format(tensor_key, task_name)
             # Strip the collaborator label, and lookup aggregated tensor
             new_tags = tuple(list(tags[:-1]))
-            agg_tensor_key = TensorKey(
-                tensor_name, origin, round_number, report, new_tags
-            )
-            agg_tensor_name, agg_origin, agg_round_number, \
-            agg_report, agg_tags = agg_tensor_key
-            agg_results, agg_metadata_dict = \
-                self.tensor_db.get_aggregated_tensor(
-                    agg_tensor_key,
-                    collaborator_weight_dict,
-                    agg_functions
-                )
+            agg_tensor_key = TensorKey(tensor_name, origin, round_number, report, new_tags)
+            agg_tensor_name, agg_origin, agg_round_number, agg_report, agg_tags = agg_tensor_key
+            agg_results, agg_metadata_dict = self.tensor_db.get_aggregated_tensor(
+                agg_tensor_key, collaborator_weight_dict, agg_functions)
             if report:
                 # Print the aggregated metric
                 if agg_results is None:
                     self.logger.warning(
-                        'Aggregated metric {} could not be collected'
-                        ' for round {}. '
+                        'Aggregated metric {} could not be collected for round {}. '
                         'Skipping reporting for this round'.format(
                             agg_tensor_name, self.round_number))
                 if agg_functions is not None:
-                    self.logger.info(
-                        '{0} {1}:\t{2:.4f}'.format(
-                            agg_functions[0],
-                            agg_tensor_name,
-                            agg_results)
+                    self.logger.info('{0} {1}:\t{2:.4f}'.format(
+                        agg_functions[0], agg_tensor_name, agg_results)
                     )
                 else:
-                    self.logger.info('{0}:\t{1:.4f}'.format(
-                        agg_tensor_name,
-                        agg_results)
-                    )
+                    self.logger.info('{0}:\t{1:.4f}'.format(agg_tensor_name, agg_results))
                 for met in agg_metadata_dict:
-                    self.logger.info(
-                        '{0} {1}:\t{2:.4f}'.format(
-                            met,
-                            agg_tensor_name,
-                            agg_metadata_dict[met])
+                    self.logger.info('{0} {1}:\t{2:.4f}'.format(
+                        met, agg_tensor_name, agg_metadata_dict[met])
                     )
                 # TODO Add all of the logic for saving the model based
                 #  on best accuracy, lowest loss, etc.
                 if 'validate_agg' in tags:
                     # Compare the accuracy of the model, and
                     # potentially save it
-                    if (self.best_model_score is None
-                            or self.best_model_score < agg_results):
+                    if self.best_model_score is None or self.best_model_score < agg_results:
                         self.logger.info(
-                            'Saved the best model with score'
-                            ' {:f}'.format(agg_results)
-                        )
+                            'Saved the best model with score {:f}'.format(agg_results))
                         self.best_model_score = agg_results
-                        self.save_model(
-                            round_number, self.best_state_path
-                        )
+                        self.save_model(round_number, self.best_state_path)
             if 'trained' in tags:
                 self.prepare_trained(tensor_name, origin, round_number, report, agg_results)
 

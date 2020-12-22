@@ -54,10 +54,13 @@ pep8:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - python3 -m venv venv
     - python3 -m pip install --user --upgrade pip
   script:
     - python3 -m pip install -r requirements-linters.txt --user
     - flake8
+  after_script:
+    - deactivate && rm -rf venv
 
 unit-tests:
   stage: unit-tests
@@ -109,13 +112,15 @@ keras_cnn_mnist:
     - export COL2=beta816r4
     - export FED_WORKSPACE=keras_cnn_mnist
     - export FED_DIRECTORY=workspace_keras
-    - python3 -m pip install --user --upgrade pip
+    - python3 -m venv venv
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install . --user
+    - pip install . --user
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY}} ${COL1} ${COL2} --rounds-to-train 3
   after_script:
     - jobs
     - echo "cleaning ...... $$"
+    - deactivate && rm -rf venv
     - kill -15 $$
 
 torch_cnn_mnist:
@@ -143,13 +148,15 @@ torch_cnn_mnist:
     - export COL2=two34
     - export FED_WORKSPACE=torch_cnn_mnist
     - export FED_DIRECTORY=workspace_torch
-    - python3 -m pip install --user --upgrade pip
+    - python3 -m venv venv
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install . --user
+    - pip install . --user
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
   after_script:
     - jobs
     - echo "cleaning ...... $$"
+    - deactivate && rm -rf venv
     - kill -15 $$
 
 fe_tf_adversarial_cifar:
@@ -211,13 +218,15 @@ fe_torch_adversarial_cifar:
     - export COL2=two34
     - export FED_WORKSPACE=fe_torch_adversarial_cifar
     - export FED_DIRECTORY=workspace_fe_torch_adversarial_cifar
-    - python3 -m pip install --user --upgrade pip
+    - python3 -m venv venv
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install . --user
+    - pip install . --user
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
   after_script:
     - jobs
     - echo "cleaning ...... $$"
+    - deactivate && rm -rf venv
     - kill -15 $$
 
 torch_cnn_histology:
@@ -245,14 +254,16 @@ torch_cnn_histology:
     - export COL2=two34
     - export FED_WORKSPACE=torch_cnn_histology
     - export FED_DIRECTORY=workspace_torch_cnn_histology
-    - python3 -m pip install --user --upgrade pip
+    - python3 -m venv venv
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install . --user
+    - pip install . --user
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
   after_script:
     - jobs
     - echo "cleaning ...... $$"
     - kill -15 $$
+    - deactivate && rm -rf venv
 
 tf_cnn_histology:
   stage: test
@@ -279,14 +290,16 @@ tf_cnn_histology:
     - export COL2=two34
     - export FED_WORKSPACE=tf_cnn_histology
     - export FED_DIRECTORY=workspace_tf_cnn_histology
-    - python3 -m pip install --user --upgrade pip
+    - python3 -m venv venv
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install . --user
+    - pip install . --user
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
   after_script:
     - jobs
     - echo "cleaning ...... $$"
     - kill -15 $$
+    - deactivate && rm -rf venv
 
 python_native:
   stage: test
@@ -313,12 +326,14 @@ python_native:
     - export COL2=two34
     - export FED_WORKSPACE=tf_cnn_histology
     - export FED_DIRECTORY=workspace_tf_cnn_histology
-    - python3 -m pip install --user --upgrade pip
+    - python3 -m venv venv
+    - pip install --user --upgrade pip
   script:
-    - python3 -m pip install . --user
-    - python3 /home/gitlab-runner/workspace/fledge/tests/gitlab/python_native.py
+    - pip install . --user
+    - python /home/gitlab-runner/workspace/fledge/tests/gitlab/python_native.py
   after_script:
     - jobs
     - echo "cleaning ...... $$"
     - rm -rf ~/.fledge
     - kill -15 $$
+    - deactivate && rm -rf venv 

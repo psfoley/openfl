@@ -39,7 +39,7 @@ pep8:
   tags:
     - charlie
   before_script:
-    - apt-get install python3-venv
+    - sudo apt-get install python3-venv
     - whoami
     - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
@@ -58,6 +58,7 @@ pep8:
     - python3 -m venv venv
     - source venv/bin/activate
     - pip install --user --upgrade pip
+    - pip uninstall -y flake8-docstrings
   script:
     - pip install -r requirements-linters.txt --user
     - flake8

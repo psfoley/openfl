@@ -5,22 +5,18 @@
 
 from logging import getLogger
 
-import numpy as np
-
 from fledge.utilities import check_equal, check_is_in
-
-from fledge.protocols import MessageHeader
-from fledge.protocols import TasksResponse, TensorResponse, Acknowledgement
 
 from fledge.utilities import TensorKey, TaskResultKey
 from fledge.pipelines import NoCompressionPipeline, TensorCodec
 from fledge.databases import TensorDB
 
-from fledge.protocols import load_proto, dump_proto, construct_named_tensor
-from fledge.protocols import construct_model_proto, deconstruct_model_proto
+from fledge.protocols import utils
+from fledge.protocols import MessageHeader
+from fledge.protocols import ModelProto
 
 
-class Aggregator(object):
+class Aggregator:
     """An Aggregator is the central node in federated learning."""
 
     def __init__(self,
@@ -36,9 +32,6 @@ class Aggregator(object):
                  assigner,
 
                  rounds_to_train=256,
-                 minimum_reporting=-1,
-                 straggler_cutoff_time=np.inf,
-                 disable_equality_check=True,
                  single_col_cert_common_name=None,
                  compression_pipeline=None,
 
@@ -89,7 +82,11 @@ class Aggregator(object):
         self.best_state_path = best_state_path
         self.last_state_path = last_state_path
 
+        self.best_tensor_dict: dict = {}
+        self.last_tensor_dict: dict = {}
+
         self.best_model_score = None
+        self.model: ModelProto = utils.load_proto(self.init_state_path)
 
         self.load_initial_tensors()  # keys are TensorKeys
 
@@ -112,12 +109,10 @@ class Aggregator(object):
         Required tensors are: \
             1. Initial model.
 
-        Args:
+        Returns:
             None
         """
-        # if the collaborator requests a delta, this value is set to true
-        self.model = load_proto(self.init_state_path)
-        tensor_dict, round_number = deconstruct_model_proto(
+        tensor_dict, round_number = utils.deconstruct_model_proto(
             self.model, compression_pipeline=self.compression_pipeline)
 
         if round_number > self.round_number:
@@ -148,7 +143,7 @@ class Aggregator(object):
             None
         """
         # Extract the model from TensorDB and set it to the new model
-        og_tensor_dict, _ = deconstruct_model_proto(
+        og_tensor_dict, _ = utils.deconstruct_model_proto(
             self.model, compression_pipeline=self.compression_pipeline)
         tensor_keys = [
             TensorKey(
@@ -167,11 +162,11 @@ class Aggregator(object):
             self.best_tensor_dict = tensor_dict
         if file_path == self.last_state_path:
             self.last_tensor_dict = tensor_dict
-        self.model = construct_model_proto(
+        self.model = utils.construct_model_proto(
             tensor_dict, round_number, self.compression_pipeline)
-        dump_proto(self.model, file_path)
+        utils.dump_proto(self.model, file_path)
 
-    def valid_collaborator_CN_and_id(self, cert_common_name,
+    def valid_collaborator_cn_and_id(self, cert_common_name,
                                      collaborator_common_name):
         """
         Determine if the collaborator certificate and ID are valid for this federation.
@@ -242,12 +237,13 @@ class Aggregator(object):
             single_col_cert_common_name=self.single_col_cert_common_name
         )
 
-    def get_sleep_time(self):
+    @staticmethod
+    def get_sleep_time():
         """
         Sleep 10 seconds.
 
-        Args:
-            None
+        Returns:
+            sleep_time: int
         """
         # Decrease sleep period for finer discretezation
         return 10
@@ -256,47 +252,44 @@ class Aggregator(object):
         """
         If all rounds are complete, it's time to quit.
 
-        Args:
-            None
+        Returns:
+            is_time_to_quit: bool
         """
         if self.round_number >= self.rounds_to_train:
             return True
         return False
 
-    def GetTasks(self, request):
+    def get_tasks(self, collaborator_name):
         """
         RPC called by a collaborator to determine which tasks to perform.
 
         Args:
-            request: protobuf
-                A simple request from a collaborator that queries what task
-                should be performed
+            collaborator_name: str
+                Requested collaborator name
 
         Returns:
-            TasksResponse : protobuf
+            tasks: list[str]
                 List of tasks to be performed by the requesting collaborator
                 for the current round.
-                This response can also include information like if it time to
-                quit
+            sleep_time: int
+            time_to_quit: bool
         """
-        # all messages get sanity checked
-        self.check_request(request)
-
-        collaborator_name = request.header.sender
-
         self.logger.debug('Aggregator GetTasks function reached from '
-                          'collaborator {}...'.format(collaborator_name))
+                         'collaborator {}...'.format(collaborator_name))
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():
             self.logger.info('Sending signal to collaborator {} to'
                              ' shutdown...'.format(collaborator_name))
             self.quit_job_sent_to.append(collaborator_name)
-            return TasksResponse(header=self.get_header(collaborator_name),
-                                 round_number=self.round_number,
-                                 tasks=None,
-                                 sleep_time=0,
-                                 quit=True)
+
+            tasks = None
+            sleep_time = 0
+            time_to_quit = True
+
+            return tasks, sleep_time, time_to_quit
+
+        time_to_quit = False
 
         # otherwise, get the tasks from our task assigner
         tasks = self.assigner.get_tasks_for_collaborator(
@@ -305,13 +298,10 @@ class Aggregator(object):
 
         # if no tasks, tell the collaborator to sleep
         if len(tasks) == 0:
-            return TasksResponse(header=self.get_header(collaborator_name),
-                                 round_number=self.round_number,
-                                 tasks=None,
-                                 # this could be an extensible function
-                                 # if we want
-                                 sleep_time=self.get_sleep_time(),
-                                 quit=False)
+            tasks = None
+            sleep_time = self.get_sleep_time()
+
+            return tasks, sleep_time, time_to_quit
 
         # if we do have tasks, remove any that we already have results for
         tasks = [
@@ -322,21 +312,19 @@ class Aggregator(object):
         # Do the check again because it's possible that all tasks have
         # been completed
         if len(tasks) == 0:
-            return TasksResponse(header=self.get_header(collaborator_name),
-                                 round_number=self.round_number,
-                                 tasks=None,
-                                 sleep_time=self.get_sleep_time(),
-                                 quit=False)
+            tasks = None
+            sleep_time = self.get_sleep_time()
+
+            return tasks, sleep_time, time_to_quit
 
         self.logger.info('Sending tasks to collaborator {} for round '
                          '{}'.format(collaborator_name, self.round_number))
-        return TasksResponse(header=self.get_header(collaborator_name),
-                             round_number=self.round_number,
-                             tasks=tasks,
-                             sleep_time=0,
-                             quit=False)
+        sleep_time = 0
 
-    def GetAggregatedTensor(self, request):
+        return tasks, sleep_time, time_to_quit
+
+    def get_aggregated_tensor(self, collaborator_name, tensor_name, require_lossless,
+                              round_number, report, tags):
         """
         RPC called by collaborator.
 
@@ -344,24 +332,17 @@ class Aggregator(object):
             that matches the request.
 
         Args:
-            request : protobuf
-                Collaborator request for a tensorkey
-
+            collaborator_name : str
+                Requested tensor key collaborator name
+            tensor_name: str
+            require_lossless: bool
+            round_number: int
+            report: bool
+            tags: list[str]
         Returns:
-            TensorResponse : protobuf
-                Protobuf message containing the tensor requested by the
-                collaborator
+            named_tensor : protobuf NamedTensor
+                the tensor requested by the collaborator
         """
-        # all messages get sanity checked
-        self.check_request(request)
-
-        # get the values we need from the protobuf
-        collaborator_name = request.header.sender
-        tensor_name = request.tensor_name
-        require_lossless = request.require_lossless
-        round_number = request.round_number
-        report = request.report
-        tags = request.tags
 
         self.logger.debug(
             'Retrieving aggregated tensor {} for collaborator {}'.format(
@@ -408,9 +389,7 @@ class Aggregator(object):
             compress_lossless=compress_lossless
         )
 
-        return TensorResponse(header=self.get_header(collaborator_name),
-                              round_number=round_number,
-                              tensor=named_tensor)
+        return named_tensor
 
     def nparray_to_named_tensor(self, tensor_key, nparray, send_model_deltas,
                                 compress_lossless):
@@ -421,7 +400,7 @@ class Aggregator(object):
         """
         tensor_name, origin, round_number, report, tags = tensor_key
         # if we have an aggregated tensor, we can make a delta
-        if ('aggregated' in tensor_name and send_model_deltas):
+        if 'aggregated' in tensor_name and send_model_deltas:
             # Should get the pretrained model to create the delta. If training
             # has happened, Model should already be stored in the TensorDB
             model_nparray = self.tensor_db.get_tensor_from_cache(
@@ -438,22 +417,22 @@ class Aggregator(object):
             delta_comp_tensor_key, delta_comp_nparray, metadata = \
                 self.tensor_codec.compress(delta_tensor_key, delta_nparray,
                                            lossless=compress_lossless)
-            named_tensor = construct_named_tensor(delta_comp_tensor_key,
-                                                  delta_comp_nparray, metadata,
-                                                  lossless=compress_lossless)
+            named_tensor = utils.construct_named_tensor(delta_comp_tensor_key,
+                                                        delta_comp_nparray, metadata,
+                                                        lossless=compress_lossless)
 
         else:
             # Assume every other tensor requires lossless compression
             compressed_tensor_key, compressed_nparray, metadata = \
                 self.tensor_codec.compress(tensor_key, nparray,
                                            require_lossless=True)
-            named_tensor = construct_named_tensor(compressed_tensor_key,
-                                                  compressed_nparray, metadata,
-                                                  lossless=compress_lossless)
+            named_tensor = utils.construct_named_tensor(compressed_tensor_key,
+                                                        compressed_nparray, metadata,
+                                                        lossless=compress_lossless)
 
         return named_tensor
 
-    def collaborator_task_completed(self, collaborator, task, round_num):
+    def collaborator_task_completed(self, collaborator, task_name, round_num):
         """
         Check if the collaborator has completed the task for the round.
 
@@ -465,43 +444,32 @@ class Aggregator(object):
                 collaborator to check if their task has been completed
             task_name : str
                 The name of the task (TaskRunner function)
-            round_number : int
+            round_num : int
 
         Returns:
             task_competed : bool
                 Whether or not the collaborator has completed the task for this
                 round
         """
-        task_key = TaskResultKey(task, collaborator, round_num)
+        task_key = TaskResultKey(task_name, collaborator, round_num)
         return task_key in self.collaborator_tasks_results
 
-    def SendLocalTaskResults(self, request):
+    def send_local_task_results(self, collaborator_name, task_name, round_number,
+                                data_size, named_tensors):
         """
         RPC called by collaborator.
 
         Transmits collaborator's task results to the aggregator.
 
         Args:
-            request : protobuf
-                Contains all of the information related to the task that the
-                collaborator
-                just completed (collaborator name, the task performed, what
-                round, and which tensors were transfered)
-
+            collaborator_name: str
+            task_name: str
+            round_number: int
+            data_size: int
+            named_tensors: protobuf NamedTensor
         Returns:
-             acknowledgement : protobuf
-                 Confirms the task results were received
+             None
         """
-        # all messages get sanity checked
-        self.check_request(request)
-
-        # get the values we need from the protobuf
-        collaborator_name = request.header.sender
-        task_name = request.task_name
-        round_number = request.round_number
-        data_size = request.data_size
-        named_tensors = request.tensors
-
         self.logger.info(
             'Collaborator {} is sending task results for {}, round {}'.format(
                 collaborator_name, task_name, round_number))
@@ -552,8 +520,6 @@ class Aggregator(object):
         self.collaborator_tasks_results[task_key] = task_results
 
         self.end_of_task_check(task_name)
-
-        return Acknowledgement(header=self.get_header(collaborator_name))
 
     def process_named_tensor(self, named_tensor, collaborator_name):
         """
@@ -665,6 +631,182 @@ class Aggregator(object):
             # now check for the end of the round
             self.end_of_round_check()
 
+    def prepare_trained(self, tensor_name, origin, round_number, report, agg_results):
+        # The aggregated tensorkey tags should have the form of
+        # 'trained' or 'trained.lossy_decompressed'
+        # They need to be relabeled to 'aggregated' and
+        # reinserted. Then delta performed, compressed, etc.
+        # then reinserted to TensorDB with 'model' tag
+
+        # First insert the aggregated model layer with the
+        # correct tensorkey
+        agg_tag_tk = TensorKey(
+            tensor_name,
+            origin,
+            round_number + 1,
+            report,
+            ('aggregated',)
+        )
+        self.tensor_db.cache_tensor({agg_tag_tk: agg_results})
+
+        # Create delta and save it in TensorDB
+        base_model_tk = TensorKey(
+            tensor_name,
+            origin,
+            round_number,
+            report,
+            ('model',)
+        )
+        base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tk)
+        if base_model_nparray is not None:
+            delta_tk, delta_nparray = self.tensor_codec.generate_delta(
+                agg_tag_tk,
+                agg_results,
+                base_model_nparray
+            )
+            self.tensor_db.cache_tensor({delta_tk: delta_nparray})
+        else:
+            # This condition is possible for base model
+            # optimizer states (i.e. Adam/iter:0, SGD, etc.)
+            # These values couldn't be present for the base
+            # model because no training occurs on the aggregator
+            delta_tk, delta_nparray = agg_tag_tk, agg_results
+
+        # Compress lossless/lossy
+        compressed_delta_tk, compressed_delta_nparray, metadata = self.tensor_codec.compress(
+            delta_tk, delta_nparray
+        )
+
+        # TODO extend the TensorDB so that compressed data is
+        #  supported. Once that is in place
+        # the compressed delta can just be stored here instead
+        # of recreating it for every request
+
+        # Decompress lossless/lossy
+        decompressed_delta_tk, decompressed_delta_nparray = self.tensor_codec.decompress(
+            compressed_delta_tk,
+            compressed_delta_nparray,
+            metadata
+        )
+
+        # Apply delta (unless delta couldn't be created)
+        if base_model_nparray is not None:
+            new_model_tk, new_model_nparray = self.tensor_codec.apply_delta(
+                decompressed_delta_tk,
+                decompressed_delta_nparray,
+                base_model_nparray
+            )
+        else:
+            new_model_tk, new_model_nparray = decompressed_delta_tk, decompressed_delta_nparray
+
+        # Now that the model has been compressed/decompressed
+        # with delta operations,
+        # Relabel the tags to 'model'
+        (new_model_tensor_name, new_model_origin, new_model_round_number,
+         new_model_report, new_model_tags) = new_model_tk
+        final_model_tk = TensorKey(
+            new_model_tensor_name,
+            new_model_origin,
+            new_model_round_number,
+            new_model_report,
+            ('model',)
+        )
+
+        # Finally, cache the updated model tensor
+        self.tensor_db.cache_tensor({final_model_tk: new_model_nparray})
+        # self.logger.debug('TensorDB contents after
+        # training round {}:
+        # {}'.format(self.round_number,self.tensor_db))
+
+    def compute_validation_related_task_metrics(self, task_name):
+        self.logger.info('{} task metrics...'.format(task_name))
+        # By default, print out all of the metrics that the validation
+        # task sent
+        # This handles getting the subset of collaborators that may be
+        # part of the validation task
+        collaborators_for_task = self.assigner.get_collaborators_for_task(
+            task_name, self.round_number)
+        # The collaborator data sizes for that task
+        collaborator_weights_unnormalized = {
+            c: self.collaborator_task_weight[TaskResultKey(task_name, c, self.round_number)]
+            for c in collaborators_for_task}
+        weight_total = sum(collaborator_weights_unnormalized.values())
+        collaborator_weight_dict = {
+            k: v / weight_total
+            for k, v in collaborator_weights_unnormalized.items()
+        }
+
+        # The validation task should have just a couple tensors (i.e.
+        # metrics) associated with it. Because each collaborator should
+        # have sent the same tensor list, we can use the first
+        # collaborator in our subset, and apply the correct
+        # transformations to the tensorkey to resolve the aggregated
+        # tensor for that round
+        agg_functions = self.assigner.get_aggregation_type_for_task(task_name)
+        task_key = TaskResultKey(task_name, collaborators_for_task[0], self.round_number)
+        for tensor_key in self.collaborator_tasks_results[task_key]:
+            tensor_name, origin, round_number, report, tags = tensor_key
+            assert (tags[-1] == collaborators_for_task[0]), \
+                'Tensor {} in task {} has not been processed' \
+                ' correctly'.format(tensor_key, task_name)
+            # Strip the collaborator label, and lookup aggregated tensor
+            new_tags = tuple(list(tags[:-1]))
+            agg_tensor_key = TensorKey(
+                tensor_name, origin, round_number, report, new_tags
+            )
+            agg_tensor_name, agg_origin, agg_round_number, \
+            agg_report, agg_tags = agg_tensor_key
+            agg_results, agg_metadata_dict = \
+                self.tensor_db.get_aggregated_tensor(
+                    agg_tensor_key,
+                    collaborator_weight_dict,
+                    agg_functions
+                )
+            if report:
+                # Print the aggregated metric
+                if agg_results is None:
+                    self.logger.warning(
+                        'Aggregated metric {} could not be collected'
+                        ' for round {}. '
+                        'Skipping reporting for this round'.format(
+                            agg_tensor_name, self.round_number))
+                if agg_functions is not None:
+                    self.logger.info(
+                        '{0} {1}:\t{2:.4f}'.format(
+                            agg_functions[0],
+                            agg_tensor_name,
+                            agg_results)
+                    )
+                else:
+                    self.logger.info('{0}:\t{1:.4f}'.format(
+                        agg_tensor_name,
+                        agg_results)
+                    )
+                for met in agg_metadata_dict:
+                    self.logger.info(
+                        '{0} {1}:\t{2:.4f}'.format(
+                            met,
+                            agg_tensor_name,
+                            agg_metadata_dict[met])
+                    )
+                # TODO Add all of the logic for saving the model based
+                #  on best accuracy, lowest loss, etc.
+                if 'validate_agg' in tags:
+                    # Compare the accuracy of the model, and
+                    # potentially save it
+                    if (self.best_model_score is None
+                            or self.best_model_score < agg_results):
+                        self.logger.info(
+                            'Saved the best model with score'
+                            ' {:f}'.format(agg_results)
+                        )
+                        self.best_model_score = agg_results
+                        self.save_model(
+                            round_number, self.best_state_path
+                        )
+            if 'trained' in tags:
+                self.prepare_trained(tensor_name, origin, round_number, report, agg_results)
+
     def end_of_round_check(self):
         """
         Check if the round complete.
@@ -679,219 +821,32 @@ class Aggregator(object):
         Returns:
             None
         """
-        if self.is_round_done():
-            # Compute all validation related metrics
-            all_tasks = self.assigner.get_all_tasks_for_round(self.round_number)
-            for task_name in all_tasks:
-                self.logger.info('{} task metrics...'.format(task_name))
-                # By default, print out all of the metrics that the validation
-                # task sent
-                # This handles getting the subset of collaborators that may be
-                # part of the validation task
-                collaborators_for_task = \
-                    self.assigner.get_collaborators_for_task(
-                        task_name, self.round_number
-                    )
-                # The collaborator data sizes for that task
-                collaborator_weights_unnormalized = \
-                    {c: self.collaborator_task_weight[
-                        TaskResultKey(task_name, c, self.round_number)
-                    ] for c in collaborators_for_task}
-                weight_total = sum(collaborator_weights_unnormalized.values())
-                collaborator_weight_dict = {
-                    k: v / weight_total
-                    for k, v in collaborator_weights_unnormalized.items()
-                }
+        if not self.is_round_done():
+            return
 
-                # The validation task should have just a couple tensors (i.e.
-                # metrics) associated with it. Because each collaborator should
-                # have sent the same tensor list, we can use the first
-                # collaborator in our subset, and apply the correct
-                # transformations to the tensorkey to resolve the aggregated
-                # tensor for that round
-                agg_functions = self.assigner.get_aggregation_type_for_task(
-                    task_name
-                )
-                task_key = TaskResultKey(
-                    task_name, collaborators_for_task[0], self.round_number
-                )
-                for tensor_key in self.collaborator_tasks_results[task_key]:
-                    tensor_name, origin, round_number, report, tags = tensor_key
-                    assert (tags[-1] == collaborators_for_task[0]), \
-                        'Tensor {} in task {} has not been processed' \
-                        ' correctly'.format(tensor_key, task_name)
-                    # Strip the collaborator label, and lookup aggregated tensor
-                    new_tags = tuple(list(tags[:-1]))
-                    agg_tensor_key = TensorKey(
-                        tensor_name, origin, round_number, report, new_tags
-                    )
-                    agg_tensor_name, agg_origin, agg_round_number, \
-                        agg_report, agg_tags = agg_tensor_key
-                    agg_results, agg_metadata_dict = \
-                        self.tensor_db.get_aggregated_tensor(
-                            agg_tensor_key,
-                            collaborator_weight_dict,
-                            agg_functions
-                        )
-                    if report:
-                        # Print the aggregated metric
-                        if agg_results is None:
-                            self.logger.warning(
-                                'Aggregated metric {} could not be collected'
-                                ' for round {}. '
-                                'Skipping reporting for this round'.format(
-                                    agg_tensor_name, self.round_number))
-                        if agg_functions is not None:
-                            self.logger.info(
-                                '{0} {1}:\t{2:.4f}'.format(
-                                    agg_functions[0],
-                                    agg_tensor_name,
-                                    agg_results)
-                            )
-                        else:
-                            self.logger.info('{0}:\t{1:.4f}'.format(
-                                agg_tensor_name,
-                                agg_results)
-                            )
-                        for met in agg_metadata_dict:
-                            self.logger.info(
-                                '{0} {1}:\t{2:.4f}'.format(
-                                    met,
-                                    agg_tensor_name,
-                                    agg_metadata_dict[met])
-                            )
-                        # TODO Add all of the logic for saving the model based
-                        #  on best accuracy, lowest loss, etc.
-                        if 'validate_agg' in tags:
-                            # Compare the accuracy of the model, and
-                            # potentially save it
-                            if (self.best_model_score is None
-                                    or self.best_model_score < agg_results):
-                                self.logger.info(
-                                    'Saved the best model with score'
-                                    ' {:f}'.format(agg_results)
-                                )
-                                self.best_model_score = agg_results
-                                self.save_model(
-                                    round_number, self.best_state_path
-                                )
-                    if 'trained' in tags:
-                        # The aggregated tensorkey tags should have the form of
-                        # 'trained' or 'trained.lossy_decompressed'
-                        # They need to be relabeled to 'aggregated' and
-                        # reinserted. Then delta performed, compressed, etc.
-                        # then reinserted to TensorDB with 'model' tag
+        # Compute all validation related metrics
+        all_tasks = self.assigner.get_all_tasks_for_round(self.round_number)
+        for task_name in all_tasks:
+            self.compute_validation_related_task_metrics(task_name)
 
-                        # First insert the aggregated model layer with the
-                        # correct tensorkey
-                        agg_tag_tk = TensorKey(
-                            tensor_name,
-                            origin,
-                            round_number + 1,
-                            report,
-                            ('aggregated',)
-                        )
-                        self.tensor_db.cache_tensor({agg_tag_tk: agg_results})
+        # Once all of the task results have been processed
+        # Increment the round number
+        self.round_number += 1
 
-                        # Create delta and save it in TensorDB
-                        base_model_tk = TensorKey(
-                            tensor_name,
-                            origin,
-                            round_number,
-                            report,
-                            ('model',)
-                        )
-                        base_model_nparray = \
-                            self.tensor_db.get_tensor_from_cache(base_model_tk)
-                        if base_model_nparray is not None:
-                            delta_tk, delta_nparray = \
-                                self.tensor_codec.generate_delta(
-                                    agg_tag_tk,
-                                    agg_results,
-                                    base_model_nparray
-                                )
-                            self.tensor_db.cache_tensor(
-                                {delta_tk: delta_nparray}
-                            )
-                        else:
-                            # This condition is possible for base model
-                            # optimizer states (i.e. Adam/iter:0, SGD, etc.)
-                            # These values couldn't be present for the base
-                            # model because no training occurs on the aggregator
-                            delta_tk, delta_nparray = agg_tag_tk, agg_results
+        # Save the latest model
+        self.logger.info(
+            'Saving round {} model...'.format(self.round_number))
+        self.save_model(self.round_number, self.last_state_path)
 
-                        # Compress lossless/lossy
-                        compressed_delta_tk, compressed_delta_nparray, metadata \
-                            = self.tensor_codec.compress(
-                                delta_tk, delta_nparray
-                            )
-
-                        # TODO extend the TensorDB so that compressed data is
-                        #  supported. Once that is in place
-                        # the compressed delta can just be stored here instead
-                        # of recreating it for every request
-
-                        # Decompress lossless/lossy
-                        decompressed_delta_tk, decompressed_delta_nparray = \
-                            self.tensor_codec.decompress(
-                                compressed_delta_tk,
-                                compressed_delta_nparray,
-                                metadata
-                            )
-
-                        # Apply delta (unless delta couldn't be created)
-                        if base_model_nparray is not None:
-                            new_model_tk, new_model_nparray = \
-                                self.tensor_codec.apply_delta(
-                                    decompressed_delta_tk,
-                                    decompressed_delta_nparray,
-                                    base_model_nparray
-                                )
-                        else:
-                            new_model_tk, new_model_nparray = \
-                                decompressed_delta_tk, \
-                                decompressed_delta_nparray
-
-                        # Now that the model has been compressed/decompressed
-                        # with delta operations,
-                        # Relabel the tags to 'model'
-                        (new_model_tensor_name, new_model_origin,
-                         new_model_round_number, new_model_report,
-                         new_model_tags) = new_model_tk
-                        final_model_tk = TensorKey(
-                            new_model_tensor_name,
-                            new_model_origin,
-                            new_model_round_number,
-                            new_model_report,
-                            ('model',)
-                        )
-
-                        # Finally, cache the updated model tensor
-                        self.tensor_db.cache_tensor(
-                            {final_model_tk: new_model_nparray}
-                        )
-                        # self.logger.debug('TensorDB contents after
-                        # training round {}:
-                        # {}'.format(self.round_number,self.tensor_db))
-
-            # Once all of the task results have been processed
-            # Increment the round number
-            self.round_number += 1
-
-            # Save the latest model
+        # TODO This needs to be fixed!
+        if self.time_to_quit():
+            self.logger.info('Experiment Completed. Cleaning up...')
+        else:
             self.logger.info(
-                'Saving round {} model...'.format(self.round_number))
-            self.save_model(self.round_number, self.last_state_path)
+                'Starting round {}...'.format(self.round_number))
 
-            # TODO This needs to be fixed!
-            if self.time_to_quit():
-                self.logger.info('Experiment Completed. Cleaning up...')
-            else:
-                self.logger.info(
-                    'Starting round {}...'.format(self.round_number))
-
-            # Cleaning tensor db
-            self.tensor_db.clean_up(self.db_store_rounds)
+        # Cleaning tensor db
+        self.tensor_db.clean_up(self.db_store_rounds)
 
     def is_task_done(self, task_name):
         """Check that task is done."""

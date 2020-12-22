@@ -5,7 +5,7 @@
 
 import grpc
 
-from fledge.protocols import proto_to_datastream
+from fledge.protocols import utils
 from fledge.protocols import AggregatorStub
 
 from logging import getLogger
@@ -232,6 +232,6 @@ class CollaboratorGRPCClient:
         """Send task results to the aggregator."""
         # convert (potentially) long list of tensors into stream
         stream = []
-        stream += proto_to_datastream(message, self.logger)
+        stream += utils.proto_to_datastream(message, self.logger)
 
         return self.stub.SendLocalTaskResults(iter(stream))

@@ -9,7 +9,7 @@ from click import Path as ClickPath
 from click import group, option, pass_context
 from click import echo
 
-from fledge.protocols import dump_proto, construct_model_proto
+from fledge.protocols import utils
 from fledge.utilities import split_tensor_dict_for_holdouts
 from fledge.federated import Plan
 from fledge.interface.cli_helper import get_workspace_parameter
@@ -91,13 +91,13 @@ def initialize(context, plan_config, cols_config, data_config,
                 f'local initialization will determine'
                 f' values: {list(holdout_params.keys())}')
 
-    model_snap = construct_model_proto(tensor_dict=tensor_dict,
-                                       round_number=0,
-                                       tensor_pipe=tensor_pipe)
+    model_snap = utils.construct_model_proto(tensor_dict=tensor_dict,
+                                             round_number=0,
+                                             tensor_pipe=tensor_pipe)
 
     logger.info(f'Creating Initial Weights File    🠆 {init_state_path}')
 
-    dump_proto(model_proto=model_snap, fpath=init_state_path)
+    utils.dump_proto(model_proto=model_snap, fpath=init_state_path)
 
     plan_origin = Plan.Parse(Path(plan_config), resolve=False).config
 

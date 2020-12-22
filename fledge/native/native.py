@@ -16,7 +16,7 @@ import fledge.interface.collaborator as collaborator
 
 from fledge.federated import Plan
 
-from fledge.protocols import dump_proto, construct_model_proto
+from fledge.protocols import utils
 from fledge.utilities import split_tensor_dict_for_holdouts
 
 logger = getLogger(__name__)
@@ -266,13 +266,13 @@ def run_experiment(collaborator_dict, override_config={}):
         plan.runner_.get_tensor_dict(False)
     )
 
-    model_snap = construct_model_proto(tensor_dict=tensor_dict,
-                                       round_number=0,
-                                       tensor_pipe=tensor_pipe)
+    model_snap = utils.construct_model_proto(tensor_dict=tensor_dict,
+                                             round_number=0,
+                                             tensor_pipe=tensor_pipe)
 
     logger.info(f'Creating Initial Weights File    🠆 {init_state_path}')
 
-    dump_proto(model_proto=model_snap, fpath=init_state_path)
+    utils.dump_proto(model_proto=model_snap, fpath=init_state_path)
 
     logger.info('Starting Experiment...')
 

@@ -9,7 +9,7 @@ from time import sleep
 
 from fledge.protocols import MessageHeader
 from fledge.protocols import TasksRequest, TensorRequest, TaskResults
-from fledge.protocols import construct_named_tensor
+from fledge.protocols import utils
 from fledge.utilities import TensorKey, check_equal
 from fledge.pipelines import TensorCodec, NoCompressionPipeline
 from fledge.databases import TensorDB
@@ -461,7 +461,7 @@ class Collaborator(object):
                     )
                 delta_comp_tensor_key, delta_comp_nparray, metadata = \
                     self.tensor_codec.compress(delta_tensor_key, delta_nparray)
-                named_tensor = construct_named_tensor(
+                named_tensor = utils.construct_named_tensor(
                     delta_comp_tensor_key,
                     delta_comp_nparray,
                     metadata,
@@ -474,7 +474,7 @@ class Collaborator(object):
             self.tensor_codec.compress(
                 tensor_key, nparray, require_lossless=True
             )
-        named_tensor = construct_named_tensor(
+        named_tensor = utils.construct_named_tensor(
             compressed_tensor_key,
             compressed_nparray,
             metadata,

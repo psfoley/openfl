@@ -57,12 +57,13 @@ pep8:
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install -r requirements-linters.txt
     - flake8 --extend-exclude .venv
+    - deactivate
   after_script:
-    - deactivate && rm -rf .venv
+    - rm -rf .venv
 
 unit-tests:
   stage: unit-tests
@@ -86,13 +87,14 @@ unit-tests:
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install .
     - pip install -r requirements-test.txt
     - pytest
+    - deactivate
   after_script:
-    - deactivate && rm -rf venv
+    - rm -rf venv
 
 keras_cnn_mnist:
   stage: test
@@ -121,14 +123,15 @@ keras_cnn_mnist:
     - export FED_DIRECTORY=workspace_keras
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install . 
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY}} ${COL1} ${COL2} --rounds-to-train 3
+    - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
-    - deactivate && rm -rf .venv
+    - rm -rf .venv
     - kill -15 $$
 
 torch_cnn_mnist:
@@ -158,14 +161,15 @@ torch_cnn_mnist:
     - export FED_DIRECTORY=workspace_torch
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install .
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
-    - deactivate && rm -rf .venv
+    - rm -rf .venv
     - kill -15 $$
 
 fe_tf_adversarial_cifar:
@@ -195,14 +199,15 @@ fe_tf_adversarial_cifar:
     - export FED_DIRECTORY=workspace_fe_tf_adversarial_cifar
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install . 
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
-    - deactivate && rm -rf .venv
+    - rm -rf .venv
     - kill -15 $$
 
 fe_torch_adversarial_cifar:
@@ -232,14 +237,15 @@ fe_torch_adversarial_cifar:
     - export FED_DIRECTORY=workspace_fe_torch_adversarial_cifar
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install .
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
-    - deactivate && rm -rf .venv
+    - rm -rf .venv
     - kill -15 $$
 
 torch_cnn_histology:
@@ -269,15 +275,16 @@ torch_cnn_histology:
     - export FED_DIRECTORY=workspace_torch_cnn_histology
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install .
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
     - kill -15 $$
-    - deactivate && rm -rf .venv
+    - rm -rf .venv
 
 tf_cnn_histology:
   stage: test
@@ -306,15 +313,16 @@ tf_cnn_histology:
     - export FED_DIRECTORY=workspace_tf_cnn_histology
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install .
     - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
     - kill -15 $$
-    - deactivate && rm -rf .venv
+    - rm -rf .venv
 
 python_native:
   stage: test
@@ -343,13 +351,14 @@ python_native:
     - export FED_DIRECTORY=workspace_tf_cnn_histology
     - python3 -m pip install --user --upgrade pip virtualenv
     - virtualenv .venv
-    - source .venv/bin/activate
   script:
+    - source .venv/bin/activate
     - pip install .
     - python /home/gitlab-runner/workspace/fledge/tests/gitlab/python_native.py
+    - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
     - rm -rf ~/.fledge
     - kill -15 $$
-    - deactivate && rm -rf .venv 
+    - rm -rf .venv 

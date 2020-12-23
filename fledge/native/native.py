@@ -15,7 +15,6 @@ import fledge.interface.aggregator as aggregator
 import fledge.interface.collaborator as collaborator
 
 from fledge.federated import Plan
-from fledge.transport.grpc.server import AggregatorGRPCServer
 
 from fledge.protocols import utils
 from fledge.utilities import split_tensor_dict_for_holdouts
@@ -278,7 +277,6 @@ def run_experiment(collaborator_dict, override_config={}):
     logger.info('Starting Experiment...')
 
     aggregator = plan.get_aggregator()
-    agg_server = AggregatorGRPCServer(aggregator=aggregator, agg_port='auto')
 
     model_states = {
         collaborator: None for collaborator in collaborator_dict.keys()
@@ -287,7 +285,7 @@ def run_experiment(collaborator_dict, override_config={}):
     # Create the collaborators
     collaborators = {
         collaborator: create_collaborator(
-            plan, collaborator, model, agg_server
+            plan, collaborator, model, aggregator
         ) for collaborator in plan.authorized_cols
     }
 

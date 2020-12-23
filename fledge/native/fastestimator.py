@@ -11,6 +11,7 @@ from fledge.utilities import split_tensor_dict_for_holdouts
 import fledge.native as fx
 from fledge.federated.data import FastEstimatorDataLoader
 from fledge.federated.task import FastEstimatorTaskRunner
+from fledge.transport.grpc.server import AggregatorGRPCServer
 
 
 class FederatedFastEstimator:
@@ -73,6 +74,7 @@ class FederatedFastEstimator:
         self.logger.info('Starting Experiment...')
 
         aggregator = plan.get_aggregator()
+        agg_server = AggregatorGRPCServer(aggregator=aggregator, agg_port='auto')
 
         model_states = {
             collaborator: None for collaborator in plan.authorized_cols
@@ -114,7 +116,7 @@ class FederatedFastEstimator:
 
         # Create the collaborators
         collaborators = {collaborator: fx.create_collaborator(
-            plan, collaborator, runners[collaborator], aggregator)
+            plan, collaborator, runners[collaborator], agg_server)
             for collaborator in plan.authorized_cols}
 
         model = None

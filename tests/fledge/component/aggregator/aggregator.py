@@ -102,6 +102,7 @@ def test_all_quit_jobs_sent(agg, quit_job_sent_to, authorized_cols, expected):
 
 
 def test_get_sleep_time(agg):
+    """Test that get_sleep_time returns 10."""
     assert 10 == agg.get_sleep_time()
 
 

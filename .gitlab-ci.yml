@@ -94,7 +94,7 @@ unit-tests:
     - pytest
     - deactivate
   after_script:
-    - rm -rf venv
+    - rm -rf .venv
 
 keras_cnn_mnist:
   stage: test

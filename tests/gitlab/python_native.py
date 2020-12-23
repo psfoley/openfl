@@ -24,8 +24,7 @@ if __name__ == '__main__':
     import torchvision
     import torchvision.transforms as transforms
 
-    from fledge.federated.task import FederatedModel
-    from fledge.federated.data import FederatedDataSet
+    from fledge.federated import FederatedModel, FederatedDataSet
 
     def cross_entropy(output, target):
         """Binary cross-entropy metric."""

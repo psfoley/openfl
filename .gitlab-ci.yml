@@ -352,7 +352,7 @@ python_native:
     - virtualenv .venv
   script:
     - source .venv/bin/activate
-    - pip install .
+    - pip install . torch==1.6.0
     - python /home/gitlab-runner/workspace/fledge/tests/gitlab/python_native.py
     - deactivate
   after_script:

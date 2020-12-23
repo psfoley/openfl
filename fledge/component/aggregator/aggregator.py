@@ -632,15 +632,15 @@ class Aggregator:
 
     def prepare_trained(self, tensor_name, origin, round_number, report, agg_results):
         """
-       Prepare aggregated tensorkey tags.
+        Prepare aggregated tensorkey tags.
 
-       Args:
+        Args:
            tensor_name : str
            origin:
            round_number: int
            report: bool
            agg_results: np.array
-       """
+        """
         # The aggregated tensorkey tags should have the form of
         # 'trained' or 'trained.lossy_decompressed'
         # They need to be relabeled to 'aggregated' and
@@ -729,7 +729,7 @@ class Aggregator:
 
     def compute_validation_related_task_metrics(self, task_name):
         """
-        Computation of validation related task metrics
+        Compute all validation related metrics.
 
         Args:
             task_name : str

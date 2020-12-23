@@ -150,8 +150,7 @@ def test_get_aggregated_tensor(agg):
 
 
 def test_collaborator_task_completed_none(agg):
-    """Test that collaborator_task_completed returns False if there are
-    not collaborator tasks results."""
+    """Test that returns False if there are not collaborator tasks results."""
     round_num = 0
     is_completed = agg.collaborator_task_completed(
         'col1', 'task_name', round_num)
@@ -159,8 +158,7 @@ def test_collaborator_task_completed_none(agg):
 
 
 def test_collaborator_task_completed_true(agg):
-    """Test that collaborator_task_completed returns True if there are
-    collaborator tasks results."""
+    """Test that returns True if there are collaborator tasks results."""
     round_num = 0
     task_name = 'test_task_name'
     col1 = 'one'

@@ -7,10 +7,8 @@ from logging import getLogger
 from enum import Enum
 from time import sleep
 
-from fledge.protocols import MessageHeader
-from fledge.protocols import TasksRequest, TensorRequest, TaskResults
 from fledge.protocols import utils
-from fledge.utilities import TensorKey, check_equal
+from fledge.utilities import TensorKey
 from fledge.pipelines import TensorCodec, NoCompressionPipeline
 from fledge.databases import TensorDB
 
@@ -35,7 +33,7 @@ class OptTreatment(Enum):
     """
 
 
-class Collaborator(object):
+class Collaborator:
     """The Collaborator object class."""
 
     def __init__(self,
@@ -86,12 +84,6 @@ class Collaborator(object):
         self.delta_updates = delta_updates
 
         self.client = client
-        self.header = MessageHeader(
-            sender=collaborator_name,
-            receiver=aggregator_uuid,
-            federation_uuid=federation_uuid,
-            single_col_cert_common_name=self.single_col_cert_common_name
-        )
 
         self.task_config = task_config
 
@@ -124,39 +116,19 @@ class Collaborator(object):
             self.logger.debug("Share the optimization variables.")
             return True
 
-    def validate_response(self, reply):
-        """Validate the aggregator response."""
-        # check that the message was intended to go to this collaborator
-        check_equal(reply.header.receiver, self.collaborator_name, self.logger)
-        check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
-
-        # check that federation id matches
-        check_equal(
-            reply.header.federation_uuid,
-            self.federation_uuid,
-            self.logger
-        )
-
-        # check that there is aggrement on the single_col_cert_common_name
-        check_equal(
-            reply.header.single_col_cert_common_name,
-            self.single_col_cert_common_name,
-            self.logger
-        )
-
     def run(self):
         """Run the collaborator."""
         while True:
-            tasks = self.get_tasks()
-            if tasks.quit:
+            tasks, round_number, sleep_time, time_to_quit = self.get_tasks()
+            if time_to_quit:
                 break
-            elif tasks.sleep_time > 0:
-                sleep(tasks.sleep_time)  # some sleep function
+            elif sleep_time > 0:
+                sleep(sleep_time)  # some sleep function
             else:
                 self.logger.info(
-                    'Received the following tasks: {}'.format(tasks.tasks))
-                for task in tasks.tasks:
-                    self.do_task(task, tasks.round_number)
+                    'Received the following tasks: {}'.format(tasks))
+                for task in tasks:
+                    self.do_task(task, round_number)
 
                 # Cleaning tensor db
                 self.tensor_db.clean_up(self.db_store_rounds)
@@ -172,32 +144,29 @@ class Collaborator(object):
         be reinitialized after the next round
         """
         while True:
-            tasks = self.get_tasks()
-            if tasks.quit:
+            tasks, round_number, sleep_time, time_to_quit = self.get_tasks()
+            if time_to_quit:
                 self.logger.info('End of Federation reached. Exiting...')
                 break
-            elif tasks.sleep_time > 0:
-                sleep(tasks.sleep_time)  # some sleep function
+            elif sleep_time > 0:
+                sleep(sleep_time)  # some sleep function
             else:
                 self.logger.info(
-                    'Received the following tasks: {}'.format(tasks.tasks))
-                for task in tasks.tasks:
-                    self.do_task(task, tasks.round_number)
+                    'Received the following tasks: {}'.format(tasks))
+                for task in tasks:
+                    self.do_task(task, round_number)
                 self.logger.info(
                     'All tasks completed on {} for round {}...'.format(
-                        self.collaborator_name, tasks.round_number))
+                        self.collaborator_name, round_number))
                 break
 
     def get_tasks(self):
         """Get tasks from the aggregator."""
         # logging wait time to analyze training process
         self.logger.info('Waiting for tasks...')
+        tasks, round_number, sleep_time, time_to_quit = self.client.get_tasks()
 
-        request = TasksRequest(header=self.header)
-        response = self.client.GetTasks(request)
-        self.validate_response(response)  # sanity checks and validation
-
-        return response
+        return tasks, round_number, sleep_time, time_to_quit
 
     def do_task(self, task, round_number):
         """Do the specified task."""
@@ -365,23 +334,14 @@ class Collaborator(object):
                       tensor key
         """
         tensor_name, origin, round_number, report, tags = tensor_key
-        request = TensorRequest(header=self.header,
-                                tensor_name=tensor_name,
-                                round_number=round_number,
-                                tags=tags,
-                                report=report,
-                                require_lossless=require_lossless)
 
         self.logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
-
-        response = self.client.GetAggregatedTensor(request)
-
-        # also do other validation, like on the round_number
-        self.validate_response(response)
+        tensor = self.client.get_aggregated_tensor(
+            tensor_name, round_number, report, tags, require_lossless)
 
         # this translates to a numpy array and includes decompression, as
         # necessary
-        nparray = self.named_tensor_to_nparray(response.tensor)
+        nparray = self.named_tensor_to_nparray(tensor)
 
         # cache this tensor
         self.tensor_db.cache_tensor({tensor_key: nparray})
@@ -418,15 +378,8 @@ class Collaborator(object):
                     f' round number {round_number}:'
                     f' {tensor_name}\t{tensor_dict[tensor]}')
 
-        request = TaskResults(header=self.header,
-                              round_number=round_number,
-                              task_name=task_name,
-                              data_size=data_size,
-                              tensors=named_tensors)
-
-        response = self.client.SendLocalTaskResults(request)
-
-        self.validate_response(response)
+        self.client.send_local_task_results(
+            round_number, task_name, data_size, named_tensors)
 
     def nparray_to_named_tensor(self, tensor_key, nparray):
         """

@@ -329,14 +329,18 @@ class Plan(object):
         if client is not None:
             defaults[SETTINGS]['client'] = client
         else:
-            defaults[SETTINGS]['client'] = self.get_client(collaborator_name)
+            defaults[SETTINGS]['client'] = self.get_client(
+                collaborator_name,
+                self.aggregator_uuid,
+                self.federation_uuid
+            )
 
         if self.collaborator_ is None:
             self.collaborator_ = Plan.Build(**defaults)
 
         return self.collaborator_
 
-    def get_client(self, collaborator_name):
+    def get_client(self, collaborator_name, aggregator_uuid, federation_uuid):
         """Get gRPC client for the specified collaborator."""
         common_name = collaborator_name
 
@@ -351,6 +355,10 @@ class Plan(object):
         client_args['ca'] = chain
         client_args['certificate'] = certificate
         client_args['private_key'] = private_key
+
+        client_args['collaborator_name'] = collaborator_name
+        client_args['aggregator_uuid'] = aggregator_uuid
+        client_args['federation_uuid'] = federation_uuid
 
         if self.client_ is None:
             self.client_ = CollaboratorGRPCClient(**client_args)

@@ -203,10 +203,10 @@ class CollaboratorGRPCClient:
             single_col_cert_common_name=self.single_col_cert_common_name or ''
         )
 
-    def validate_response(self, reply):
+    def validate_response(self, reply, collaborator_name):
         """Validate the aggregator response."""
         # check that the message was intended to go to this collaborator
-        check_equal(reply.header.receiver, self.collaborator_name, self.logger)
+        check_equal(reply.header.receiver, collaborator_name, self.logger)
         check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
 
         # check that federation id matches
@@ -264,7 +264,7 @@ class CollaboratorGRPCClient:
         self._set_header(collaborator_name)
         request = TasksRequest(header=self.header)
         response = self.stub.GetTasks(request)
-        self.validate_response(response)
+        self.validate_response(response, collaborator_name)
 
         return response.tasks, response.round_number, response.sleep_time, response.quit
 
@@ -283,7 +283,7 @@ class CollaboratorGRPCClient:
         )
         response = self.stub.GetAggregatedTensor(request)
         # also do other validation, like on the round_number
-        self.validate_response(response)
+        self.validate_response(response, collaborator_name)
 
         return response.tensor
 
@@ -306,4 +306,4 @@ class CollaboratorGRPCClient:
         response = self.stub.SendLocalTaskResults(iter(stream))
 
         # also do other validation, like on the round_number
-        self.validate_response(response)
+        self.validate_response(response, collaborator_name)

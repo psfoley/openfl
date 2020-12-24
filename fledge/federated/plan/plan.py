@@ -356,7 +356,6 @@ class Plan(object):
         client_args['certificate'] = certificate
         client_args['private_key'] = private_key
 
-        client_args['collaborator_name'] = collaborator_name
         client_args['aggregator_uuid'] = aggregator_uuid
         client_args['federation_uuid'] = federation_uuid
 

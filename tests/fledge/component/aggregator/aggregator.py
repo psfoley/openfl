@@ -133,7 +133,7 @@ def test_get_tasks(agg, col_name, tasks, time_to_quit,
     """Test that test_get_tasks works correctly."""
     agg.assigner.get_tasks_for_collaborator = mock.Mock(return_value=tasks)
     agg.time_to_quit = mock.Mock(return_value=time_to_quit)
-    tasks, sleep_time, time_to_quit = agg.get_tasks('col1')
+    tasks, round_number, sleep_time, time_to_quit = agg.get_tasks('col1')
     assert (tasks, sleep_time, time_to_quit) == (exp_tasks, exp_sleep_time, exp_time_to_quit)
 
 
@@ -147,7 +147,7 @@ def test_get_aggregated_tensor(agg):
     tags = ['compressed']
     with pytest.raises(ValueError):
         agg.get_aggregated_tensor(
-            collaborator_name, tensor_name, require_lossless, round_number, report, tags)
+            collaborator_name, tensor_name, round_number, report, tags, require_lossless)
 
 
 def test_collaborator_task_completed_none(agg):

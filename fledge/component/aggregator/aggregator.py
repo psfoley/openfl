@@ -287,7 +287,7 @@ class Aggregator:
             sleep_time = 0
             time_to_quit = True
 
-            return tasks, sleep_time, time_to_quit
+            return tasks, self.round_number, sleep_time, time_to_quit
 
         time_to_quit = False
 
@@ -301,7 +301,7 @@ class Aggregator:
             tasks = None
             sleep_time = self.get_sleep_time()
 
-            return tasks, sleep_time, time_to_quit
+            return tasks, self.round_number, sleep_time, time_to_quit
 
         # if we do have tasks, remove any that we already have results for
         tasks = [
@@ -315,16 +315,16 @@ class Aggregator:
             tasks = None
             sleep_time = self.get_sleep_time()
 
-            return tasks, sleep_time, time_to_quit
+            return tasks, self.round_number, sleep_time, time_to_quit
 
         self.logger.info('Sending tasks to collaborator {} for round '
                          '{}'.format(collaborator_name, self.round_number))
         sleep_time = 0
 
-        return tasks, sleep_time, time_to_quit
+        return tasks, self.round_number, sleep_time, time_to_quit
 
-    def get_aggregated_tensor(self, collaborator_name, tensor_name, require_lossless,
-                              round_number, report, tags):
+    def get_aggregated_tensor(self, collaborator_name, tensor_name,
+                              round_number, report, tags, require_lossless):
         """
         RPC called by collaborator.
 
@@ -453,7 +453,7 @@ class Aggregator:
         task_key = TaskResultKey(task_name, collaborator, round_num)
         return task_key in self.collaborator_tasks_results
 
-    def send_local_task_results(self, collaborator_name, task_name, round_number,
+    def send_local_task_results(self, collaborator_name, round_number, task_name,
                                 data_size, named_tensors):
         """
         RPC called by collaborator.

@@ -139,12 +139,12 @@ class AggregatorGRPCServer(AggregatorServicer):
         self.validate_collaborator(request, context)
         self.check_request(request)
         collaborator_name = request.header.sender
-        tasks, sleep_time, time_to_quit = self.aggregator.get_tasks(
+        tasks, round_number, sleep_time, time_to_quit = self.aggregator.get_tasks(
             request.header.sender)
 
         return TasksResponse(
             header=self.get_header(collaborator_name),
-            round_number=self.aggregator.round_number,
+            round_number=round_number,
             tasks=tasks,
             sleep_time=sleep_time,
             quit=time_to_quit
@@ -169,7 +169,7 @@ class AggregatorGRPCServer(AggregatorServicer):
         tags = request.tags
 
         named_tensor = self.aggregator.get_aggregated_tensor(
-            collaborator_name, tensor_name, require_lossless, round_number, report, tags)
+            collaborator_name, tensor_name, round_number, report, tags, require_lossless)
 
         return TensorResponse(header=self.get_header(collaborator_name),
                               round_number=round_number,
@@ -198,7 +198,7 @@ class AggregatorGRPCServer(AggregatorServicer):
         named_tensors = proto.tensors
 
         self.aggregator.send_local_task_results(
-            collaborator_name, task_name, round_number, data_size, named_tensors)
+            collaborator_name, round_number, task_name, data_size, named_tensors)
         # turn data stream into local model update
         return Acknowledgement(header=self.get_header(collaborator_name))
 

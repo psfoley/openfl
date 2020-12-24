@@ -88,7 +88,6 @@ class CollaboratorGRPCClient:
                  ca,
                  certificate,
                  private_key,
-                 collaborator_name=None,
                  aggregator_uuid=None,
                  federation_uuid=None,
                  single_col_cert_common_name=None,
@@ -121,11 +120,9 @@ class CollaboratorGRPCClient:
             )
 
         self.header = None
-        self.collaborator_name = collaborator_name
         self.aggregator_uuid = aggregator_uuid
         self.federation_uuid = federation_uuid
         self.single_col_cert_common_name = single_col_cert_common_name
-        self.set_header()
 
         self.logger.debug('Connecting to gRPC at {uri}')
 
@@ -198,9 +195,9 @@ class CollaboratorGRPCClient:
         return grpc.secure_channel(
             uri, credentials, options=self.channel_options)
 
-    def set_header(self):
+    def _set_header(self, collaborator_name):
         self.header = self.header = MessageHeader(
-            sender=self.collaborator_name,
+            sender=collaborator_name,
             receiver=self.aggregator_uuid,
             federation_uuid=self.federation_uuid,
             single_col_cert_common_name=self.single_col_cert_common_name or ''
@@ -262,8 +259,9 @@ class CollaboratorGRPCClient:
         return wrapper
 
     @_atomic_connection
-    def get_tasks(self):
+    def get_tasks(self, collaborator_name):
         """Get tasks from the aggregator."""
+        self._set_header(collaborator_name)
         request = TasksRequest(header=self.header)
         response = self.stub.GetTasks(request)
         self.validate_response(response)
@@ -271,8 +269,10 @@ class CollaboratorGRPCClient:
         return response.tasks, response.round_number, response.sleep_time, response.quit
 
     @_atomic_connection
-    def get_aggregated_tensor(self, tensor_name, round_number, report, tags, require_lossless):
+    def get_aggregated_tensor(self, collaborator_name, tensor_name, round_number,
+                              report, tags, require_lossless):
         """Get aggregated tensor from the aggregator."""
+        self._set_header(collaborator_name)
         request = TensorRequest(
             header=self.header,
             tensor_name=tensor_name,
@@ -288,8 +288,10 @@ class CollaboratorGRPCClient:
         return response.tensor
 
     @_atomic_connection
-    def send_local_task_results(self, round_number, task_name, data_size, named_tensors):
+    def send_local_task_results(self, collaborator_name, round_number,
+                                task_name, data_size, named_tensors):
         """Send task results to the aggregator."""
+        self._set_header(collaborator_name)
         request = TaskResults(
             header=self.header,
             round_number=round_number,

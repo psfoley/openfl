@@ -164,7 +164,8 @@ class Collaborator:
         """Get tasks from the aggregator."""
         # logging wait time to analyze training process
         self.logger.info('Waiting for tasks...')
-        tasks, round_number, sleep_time, time_to_quit = self.client.get_tasks()
+        tasks, round_number, sleep_time, time_to_quit = self.client.get_tasks(
+            self.collaborator_name)
 
         return tasks, round_number, sleep_time, time_to_quit
 
@@ -337,7 +338,7 @@ class Collaborator:
 
         self.logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
         tensor = self.client.get_aggregated_tensor(
-            tensor_name, round_number, report, tags, require_lossless)
+            self.collaborator_name, tensor_name, round_number, report, tags, require_lossless)
 
         # this translates to a numpy array and includes decompression, as
         # necessary
@@ -379,7 +380,7 @@ class Collaborator:
                     f' {tensor_name}\t{tensor_dict[tensor]}')
 
         self.client.send_local_task_results(
-            round_number, task_name, data_size, named_tensors)
+            self.collaborator_name, round_number, task_name, data_size, named_tensors)
 
     def nparray_to_named_tensor(self, tensor_key, nparray):
         """

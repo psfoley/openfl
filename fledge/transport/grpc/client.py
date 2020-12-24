@@ -219,7 +219,7 @@ class CollaboratorGRPCClient:
         # check that there is aggrement on the single_col_cert_common_name
         check_equal(
             reply.header.single_col_cert_common_name,
-            self.single_col_cert_common_name,
+            self.single_col_cert_common_name or '',
             self.logger
         )
 

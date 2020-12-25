@@ -122,7 +122,7 @@ def export_(context):
         echo(f'Plan file "{planFile}" not found. No freeze performed.')
 
     requirements_filename = 'requirements.txt'
-
+    workspace_reqs = _get_requirements_dict(requirements_filename)
     prefix = getcwd()
     with open(requirements_filename, "w") as f:
         check_call([executable, "-m", "pip", "freeze"], stdout=f)
@@ -133,7 +133,11 @@ def export_(context):
     export_requirements_filename = 'requirements.export.txt'
     with open(export_requirements_filename, "w") as f:
         for package, version in current_dict.items():
-            if package not in origin_dict or version != origin_dict[package]:
+            if (
+                package in workspace_reqs
+                or package not in origin_dict
+                or version != origin_dict[package]
+            ):
                 # we save only the difference between original workspace after
                 # 'fx create workspace' and current one.
                 echo(f'Writing {package}=={version} '

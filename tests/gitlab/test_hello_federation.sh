@@ -116,4 +116,5 @@ cd ${COL1_DIRECTORY}/${FED_WORKSPACE}
 fx collaborator start -n ${COL1} & 
 cd ${COL2_DIRECTORY}/${FED_WORKSPACE}
 fx collaborator start -n ${COL2}
+wait
 rm -rf ${FED_DIRECTORY}

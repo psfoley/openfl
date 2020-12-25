@@ -284,8 +284,8 @@ class Aggregator(object):
 
         collaborator_name = request.header.sender
 
-        self.logger.info('Aggregator GetTasks function reached from '
-                         'collaborator {}...'.format(collaborator_name))
+        self.logger.debug('Aggregator GetTasks function reached from '
+                          'collaborator {}...'.format(collaborator_name))
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():

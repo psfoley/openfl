@@ -275,7 +275,7 @@ class Aggregator:
             time_to_quit: bool
         """
         self.logger.debug('Aggregator GetTasks function reached from '
-                         'collaborator {}...'.format(collaborator_name))
+                          'collaborator {}...'.format(collaborator_name))
 
         # first, if it is time to quit, inform the collaborator
         if self.time_to_quit():

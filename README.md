@@ -1,24 +1,26 @@
 [![pipeline status](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/pipeline.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 [![coverage report](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/coverage.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 
-# Welcome to Intel® Federated Learning
+# Welcome to Intel&reg; Federated Learning
 
 [Federated learning](https://en.wikipedia.org/wiki/Federated_learning) is a distributed machine learning approach that
 enables organizations to collaborate on machine learning projects
 without sharing sensitive data, such as, patient records, financial data,
 or classified secrets 
-([Sheller et al., 2020](https://www.nature.com/articles/s41598-020-69250-1);
-[Sheller, Reina, Edwards, Martin, & Bakas, 2019](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6589345);
-[Yang, Liu, Chen, & Tong, 2019](https://arxiv.org/abs/1902.04885);
-[McMahan, Moore, Ramage, Hampson, Agüera y Arcas, 2016](https://arxiv.org/abs/1602.05629)).
+([Sheller MJ,  et al., 2020](https://www.nature.com/articles/s41598-020-69250-1);
+[Sheller MJ, et al., 2019](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6589345);
+[Yang Y, et al., 2019](https://arxiv.org/abs/1902.04885);
+[McMahan HB, et al., 2016](https://arxiv.org/abs/1602.05629)).
+
+
 The basic premise behind federated learning
 is that the model moves to meet the data rather than the data moving
 to meet the model. Therefore, the minimum data movement needed
 across the federation is solely the model parameters and their updates.
 
 
-Intel® Federated Learning is a Python 3 project developed by Intel Labs and 
-Intel Internet of Things Group. It is released under the [Apache License, Version 2](https://www.apache.org/licenses/LICENSE-2.0).
+Intel&reg; Federated Learning is a Python 3 project developed by Intel Labs and 
+Intel Internet of Things Group. 
 
 ![Federated Learning](docs/images/diagram_fl.png)
 
@@ -30,6 +32,20 @@ Intel Internet of Things Group. It is released under the [Apache License, Versio
 
 ![fx commandline interface](docs/images/fx_help.png)
 
+## License
+This project is licensed under [Apache License Version 2.0](LICENSE).
+By contributing to the project, you agree to the license and copyright terms therein
+and release your contribution under these terms.
+
+## Resources:
+* Docs: 
+* Wiki: 
+* Issue tracking: 
+
+## Support
+Please report questions, issues and suggestions using:
+
+* [GitHub* Issues]()
 
 ### OpenFL and the Federated Tumor Segmentation (FeTS) Initiative
 
@@ -38,7 +54,7 @@ developed as part of a collaboration between Intel
 and the University of Pennsylvania (UPenn) for federated learning. 
 It describes Intel’s commitment in 
 supporting the grant awarded to the [Center for Biomedical Image Computing and Analytics (CBICA)](https://www.cbica.upenn.edu/) 
-at UPenn (PI: S.Bakas) from the [Informatics Technology for Cancer Research (ITCR)](https://itcr.cancer.gov/) program of 
+at UPenn (PI: S. Bakas) from the [Informatics Technology for Cancer Research (ITCR)](https://itcr.cancer.gov/) program of 
 the National Cancer Institute (NCI) of the National Institutes of Health (NIH), 
 for the development of the [Federated Tumor Segmentation (FeTS, www.fets.ai)](https://www.fets.ai/) 
 platform (grant award number: U01-CA242871). 

@@ -148,7 +148,7 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
     if not skip_package:
         from shutil import make_archive, copytree, ignore_patterns
         from tempfile import mkdtemp
-        from os.path import join
+        from os.path import join, basename
         from os import remove
         from glob import glob
 
@@ -161,10 +161,10 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
 
         ignore = ignore_patterns('__pycache__', '*.key', '*.srl', '*.pem')
         # Copy the current directory into the temporary directory
-        copytree('cert/client', tmpDir, ignore=ignore)
+        copytree(f'{PKI_DIR}/client', tmpDir, ignore=ignore)
 
-        for f in glob(f'{tmpDir}/{PKI_DIR}/client'):
-            if common_name not in f:
+        for f in glob(f'{tmpDir}/*'):
+            if common_name not in basename(f):
                 remove(f)
 
         # Create Zip archive of directory

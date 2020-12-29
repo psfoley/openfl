@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from logging import getLogger
 from fledge.federated import Plan
-from fledge.protocols import dump_proto, construct_model_proto
+from fledge.protocols import utils
 from fledge.utilities import split_tensor_dict_for_holdouts
 import fledge.native as fx
 from fledge.federated.data import FastEstimatorDataLoader
@@ -61,14 +61,14 @@ class FederatedFastEstimator:
         tensor_dict, holdout_params = split_tensor_dict_for_holdouts(
             self.logger, runner.get_tensor_dict(False))
 
-        model_snap = construct_model_proto(tensor_dict=tensor_dict,
-                                           round_number=0,
-                                           tensor_pipe=tensor_pipe)
+        model_snap = utils.construct_model_proto(tensor_dict=tensor_dict,
+                                                 round_number=0,
+                                                 tensor_pipe=tensor_pipe)
 
         self.logger.info(f'Creating Initial Weights File'
                          f'    🠆 {init_state_path}')
 
-        dump_proto(model_proto=model_snap, fpath=init_state_path)
+        utils.dump_proto(model_proto=model_snap, fpath=init_state_path)
 
         self.logger.info('Starting Experiment...')
 

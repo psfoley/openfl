@@ -5,8 +5,13 @@
 
 import grpc
 
-from fledge.protocols import proto_to_datastream
+from fledge.protocols import utils
 from fledge.protocols import AggregatorStub
+from fledge.protocols import MessageHeader
+from fledge.protocols import TasksRequest
+from fledge.protocols import TensorRequest
+from fledge.protocols import TaskResults
+from fledge.utilities import check_equal
 
 from logging import getLogger
 
@@ -83,6 +88,9 @@ class CollaboratorGRPCClient:
                  ca,
                  certificate,
                  private_key,
+                 aggregator_uuid=None,
+                 federation_uuid=None,
+                 single_col_cert_common_name=None,
                  **kwargs):
         """Initialize."""
         self.uri = f'{agg_addr}:{agg_port}'
@@ -110,6 +118,11 @@ class CollaboratorGRPCClient:
                 self.certificate,
                 self.private_key
             )
+
+        self.header = None
+        self.aggregator_uuid = aggregator_uuid
+        self.federation_uuid = federation_uuid
+        self.single_col_cert_common_name = single_col_cert_common_name
 
         self.logger.debug('Connecting to gRPC at {uri}')
 
@@ -182,6 +195,34 @@ class CollaboratorGRPCClient:
         return grpc.secure_channel(
             uri, credentials, options=self.channel_options)
 
+    def _set_header(self, collaborator_name):
+        self.header = self.header = MessageHeader(
+            sender=collaborator_name,
+            receiver=self.aggregator_uuid,
+            federation_uuid=self.federation_uuid,
+            single_col_cert_common_name=self.single_col_cert_common_name or ''
+        )
+
+    def validate_response(self, reply, collaborator_name):
+        """Validate the aggregator response."""
+        # check that the message was intended to go to this collaborator
+        check_equal(reply.header.receiver, collaborator_name, self.logger)
+        check_equal(reply.header.sender, self.aggregator_uuid, self.logger)
+
+        # check that federation id matches
+        check_equal(
+            reply.header.federation_uuid,
+            self.federation_uuid,
+            self.logger
+        )
+
+        # check that there is aggrement on the single_col_cert_common_name
+        check_equal(
+            reply.header.single_col_cert_common_name,
+            self.single_col_cert_common_name or '',
+            self.logger
+        )
+
     def disconnect(self):
         """Close the gRPC channel."""
         self.logger.debug(f'Disconnecting from gRPC server at {self.uri}')
@@ -212,26 +253,57 @@ class CollaboratorGRPCClient:
     def _atomic_connection(func):
         def wrapper(self, *args, **kwargs):
             self.reconnect()
-            message = func(self, *args, **kwargs)
+            response = func(self, *args, **kwargs)
             self.disconnect()
-            return message
+            return response
         return wrapper
 
     @_atomic_connection
-    def GetTasks(self, message):
+    def get_tasks(self, collaborator_name):
         """Get tasks from the aggregator."""
-        return self.stub.GetTasks(message)
+        self._set_header(collaborator_name)
+        request = TasksRequest(header=self.header)
+        response = self.stub.GetTasks(request)
+        self.validate_response(response, collaborator_name)
+
+        return response.tasks, response.round_number, response.sleep_time, response.quit
 
     @_atomic_connection
-    def GetAggregatedTensor(self, message):
+    def get_aggregated_tensor(self, collaborator_name, tensor_name, round_number,
+                              report, tags, require_lossless):
         """Get aggregated tensor from the aggregator."""
-        return self.stub.GetAggregatedTensor(message)
+        self._set_header(collaborator_name)
+        request = TensorRequest(
+            header=self.header,
+            tensor_name=tensor_name,
+            round_number=round_number,
+            report=report,
+            tags=tags,
+            require_lossless=require_lossless
+        )
+        response = self.stub.GetAggregatedTensor(request)
+        # also do other validation, like on the round_number
+        self.validate_response(response, collaborator_name)
+
+        return response.tensor
 
     @_atomic_connection
-    def SendLocalTaskResults(self, message):
+    def send_local_task_results(self, collaborator_name, round_number,
+                                task_name, data_size, named_tensors):
         """Send task results to the aggregator."""
+        self._set_header(collaborator_name)
+        request = TaskResults(
+            header=self.header,
+            round_number=round_number,
+            task_name=task_name,
+            data_size=data_size,
+            tensors=named_tensors
+        )
+
         # convert (potentially) long list of tensors into stream
         stream = []
-        stream += proto_to_datastream(message, self.logger)
+        stream += utils.proto_to_datastream(request, self.logger)
+        response = self.stub.SendLocalTaskResults(iter(stream))
 
-        return self.stub.SendLocalTaskResults(iter(stream))
+        # also do other validation, like on the round_number
+        self.validate_response(response, collaborator_name)

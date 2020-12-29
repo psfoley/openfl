@@ -9,5 +9,3 @@ from .federation_pb2 import TensorRequest, TensorResponse
 
 from .federation_pb2_grpc import AggregatorServicer, add_AggregatorServicer_to_server
 from .federation_pb2_grpc import AggregatorStub
-
-from .utils import *

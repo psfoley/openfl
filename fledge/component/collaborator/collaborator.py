@@ -44,7 +44,7 @@ class Collaborator:
                  task_runner,
                  tensor_pipe,
                  task_config,
-                 opt_treatment=OptTreatment.RESET,
+                 opt_treatment='RESET',
                  delta_updates=False,
                  **kwargs):
         """Initialize.
@@ -98,23 +98,6 @@ class Collaborator:
                 "Unknown opt_treatment: %s." % opt_treatment)
 
         self.task_runner.set_optimizer_treatment(self.opt_treatment.name)
-
-    def _with_opt_vars(self):
-        """
-        Determine optimizer operation to perform.
-
-        Returns:
-           bool: True means *CONTINUE_GLOBAL* method for optimizer.
-
-        """
-        if self.opt_treatment in (
-                OptTreatment.CONTINUE_LOCAL, OptTreatment.RESET
-        ):
-            self.logger.debug("Do not share the optimization variables.")
-            return False
-        elif self.opt_treatment == OptTreatment.CONTINUE_GLOBAL:
-            self.logger.debug("Share the optimization variables.")
-            return True
 
     def run(self):
         """Run the collaborator."""
@@ -231,8 +214,6 @@ class Collaborator:
         ----
         tensor_key:         Tensorkey that will be resolved locally or
                             remotely. May be the product of other tensors
-        extract_metadata:   The requested tensor may have metadata needed for
-                            decompression
         """
         # try to get from the store
         tensor_name, origin, round_number, report, tags = tensor_key
@@ -322,7 +303,7 @@ class Collaborator:
         Args
         ----
         tensor_key  :               The requested tensor
-        permit_lossy_compression:   Should compression of the tensor be allowed
+        require_lossless:   Should compression of the tensor be allowed
                                     in flight?
                                     For the initial model, it may affect
                                     convergence to apply lossy

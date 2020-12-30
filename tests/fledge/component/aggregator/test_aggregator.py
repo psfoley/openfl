@@ -103,7 +103,7 @@ def test_all_quit_jobs_sent(agg, quit_job_sent_to, authorized_cols, expected):
 
 def test_get_sleep_time(agg):
     """Test that get_sleep_time returns 10."""
-    assert 10 == agg.get_sleep_time()
+    assert 10 == agg._get_sleep_time()
 
 
 @pytest.mark.parametrize('round_number,rounds_to_train,expected', [
@@ -115,7 +115,7 @@ def test_time_to_quit(agg, round_number, rounds_to_train, expected):
     rtt = agg.rounds_to_train
     agg.round_number = round_number
     agg.rounds_to_train = rounds_to_train
-    time_to_quit = agg.time_to_quit()
+    time_to_quit = agg._time_to_quit()
     assert expected == time_to_quit
 
     agg.round_number = rn
@@ -132,7 +132,7 @@ def test_get_tasks(agg, col_name, tasks, time_to_quit,
                    exp_tasks, exp_sleep_time, exp_time_to_quit):
     """Test that test_get_tasks works correctly."""
     agg.assigner.get_tasks_for_collaborator = mock.Mock(return_value=tasks)
-    agg.time_to_quit = mock.Mock(return_value=time_to_quit)
+    agg._time_to_quit = mock.Mock(return_value=time_to_quit)
     tasks, round_number, sleep_time, time_to_quit = agg.get_tasks('col1')
     assert (tasks, sleep_time, time_to_quit) == (exp_tasks, exp_sleep_time, exp_time_to_quit)
 
@@ -153,7 +153,7 @@ def test_get_aggregated_tensor(agg):
 def test_collaborator_task_completed_none(agg):
     """Test that returns False if there are not collaborator tasks results."""
     round_num = 0
-    is_completed = agg.collaborator_task_completed(
+    is_completed = agg._collaborator_task_completed(
         'col1', 'task_name', round_num)
     assert is_completed is False
 
@@ -166,7 +166,7 @@ def test_collaborator_task_completed_true(agg):
     agg.collaborator_tasks_results = {
         TaskResultKey(task_name, col1, round_num): 1
     }
-    is_completed = agg.collaborator_task_completed(
+    is_completed = agg._collaborator_task_completed(
         col1, task_name, round_num)
 
     assert is_completed is True
@@ -176,7 +176,7 @@ def test_is_task_done_no_cols(agg):
     """Test that is_task_done returns True without corresponded collaborators."""
     task_name = 'test_task_name'
     agg.assigner.get_collaborators_for_task = mock.Mock(return_value=[])
-    is_task_done = agg.is_task_done(task_name)
+    is_task_done = agg._is_task_done(task_name)
 
     assert is_task_done is True
 
@@ -187,7 +187,7 @@ def test_is_task_done_not_done(agg):
     col1 = 'one'
     col2 = 'two'
     agg.assigner.get_collaborators_for_task = mock.Mock(return_value=[col1, col2])
-    is_task_done = agg.is_task_done(task_name)
+    is_task_done = agg._is_task_done(task_name)
 
     assert is_task_done is False
 
@@ -203,7 +203,7 @@ def test_is_task_done_done(agg):
         TaskResultKey(task_name, col1, round_num): 1,
         TaskResultKey(task_name, col2, round_num): 1
     }
-    is_task_done = agg.is_task_done(task_name)
+    is_task_done = agg._is_task_done(task_name)
 
     assert is_task_done is True
 
@@ -211,7 +211,7 @@ def test_is_task_done_done(agg):
 def test_is_round_done_no_tasks(agg):
     """Test that is_round_done returns True in the corresponded case."""
     agg.assigner.get_all_tasks_for_round = mock.Mock(return_value=[])
-    is_round_done = agg.is_round_done()
+    is_round_done = agg._is_round_done()
 
     assert is_round_done is True
 
@@ -227,7 +227,7 @@ def test_is_round_done_not_done(agg):
     agg.collaborator_tasks_results = {
         TaskResultKey(task_name, col1, round_num): 1,
     }
-    is_round_done = agg.is_round_done()
+    is_round_done = agg._is_round_done()
 
     assert is_round_done is False
 
@@ -244,6 +244,6 @@ def test_is_round_done_done(agg):
         TaskResultKey(task_name, col1, round_num): 1,
         TaskResultKey(task_name, col2, round_num): 1
     }
-    is_round_done = agg.is_round_done()
+    is_round_done = agg._is_round_done()
 
     assert is_round_done is True

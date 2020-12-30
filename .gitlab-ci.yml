@@ -12,7 +12,7 @@ pages:
   script:
     - export http_proxy=http://proxy-us.intel.com:911
     - export https_proxy=http://proxy-us.intel.com:912
-    - apt-get update && apt-get install build-essential
+    - apt-get update && apt-get install -y build-essential
     - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
     - pip install sphinx-rtd-theme sphinxcontrib.napoleon rinohtype sphinx-prompt sphinx_substitution_extensions
     - pip install .

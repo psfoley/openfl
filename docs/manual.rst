@@ -11,4 +11,5 @@ Manual
    overview
    install
    running_the_federation
+   plan_settings
    advanced_topics

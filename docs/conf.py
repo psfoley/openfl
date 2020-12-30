@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.abspath('../'))
 extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autosectionlabel',
-    "sphinxcontrib.napoleon",
+    "sphinx.ext.napoleon",
     "rinoh.frontend.sphinx",
     "sphinx-prompt",
     'sphinx_substitution_extensions',

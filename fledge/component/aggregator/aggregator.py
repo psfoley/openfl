@@ -5,14 +5,11 @@
 
 from logging import getLogger
 
-from fledge.utilities import check_equal, check_is_in
-
 from fledge.utilities import TensorKey, TaskResultKey
 from fledge.pipelines import NoCompressionPipeline, TensorCodec
 from fledge.databases import TensorDB
 
 from fledge.protocols import utils
-from fledge.protocols import MessageHeader
 from fledge.protocols import ModelProto
 
 
@@ -56,7 +53,7 @@ class Aggregator:
         self.single_col_cert_common_name = single_col_cert_common_name
 
         if self.single_col_cert_common_name is not None:
-            self.log_big_warning()
+            self._log_big_warning()
         else:
             # FIXME: '' instead of None is just for protobuf compatibility.
             # Cleaner solution?
@@ -88,7 +85,7 @@ class Aggregator:
         self.best_model_score = None
         self.model: ModelProto = utils.load_proto(self.init_state_path)
 
-        self.load_initial_tensors()  # keys are TensorKeys
+        self._load_initial_tensors()  # keys are TensorKeys
 
         self.log_dir = f'logs/{self.uuid}_{self.federation_uuid}'
         # TODO use native tensorboard
@@ -102,7 +99,7 @@ class Aggregator:
         # {TaskResultKey: data_size}
         self.collaborator_task_weight = {}
 
-    def load_initial_tensors(self):
+    def _load_initial_tensors(self):
         """
         Load all of the tensors required to begin federated learning.
 
@@ -129,7 +126,7 @@ class Aggregator:
         self.logger.debug('This is the initial tensor_db:'
                           ' {}'.format(self.tensor_db))
 
-    def save_model(self, round_number, file_path):
+    def _save_model(self, round_number, file_path):
         """
         Save the best or latest model.
 
@@ -197,48 +194,8 @@ class Aggregator:
         """Assert all quit jobs are sent to collaborators."""
         return set(self.quit_job_sent_to) == set(self.authorized_cols)
 
-    def check_request(self, request):
-        """
-        Validate request header matches expected values.
-
-        Args:
-            request : protobuf
-                Request sent from a collaborator that requires validation
-        """
-        # TODO improve this check. the sender name could be spoofed
-        check_is_in(request.header.sender, self.authorized_cols, self.logger)
-
-        # check that the message is for me
-        check_equal(request.header.receiver, self.uuid, self.logger)
-
-        # check that the message is for my federation
-        check_equal(
-            request.header.federation_uuid, self.federation_uuid, self.logger)
-
-        # check that we agree on the single cert common name
-        check_equal(
-            request.header.single_col_cert_common_name,
-            self.single_col_cert_common_name,
-            self.logger
-        )
-
-    def get_header(self, collaborator_name):
-        """
-        Compose and return MessageHeader.
-
-        Args:
-            collaborator_name : str
-                The collaborator the message is intended for
-        """
-        return MessageHeader(
-            sender=self.uuid,
-            receiver=collaborator_name,
-            federation_uuid=self.federation_uuid,
-            single_col_cert_common_name=self.single_col_cert_common_name
-        )
-
     @staticmethod
-    def get_sleep_time():
+    def _get_sleep_time():
         """
         Sleep 10 seconds.
 
@@ -248,7 +205,7 @@ class Aggregator:
         # Decrease sleep period for finer discretezation
         return 10
 
-    def time_to_quit(self):
+    def _time_to_quit(self):
         """
         If all rounds are complete, it's time to quit.
 
@@ -278,7 +235,7 @@ class Aggregator:
                           'collaborator {}...'.format(collaborator_name))
 
         # first, if it is time to quit, inform the collaborator
-        if self.time_to_quit():
+        if self._time_to_quit():
             self.logger.info('Sending signal to collaborator {} to'
                              ' shutdown...'.format(collaborator_name))
             self.quit_job_sent_to.append(collaborator_name)
@@ -299,13 +256,13 @@ class Aggregator:
         # if no tasks, tell the collaborator to sleep
         if len(tasks) == 0:
             tasks = None
-            sleep_time = self.get_sleep_time()
+            sleep_time = self._get_sleep_time()
 
             return tasks, self.round_number, sleep_time, time_to_quit
 
         # if we do have tasks, remove any that we already have results for
         tasks = [
-            t for t in tasks if not self.collaborator_task_completed(
+            t for t in tasks if not self._collaborator_task_completed(
                 collaborator_name, t, self.round_number)
         ]
 
@@ -313,7 +270,7 @@ class Aggregator:
         # been completed
         if len(tasks) == 0:
             tasks = None
-            sleep_time = self.get_sleep_time()
+            sleep_time = self._get_sleep_time()
 
             return tasks, self.round_number, sleep_time, time_to_quit
 
@@ -381,7 +338,7 @@ class Aggregator:
         # quite a bit happens in here, including compression, delta handling,
         # etc...
         # we might want to cache these as well
-        named_tensor = self.nparray_to_named_tensor(
+        named_tensor = self._nparray_to_named_tensor(
             agg_tensor_key,
             nparray,
             send_model_deltas=True,
@@ -390,8 +347,8 @@ class Aggregator:
 
         return named_tensor
 
-    def nparray_to_named_tensor(self, tensor_key, nparray, send_model_deltas,
-                                compress_lossless):
+    def _nparray_to_named_tensor(self, tensor_key, nparray, send_model_deltas,
+                                 compress_lossless):
         """
         Construct the NamedTensor Protobuf.
 
@@ -431,7 +388,7 @@ class Aggregator:
 
         return named_tensor
 
-    def collaborator_task_completed(self, collaborator, task_name, round_num):
+    def _collaborator_task_completed(self, collaborator, task_name, round_num):
         """
         Check if the collaborator has completed the task for the round.
 
@@ -480,7 +437,7 @@ class Aggregator:
         task_key = TaskResultKey(task_name, collaborator_name, round_number)
 
         # we mustn't have results already
-        if self.collaborator_task_completed(
+        if self._collaborator_task_completed(
                 collaborator_name, task_name, round_number
         ):
             raise ValueError(
@@ -505,7 +462,7 @@ class Aggregator:
 
             # quite a bit happens in here, including decompression, delta
             # handling, etc...
-            tensor_key, nparray = self.process_named_tensor(
+            tensor_key, nparray = self._process_named_tensor(
                 named_tensor, collaborator_name
             )
 
@@ -518,9 +475,9 @@ class Aggregator:
 
         self.collaborator_tasks_results[task_key] = task_results
 
-        self.end_of_task_check(task_name)
+        self._end_of_task_check(task_name)
 
-    def process_named_tensor(self, named_tensor, collaborator_name):
+    def _process_named_tensor(self, named_tensor, collaborator_name):
         """
         Extract the named tensor fields.
 
@@ -614,7 +571,7 @@ class Aggregator:
 
         return final_tensor_key, final_nparray
 
-    def end_of_task_check(self, task_name):
+    def _end_of_task_check(self, task_name):
         """
         Check whether all collaborators who are supposed to perform the task complete.
 
@@ -626,11 +583,11 @@ class Aggregator:
             complete : boolean
                 Is the task done
         """
-        if self.is_task_done(task_name):
+        if self._is_task_done(task_name):
             # now check for the end of the round
-            self.end_of_round_check()
+            self._end_of_round_check()
 
-    def prepare_trained(self, tensor_name, origin, round_number, report, agg_results):
+    def _prepare_trained(self, tensor_name, origin, round_number, report, agg_results):
         """
         Prepare aggregated tensorkey tags.
 
@@ -727,7 +684,7 @@ class Aggregator:
         # training round {}:
         # {}'.format(self.round_number,self.tensor_db))
 
-    def compute_validation_related_task_metrics(self, task_name):
+    def _compute_validation_related_task_metrics(self, task_name):
         """
         Compute all validation related metrics.
 
@@ -797,11 +754,11 @@ class Aggregator:
                         self.logger.info(
                             'Saved the best model with score {:f}'.format(agg_results))
                         self.best_model_score = agg_results
-                        self.save_model(round_number, self.best_state_path)
+                        self._save_model(round_number, self.best_state_path)
             if 'trained' in tags:
-                self.prepare_trained(tensor_name, origin, round_number, report, agg_results)
+                self._prepare_trained(tensor_name, origin, round_number, report, agg_results)
 
-    def end_of_round_check(self):
+    def _end_of_round_check(self):
         """
         Check if the round complete.
 
@@ -815,13 +772,13 @@ class Aggregator:
         Returns:
             None
         """
-        if not self.is_round_done():
+        if not self._is_round_done():
             return
 
         # Compute all validation related metrics
         all_tasks = self.assigner.get_all_tasks_for_round(self.round_number)
         for task_name in all_tasks:
-            self.compute_validation_related_task_metrics(task_name)
+            self._compute_validation_related_task_metrics(task_name)
 
         # Once all of the task results have been processed
         # Increment the round number
@@ -830,10 +787,10 @@ class Aggregator:
         # Save the latest model
         self.logger.info(
             'Saving round {} model...'.format(self.round_number))
-        self.save_model(self.round_number, self.last_state_path)
+        self._save_model(self.round_number, self.last_state_path)
 
         # TODO This needs to be fixed!
-        if self.time_to_quit():
+        if self._time_to_quit():
             self.logger.info('Experiment Completed. Cleaning up...')
         else:
             self.logger.info(
@@ -842,27 +799,27 @@ class Aggregator:
         # Cleaning tensor db
         self.tensor_db.clean_up(self.db_store_rounds)
 
-    def is_task_done(self, task_name):
+    def _is_task_done(self, task_name):
         """Check that task is done."""
         collaborators_needed = self.assigner.get_collaborators_for_task(
             task_name, self.round_number
         )
 
         return all([
-            self.collaborator_task_completed(
+            self._collaborator_task_completed(
                 c, task_name, self.round_number
             ) for c in collaborators_needed
         ])
 
-    def is_round_done(self):
+    def _is_round_done(self):
         """Check that round is done."""
         tasks_for_round = self.assigner.get_all_tasks_for_round(
             self.round_number
         )
 
-        return all([self.is_task_done(t) for t in tasks_for_round])
+        return all([self._is_task_done(t) for t in tasks_for_round])
 
-    def log_big_warning(self):
+    def _log_big_warning(self):
         """Warn user about single collaborator cert mode."""
         self.logger.warning(
             "\n{}\nYOU ARE RUNNING IN SINGLE COLLABORATOR CERT MODE! THIS IS"

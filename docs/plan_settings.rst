@@ -18,43 +18,8 @@ Each YAML top-level section contains 3 main subsections:
 
 Example of ``plan.yaml``:
 
-.. code-block:: yaml
-
-  aggregator :
-    defaults : plan/defaults/aggregator.yaml # where to get the default settings
-    template : fledge.component.Aggregator # what class to use for the instance creation
-    settings : # arguments to pass to the class constructor
-      init_state_path : save/torch_cnn_mnist_init.pbuf
-      best_state_path : save/torch_cnn_mnist_best.pbuf
-      last_state_path : save/torch_cnn_mnist_last.pbuf
-      rounds_to_train : 10
-
-  collaborator :
-    defaults : plan/defaults/collaborator.yaml
-    template : fledge.component.Collaborator
-    settings :
-      epochs_per_round : 1.0
-      polling_interval : 4
-      delta_updates    : false
-      opt_treatment    : RESET
-
-  data_loader :
-    defaults : plan/defaults/data_loader.yaml
-    template : code.ptmnist_inmemory.PyTorchMNISTInMemory
-    settings :
-      collaborator_count : 2
-      data_group_name    : mnist
-     batch_size         : 32
-
-  task_runner :
-    defaults : plan/defaults/task_runner.yaml
-    template : code.pt_cnn.PyTorchCNN
-
-  assigner :
-    defaults : plan/defaults/assigner.yaml
-
-  tasks :
-    defaults : plan/defaults/tasks_torch.yaml
+.. literalinclude:: ../fledge-workspace/torch_cnn_mnist/plan/plan.yaml
+  :language: yaml
 
 ======================
 Configurable settings

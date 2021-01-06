@@ -241,6 +241,7 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
     from shutil import make_archive, copy
     from glob import glob
     from os.path import basename, join, splitext
+    from os import remove
     from tempfile import mkdtemp
     from fledge.cryptography.ca import sign_certificate
     from fledge.cryptography.io import read_key, read_crt, read_csr
@@ -250,8 +251,9 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
 
     if not import_:
         if request_pkg:
-            unpack_archive(request_pkg, extract_dir=PKI_DIR)
-            csr = glob(f'{PKI_DIR}/*.csr')[0]
+            Path(f'{PKI_DIR}/client').mkdir(parents=True, exist_ok=True)
+            unpack_archive(request_pkg, extract_dir=f'{PKI_DIR}/client')
+            csr = glob(f'{PKI_DIR}/client/*.csr')[0]
         else:
             if collaborator_name is None:
                 echo('collaborator_name can only be omitted if signing\n'
@@ -322,6 +324,9 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
             # If the collaborator name is provided, the collaborator and
             # certificate does not need to be exported
             return
+
+        # Remove unneeded CSR
+        remove(f'{cert_name}.csr')
 
         archiveType = 'zip'
         archiveName = f'agg_to_{file_name}_signed_cert'

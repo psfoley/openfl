@@ -36,6 +36,7 @@ class HistologyDataset(ImageFolder):
         if not path.exists(filepath):
             self.pbar = tqdm(total=None)
             urlretrieve(HistologyDataset.URL, filepath, self.report_hook)
+            # Using md5 to create unique identifier rather than add encryption so this should not pose a security risk.
             assert md5(open(filepath, 'rb').read(  # nosec
                 path.getsize(filepath))).hexdigest() == HistologyDataset.ZIP_MD5
             with ZipFile(filepath, 'r') as f:

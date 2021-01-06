@@ -11,7 +11,7 @@ from sys import executable
 from warnings import warn
 from shutil import copyfile, ignore_patterns
 
-from fledge.interface.cli_helper import copytree, print_tree, vex, check_varenv
+from fledge.interface.cli_helper import copytree, print_tree, check_varenv
 from fledge.interface.cli_helper import get_fx_path, replace_line_in_file
 from fledge.interface.cli_helper import WORKSPACE, PKI_DIR
 from fledge.interface.cli_helper import SITEPACKS, FLEDGE_USERDIR
@@ -40,16 +40,6 @@ def create_dirs(prefix):
 
     copytree(src=src, dst=dst, dirs_exist_ok=True)
     copyfile(WORKSPACE / 'workspace' / '.workspace', prefix / '.workspace')
-
-
-def create_cert(prefix):
-    """Create workspace certifications."""
-    echo('Creating Workspace Certifications')
-
-    src = WORKSPACE / 'workspace/cert/config'  # from default workspace
-    dst = prefix / 'cert/config'  # to created workspace
-
-    copytree(src=src, dst=dst, dirs_exist_ok=True)
 
 
 def create_temp(prefix, template):
@@ -85,7 +75,6 @@ def create(prefix, template):
     template = Path(template)
 
     create_dirs(prefix)
-    create_cert(prefix)
     create_temp(prefix, template)
 
     requirements_filename = "requirements.txt"
@@ -164,7 +153,6 @@ def export_(context):
     makedirs(f'{tmpDir}/logs', exist_ok=True)
     makedirs(f'{tmpDir}/data', exist_ok=True)
     copytree('./code', f'{tmpDir}/code', ignore=ignore)  # code
-    copytree('./cert/config', f'{tmpDir}/cert/config', ignore=ignore)  # cert
     copytree('./plan', f'{tmpDir}/plan', ignore=ignore)  # plan
     copy2(export_requirements_filename, f'{tmpDir}/requirements.txt')  # requirements
 
@@ -219,6 +207,9 @@ def certify_():
 
 def certify():
     """Create certificate authority for federation."""
+    from fledge.cryptography.ca import generate_root_cert, generate_signing_csr, sign_certificate
+    from cryptography.hazmat.primitives import serialization
+
     echo('Setting Up Certificate Authority...\n')
 
     echo('1.  Create Root CA')
@@ -240,25 +231,25 @@ def certify():
     with open(PKI_DIR / 'ca/root-ca/db/root-ca.crl.srl', 'w') as f:
         f.write('01')  # write file with '01'
 
-    echo('1.3 Create CA Request')
+    echo('1.3 Create CA Request and Certificate')
 
-    root_conf = 'config/root-ca.conf'
-    root_csr = 'ca/root-ca.csr'
-    root_crt = 'ca/root-ca.crt'
-    root_key = 'ca/root-ca/private/root-ca.key'
+    root_crt_path = 'ca/root-ca.crt'
+    root_key_path = 'ca/root-ca/private/root-ca.key'
 
-    vex(f'openssl req -new '
-        f'-config {root_conf} '
-        f'-out {root_csr} '
-        f'-keyout {root_key}', workdir=PKI_DIR)
+    root_private_key, root_cert = generate_root_cert()
 
-    echo('1.4 Create CA Certificate')
+    # Write root CA certificate to disk
+    with open(PKI_DIR / root_crt_path, 'wb') as f:
+        f.write(root_cert.public_bytes(
+            encoding=serialization.Encoding.PEM,
+        ))
 
-    vex(f'openssl ca -batch -selfsign '
-        f'-config {root_conf} '
-        f'-in {root_csr} '
-        f'-out {root_crt} '
-        f'-extensions root_ca_ext', workdir=PKI_DIR)
+    with open(PKI_DIR / root_key_path, "wb") as f:
+        f.write(root_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        ))
 
     echo('2.  Create Signing Certificate')
     echo('2.1 Create Directories')
@@ -281,24 +272,33 @@ def certify():
 
     echo('2.3 Create Signing Certificate CSR')
 
-    signing_conf = 'config/signing-ca.conf'
-    root_conf = 'config/root-ca.conf'
-    signing_csr = 'ca/signing-ca.csr'
-    signing_crt = 'ca/signing-ca.crt'
-    signing_key = 'ca/signing-ca/private/signing-ca.key'
+    signing_csr_path = 'ca/signing-ca.csr'
+    signing_crt_path = 'ca/signing-ca.crt'
+    signing_key_path = 'ca/signing-ca/private/signing-ca.key'
 
-    vex(f'openssl req -new '
-        f'-config {signing_conf} '
-        f'-out {signing_csr} '
-        f'-keyout {signing_key}', workdir=PKI_DIR)
+    signing_private_key, signing_csr = generate_signing_csr()
+
+    # Write Signing CA CSR to disk
+    with open(PKI_DIR / signing_csr_path, 'wb') as f:
+        f.write(signing_csr.public_bytes(
+            encoding=serialization.Encoding.PEM,
+        ))
+
+    with open(PKI_DIR / signing_key_path, "wb") as f:
+        f.write(signing_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        ))
 
     echo('2.4 Sign Signing Certificate CSR')
 
-    vex(f'openssl ca -batch '
-        f'-config {root_conf} '
-        f'-in {signing_csr} '
-        f'-out {signing_crt} '
-        f'-extensions signing_ca_ext', workdir=PKI_DIR)
+    signing_cert = sign_certificate(signing_csr, root_private_key, root_cert.subject, ca=True)
+
+    with open(PKI_DIR / signing_crt_path, 'wb') as f:
+        f.write(signing_cert.public_bytes(
+            encoding=serialization.Encoding.PEM,
+        ))
 
     echo('3   Create Certificate Chain')
 
@@ -327,7 +327,7 @@ def _get_requirements_dict(txtfile):
 
 def _get_dir_hash(path):
     from hashlib import md5
-    hash_ = md5()
+    hash_ = md5()  # nosec
     hash_.update(path.encode('utf-8'))
     hash_ = hash_.hexdigest()
     return hash_

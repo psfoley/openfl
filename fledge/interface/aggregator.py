@@ -10,7 +10,6 @@ from click import group, option, pass_context
 from click import echo, style
 
 from fledge.federated import Plan
-from fledge.interface.cli_helper import vex
 from fledge.interface.cli_helper import PKI_DIR
 
 
@@ -56,6 +55,9 @@ def _generate_cert_request(fqdn):
 
 def generate_cert_request(fqdn):
     """Create aggregator certificate key pair."""
+    from fledge.cryptography.participant import generate_csr
+    from fledge.cryptography.io import write_crt, write_key
+
     common_name = f'{fqdn}'.lower()
     subject_alternative_name = f'DNS:{common_name}'
     file_name = f'agg_{common_name}'
@@ -64,21 +66,16 @@ def generate_cert_request(fqdn):
          f'CN={style(common_name, fg="red")},'
          f' SAN={style(subject_alternative_name, fg="red")}')
 
-    server_conf = 'config/server.conf'
-    vex('openssl req -new '
-        f'-config {server_conf} '
-        f'-subj "/CN={common_name}" '
-        f'-out {file_name}.csr -keyout {file_name}.key',
-        workdir=PKI_DIR, env={'SAN': subject_alternative_name})
-
-    echo('  Moving AGGREGATOR certificate key pair to: ' + style(
-        f'{PKI_DIR}/server', fg='green'))
+    server_private_key, server_csr = generate_csr(common_name, server=True)
 
     (PKI_DIR / 'server').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.csr').rename(
-        PKI_DIR / 'server' / f'{file_name}.csr')
-    (PKI_DIR / f'{file_name}.key').rename(
-        PKI_DIR / 'server' / f'{file_name}.key')
+
+    echo('  Writing AGGREGATOR certificate key pair to: ' + style(
+        f'{PKI_DIR}/server', fg='green'))
+
+    # Write aggregator csr and key to disk
+    write_crt(server_csr, PKI_DIR / 'server' / f'{file_name}.csr')
+    write_key(server_private_key, PKI_DIR / 'server' / f'{file_name}.key')
 
 
 def findCertificateName(file_name):
@@ -92,25 +89,6 @@ def findCertificateName(file_name):
     return col_name
 
 
-def sign_certificate(file_name):
-    """Sign the certificate."""
-    echo(' Signing AGGREGATOR certificate key pair')
-
-    signing_conf = 'config/signing-ca.conf'
-    vex('openssl ca -batch '
-        f'-config {signing_conf} '
-        f'-extensions server_ext '
-        f'-in {file_name}.csr -out {file_name}.crt', workdir=PKI_DIR)
-
-    echo('  Moving AGGREGATOR certificate key pair'
-         ' to: ' + style(f'{PKI_DIR}/server', fg='green'))
-
-    (PKI_DIR / 'server').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.crt').rename(
-        PKI_DIR / 'server' / f'{file_name}.crt')
-    (PKI_DIR / f'{file_name}.csr').unlink()
-
-
 @aggregator.command(name='certify')
 @option('-n', '--fqdn',
         help='The fully qualified domain name of aggregator node [{getfqdn()}]',
@@ -122,39 +100,60 @@ def _certify(fqdn, silent):
 
 def certify(fqdn, silent):
     """Sign/certify the aggregator certificate key pair."""
-    from shutil import copyfile
+    from fledge.cryptography.ca import sign_certificate
+    from fledge.cryptography.io import read_key, read_crt, read_csr
+    from fledge.cryptography.io import write_crt
 
     from click import confirm
 
     common_name = f'{fqdn}'.lower()
     file_name = f'agg_{common_name}'
     cert_name = f'server/{file_name}'
+    signing_key_path = 'ca/signing-ca/private/signing-ca.key'
+    signing_crt_path = 'ca/signing-ca.crt'
 
-    # Copy PKI to cert directory
-    # TODO:  Circle back to this. Not sure if we need to copy the file or
-    #  if we can call it directly from openssl
-    # Was getting a file not found error otherwise.
-    copyfile(PKI_DIR / f'{cert_name}.csr', PKI_DIR / f'{file_name}.csr')
+    # Load CSR
+    if not Path(PKI_DIR / f'{cert_name}.csr').exists():
+        echo(style('Aggregator certificate signing request not found.', fg='red')
+             + ' Please run `fx aggregator generate-cert-request`'
+             ' to generate the certificate request.')
 
-    output = vex(f'openssl sha256  '
-                 f'{file_name}.csr', workdir=PKI_DIR)
+    csr, csr_hash = read_csr(PKI_DIR / f'{cert_name}.csr')
 
-    csr_hash = output.stdout.split('=')[1]
+    # Load private signing key
+    if not Path(PKI_DIR / signing_key_path).exists():
+        echo(style('Signing key not found.', fg='red')
+             + ' Please run `fx workspace certify`'
+             ' to initialize the local certificate authority.')
+
+    signing_key = read_key(PKI_DIR / signing_key_path)
+
+    # Load signing cert
+    if not Path(PKI_DIR / signing_crt_path).exists():
+        echo(style('Signing certificate not found.', fg='red')
+             + ' Please run `fx workspace certify`'
+             ' to initialize the local certificate authority.')
+
+    signing_crt = read_crt(PKI_DIR / signing_crt_path)
 
     echo('The CSR Hash for file '
-         + style(f'{file_name}.csr', fg='green')
+         + style(f'{cert_name}.csr', fg='green')
          + ' = '
          + style(f'{csr_hash}', fg='red'))
 
     if silent:
 
-        sign_certificate(file_name)
+        echo(' Signing AGGREGATOR certificate')
+        signed_agg_cert = sign_certificate(csr, signing_key, signing_crt.subject)
+        write_crt(signed_agg_cert, PKI_DIR / f'{cert_name}.crt')
 
     else:
 
         if confirm("Do you want to sign this certificate?"):
 
-            sign_certificate(file_name)
+            echo(' Signing AGGREGATOR certificate')
+            signed_agg_cert = sign_certificate(csr, signing_key, signing_crt.subject)
+            write_crt(signed_agg_cert, PKI_DIR / f'{cert_name}.crt')
 
         else:
             echo(style('Not signing certificate.', fg='red')

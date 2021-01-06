@@ -198,7 +198,9 @@ class Plan(object):
     @property
     def hash(self):
         """Generate hash for this instance."""
-        self.hash_ = md5(dump(self.config).encode('utf-8'))
+        # The following hash is not used in any security context. It is only used
+        # to generate unique values for verification. Collisions are acceptable.
+        self.hash_ = md5(dump(self.config).encode('utf-8'))  # nosec
         Plan.logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]',
                          extra={'markup': True})
 

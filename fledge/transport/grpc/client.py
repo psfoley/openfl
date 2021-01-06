@@ -23,14 +23,15 @@ from typing import Optional, Tuple
 class ConstantBackoff:
     """Constant Backoff policy."""
 
-    def __init__(self, reconnect_interval, logger):
+    def __init__(self, reconnect_interval, logger, uri):
         """Initialize Constant Backoff."""
         self.reconnect_interval = reconnect_interval
         self.logger = logger
+        self.uri = uri
 
     def sleep(self):
         """Sleep for specified interval."""
-        self.logger.info("Attempting to connect to aggregator...")
+        self.logger.info(f'Attempting to connect to aggregator at {self.uri}')
         time.sleep(self.reconnect_interval)
 
 
@@ -124,14 +125,13 @@ class CollaboratorGRPCClient:
         self.federation_uuid = federation_uuid
         self.single_col_cert_common_name = single_col_cert_common_name
 
-        self.logger.debug('Connecting to gRPC at {uri}')
-
         # Adding an interceptor for RPC Errors
         self.interceptors = (
             RetryOnRpcErrorClientInterceptor(
                 sleeping_policy=ConstantBackoff(
                     logger=self.logger,
-                    reconnect_interval=int(kwargs.get('client_reconnect_interval', 1)),),
+                    reconnect_interval=int(kwargs.get('client_reconnect_interval', 1)),
+                    uri=self.uri),
                 status_for_retry=(grpc.StatusCode.UNAVAILABLE,),
             ),
         )

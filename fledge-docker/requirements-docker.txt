@@ -11,3 +11,4 @@ scikit-learn
 jupyter
 ipykernel
 flatten_json
+cryptography

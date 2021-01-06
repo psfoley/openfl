@@ -8,7 +8,7 @@ from click import group, option, pass_context
 from click import echo, style
 from click import Path as ClickPath
 
-from fledge.interface.cli_helper import vex, PKI_DIR
+from fledge.interface.cli_helper import PKI_DIR
 from fledge.federated import Plan
 
 logger = getLogger(__name__)
@@ -112,6 +112,9 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
 
     Then create a package with the CSR to send for signing.
     """
+    from fledge.cryptography.participant import generate_csr
+    from fledge.cryptography.io import write_crt, write_key
+
     common_name = f'{collaborator_name}'.lower()
     subject_alternative_name = f'DNS:{common_name}'
     file_name = f'col_{common_name}'
@@ -120,30 +123,16 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
          f'CN={style(common_name, fg="red")},'
          f' SAN={style(subject_alternative_name, fg="red")}')
 
-    if True:
-        extensions = 'client_reqext_san'
-    else:
-        echo(
-            'Note: Collaborator CN is not a valid FQDN and will not be added '
-            'to the DNS entry of the subject alternative names')
-        extensions = 'client_reqext'
+    client_private_key, client_csr = generate_csr(common_name, server=False)
 
-    client_conf = 'config/client.conf'
-    vex('openssl req -new '
-        f'-config {client_conf} '
-        f'-subj "/CN={common_name}" '
-        f'-out {file_name}.csr -keyout {file_name}.key '
-        f'-reqexts {extensions}', workdir=PKI_DIR,
-        env={'SAN': subject_alternative_name})
+    (PKI_DIR / 'client').mkdir(parents=True, exist_ok=True)
 
     echo('  Moving COLLABORATOR certificate to: ' + style(
         f'{PKI_DIR}/{file_name}', fg='green'))
 
-    (PKI_DIR / 'client').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.csr').rename(
-        PKI_DIR / 'client' / f'{file_name}.csr')
-    (PKI_DIR / f'{file_name}.key').rename(
-        PKI_DIR / 'client' / f'{file_name}.key')
+    # Write collaborator csr and key to disk
+    write_crt(client_csr, PKI_DIR / 'client' / f'{file_name}.csr')
+    write_key(client_private_key, PKI_DIR / 'client' / f'{file_name}.key')
 
     if not skip_package:
         from shutil import make_archive, copytree, ignore_patterns
@@ -180,13 +169,8 @@ def generate_cert_request(collaborator_name, data_path, silent, skip_package):
 
 
 def findCertificateName(file_name):
-    """Search the CRT for the actual collaborator name."""
-    # This loop looks for the collaborator name in the key
-    with open(file_name, 'r') as f:
-        for line in f:
-            if 'Subject: CN=' in line:
-                col_name = line.split('=')[-1].strip()
-                break
+    """Parse the collaborator name."""
+    col_name = str(file_name).split('/')[-1].split('.')[0][4:]
     return col_name
 
 
@@ -232,27 +216,6 @@ def RegisterCollaborator(file_name):
              + style(f'{cols_file}', fg='green'))
 
 
-def sign_certificate(file_name):
-    """Sign the certificate."""
-    echo(' Signing COLLABORATOR certificate key pair')
-
-    signing_conf = 'config/signing-ca.conf'
-    vex(f'openssl ca -batch '
-        f'-config {signing_conf} '
-        f'-extensions server_ext '
-        f'-in {file_name}.csr -out {file_name}.crt', workdir=PKI_DIR)
-
-    echo('  Moving COLLABORATOR certificate key pair to: ' + style(
-        f'{PKI_DIR}/client', fg='green'))
-
-    (PKI_DIR / 'client').mkdir(parents=True, exist_ok=True)
-    (PKI_DIR / f'{file_name}.crt').rename(
-        PKI_DIR / 'client' / f'{file_name}.crt')
-    (PKI_DIR / f'{file_name}.csr').unlink()
-
-    RegisterCollaborator(PKI_DIR / 'client' / f'{file_name}.crt')
-
-
 @collaborator.command(name='certify')
 @pass_context
 @option('-n', '--collaborator_name',
@@ -279,6 +242,9 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
     from glob import glob
     from os.path import basename, join, splitext
     from tempfile import mkdtemp
+    from fledge.cryptography.ca import sign_certificate
+    from fledge.cryptography.io import read_key, read_crt, read_csr
+    from fledge.cryptography.io import write_crt
 
     common_name = f'{collaborator_name}'.lower()
 
@@ -287,19 +253,43 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
             unpack_archive(request_pkg, extract_dir=PKI_DIR)
             csr = glob(f'{PKI_DIR}/*.csr')[0]
         else:
-            if len(common_name) == 0:
-                echo('collaborator_name must be set for'
-                     ' single node experiments')
+            if collaborator_name is None:
+                echo('collaborator_name can only be omitted if signing\n'
+                     'a zipped request package.\n'
+                     '\n'
+                     'Example: fx collaborator certify --request-pkg '
+                     'col_one_to_agg_cert_request.zip')
                 return
             csr = glob(f'{PKI_DIR}/client/col_{common_name}.csr')[0]
             copy(csr, PKI_DIR)
         cert_name = splitext(csr)[0]
         file_name = basename(cert_name)
+        signing_key_path = 'ca/signing-ca/private/signing-ca.key'
+        signing_crt_path = 'ca/signing-ca.crt'
 
-        output = vex('openssl sha256  '
-                     f'{file_name}.csr', workdir=PKI_DIR)
+        # Load CSR
+        if not Path(f'{cert_name}.csr').exists():
+            echo(style('Collaborator certificate signing request not found.', fg='red')
+                 + ' Please run `fx collaborator generate-cert-request`'
+                 ' to generate the certificate request.')
 
-        csr_hash = output.stdout.split('=')[1]
+        csr, csr_hash = read_csr(f'{cert_name}.csr')
+
+        # Load private signing key
+        if not Path(PKI_DIR / signing_key_path).exists():
+            echo(style('Signing key not found.', fg='red')
+                 + ' Please run `fx workspace certify`'
+                 ' to initialize the local certificate authority.')
+
+        signing_key = read_key(PKI_DIR / signing_key_path)
+
+        # Load signing cert
+        if not Path(PKI_DIR / signing_crt_path).exists():
+            echo(style('Signing certificate not found.', fg='red')
+                 + ' Please run `fx workspace certify`'
+                 ' to initialize the local certificate authority.')
+
+        signing_crt = read_crt(PKI_DIR / signing_crt_path)
 
         echo('The CSR Hash for file '
              + style(f'{file_name}.csr', fg='green')
@@ -308,13 +298,19 @@ def certify(collaborator_name, silent, request_pkg=False, import_=False):
 
         if silent:
 
-            sign_certificate(file_name)
+            echo(' Signing COLLABORATOR certificate')
+            signed_col_cert = sign_certificate(csr, signing_key, signing_crt.subject)
+            write_crt(signed_col_cert, f'{cert_name}.crt')
+            RegisterCollaborator(PKI_DIR / 'client' / f'{file_name}.crt')
 
         else:
 
             if confirm("Do you want to sign this certificate?"):
 
-                sign_certificate(file_name)
+                echo(' Signing COLLABORATOR certificate')
+                signed_col_cert = sign_certificate(csr, signing_key, signing_crt.subject)
+                write_crt(signed_col_cert, f'{cert_name}.crt')
+                RegisterCollaborator(PKI_DIR / 'client' / f'{file_name}.crt')
 
             else:
                 echo(style('Not signing certificate.', fg='red')

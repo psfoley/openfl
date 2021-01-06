@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 """Module with auxiliary CLI helper functions."""
 
-from subprocess import run, PIPE
 from click import echo, style
 from sys import argv
 from pathlib import Path
@@ -26,23 +25,6 @@ def pretty(o):
 
     for k, v in o.items():
         echo(style(f'{k:<{m}} : ', fg='blue') + style(f'{v}', fg='cyan'))
-
-
-def vex(command, workdir='.', env=None, expectcode=0):
-    """Execute the specified command."""
-    if env:
-        env = {**environ.copy(), **env}
-    r = run(command, shell=True, cwd=workdir, stdout=PIPE,
-            stderr=PIPE, universal_newlines=True, env=env)
-
-    if r.returncode != expectcode:
-        echo('\n💔 ' + style(command, fg='red'))
-        echo(style(r.stdout, fg='yellow'))
-        echo(style(r.stderr, fg='yellow'))
-
-        exit()
-
-    return r
 
 
 def tree(path):

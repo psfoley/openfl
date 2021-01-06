@@ -14,6 +14,7 @@ setup(
         'fledge',
         'fledge.interface',
         'fledge.component',
+        'fledge.cryptography',
         'fledge.native',
         'fledge.component.assigner',
         'fledge.component.aggregator',
@@ -48,6 +49,7 @@ setup(
         'jupyter',
         'ipykernel',
         'flatten_json',
+        'cryptography',
     ],
     entry_points={
         'console_scripts': ['fx=fledge.interface.cli:entry']

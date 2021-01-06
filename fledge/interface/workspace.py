@@ -153,7 +153,6 @@ def export_(context):
     makedirs(f'{tmpDir}/logs', exist_ok=True)
     makedirs(f'{tmpDir}/data', exist_ok=True)
     copytree('./code', f'{tmpDir}/code', ignore=ignore)  # code
-    copytree('./cert/config', f'{tmpDir}/cert/config', ignore=ignore)  # cert
     copytree('./plan', f'{tmpDir}/plan', ignore=ignore)  # plan
     copy2(export_requirements_filename, f'{tmpDir}/requirements.txt')  # requirements
 

@@ -31,7 +31,7 @@ def setup_logging(level='info'):
 
     if level.lower() in ['debug', 'error']:
         os.environ['GRPC_VERBOSITY'] = level.upper()
-    
+
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
     level = levels.get(level.lower(), levels['notset'])

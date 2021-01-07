@@ -31,6 +31,8 @@ def setup_logging(level='info'):
 
     if level.lower() in ['debug', 'error']:
         os.environ['GRPC_VERBOSITY'] = level.upper()
+    
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
     level = levels.get(level.lower(), levels['notset'])
 
@@ -164,6 +166,10 @@ def entry():
     banner = 'Intel FLedge - Secure Federated Learning at the Edge™'
     echo(style(f'{banner:<80}', bold=True, bg='bright_blue'))
     echo()
+
+    # Setup logging immediately to suppress unnecessary warnings on import
+    # This will be overridden later with user selected debugging level
+    setup_logging()
 
     for module in root.glob('*.py'):  # load command modules
 

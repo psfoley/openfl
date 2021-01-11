@@ -3,7 +3,7 @@
 
 """Cryptography IO utilities."""
 
-from hashlib import md5
+from hashlib import sha256
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa

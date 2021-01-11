@@ -4,8 +4,6 @@
 """FederatedModel module."""
 
 import inspect
-from hashlib import sha256
-
 from .runner import TaskRunner
 
 
@@ -97,7 +95,3 @@ class FederatedModel(TaskRunner):
             for data_slice in self.data_loader.split(
                 num_collaborators, equally=True
             )]
-
-    def __hash__(self):
-        """Return a hash of the model structure."""
-        return sha256(model.summary().encode('utf-8')).hexdigest()

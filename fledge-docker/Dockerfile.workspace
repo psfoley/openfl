@@ -46,4 +46,4 @@ RUN chown -R ${USERNAME}:${USERNAME} /home/workspace
 
 USER $USERNAME
 
-CMD tail -f /dev/null
+CMD ["tail", "-f", "/dev/null"]

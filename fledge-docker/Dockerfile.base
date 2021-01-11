@@ -3,7 +3,7 @@
 
 # docker build --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY -t fledge .
 
-ARG BASE_IMAGE=ubuntu:18.04
+ARG BASE_IMAGE=python:3.6-slim
 FROM $BASE_IMAGE
 
 LABEL maintainer "Walter riviera <walter.riviera@intel.com>"
@@ -45,26 +45,22 @@ COPY fledge-docker/docker_agg.sh /home/.
 COPY fledge-docker/docker_col.sh /home/.
 
 # Set locale details
-RUN apt-get update
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-# Install OpenSSH for MPI to communicate between containers
-RUN apt-get install -y ssh
-RUN apt-get install -y --no-install-recommends openssh-client openssh-server && \
-    mkdir -p /var/run/sshd
+# Install OpenSSH for MPI to communicate between containers 
+RUN apt-get update && apt-get install -y --no-install-recommends ssh openssh-client openssh-server \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /var/run/sshd
 
 # Allow OpenSSH to talk to containers without asking for confirmation
-RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new && \
+RUN set -o pipefail
+RUN grep -v StrictHostKeyChecking < /etc/ssh/ssh_config > /etc/ssh/ssh_config.new && \
     echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new && \
     mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config
 
-RUN apt-get install -y nano
-
 # Install the fledge package and its dependency.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-venv
-RUN apt-get install -y python3-pip
 RUN pip3 install --upgrade pip
 
 ########## FLEDGE files ##################################################################

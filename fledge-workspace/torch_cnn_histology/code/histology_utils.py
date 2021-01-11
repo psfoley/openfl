@@ -9,7 +9,7 @@ from torchvision.datasets import ImageFolder
 from torchvision.transforms import ToTensor
 from torch.utils.data import random_split
 from urllib.request import urlretrieve
-from hashlib import md5
+from hashlib import sha256
 from os import path, makedirs
 from zipfile import ZipFile
 from tqdm import tqdm
@@ -26,7 +26,7 @@ class HistologyDataset(ImageFolder):
           "texture_2016_image_tiles_5000.zip?download=1"
     FILENAME = "Kather_texture_2016_image_tiles_5000.zip"
     FOLDER_NAME = "Kather_texture_2016_image_tiles_5000"
-    ZIP_MD5 = '0ddbebfc56344752028fda72602aaade'
+    ZIP_SHA256 = '936d0b95ae0f04f1f7b18a2b7e8c55776c3e887d102f645bcee752d1a6626a32'
     DEFAULT_PATH = path.join(path.expanduser('~'), '.fledge', 'data')
 
     def __init__(self, root: str = DEFAULT_PATH, **kwargs) -> None:
@@ -38,8 +38,8 @@ class HistologyDataset(ImageFolder):
             urlretrieve(HistologyDataset.URL, filepath, self.report_hook)
             # The following hash is not used in any security context. It is only used
             # to generate unique values for verification. Collisions are acceptable.
-            assert md5(open(filepath, 'rb').read(  # nosec
-                path.getsize(filepath))).hexdigest() == HistologyDataset.ZIP_MD5
+            assert sha256(open(filepath, 'rb').read(  # nosec
+                path.getsize(filepath))).hexdigest() == HistologyDataset.ZIP_SHA256
             with ZipFile(filepath, 'r') as f:
                 f.extractall(root)
 

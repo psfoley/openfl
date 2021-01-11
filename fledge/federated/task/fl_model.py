@@ -4,7 +4,7 @@
 """FederatedModel module."""
 
 import inspect
-from hashlib import md5
+from hashlib import sha256
 
 from .runner import TaskRunner
 
@@ -100,4 +100,4 @@ class FederatedModel(TaskRunner):
 
     def __hash__(self):
         """Return a hash of the model structure."""
-        return md5.model.summary()
+        return sha256(model.summary().encode('utf-8')).hexdigest()

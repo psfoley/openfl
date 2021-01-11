@@ -90,7 +90,7 @@ def read_csr(path):
     Returns:
         Cryptography CSR object
     """
-    hasher = md5()  # nosec
+    hasher = sha256()
     with open(path, 'rb') as f:
         pem_data = f.read()
         hasher.update(pem_data)

@@ -3,7 +3,7 @@
 
 """Plan module."""
 
-from hashlib import md5
+from hashlib import sha256
 from logging import getLogger
 from os.path import splitext
 from importlib import import_module
@@ -198,9 +198,7 @@ class Plan(object):
     @property
     def hash(self):
         """Generate hash for this instance."""
-        # The following hash is not used in any security context. It is only used
-        # to generate unique values for verification. Collisions are acceptable.
-        self.hash_ = md5(dump(self.config).encode('utf-8'))  # nosec
+        self.hash_ = sha256(dump(self.config).encode('utf-8'))
         Plan.logger.info(f'FL-Plan hash is [blue]{self.hash_.hexdigest()}[/]',
                          extra={'markup': True})
 

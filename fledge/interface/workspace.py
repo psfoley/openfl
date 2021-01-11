@@ -326,8 +326,8 @@ def _get_requirements_dict(txtfile):
 
 
 def _get_dir_hash(path):
-    from hashlib import md5
-    hash_ = md5()  # nosec
+    from hashlib import sha256 
+    hash_ = sha256()
     hash_.update(path.encode('utf-8'))
     hash_ = hash_.hexdigest()
     return hash_

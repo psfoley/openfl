@@ -24,7 +24,7 @@ def tutorial(context):
 @tutorial.command()
 @pass_context
 @option('-ip', '--ip', required=False,
-        help='IP address the notebook that should start', default='0.0.0.0')
+        help='IP address the notebook that should start', default='localhost')
 def start(context, ip):
     """Start the Jupyter notebook from the tutorials directory."""
     if 'VIRTUAL_ENV' in environ:

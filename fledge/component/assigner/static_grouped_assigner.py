@@ -7,7 +7,7 @@ from .assigner import Assigner
 
 
 class StaticGroupedAssigner(Assigner):
-    """
+    r"""
     The task assigner maintains a list of tasks.
 
     Also it decides the policy for
@@ -24,7 +24,18 @@ class StaticGroupedAssigner(Assigner):
     GroupedAssigner -        Given task groups and a list of collaborators that
                              belong to that task group, carry out tasks for
                              each round of experiment
+
+    Args:
+        task_groups* (list of obj): task groups to assign.
+
+    Note:
+        \* - Plan setting.
     """
+
+    def __init__(self, task_groups, **kwargs):
+        """Initialize."""
+        super().__init__(**kwargs)
+        self.task_groups = task_groups
 
     def define_task_assignments(self):
         """All of the logic to set up the map of tasks to collaborators is done here."""

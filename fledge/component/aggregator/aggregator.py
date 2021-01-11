@@ -14,16 +14,19 @@ from fledge.protocols import ModelProto
 
 
 class Aggregator:
-    """An Aggregator is the central node in federated learning.
+    r"""An Aggregator is the central node in federated learning.
 
     Args:
         aggregator_uuid (str): Aggregation ID.
         federation_uuid (str): Federation ID.
         authorized_cols (list of str): The list of IDs of enrolled collaborators.
-        init_state_path (str): The location of the initial weight file.
-        last_state_path (str): The file location to store the latest weight.
-        best_state_path (str): The file location to store the weight of the best model.
-        db_store_rounds (int): Rounds to store in TensorDB.
+        init_state_path* (str): The location of the initial weight file.
+        last_state_path* (str): The file location to store the latest weight.
+        best_state_path* (str): The file location to store the weight of the best model.
+        db_store_rounds* (int): Rounds to store in TensorDB.
+
+    Note:
+        \* - plan setting.
     """
 
     def __init__(self,

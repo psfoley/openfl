@@ -27,8 +27,8 @@ Configurable settings
 
 - :class:`Aggregator <fledge.component.Aggregator>`
 - :class:`Collaborator <fledge.component.Collaborator>`
-- :class:`Data Loader <fledge.federated.DataLoader>`
-- :class:`Task Runner <fledge.federated.TaskRunner>`
+- :class:`Data Loader <fledge.federated.data.loader.DataLoader>`
+- :class:`Task Runner <fledge.federated.task.runner.TaskRunner>`
 - :class:`Assigner <fledge.component.Assigner>`
 
 ++++++++++++++

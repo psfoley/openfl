@@ -34,7 +34,26 @@ class OptTreatment(Enum):
 
 
 class Collaborator:
-    """The Collaborator object class."""
+    r"""The Collaborator object class.
+
+    Args:
+        collaborator_name (string): The common name for the collaborator
+        aggregator_uuid: The unique id for the client
+        federation_uuid: The unique id for the federation
+        model: The model
+        opt_treatment* (string): The optimizer state treatment (Defaults to
+            "CONTINUE_GLOBAL", which is aggreagated state from previous round.)
+        compression_pipeline: The compression pipeline (Defaults to None)
+        num_batches_per_round (int): Number of batches per round
+                                     (Defaults to None)
+        delta_updates* (bool): True = Only model delta gets sent.
+                              False = Whole model
+            gets sent to collaborator. (Defaults to False)
+        single_col_cert_common_name: (Defaults to None)
+
+    Note:
+        \* - Plan setting.
+    """
 
     def __init__(self,
                  collaborator_name,
@@ -44,27 +63,10 @@ class Collaborator:
                  task_runner,
                  tensor_pipe,
                  task_config,
-                 opt_treatment='RESET',
+                 opt_treatment=OptTreatment.RESET,
                  delta_updates=False,
-                 **kwargs):
-        """Initialize.
-
-        Args:
-        collaborator_name (string): The common name for the collaborator
-        aggregator_uuid: The unique id for the client
-        federation_uuid: The unique id for the federation
-        model: The model
-        opt_treatment (string): The optimizer state treatment (Defaults to
-            "CONTINUE_GLOBAL", which is aggreagated state from previous round.)
-        compression_pipeline: The compression pipeline (Defaults to None)
-        num_batches_per_round (int): Number of batches per round
-                                     (Defaults to None)
-        delta_updates (bool): True = Only model delta gets sent.
-                              False = Whole model
-            gets sent to collaborator. (Defaults to False)
-        single_col_cert_common_name: (Defaults to None)
-        **kwargs : Additional parameters to pass to collaborator object
-        """
+                 db_store_rounds=1):
+        """Initialize."""
         self.single_col_cert_common_name = None
 
         if self.single_col_cert_common_name is None:
@@ -78,7 +80,7 @@ class Collaborator:
         self.tensor_pipe = tensor_pipe or NoCompressionPipeline()
         self.tensor_codec = TensorCodec(self.tensor_pipe)
         self.tensor_db = TensorDB()
-        self.db_store_rounds = kwargs.get('db_store_rounds', 1)
+        self.db_store_rounds = db_store_rounds
 
         self.task_runner = task_runner
         self.delta_updates = delta_updates

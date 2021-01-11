@@ -34,8 +34,8 @@ class StaticGroupedAssigner(Assigner):
 
     def __init__(self, task_groups, **kwargs):
         """Initialize."""
-        super().__init__(**kwargs)
         self.task_groups = task_groups
+        super().__init__(**kwargs)
 
     def define_task_assignments(self):
         """All of the logic to set up the map of tasks to collaborators is done here."""

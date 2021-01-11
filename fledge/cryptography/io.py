@@ -3,7 +3,7 @@
 
 """Cryptography IO utilities."""
 
-from hashlib import md5
+from hashlib import sha256
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -90,7 +90,7 @@ def read_csr(path):
     Returns:
         Cryptography CSR object
     """
-    hasher = md5()  # nosec
+    hasher = sha256()
     with open(path, 'rb') as f:
         pem_data = f.read()
         hasher.update(pem_data)

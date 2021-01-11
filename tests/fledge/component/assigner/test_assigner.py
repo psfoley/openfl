@@ -21,7 +21,7 @@ def test_get_aggregation_type_for_task_none(assigner):
     task_name = 'test_name'
     tasks = {task_name: {}}
 
-    assigner = assigner(None, tasks, None, None)
+    assigner = assigner(tasks, None, None)
 
     aggregation_type = assigner.get_aggregation_type_for_task(task_name)
 
@@ -35,7 +35,7 @@ def test_get_aggregation_type_for_task(assigner):
     tasks = {task_name: {
         'aggregation_type': test_aggregation_type
     }}
-    assigner = assigner(None, tasks, None, None)
+    assigner = assigner(tasks, None, None)
 
     aggregation_type = assigner.get_aggregation_type_for_task(task_name)
 
@@ -44,7 +44,7 @@ def test_get_aggregation_type_for_task(assigner):
 
 def test_get_all_tasks_for_round(assigner):
     """Assert that assigner tasks object is list."""
-    assigner = Assigner(None, None, None, None)
+    assigner = Assigner(None, None, None)
     tasks = assigner.get_all_tasks_for_round('test')
 
     assert isinstance(tasks, list)

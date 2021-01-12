@@ -39,6 +39,7 @@ extensions = [
     "sphinx-prompt",
     'sphinx_substitution_extensions',
     "sphinx.ext.ifconfig",
+    "sphinxcontrib.mermaid"
 ]
 
 # -- Project information -----------------------------------------------------

@@ -41,16 +41,21 @@ class TensorCodec(object):
                                     be compressed, and new TensorKeys returned
                                     will be derivatives of the existing
                                     tensor_name
+
             data:                   (uncompressed) numpy array associated with
                                     the tensor_key
+
             require_lossless:       boolean. Does tensor require
                                     compression
 
         Returns:
             compressed_tensor_key:  Tensorkey corresponding to the decompressed
                                     tensor
+
             compressed_nparray:     The compressed tensor
+
             metadata:               metadata associated with compressed tensor
+
         """
         if require_lossless:
             compressed_nparray, metadata = self.lossless_pipeline.forward(
@@ -81,17 +86,22 @@ class TensorCodec(object):
                                     be decompressed, and new TensorKeys
                                     returned will be derivatives of the
                                     existing tensor_name
+
             data:                   (compressed) numpy array associated with
                                     the tensor_key
+
             transformer_metadata:   metadata associated with the compressed
                                     tensor
+
             require_lossless:       boolean, does data require lossless
                                     decompression
 
         Returns:
             decompressed_tensor_key:    Tensorkey corresponding to the
                                         decompressed tensor
+
             decompressed_nparray:       The decompressed tensor
+
         """
         tensor_name, origin, round_number, report, tags = tensor_key
 
@@ -137,13 +147,16 @@ class TensorCodec(object):
             tensor_key:         This is the tensor_key associated with the
                                 nparray.
                                 Should have a tag of 'trained' or 'aggregated'
+
             nparray:            The nparray that corresponds to the tensorkey
+
             base_model_nparray: The base model tensor that will be subtracted
                                 from the new weights
 
         Returns:
             delta_tensor_key:   Tensorkey that corresponds to the delta weight
                                 array
+                                
             delta:              Difference between the provided tensors
 
         """

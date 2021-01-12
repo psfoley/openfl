@@ -43,12 +43,16 @@ class Collaborator:
         model: The model
         opt_treatment* (string): The optimizer state treatment (Defaults to
             "CONTINUE_GLOBAL", which is aggreagated state from previous round.)
+
         compression_pipeline: The compression pipeline (Defaults to None)
+
         num_batches_per_round (int): Number of batches per round
                                      (Defaults to None)
+                                     
         delta_updates* (bool): True = Only model delta gets sent.
-                              False = Whole model
-            gets sent to collaborator. (Defaults to False)
+                               False = Whole model gets sent to collaborator.
+                               Defaults to False.
+
         single_col_cert_common_name: (Defaults to None)
 
     Note:

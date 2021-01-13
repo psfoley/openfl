@@ -48,7 +48,7 @@ class Collaborator:
 
         num_batches_per_round (int): Number of batches per round
                                      (Defaults to None)
-                                     
+
         delta_updates* (bool): True = Only model delta gets sent.
                                False = Whole model gets sent to collaborator.
                                Defaults to False.

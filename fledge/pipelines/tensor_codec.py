@@ -156,7 +156,7 @@ class TensorCodec(object):
         Returns:
             delta_tensor_key:   Tensorkey that corresponds to the delta weight
                                 array
-                                
+
             delta:              Difference between the provided tensors
 
         """

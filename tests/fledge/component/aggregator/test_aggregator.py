@@ -34,7 +34,7 @@ def model():
 def assigner():
     """Initialize the assigner."""
     Assigner.define_task_assignments = mock.Mock()
-    assigner = Assigner(None, None, None, None)
+    assigner = Assigner(None, None, None)
     assigner.define_task_assignments = mock.Mock()
     return assigner
 

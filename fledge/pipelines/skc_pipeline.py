@@ -23,7 +23,6 @@ class SparsityTransformer(Transformer):
         """
         self.lossy = True
         self.p = p
-        return
 
     def forward(self, data, **kwargs):
         """
@@ -37,8 +36,7 @@ class SparsityTransformer(Transformer):
             metadata: dictionary to store a list of meta information.
         """
         self.p = 1
-        metadata = {}
-        metadata['int_list'] = list(data.shape)
+        metadata = {'int_list': list(data.shape)}
         # sparsification
         data = data.astype(np.float32)
         flatten_data = data.flatten()
@@ -72,7 +70,8 @@ class SparsityTransformer(Transformer):
         recovered_data = recovered_data.reshape(data_shape)
         return recovered_data
 
-    def _topk_func(self, x, k):
+    @staticmethod
+    def _topk_func(x, k):
         """Select top k values.
 
         Args:
@@ -103,7 +102,6 @@ class KmeansTransformer(Transformer):
         """Initialize."""
         self.n_cluster = n_cluster
         self.lossy = True
-        return
 
     def forward(self, data, **kwargs):
         """Quantize data into n_cluster levels of values.
@@ -124,8 +122,7 @@ class KmeansTransformer(Transformer):
         indices = k_means.labels_
         quant_array = np.choose(indices, quantized_values)
         int_array, int2float_map = self._float_to_int(quant_array)
-        metadata = {}
-        metadata['int_to_float'] = int2float_map
+        metadata = {'int_to_float': int2float_map}
         int_array = int_array.reshape(-1)
         return int_array, metadata
 
@@ -148,7 +145,8 @@ class KmeansTransformer(Transformer):
             data[indices] = int2float_map[key]
         return data
 
-    def _float_to_int(self, np_array):
+    @staticmethod
+    def _float_to_int(np_array):
         """
          Create look-up table for conversion between floating and integer types.
 
@@ -180,7 +178,6 @@ class GZIPTransformer(Transformer):
     def __init__(self):
         """Initialize."""
         self.lossy = False
-        return
 
     def forward(self, data, **kwargs):
         """Compress data into bytes.

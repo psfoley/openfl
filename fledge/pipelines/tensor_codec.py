@@ -9,7 +9,7 @@ from fledge.pipelines import NoCompressionPipeline
 from fledge.utilities import TensorKey
 
 
-class TensorCodec(object):
+class TensorCodec:
     """TensorCodec is responsible for the following.
 
     1. Tracking the compression/decompression related dependencies of a given tensor
@@ -129,7 +129,8 @@ class TensorCodec(object):
 
         return decompressed_tensor_key, decompressed_nparray
 
-    def generate_delta(self, tensor_key, nparray, base_model_nparray):
+    @staticmethod
+    def generate_delta(tensor_key, nparray, base_model_nparray):
         """
         Create delta from the updated layer and base layer.
 
@@ -164,7 +165,8 @@ class TensorCodec(object):
             tensor_name, origin, round_number, report, new_tags)
         return delta_tensor_key, nparray - base_model_nparray
 
-    def apply_delta(self, tensor_key, delta, base_model_nparray):
+    @staticmethod
+    def apply_delta(tensor_key, delta, base_model_nparray):
         """
         Add delta to the nparray.
 

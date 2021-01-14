@@ -33,7 +33,7 @@ class RandomShiftTransformer(Transformer):
         """
         shape = data.shape
         random_shift = np.random.uniform(
-            ow=-20, high=20, size=shape).astype(np.float32)
+            low=-20, high=20, size=shape).astype(np.float32)
         transformed_data = data + random_shift
 
         # construct metadata

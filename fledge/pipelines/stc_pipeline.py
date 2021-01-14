@@ -20,7 +20,6 @@ class SparsityTransformer(Transformer):
         """
         self.lossy = True
         self.p = p
-        return
 
     def forward(self, data, **kwargs):
         """Sparsify data and pass over only non-sparsified elements by reducing the array size.
@@ -32,8 +31,7 @@ class SparsityTransformer(Transformer):
             condensed_data: an numpy array being sparsified.
             metadata: dictionary to store a list of meta information.
         """
-        metadata = {}
-        metadata['int_list'] = list(data.shape)
+        metadata = {'int_list': list(data.shape)}
         # sparsification
         data = data.astype(np.float32)
         flatten_data = data.flatten()
@@ -67,7 +65,8 @@ class SparsityTransformer(Transformer):
         recovered_data = recovered_data.reshape(data_shape)
         return recovered_data
 
-    def _topk_func(self, x, k):
+    @staticmethod
+    def _topk_func(x, k):
         """Select top k values.
 
         Args:
@@ -97,7 +96,6 @@ class TernaryTransformer(Transformer):
     def __init__(self):
         """Initialize."""
         self.lossy = True
-        return
 
     def forward(self, data, **kwargs):
         """Ternerize data into positive mean value, negative mean value and zero value.
@@ -114,8 +112,7 @@ class TernaryTransformer(Transformer):
         out_ = np.where(data > 0.0, mean_topk, 0.0)
         out = np.where(data < 0.0, -mean_topk, out_)
         int_array, int2float_map = self._float_to_int(out)
-        metadata = {}
-        metadata['int_to_float'] = int2float_map
+        metadata = {'int_to_float': int2float_map}
         return int_array, metadata
 
     def backward(self, data, metadata, **kwargs):
@@ -137,7 +134,8 @@ class TernaryTransformer(Transformer):
             data[indices] = int2float_map[key]
         return data
 
-    def _float_to_int(self, np_array):
+    @staticmethod
+    def _float_to_int(np_array):
         """Create look-up table for conversion between floating and integer types.
 
         Args:
@@ -170,8 +168,6 @@ class GZIPTransformer(Transformer):
     def __init__(self):
         """Initialize."""
         self.lossy = False
-
-        return
 
     def forward(self, data, **kwargs):
         """Compress data into numpy of float32.

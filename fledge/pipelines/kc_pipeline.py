@@ -24,7 +24,6 @@ class KmeansTransformer(Transformer):
         """
         self.lossy = True
         self.n_cluster = n_cluster
-        return
 
     def forward(self, data, **kwargs):
         """
@@ -35,8 +34,7 @@ class KmeansTransformer(Transformer):
             data: an numpy array being quantized
             **kwargs: Variable arguments to pass
         """
-        metadata = {}
-        metadata['int_list'] = list(data.shape)
+        metadata = {'int_list': list(data.shape)}
         # clustering
         k_means = cluster.KMeans(n_clusters=self.n_cluster, n_init=self.n_cluster)
         data = data.reshape((-1, 1))
@@ -70,7 +68,8 @@ class KmeansTransformer(Transformer):
         data = data.reshape(data_shape)
         return data
 
-    def _float_to_int(self, np_array):
+    @staticmethod
+    def _float_to_int(np_array):
         """Create look-up table for conversion between floating and integer types.
 
         Args:
@@ -102,7 +101,6 @@ class GZIPTransformer(Transformer):
     def __init__(self):
         """Initialize."""
         self.lossy = False
-        return
 
     def forward(self, data, **kwargs):
         """Compress data into bytes.
@@ -123,6 +121,8 @@ class GZIPTransformer(Transformer):
 
         Args:
             data: Compressed GZIP data
+            metadata:
+            **kwargs: Additional parameters to pass to the function
 
         Returns:
             data: Numpy array

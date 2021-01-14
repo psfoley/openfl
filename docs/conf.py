@@ -35,7 +35,6 @@ extensions = [
     "sphinx_rtd_theme",
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.napoleon",
-    "rinoh.frontend.sphinx",
     "sphinx-prompt",
     'sphinx_substitution_extensions',
     "sphinx.ext.ifconfig",
@@ -70,8 +69,6 @@ if PRODUCT_VERSION == "Intel":
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """
 
-    rinoh_documents = [('index', u'intel_fledge_manual', u'Intel FL.edge manual', u'Intel')]
-
 else:
 
     project = 'Open Federated Learning'
@@ -89,8 +86,6 @@ else:
 
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """
-
-    rinoh_documents = [('index', u'open_fl_manual', u'Open Federated Learning Manual', u'FeTS')]
 
 napoleon_google_docstring = True
 

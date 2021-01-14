@@ -20,7 +20,6 @@ pages:
     - cd docs
     - make html
     - mv _build/html/ ../public/
-    - mv _build/rinoh/ ../public/pdf/
 
     - cd ..
     - mkdir -p public/packages

@@ -27,7 +27,7 @@ pages:
     - cd ..
     - mkdir -p public/packages
     - python3 setup.py sdist bdist_wheel
-    - mv dist/openfl*.whl public/packages/
+    - mv dist/fledge*.whl public/packages/
   artifacts:
     paths:
       - public
@@ -40,15 +40,15 @@ pep8:
     - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -70,15 +70,15 @@ unit-tests:
     - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -101,15 +101,15 @@ keras_cnn_mnist:
     - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -125,7 +125,7 @@ keras_cnn_mnist:
   script:
     - source .venv/bin/activate
     - pip install . 
-    - /home/gitlab-runner/workspace/openfl/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY}} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY}} ${COL1} ${COL2} --rounds-to-train 3
     - deactivate
   after_script:
     - jobs
@@ -139,15 +139,15 @@ torch_cnn_mnist:
    - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -163,7 +163,7 @@ torch_cnn_mnist:
   script:
     - source .venv/bin/activate
     - pip install .
-    - /home/gitlab-runner/workspace/openfl/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
     - deactivate
   after_script:
     - jobs
@@ -177,15 +177,15 @@ fe_tf_adversarial_cifar:
    - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -201,7 +201,7 @@ fe_tf_adversarial_cifar:
   script:
     - source .venv/bin/activate
     - pip install . 
-    - /home/gitlab-runner/workspace/openfl/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
     - deactivate
   after_script:
     - jobs
@@ -215,15 +215,15 @@ fe_torch_adversarial_cifar:
    - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -239,7 +239,7 @@ fe_torch_adversarial_cifar:
   script:
     - source .venv/bin/activate
     - pip install .
-    - /home/gitlab-runner/workspace/openfl/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
     - deactivate
   after_script:
     - jobs
@@ -253,15 +253,15 @@ torch_cnn_histology:
    - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -277,7 +277,7 @@ torch_cnn_histology:
   script:
     - source .venv/bin/activate
     - pip install .
-    - /home/gitlab-runner/workspace/openfl/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
     - deactivate
   after_script:
     - jobs
@@ -291,15 +291,15 @@ tf_cnn_histology:
    - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -315,7 +315,7 @@ tf_cnn_histology:
   script:
     - source .venv/bin/activate
     - pip install .
-    - /home/gitlab-runner/workspace/openfl/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
     - deactivate
   after_script:
     - jobs
@@ -329,15 +329,15 @@ python_native:
    - charlie
   before_script:
     - whoami
-    - echo "Killing running openfl processes..." && if pgrep fx; then pkill fx; fi
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
     - pwd
     - ls
     - cd /home/gitlab-runner/workspace
     - echo "remove the directory ..."
-    - rm -rf openfl
+    - rm -rf fledge
     - echo "clone the directory ..."
     - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
-    - cd /home/gitlab-runner/workspace/openfl
+    - cd /home/gitlab-runner/workspace/fledge
     - echo $CI_COMMIT_REF_NAME
     - git checkout $CI_COMMIT_REF_NAME
     - export http_proxy=http://proxy-us.intel.com:911
@@ -353,11 +353,11 @@ python_native:
   script:
     - source .venv/bin/activate
     - pip install . torch==1.6.0
-    - python /home/gitlab-runner/workspace/openfl/tests/gitlab/python_native.py
+    - python /home/gitlab-runner/workspace/fledge/tests/gitlab/python_native.py
     - deactivate
   after_script:
     - jobs
     - echo "cleaning ...... $$"
-    - rm -rf ~/.openfl
+    - rm -rf ~/.fledge
     - kill -15 $$
     - rm -rf .venv 

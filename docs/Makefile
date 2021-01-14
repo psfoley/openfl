@@ -24,7 +24,4 @@ help:
 
 	sphinx-apidoc -f -o . ../openfl
 
-	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) 
-
-	# Build the PDF
-	sphinx-build -b rinoh . _build/rinoh
+	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)

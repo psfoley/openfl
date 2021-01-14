@@ -38,7 +38,10 @@ def assigner(task_groups, authorized_cols):
     """Initialize assigner."""
     assigner = RandomGroupedAssigner
 
-    assigner = assigner(task_groups, None, authorized_cols, ROUNDS_TO_TRAIN)
+    assigner = assigner(task_groups,
+                        tasks=None,
+                        authorized_cols=authorized_cols,
+                        rounds_to_train=ROUNDS_TO_TRAIN)
     return assigner
 
 

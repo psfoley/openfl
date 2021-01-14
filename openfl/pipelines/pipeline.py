@@ -6,12 +6,8 @@
 import numpy as np
 
 
-class Transformer(object):
+class Transformer:
     """Data transformation class."""
-
-    def __init__(self):
-        """Initialize."""
-        raise NotImplementedError
 
     def forward(self, data, **kwargs):
         """Forward pass data transformation.
@@ -48,11 +44,9 @@ class Transformer(object):
 class Float32NumpyArrayToBytes(Transformer):
     """Converts float32 Numpy array to Bytes array."""
 
-    def __init__(self, **kwargs):
+    def __init__(self):
         """Initialize."""
         self.lossy = False
-
-        pass
 
     def forward(self, data, **kwargs):
         """Forward pass.
@@ -74,7 +68,7 @@ class Float32NumpyArrayToBytes(Transformer):
         data_bytes = data.tobytes(order='C')
         return data_bytes, metadata
 
-    def backward(self, data, metadata):
+    def backward(self, data, metadata, **kwargs):
         """Backward pass.
 
         Args:
@@ -92,7 +86,7 @@ class Float32NumpyArrayToBytes(Transformer):
         return np.reshape(flat_array, newshape=array_shape, order='C')
 
 
-class TransformationPipeline(object):
+class TransformationPipeline:
     """Data Transformer Pipeline Class.
 
     A sequential pipeline to transform (e.x. compress) data (e.x. layer of

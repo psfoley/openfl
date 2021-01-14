@@ -14,7 +14,20 @@ from openfl.protocols import ModelProto
 
 
 class Aggregator:
-    """An Aggregator is the central node in federated learning."""
+    r"""An Aggregator is the central node in federated learning.
+
+    Args:
+        aggregator_uuid (str): Aggregation ID.
+        federation_uuid (str): Federation ID.
+        authorized_cols (list of str): The list of IDs of enrolled collaborators.
+        init_state_path* (str): The location of the initial weight file.
+        last_state_path* (str): The file location to store the latest weight.
+        best_state_path* (str): The file location to store the weight of the best model.
+        db_store_rounds* (int): Rounds to store in TensorDB.
+
+    Note:
+        \* - plan setting.
+    """
 
     def __init__(self,
 
@@ -31,24 +44,10 @@ class Aggregator:
                  rounds_to_train=256,
                  single_col_cert_common_name=None,
                  compression_pipeline=None,
+                 db_store_rounds=1,
 
                  **kwargs):
-        """Initialize.
-
-        Args:
-        aggregator_uuid : str
-            Aggregation ID.
-        federation_uuid : str
-            Federation ID.
-        authorized_cols : list of str
-            The list of IDs of enrolled collaborators.
-        init_state_path : str
-            The location of the initial weight file.
-        last_state_path : str
-            The file location to store the latest weight.
-        best_state_path : str
-            The file location to store the weight of the best model.
-        """
+        """Initialize."""
         self.round_number = 0
         self.single_col_cert_common_name = single_col_cert_common_name
 
@@ -69,7 +68,7 @@ class Aggregator:
         self.quit_job_sent_to = []
 
         self.tensor_db = TensorDB()
-        self.db_store_rounds = kwargs.get('db_store_rounds', 1)
+        self.db_store_rounds = db_store_rounds
         self.compression_pipeline = compression_pipeline \
             or NoCompressionPipeline()
         self.tensor_codec = TensorCodec(self.compression_pipeline)

@@ -4,7 +4,7 @@
 
 
 class Assigner:
-    """
+    r"""
     The task assigner maintains a list of tasks.
 
     Also it decides the policy for which collaborator should run those tasks.
@@ -20,12 +20,19 @@ class Assigner:
     GroupedTaskAssigner - Given task groups and a list of collaborators that
                           belong to that task group,
                           carry out tasks for each round of experiment
+
+    Args:
+        tasks* (list of object): list of tasks to assign.
+        authorized_cols (list of str): collaborators.
+        rounds_to_train (int): number of training rounds.
+
+    Note:
+        \* - ``tasks`` argument is taken from ``tasks`` section of FL plan YAML file.
     """
 
-    def __init__(self, task_groups, tasks, authorized_cols,
+    def __init__(self, tasks, authorized_cols,
                  rounds_to_train, **kwargs):
         """Initialize."""
-        self.task_groups = task_groups
         self.tasks = tasks
         self.authorized_cols = authorized_cols
         self.rounds = rounds_to_train

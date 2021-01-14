@@ -6,7 +6,7 @@
 import numpy as np
 import json
 
-import fledge.native as fx
+import openfl.native as fx
 
 
 def one_hot(labels, classes):
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     import torchvision
     import torchvision.transforms as transforms
 
-    from fledge.federated import FederatedModel, FederatedDataSet
+    from openfl.federated import FederatedModel, FederatedDataSet
 
     def cross_entropy(output, target):
         """Binary cross-entropy metric."""

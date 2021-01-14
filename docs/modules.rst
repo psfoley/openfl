@@ -1,7 +1,7 @@
-fledge
+openfl
 ======
 
 .. toctree::
    :maxdepth: 4
 
-   fledge
+   openfl

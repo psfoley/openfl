@@ -1,7 +1,7 @@
 # Copyright (C) 2020 Intel Corporation
 # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
 
-# CLEANUP FOR FLEDGE
+# CLEANUP FOR openfl
 
 col_num ?= 0
 col_name ?= col_$(col_num)

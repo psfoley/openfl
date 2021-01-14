@@ -1,5 +1,5 @@
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 
 # Minimal makefile for Sphinx documentation
@@ -22,7 +22,7 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 
-	sphinx-apidoc -f -o . ../fledge
+	sphinx-apidoc -f -o . ../openfl
 
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O) 
 

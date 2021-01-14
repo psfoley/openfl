@@ -28,6 +28,8 @@ pages:
   artifacts:
     paths:
       - public
+  only:
+    - master
 
 pep8:
   stage: pep8

@@ -32,7 +32,6 @@ def setup_logging(level='info'):
     if level.lower() in ['debug', 'error']:
         os.environ['GRPC_VERBOSITY'] = level.upper()
 
-
     level = levels.get(level.lower(), levels['notset'])
 
     basicConfig(level=level, format='%(message)s',
@@ -40,7 +39,7 @@ def setup_logging(level='info'):
 
 
 def disable_warnings():
-    """Disables CUDA warnings"""
+    """Disables CUDA warnings."""
     import os
 
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

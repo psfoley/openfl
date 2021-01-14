@@ -14,7 +14,6 @@ collaborator :
   defaults : plan/defaults/collaborator.yaml
   template : fledge.component.Collaborator
   settings :
-    polling_interval : 4
     delta_updates    : false
     opt_treatment    : RESET
 

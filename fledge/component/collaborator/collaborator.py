@@ -69,7 +69,8 @@ class Collaborator:
                  task_config,
                  opt_treatment=OptTreatment.RESET,
                  delta_updates=False,
-                 db_store_rounds=1):
+                 db_store_rounds=1,
+                 **kwargs):
         """Initialize."""
         self.single_col_cert_common_name = None
 

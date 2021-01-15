@@ -1,7 +1,5 @@
-[![pipeline status](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/pipeline.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
-[![coverage report](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/badges/master/coverage.svg)](https://gitlab.devtools.intel.com/weilinxu/spr_secure_intelligence-trusted_federated_learning/commits/master)
 
-# Welcome to Intel&reg; Federated Learning
+# Welcome to Intel&reg; OpenFL
 
 [Federated learning](https://en.wikipedia.org/wiki/Federated_learning) is a distributed machine learning approach that
 enables organizations to collaborate on machine learning projects
@@ -19,7 +17,7 @@ to meet the model. Therefore, the minimum data movement needed
 across the federation is solely the model parameters and their updates.
 
 
-Intel&reg; Federated Learning is a Python 3 project developed by Intel Labs and 
+OpenFL is a Python 3 project developed by Intel Labs and 
 Intel Internet of Things Group. 
 
 ![Federated Learning](docs/images/diagram_fl.png)
@@ -28,7 +26,7 @@ Intel Internet of Things Group.
 
 - OS: Tested on Ubuntu Linux 16.04 and 18.04.
 - Python 3.6+ with a Python virtual environment (e.g. [conda](https://docs.conda.io/en/latest/))
-- TensorFlow 2+ or PyTorch 1.6+ (depending on your training requirements). Other frameworks can be supported.
+- TensorFlow 2+ or PyTorch 1.6+ (depending on your training requirements). OpenFL is designed to easily support other frameworks as well.
 
 ![fx commandline interface](docs/images/fx_help.png)
 
@@ -47,10 +45,10 @@ Please report questions, issues and suggestions using:
 
 * [GitHub* Issues]()
 
-### OpenFL and the Federated Tumor Segmentation (FeTS) Initiative
+### Relation to OpenFederatedLearning and the Federated Tumor Segmentation (FeTS) Initiative
 
-This project extends the [Open Federated Learning (OpenFL)](https://github.com/IntelLabs/OpenFederatedLearning) framework that was 
-developed as part of a collaboration between Intel 
+This project builds on the [Open Federated Learning](https://github.com/IntelLabs/OpenFederatedLearning) framework that was 
+developed as part of a collaboration between Intel
 and the University of Pennsylvania (UPenn) for federated learning. 
 It describes Intel’s commitment in 
 supporting the grant awarded to the [Center for Biomedical Image Computing and Analytics (CBICA)](https://www.cbica.upenn.edu/) 
@@ -61,20 +59,15 @@ platform (grant award number: U01-CA242871).
 
 FeTS is an exciting, real-world 
 medical FL platform, and we are honored to be collaborating with UPenn in 
-leading a federation of international collaborators. OpenFL was 
-designed to serve as the backend for the FeTS platform, and OpenFL developers 
-and researchers continue to work very closely with UPenn on 
-the FeTS project.
-
-We’ve included the [FeTS-AI/Algorithms](https://github.com/FETS-AI/Algorithms) 
-repository as a submodule of OpenFL to highlight how OpenFL serves as the FeTS 
-backend. While not necessary to run the framework, the FeTS algorithms show 
-real-world FL models and use cases. Additionally, the 
+leading a federation of international collaborators. The original OpenFederatedLearning
+project and OpenFL are designed to serve as the backend for the FeTS platform, 
+and OpenFL developers and researchers continue to work very closely with UPenn on 
+the FeTS project. The 
 [FeTS-AI/Front-End](https://github.com/FETS-AI/Front-End) shows how UPenn 
 and Intel have integrated UPenn’s medical AI expertise with Intel’s framework 
 to create a federated learning solution for medical imaging. 
 
-Although initially developed for use in medical imaging, this project was 
-built to be agnostic to the use-case, the industry, and the 
+Although initially developed for use in medical imaging, this project is
+designed to be agnostic to the use-case, the industry, and the 
 machine learning framework.
 

@@ -113,13 +113,14 @@ def export_(context):
     requirements_filename = 'requirements.txt'
     workspace_reqs = _get_requirements_dict(requirements_filename)
     prefix = getcwd()
-    with open(requirements_filename, "w") as f:
+
+    export_requirements_filename = 'requirements.export.txt'
+    with open(export_requirements_filename, "w") as f:
         check_call([executable, "-m", "pip", "freeze"], shell=False, stdout=f)
     workspace_hash = _get_dir_hash(prefix)
     origin_dict = _get_requirements_dict(
-        openfl_USERDIR / f'requirements.{workspace_hash}.txt')
-    current_dict = _get_requirements_dict(requirements_filename)
-    export_requirements_filename = 'requirements.export.txt'
+        FLEDGE_USERDIR / f'requirements.{workspace_hash}.txt')
+    current_dict = _get_requirements_dict(export_requirements_filename)
     with open(export_requirements_filename, "w") as f:
         for package, version in current_dict.items():
             if (

@@ -11,7 +11,7 @@ from threading import Lock
 from openfl.utilities import TensorKey
 
 
-class TensorDB(object):
+class TensorDB:
     """
     The TensorDB stores a tensor key and the data that it corresponds to.
 
@@ -58,9 +58,8 @@ class TensorDB(object):
         Returns:
             None
         """
-        self.mutex.acquire(blocking=True)
         entries_to_add = []
-        try:
+        with self.mutex:
             for tensor_key, nparray in tensor_key_dict.items():
                 tensor_name, origin, fl_round, report, tags = tensor_key
                 entries_to_add.append(
@@ -80,8 +79,6 @@ class TensorDB(object):
             self.tensor_db = pd.concat(
                 [self.tensor_db, *entries_to_add], ignore_index=True
             )
-        finally:
-            self.mutex.release()
 
     def get_tensor_from_cache(self, tensor_key):
         """
@@ -148,7 +145,7 @@ class TensorDB(object):
                                 & (self.tensor_db['report'] == report)
                                 & (self.tensor_db['tags'] == tags)]['nparray']
         if len(raw_df) > 0:
-            return np.array(raw_df.iloc[0])
+            return np.array(raw_df.iloc[0]), {}
 
         for col in collaborator_names:
             if type(tags) == str:

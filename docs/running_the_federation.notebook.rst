@@ -21,7 +21,7 @@ Starting the tutorials
 4. Choose a tutorial from which to start. Each of these represent simulated federated learning training demos. The existing tutorials are:
 
  - :code:`Federated Keras MNIST Tutorial`: workspace with a simple `Keras <http://keras.io/>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
- - :code:`Federated Pytorch MNIST Tutorial`: workspace with a simple `Keras <http://keras.io/>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
+ - :code:`Federated Pytorch MNIST Tutorial`: workspace with a simple `PyTorch <https://pytorch.org/>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
 
 |productName| Python API Concepts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~

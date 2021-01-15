@@ -28,7 +28,7 @@ On every node in the federation you will need to install the |productName| packa
 
 4. Install |productName| package:
 
-   .. code-block:: console
+   .. parsed-literal::
 
       $ pip install |productWheel|
 

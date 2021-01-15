@@ -1,3 +1,4 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-"""tests.fledge.pipelines package."""
+"""openfl version information."""
+__version__ = '0.3.2'

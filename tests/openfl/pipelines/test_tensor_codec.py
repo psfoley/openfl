@@ -7,11 +7,11 @@ from unittest import mock
 import pytest
 import numpy as np
 
-from fledge.pipelines import TensorCodec
-from fledge.pipelines import NoCompressionPipeline
-from fledge.pipelines import SKCPipeline
-from fledge.utilities.types import TensorKey
-from fledge.protocols import NamedTensor
+from openfl.pipelines import TensorCodec
+from openfl.pipelines import NoCompressionPipeline
+from openfl.pipelines import SKCPipeline
+from openfl.utilities.types import TensorKey
+from openfl.protocols import NamedTensor
 
 
 @pytest.fixture

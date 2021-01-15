@@ -3,10 +3,10 @@
 
 .. _running_notebook:
 
-Learning to fly: OpenFL tutorials
+Learning to fly: |productName| tutorials
 #######################
 
-New to OpenFL? Get familiar with our new Python API using the built-in tutorials. After installing the OpenFL package in your virtual environment, simply run :code:`fx tutorial start` from the command line. This will start a Jupyter notebook server and return a URL you can use to access each of our tutorials. We provide several jupyter notebooks for Pytorch and Tensorflow that simulate a federation on a local machine.  These tutorials provide a convient entrypoint for learning about :ref:`OpenFL conventions <definitions_and_conventions>`  like FL Plans, aggregators, collaborators and more. 
+New to |productName|? Get familiar with our new Python API using the built-in tutorials. After installing the |productName| package in your virtual environment, simply run :code:`fx tutorial start` from the command line. This will start a Jupyter notebook server and return a URL you can use to access each of our tutorials. We provide several jupyter notebooks for Pytorch and Tensorflow that simulate a federation on a local machine.  These tutorials provide a convient entrypoint for learning about :ref:`|productName| conventions <definitions_and_conventions>`  like FL Plans, aggregators, collaborators and more. 
 
 
 Starting the tutorials
@@ -23,17 +23,17 @@ Starting the tutorials
  - :code:`Federated Keras MNIST Tutorial`: workspace with a simple `Keras <http://keras.io/>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
  - :code:`Federated Pytorch MNIST Tutorial`: workspace with a simple `Keras <http://keras.io/>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
 
-OpenFL Python API Concepts
+|productName| Python API Concepts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As a first step to using the OpenFL Python API, add the following lines to your python script:
+As a first step to using the |productName| Python API, add the following lines to your python script:
 
     .. code-block:: python
 
      import openfl.native as fx
      from openfl.federated import FederatedModel,FederatedDataSet
 
-This will load the OpenFL package and import wrappers that adapt your existing data and models to a (simulated) federated context. To setup OpenFL for a basic experiment, just run :code:`fx.init()`. This command will create a new workspace directory containing default plan values for your experiments, and setup a two collaborator experiment (the collaborators are creatively named 'one' and 'two'). If you want to create an experiment with a large number of collaborators, this can be done programmatically as follows:
+This will load the |productName| package and import wrappers that adapt your existing data and models to a (simulated) federated context. To setup |productName| for a basic experiment, just run :code:`fx.init()`. This command will create a new workspace directory containing default plan values for your experiments, and setup a two collaborator experiment (the collaborators are creatively named 'one' and 'two'). If you want to create an experiment with a large number of collaborators, this can be done programmatically as follows:
 
     .. code-block:: python
 
@@ -131,7 +131,7 @@ Now we just need to define which collaborators (that were created with :code:`fx
      experiment_collaborators = {col_name:col_model for col_name,col_model \
                                       in zip(collaborator_list,fl_model.setup(len(collaborator_list)))}
 
-This command will create a model for each collaborator each their data slice. In production deployments of OpenFL, each collaborator will have the data on premise, and the splitting of data into shards is not necessary.
+This command will create a model for each collaborator each their data slice. In production deployments of |productName|, each collaborator will have the data on premise, and the splitting of data into shards is not necessary.
 
 We are now ready to run our experiment!
 

@@ -32,7 +32,7 @@ def start(context, ip):
         check_call([
             executable, '-m', 'ipykernel', 'install',
             '--user', '--name', f'{venv}'
-        ])
+        ], shell=False)
 
     jupyter_command = ['jupyter', 'notebook', '--notebook-dir', f'{TUTORIALS}']
 

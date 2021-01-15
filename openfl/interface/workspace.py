@@ -82,13 +82,13 @@ def create(prefix, template):
     if isfile(f'{str(prefix)}/{requirements_filename}'):
         check_call([
             executable, "-m", "pip", "install", "-r",
-            f"{prefix}/requirements.txt"])
+            f"{prefix}/requirements.txt"], shell=False)
         echo(f"Successfully installed packages from {prefix}/requirements.txt.")
     else:
         echo("No additional requirements for workspace defined. Skipping...")
     prefix_hash = _get_dir_hash(str(prefix.absolute()))
     with open(openfl_USERDIR / f'requirements.{prefix_hash}.txt', 'w') as f:
-        check_call([executable, '-m', 'pip', 'freeze'], stdout=f)
+        check_call([executable, '-m', 'pip', 'freeze'], shell=False,stdout=f)
 
     print_tree(prefix, level=3)
 
@@ -114,7 +114,7 @@ def export_(context):
     workspace_reqs = _get_requirements_dict(requirements_filename)
     prefix = getcwd()
     with open(requirements_filename, "w") as f:
-        check_call([executable, "-m", "pip", "freeze"], stdout=f)
+        check_call([executable, "-m", "pip", "freeze"], shell=False, stdout=f)
     workspace_hash = _get_dir_hash(prefix)
     origin_dict = _get_requirements_dict(
         openfl_USERDIR / f'requirements.{workspace_hash}.txt')
@@ -191,7 +191,8 @@ def import_(archive):
 
     if isfile(requirements_filename):
         check_call([
-            executable, "-m", "pip", "install", "-r", "requirements.txt"])
+            executable, "-m", "pip", "install", "-r", "requirements.txt"],
+            shell=False)
     else:
         echo("No " + requirements_filename + " file found.")
 
@@ -342,6 +343,7 @@ def dockerize_(save):
     """Pack OpenFL and the workspace as a Docker image."""
     import os
     import docker
+    import openfl
     from shutil import copy
     from shutil import rmtree
     from os.path import basename
@@ -363,7 +365,7 @@ def dockerize_(save):
     copy(openfl_bin, DOCKER_TMP)
 
     fx_file = os.path.join(DOCKER_TMP, 'fx')
-    replace_line_in_file('#!/usr/bin/python3\n', 0, fx_file)
+    replace_line_in_file('#!/usr/local/bin/python3\n', 0, fx_file)
 
     # Create fl_docker_requirements.txt file
     docker_requirements = "requirements-docker.txt"
@@ -377,7 +379,7 @@ def dockerize_(save):
     # Docker BUILD COMMAND
     # Define "build_args". These are the equivalent of the "--build-arg"
     # passed to "docker build"
-    build_args = {'DOCKER_TMP': dirname}
+    build_args = {'DOCKER_TMP': dirname,'openfl_version': openfl.__version__}
     # Add here custom build_args for the build command
     # i.e: build_args["CUSTOM_BUILD_ARG"] = custom_build_arg_var
 

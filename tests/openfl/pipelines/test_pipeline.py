@@ -5,10 +5,10 @@
 import pytest
 import numpy as np
 
-from fledge.pipelines.pipeline import Float32NumpyArrayToBytes
-from fledge.pipelines.pipeline import Transformer
-from fledge.pipelines.pipeline import TransformationPipeline
-from fledge.protocols import NamedTensor
+from openfl.pipelines.pipeline import Float32NumpyArrayToBytes
+from openfl.pipelines.pipeline import Transformer
+from openfl.pipelines.pipeline import TransformationPipeline
+from openfl.protocols import NamedTensor
 
 
 @pytest.fixture

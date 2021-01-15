@@ -35,9 +35,7 @@ class HistologyDataset(ImageFolder):
         filepath = path.join(root, HistologyDataset.FILENAME)
         if not path.exists(filepath):
             self.pbar = tqdm(total=None)
-            urlretrieve(HistologyDataset.URL, filepath, self.report_hook)
-            # The following hash is not used in any security context. It is only used
-            # to generate unique values for verification. Collisions are acceptable.
+            urlretrieve(HistologyDataset.URL, filepath, self.report_hook)  # nosec
             assert sha256(open(filepath, 'rb').read(  # nosec
                 path.getsize(filepath))).hexdigest() == HistologyDataset.ZIP_SHA256
             with ZipFile(filepath, 'r') as f:

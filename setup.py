@@ -9,7 +9,7 @@ setup(
     name='openfl',
     version='0.3.2',
     author='Intel Corporation',
-    description='Federated Learning on the Edge',
+    description='Federated Learning for the Edge',
     packages=[
         'openfl',
         'openfl.interface',

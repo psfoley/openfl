@@ -88,7 +88,7 @@ def create(prefix, template):
         echo("No additional requirements for workspace defined. Skipping...")
     prefix_hash = _get_dir_hash(str(prefix.absolute()))
     with open(openfl_USERDIR / f'requirements.{prefix_hash}.txt', 'w') as f:
-        check_call([executable, '-m', 'pip', 'freeze'], shell=False,stdout=f)
+        check_call([executable, '-m', 'pip', 'freeze'], shell=False, stdout=f)
 
     print_tree(prefix, level=3)
 
@@ -379,7 +379,7 @@ def dockerize_(save):
     # Docker BUILD COMMAND
     # Define "build_args". These are the equivalent of the "--build-arg"
     # passed to "docker build"
-    build_args = {'DOCKER_TMP': dirname,'openfl_version': openfl.__version__}
+    build_args = {'DOCKER_TMP': dirname, 'openfl_version': openfl.__version__}
     # Add here custom build_args for the build command
     # i.e: build_args["CUSTOM_BUILD_ARG"] = custom_build_arg_var
 

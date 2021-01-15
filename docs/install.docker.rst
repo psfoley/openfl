@@ -59,7 +59,7 @@ Requirements
 
 In order to successfully build the image, the Dockerfile is expecting to access the following dependencies:
 
-* Find the :code:`fledge` directory in the same location where we are going to execute the :code:`docker build` command.
+* Find the :code:`openfl` directory in the same location where we are going to execute the :code:`docker build` command.
 * Find the :code:`docker_agg.sh` file
 * Find the :code:`docker_col.sh` file
 
@@ -70,7 +70,7 @@ If you have the |productName| repo available localy, run the following command f
 .. code-block:: console
 
    $ export HOST_USER=`whoami`
-   $ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t fledge/docker -f fledge-docker/Dockerfile .
+   $ docker build --build-arg USERNAME=`whoami` --build-arg USER_ID=`id -u $HOST_USER` --build-arg GROUP_ID=`id -g $HOST_USER` -t openfl/docker -f openfl-docker/Dockerfile .
 
 If you have installed |productName| from a pip wheel or pypi, you can easily add your local workspace to a docker image with the following commands:
 .. code-block:: console

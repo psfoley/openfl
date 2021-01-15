@@ -1,12 +1,12 @@
-.. # Copyright (C) 2020 Intel Corporation
-.. # Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+.. # Copyright (C) 2020-2021 Intel Corporation
+.. # SPDX-License-Identifier: Apache-2.0
 
 .. _running_notebook:
 
-Learning to fly: FL.Edge tutorials
+Learning to fly: |productName| tutorials
 #######################
 
-New to FL.Edge? Get familiar with our new Python API using the built-in tutorials. After installing the FL.Edge package in your virtual environment, simply run :code:`fx tutorial start` from the command line. This will start a Jupyter notebook server and return a URL you can use to access each of our tutorials. We provide several jupyter notebooks for Pytorch and Tensorflow that simulate a federation on a local machine.  These tutorials provide a convient entrypoint for learning about :ref:`FL.Edge conventions <definitions_and_conventions>`  like FL Plans, aggregators, collaborators and more. 
+New to |productName|? Get familiar with our new Python API using the built-in tutorials. After installing the |productName| package in your virtual environment, simply run :code:`fx tutorial start` from the command line. This will start a Jupyter notebook server and return a URL you can use to access each of our tutorials. We provide several jupyter notebooks for Pytorch and Tensorflow that simulate a federation on a local machine.  These tutorials provide a convient entrypoint for learning about :ref:`|productName| conventions <definitions_and_conventions>`  like FL Plans, aggregators, collaborators and more. 
 
 
 Starting the tutorials
@@ -23,17 +23,17 @@ Starting the tutorials
  - :code:`Federated Keras MNIST Tutorial`: workspace with a simple `Keras <http://keras.io/>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
  - :code:`Federated Pytorch MNIST Tutorial`: workspace with a simple `Keras <http://keras.io/>`_ CNN model that will download the `MNIST <http://yann.lecun.com/exdb/mnist/>`_ dataset and train in a federation.
 
-FL.Edge Python API Concepts
+|productName| Python API Concepts
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As a first step to using the FL.Edge Python API, add the following lines to your python script:
+As a first step to using the |productName| Python API, add the following lines to your python script:
 
     .. code-block:: python
 
-     import fledge.native as fx
-     from fledge.federated import FederatedModel,FederatedDataSet
+     import openfl.native as fx
+     from openfl.federated import FederatedModel,FederatedDataSet
 
-This will load the FL.Edge package and import wrappers that adapt your existing data and models to a (simulated) federated context. To setup FL.Edge for a basic experiment, just run :code:`fx.init()`. This command will create a new workspace directory containing default plan values for your experiments, and setup a two collaborator experiment (the collaborators are creatively named 'one' and 'two'). If you want to create an experiment with a large number of collaborators, this can be done programmatically as follows:
+This will load the |productName| package and import wrappers that adapt your existing data and models to a (simulated) federated context. To setup |productName| for a basic experiment, just run :code:`fx.init()`. This command will create a new workspace directory containing default plan values for your experiments, and setup a two collaborator experiment (the collaborators are creatively named 'one' and 'two'). If you want to create an experiment with a large number of collaborators, this can be done programmatically as follows:
 
     .. code-block:: python
 
@@ -54,7 +54,7 @@ At this point you may be wondering what goes into a FL.Plan, and how you can cus
        "aggregator.settings.init_state_path": "save/keras_cnn_mnist_init.pbuf",
        "aggregator.settings.last_state_path": "save/keras_cnn_mnist_last.pbuf",
        "aggregator.settings.rounds_to_train": 10,
-       "aggregator.template": "fledge.component.Aggregator",
+       "aggregator.template": "openfl.component.Aggregator",
        ...
      }
 
@@ -131,7 +131,7 @@ Now we just need to define which collaborators (that were created with :code:`fx
      experiment_collaborators = {col_name:col_model for col_name,col_model \
                                       in zip(collaborator_list,fl_model.setup(len(collaborator_list)))}
 
-This command will create a model for each collaborator each their data slice. In production deployments of FL.Edge, each collaborator will have the data on premise, and the splitting of data into shards is not necessary.
+This command will create a model for each collaborator each their data slice. In production deployments of |productName|, each collaborator will have the data on premise, and the splitting of data into shards is not necessary.
 
 We are now ready to run our experiment!
 

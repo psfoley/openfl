@@ -1,37 +1,37 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
-"""This package includes dependencies of the FLedge project."""
+"""This package includes dependencies of the openfl project."""
 
 from setuptools import setup
 
 setup(
-    name='fledge',
+    name='openfl',
     version='0.3.2',
     author='Intel Corporation',
-    description='Federated Learning on the Edge',
+    description='Federated Learning for the Edge',
     packages=[
-        'fledge',
-        'fledge.interface',
-        'fledge.component',
-        'fledge.cryptography',
-        'fledge.native',
-        'fledge.component.assigner',
-        'fledge.component.aggregator',
-        'fledge.component.collaborator',
-        'fledge.utilities',
-        'fledge.protocols',
-        'fledge.pipelines',
-        'fledge.databases',
-        'fledge.transport',
-        'fledge.transport.grpc',
-        'fledge.federated',
-        'fledge.federated.plan',
-        'fledge.federated.task',
-        'fledge.federated.data',
-        'fledge-workspace',
-        'fledge-docker',
-        'fledge-tutorials',
+        'openfl',
+        'openfl.interface',
+        'openfl.component',
+        'openfl.cryptography',
+        'openfl.native',
+        'openfl.component.assigner',
+        'openfl.component.aggregator',
+        'openfl.component.collaborator',
+        'openfl.utilities',
+        'openfl.protocols',
+        'openfl.pipelines',
+        'openfl.databases',
+        'openfl.transport',
+        'openfl.transport.grpc',
+        'openfl.federated',
+        'openfl.federated.plan',
+        'openfl.federated.task',
+        'openfl.federated.data',
+        'openfl-workspace',
+        'openfl-docker',
+        'openfl-tutorials',
     ],
     include_package_data=True,
     install_requires=[
@@ -52,6 +52,6 @@ setup(
         'cryptography',
     ],
     entry_points={
-        'console_scripts': ['fx=fledge.interface.cli:entry']
+        'console_scripts': ['fx=openfl.interface.cli:entry']
     }
 )

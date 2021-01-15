@@ -1,8 +1,7 @@
 """Docs configuration module."""
 
-# Copyright (C) 2020 Intel Corporation
-# Licensed subject to the terms of the separately executed
-# evaluation license agreement between Intel Corporation and you.
+# Copyright (C) 2020-2021 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
 
 
 # Configuration file for the Sphinx documentation builder.
@@ -52,7 +51,7 @@ PRODUCT_VERSION = "Intel"
 
 if PRODUCT_VERSION == "Intel":
 
-    project = 'FL.edge'
+    project = 'OpenFL'
     copyright = '{}, Intel'.format(datetime.now().year)
     author = 'Secure Intelligence Team'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
@@ -61,10 +60,10 @@ if PRODUCT_VERSION == "Intel":
 
     # Global variables for rST
     rst_prolog = """
-    .. |productName| replace:: Intel\\ :sup:`®` \\ Federated Learning (FL.Edge)
-    .. |productZip| replace:: fledge.zip
-    .. |productDir| replace:: fledge
-    .. |productWheel| replace:: fledge-***-py3-none-any.whl
+    .. |productName| replace:: Intel\\ :sup:`®` \\ Federated Learning (OpenFL)
+    .. |productZip| replace:: openfl.zip
+    .. |productDir| replace:: openfl
+    .. |productWheel| replace:: openfl-***-py3-none-any.whl
 
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """

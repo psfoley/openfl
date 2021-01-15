@@ -14,7 +14,7 @@ from shutil import copyfile, ignore_patterns
 from openfl.interface.cli_helper import copytree, print_tree, check_varenv
 from openfl.interface.cli_helper import get_fx_path, replace_line_in_file
 from openfl.interface.cli_helper import WORKSPACE, PKI_DIR
-from openfl.interface.cli_helper import SITEPACKS, openfl_USERDIR
+from openfl.interface.cli_helper import SITEPACKS, OPENFL_USERDIR
 
 
 @group()
@@ -68,8 +68,8 @@ def create_(prefix, template):
 def create(prefix, template):
     """Create federated learning workspace."""
     from os.path import isfile
-    if not openfl_USERDIR.exists():
-        openfl_USERDIR.mkdir()
+    if not OPENFL_USERDIR.exists():
+        OPENFL_USERDIR.mkdir()
 
     prefix = Path(prefix)
     template = Path(template)
@@ -87,7 +87,7 @@ def create(prefix, template):
     else:
         echo("No additional requirements for workspace defined. Skipping...")
     prefix_hash = _get_dir_hash(str(prefix.absolute()))
-    with open(openfl_USERDIR / f'requirements.{prefix_hash}.txt', 'w') as f:
+    with open(OPENFL_USERDIR / f'requirements.{prefix_hash}.txt', 'w') as f:
         check_call([executable, '-m', 'pip', 'freeze'], shell=False, stdout=f)
 
     print_tree(prefix, level=3)
@@ -119,7 +119,7 @@ def export_(context):
         check_call([executable, "-m", "pip", "freeze"], shell=False, stdout=f)
     workspace_hash = _get_dir_hash(prefix)
     origin_dict = _get_requirements_dict(
-        FLEDGE_USERDIR / f'requirements.{workspace_hash}.txt')
+        OPENFL_USERDIR / f'requirements.{workspace_hash}.txt')
     current_dict = _get_requirements_dict(export_requirements_filename)
     with open(export_requirements_filename, "w") as f:
         for package, version in current_dict.items():

@@ -16,7 +16,7 @@ SITEPACKS = Path(__file__).parent.parent.parent
 WORKSPACE = SITEPACKS / 'openfl-workspace'
 TUTORIALS = SITEPACKS / 'openfl-tutorials'
 PKI_DIR = Path('cert')
-openfl_USERDIR = Path.home() / '.openfl'
+OPENFL_USERDIR = Path.home() / '.openfl'
 
 
 def pretty(o):

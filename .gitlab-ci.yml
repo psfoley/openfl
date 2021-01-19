@@ -198,7 +198,7 @@ fe_tf_adversarial_cifar:
   script:
     - source .venv/bin/activate
     - pip install . 
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 1
     - deactivate
   after_script:
     - jobs
@@ -236,7 +236,7 @@ fe_torch_adversarial_cifar:
   script:
     - source .venv/bin/activate
     - pip install .
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 1
     - deactivate
   after_script:
     - jobs
@@ -274,7 +274,7 @@ torch_cnn_histology:
   script:
     - source .venv/bin/activate
     - pip install .
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 2
     - deactivate
   after_script:
     - jobs
@@ -312,7 +312,7 @@ tf_cnn_histology:
   script:
     - source .venv/bin/activate
     - pip install .
-    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 3
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_hello_federation.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 2
     - deactivate
   after_script:
     - jobs

@@ -168,6 +168,44 @@ torch_cnn_mnist:
     - rm -rf .venv
     - kill -15 $$
 
+double_workspace_export:
+  stage: test
+  tags:
+   - charlie
+  before_script:
+    - whoami
+    - echo "Killing running fledge processes..." && if pgrep fx; then pkill fx; fi
+    - pwd
+    - ls
+    - cd /home/gitlab-runner/workspace
+    - echo "remove the directory ..."
+    - rm -rf fledge
+    - echo "clone the directory ..."
+    - git clone ssh://git@gitlab.devtools.intel.com:29418/secure-intelligence-team/fledge.git
+    - cd /home/gitlab-runner/workspace/fledge
+    - echo $CI_COMMIT_REF_NAME
+    - git checkout $CI_COMMIT_REF_NAME
+    - export http_proxy=http://proxy-us.intel.com:911
+    - export https_proxy=http://proxy-us.intel.com:912
+    - export no_proxy=docker:2375,docker:2376,intel.com,.intel.com,10.0.0.0/8,192.168.0.0/16,localhost,127.0.0.0/8,134.134.0.0/16
+    - export FQDN=$(hostname --all-fqdns | awk '{print $1}')
+    - export COL1=one23
+    - export COL2=two34
+    - export FED_WORKSPACE=torch_cnn_mnist
+    - export FED_DIRECTORY=workspace_torch
+    - python3 -m pip install --user --upgrade pip virtualenv
+    - virtualenv .venv
+  script:
+    - source .venv/bin/activate
+    - pip install .
+    - /home/gitlab-runner/workspace/fledge/tests/gitlab/test_double_ws_export.sh ${FED_WORKSPACE} ${FED_DIRECTORY} ${COL1} ${COL2} --rounds-to-train 1
+    - deactivate
+  after_script:
+    - jobs
+    - echo "cleaning ...... $$"
+    - rm -rf .venv
+    - kill -15 $$
+
 fe_tf_adversarial_cifar:
   stage: test
   tags:

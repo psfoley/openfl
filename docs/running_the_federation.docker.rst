@@ -3,7 +3,7 @@
 
 .. _running_the_federation_docker:
 
-Running on Docker
+Running |productName| with Docker
 #################
 
 First make sure you have :ref:`followed the Docker installation steps <install_docker>` to have the containerized version of |productName|. A demo script can be found at :code:`docker_keras_demo.sh`.

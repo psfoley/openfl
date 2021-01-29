@@ -28,6 +28,7 @@ setup(
         'openfl.federated',
         'openfl.federated.plan',
         'openfl.federated.task',
+        'openfl.federated.types',
         'openfl.federated.data',
         'openfl-workspace',
         'openfl-docker',

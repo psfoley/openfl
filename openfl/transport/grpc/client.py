@@ -269,7 +269,7 @@ class CollaboratorGRPCClient:
         return response.tasks, response.round_number, response.sleep_time, response.quit
 
     @_atomic_connection
-    def get_aggregated_tensor(self, collaborator_name, tensor_name, round_number,
+    def get_aggregated_tensor(self, collaborator_name, tensor_name, round_number, round_phase,
                               report, tags, require_lossless):
         """Get aggregated tensor from the aggregator."""
         self._set_header(collaborator_name)
@@ -277,6 +277,7 @@ class CollaboratorGRPCClient:
             header=self.header,
             tensor_name=tensor_name,
             round_number=round_number,
+            round_phase=round_phase,
             report=report,
             tags=tags,
             require_lossless=require_lossless

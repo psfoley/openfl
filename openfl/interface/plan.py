@@ -8,11 +8,14 @@ from pathlib import Path
 from click import Path as ClickPath
 from click import group, option, pass_context
 from click import echo
+import inspect
+import types
 
 from openfl.protocols import utils
 from openfl.utilities import split_tensor_dict_for_holdouts
 from openfl.federated import Plan
 from openfl.interface.cli_helper import get_workspace_parameter
+from openfl.federated.types import TypeHandlerFactory
 
 logger = getLogger(__name__)
 
@@ -78,18 +81,33 @@ def initialize(context, plan_config, cols_config, data_config,
     task_runner = plan.get_task_runner(collaborator_cname)
     tensor_pipe = plan.get_tensor_pipe()
 
-    # I believe there is no need for this line as task_runner has this variable
-    # initialized with empty dict tensor_dict_split_fn_kwargs =
-    # task_runner.tensor_dict_split_fn_kwargs or {}
-    tensor_dict, holdout_params = split_tensor_dict_for_holdouts(
-        logger,
-        task_runner.get_tensor_dict(False),
-        **task_runner.tensor_dict_split_fn_kwargs
-    )
+    # There should be a for loop here to capture all the public task_runner methods
+    tensor_dict = {}
+    type_handler_factory = TypeHandlerFactory()
+    for attr in inspect.getmembers(task_runner):
+        if '__' not in attr[0] and attr[0][0] is not '_': 
+            # Make sure attribute is not a function
+            if not isinstance(attr[1],types.FunctionType):
+                print(f'Public Attribute: {attr[0]}, type: {type(attr[1])}')
+                if type_handler_factory.is_supported(attr[1]):
+                    type_handler = type_handler_factory.get_type_handler(attr[1])
+                    #TODO transform tensorkeys to global tensorkeys
+                    #tensorkeys = self.transform_to_global_tensorkeys(tensorkeys)
+                    attr_tensor_dict = type_handler.attr_to_map(attr[1],attr[0],round_phase='start')
+                    if len(attr_tensor_dict) == 0:
+                        logger.info(f'{attr[0]} has no data. Skipping...')
+                    tensor_dict = {**tensor_dict,**attr_tensor_dict}
 
-    logger.warn(f'Following parameters omitted from global initial model, '
-                f'local initialization will determine'
-                f' values: {list(holdout_params.keys())}')
+    logger.info(f'tensor_dict = {tensor_dict}')
+    #tensor_dict, holdout_params = split_tensor_dict_for_holdouts(
+    #    logger,
+    #    tensorkeys,
+    #    **task_runner.tensor_dict_split_fn_kwargs
+    #)
+
+    #logger.warn(f'Following parameters omitted from global initial model, '
+    #            f'local initialization will determine'
+    #            f' values: {list(holdout_params.keys())}')
 
     model_snap = utils.construct_model_proto(tensor_dict=tensor_dict,
                                              round_number=0,

@@ -23,7 +23,7 @@ class TensorDB:
     def __init__(self):
         """Initialize."""
         self.tensor_db = pd.DataFrame([], columns=[
-            'tensor_name', 'origin', 'round', 'report', 'tags', 'nparray'
+            'tensor_name', 'origin', 'round', 'round_phase', 'report', 'tags', 'nparray'
         ])
         self.mutex = Lock()
 
@@ -32,7 +32,7 @@ class TensorDB:
         with pd.option_context('display.max_rows', None):
             return 'TensorDB contents:\n{}'.format(
                 self.tensor_db[
-                    ['tensor_name', 'origin', 'round', 'report', 'tags']
+                    ['tensor_name', 'origin', 'round', 'round_phase', 'report', 'tags']
                 ])
 
     def __str__(self):
@@ -61,15 +61,16 @@ class TensorDB:
         entries_to_add = []
         with self.mutex:
             for tensor_key, nparray in tensor_key_dict.items():
-                tensor_name, origin, fl_round, report, tags = tensor_key
+                tensor_name, origin, fl_round, round_phase, report, tags = tensor_key
                 entries_to_add.append(
                     pd.DataFrame([
-                        [tensor_name, origin, fl_round, report, tags, nparray]
+                        [tensor_name, origin, fl_round, round_phase, report, tags, nparray]
                     ],
                         columns=[
                             'tensor_name',
                             'origin',
                             'round',
+                            'round_phase',
                             'report',
                             'tags',
                             'nparray']
@@ -87,12 +88,13 @@ class TensorDB:
         Returns the nparray if it is available
         Otherwise, it returns 'None'
         """
-        tensor_name, origin, fl_round, report, tags = tensor_key
+        tensor_name, origin, fl_round, round_phase, report, tags = tensor_key
 
         # TODO come up with easy way to ignore compression
         df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name)
                             & (self.tensor_db['origin'] == origin)
                             & (self.tensor_db['round'] == fl_round)
+                            & (self.tensor_db['round_phase'] == round_phase)
                             & (self.tensor_db['report'] == report)
                             & (self.tensor_db['tags'] == tags)]
 
@@ -137,11 +139,12 @@ class TensorDB:
         agg_tensor_dict = {}
 
         # Check if the aggregated tensor is already present in TensorDB
-        tensor_name, origin, fl_round, report, tags = tensor_key
+        tensor_name, origin, fl_round, round_phase, report, tags = tensor_key
 
         raw_df = self.tensor_db[(self.tensor_db['tensor_name'] == tensor_name)
                                 & (self.tensor_db['origin'] == origin)
                                 & (self.tensor_db['round'] == fl_round)
+                                & (self.tensor_db['round_phase'] == round_phase)
                                 & (self.tensor_db['report'] == report)
                                 & (self.tensor_db['tags'] == tags)]['nparray']
         if len(raw_df) > 0:
@@ -156,13 +159,14 @@ class TensorDB:
                 (self.tensor_db['tensor_name'] == tensor_name)
                 & (self.tensor_db['origin'] == origin)
                 & (self.tensor_db['round'] == fl_round)
+                & (self.tensor_db['round_phase'] == round_phase)
                 & (self.tensor_db['report'] == report)
                 & (self.tensor_db['tags'] == new_tags)]['nparray']
             # print(raw_df)
             if len(raw_df) == 0:
                 print('No results for collaborator {}, TensorKey={}'.format(
                     col, TensorKey(
-                        tensor_name, origin, report, fl_round, new_tags
+                        tensor_name, origin, report, fl_round, round_phase, report, new_tags
                     )))
                 return None, {}
             else:

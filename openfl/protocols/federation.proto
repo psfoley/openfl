@@ -36,9 +36,10 @@ message TensorRequest {
     required MessageHeader   header           = 1;
     required string          tensor_name      = 2;
     required int32           round_number     = 3;
-    required bool            report	          = 4;
-    repeated string	         tags	          = 5;
-    required bool	         require_lossless = 6;
+    required string          round_phase      = 4;
+    required bool            report	          = 5;
+    repeated string	         tags	          = 6;
+    required bool	         require_lossless = 7;
 }
 
 // we'll actually send this as a data stream
@@ -69,11 +70,12 @@ message Acknowledgement {
 message NamedTensor {
     required string         name                 = 1;
     required int32          round_number         = 2;
-    required bool           lossless		     = 3;
-    required bool	        report		         = 4;
-    repeated string         tags                 = 5;
-    repeated MetadataProto  transformer_metadata = 6;
-    required bytes          data_bytes           = 7;
+    required string         round_phase          = 3;
+    required bool           lossless	         = 4;
+    required bool	    report	         = 5;
+    repeated string         tags                 = 6;
+    repeated MetadataProto  transformer_metadata = 7;
+    required bytes          data_bytes           = 8;
 }
 
 message MetadataProto {

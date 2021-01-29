@@ -6,6 +6,11 @@
 from logging import getLogger
 from enum import Enum
 from time import sleep
+import torch.nn as nn
+from openfl.federated.types import TypeHandlerFactory, PyTorchModuleTypeHandler
+import inspect
+from dill.source import getsource
+
 
 from openfl.protocols import utils
 from openfl.utilities import TensorKey
@@ -104,7 +109,7 @@ class Collaborator:
             raise NotImplementedError(
                 "Unknown opt_treatment: %s." % opt_treatment)
 
-        self.task_runner.set_optimizer_treatment(self.opt_treatment.name)
+        #self.task_runner.set_optimizer_treatment(self.opt_treatment.name)
 
     def run(self):
         """Run the collaborator."""
@@ -117,6 +122,8 @@ class Collaborator:
             else:
                 self.logger.info(
                     'Received the following tasks: {}'.format(tasks))
+                #Do beginning of round update
+                self.update_task_runner(round_number)
                 for task in tasks:
                     self.do_task(task, round_number)
 
@@ -159,6 +166,60 @@ class Collaborator:
 
         return tasks, round_number, sleep_time, time_to_quit
 
+    def update_task_runner(self, round_number):
+        """Update task runner attributes"""
+
+        self.attr_hashes = {}
+        type_handler_factory = TypeHandlerFactory()
+        for attr in inspect.getmembers(self.task_runner):
+            if '__' not in attr[0] and attr[0][0] is not '_':
+                self.logger.debug(f'Public Attribute: {attr[0]}, type: {type(attr[1])}')
+                if type_handler_factory.is_supported(attr[1]):
+                    type_handler = type_handler_factory.get_type_handler(attr[1])
+                    tensorkeys = type_handler.get_tensorkeys(attr[1],attr[0],round_num=round_number)
+                    if len(tensorkeys) == 0:
+                        continue
+                    #TODO transform tensorkeys to global tensorkeys
+                    #tensorkeys = self.transform_to_global_tensorkeys(tensorkeys)
+                    self.logger.debug(f'Update task runner tensorkeys: {tensorkeys}')
+                    input_tensor_dict = self.get_numpy_dict_for_tensorkeys(
+                            tensorkeys
+                    )
+                    self.logger.debug(f'input_tensor_dict: {input_tensor_dict}')
+                    new_value = type_handler.map_to_attr(attr[1],input_tensor_dict)
+
+                    # Do request for Tensorkeys 
+                    setattr(self.task_runner,attr[0],new_value)
+                    self.logger.info(f'Successfully updated {attr[0]}')
+                    _hash = type_handler.get_hash(new_value)
+                    self.logger.debug(f'{attr[0]} hash: {_hash}')
+                    self.attr_hashes[attr[0]] = _hash
+
+
+    def find_func_output_names(self,source):
+        """
+        Attempt to find the variable name that is returned by the function.
+        This will not always be possible, in which case return 'func_name.index'
+        """
+        source = source.split('\n')
+        return_names_size_dict = {}
+        for line in source:
+            if 'return' in line:
+                l = line.lstrip().strip('return').lstrip().rstrip()
+                if ',' in l:
+                    names = l.split(',')
+                else:
+                    names = [l]
+                size = len(names)
+                #TODO need to handle the case when the variable name starts with an underscore
+                if str(size) in return_names_size_dict:
+                    # return names are possible non unique
+                    return_names_size_dict[str(size)] = list(range(size))
+                else:
+                    return_names_size_dict[str(size)] = names
+        return return_names_size_dict
+
+
     def do_task(self, task, round_number):
         """Do the specified task."""
         # map this task to an actual function name and kwargs
@@ -166,40 +227,81 @@ class Collaborator:
         kwargs = self.task_config[task]['kwargs']
 
         # this would return a list of what tensors we require as TensorKeys
-        required_tensorkeys_relative = \
-            self.task_runner.get_required_tensorkeys_for_function(
-                func_name, **kwargs
-            )
+        #required_tensorkeys_relative = \
+        #    self.task_runner.get_required_tensorkeys_for_function(
+        #        func_name, **kwargs
+        #    )
 
         # models actually return "relative" tensorkeys of (name, LOCAL|GLOBAL,
         # round_offset)
         # so we need to update these keys to their "absolute values"
-        required_tensorkeys = []
-        for tname, origin, rnd_num, report, tags in required_tensorkeys_relative:
-            if origin == 'GLOBAL':
-                origin = self.aggregator_uuid
-            else:
-                origin = self.collaborator_name
+        #required_tensorkeys = []
+        #for tname, origin, rnd_num, report, tags in required_tensorkeys_relative:
+        #    if origin == 'GLOBAL':
+        #        origin = self.aggregator_uuid
+        #    else:
+        #        origin = self.collaborator_name
 
-            # rnd_num is the relative round. So if rnd_num is -1, get the
-            # tensor from the previous round
-            required_tensorkeys.append(
-                TensorKey(tname, origin, rnd_num + round_number, report, tags)
-            )
+        #    # rnd_num is the relative round. So if rnd_num is -1, get the
+        #    # tensor from the previous round
+        #    required_tensorkeys.append(
+        #        TensorKey(tname, origin, rnd_num + round_number, report, tags)
+        #    )
 
-        # print('Required tensorkeys = {}'.format(
-        # [tk[0] for tk in required_tensorkeys]))
-        input_tensor_dict = self.get_numpy_dict_for_tensorkeys(
-            required_tensorkeys
-        )
+        ## print('Required tensorkeys = {}'.format(
+        ## [tk[0] for tk in required_tensorkeys]))
+        #input_tensor_dict = self.get_numpy_dict_for_tensorkeys(
+        #    required_tensorkeys
+        #)
 
-        # now we have whatever the model needs to do the task
+        ## now we have whatever the model needs to do the task
         func = getattr(self.task_runner, func_name)
-        global_output_tensor_dict, local_output_tensor_dict = func(
-            col_name=self.collaborator_name,
-            round_num=round_number,
-            input_tensor_dict=input_tensor_dict,
-            **kwargs)
+        func_source = getsource(func)
+        func_output_name_dict = self.find_func_output_names(func_source)
+        self.logger.info(f'output of task {task}: {func_output_name_dict}')
+        if kwargs is not None:
+            results = func(**kwargs)
+        else:
+            results = func()
+
+        type_handler_factory = TypeHandlerFactory()
+
+        global_output_tensor_dict = {}
+        local_output_tensor_dict = {}
+
+        if results is not None:
+            if results is not tuple:
+                results = (results,)
+            variable_names = func_output_name_dict[str(len(results))]
+            for result,name in zip(results,variable_names):
+                if name[0] is not '_':
+                    self.logger.info(f'Attempting to send {name} of type {type(result)}')
+                    if type_handler_factory.is_supported(result):
+                        type_handler = type_handler_factory.get_type_handler(result)
+                        # The special attribute name only applies for metrics being reported to guarantee uniqueness
+                        tensor_output_dict = type_handler.attr_to_map(result,f'{task} : {name}',origin=self.collaborator_name,
+                                round_num=round_number,report=True)
+                        global_output_tensor_dict = {**global_output_tensor_dict,**tensor_output_dict}
+
+        # Process changed attributes
+        for attr in inspect.getmembers(self.task_runner):
+            if '__' not in attr[0] and attr[0][0] is not '_':
+                if type_handler_factory.is_supported(attr[1]):
+                    # The attr was newly initialized
+                    type_handler = type_handler_factory.get_type_handler(attr[1])
+                    if attr[0] in self.attr_hashes: 
+                        if self.attr_hashes[attr[0]] == type_handler.get_hash(attr[1]):
+                            continue
+
+                    tensorkeys = type_handler.attr_to_map(attr[1],attr[0])
+                    tensor_output_dict = type_handler.attr_to_map(
+                            attr[1],attr[0],origin=self.collaborator_name,
+                            round_num=round_number,report=False)
+
+                    global_output_tensor_dict = {**global_output_tensor_dict,**tensor_output_dict}
+
+
+        self.logger.debug(f'global_output_tensor_dict = {global_output_tensor_dict}')
 
         # Save global and local output_tensor_dicts to TensorDB
         self.tensor_db.cache_tensor(global_output_tensor_dict)
@@ -223,7 +325,7 @@ class Collaborator:
                             remotely. May be the product of other tensors
         """
         # try to get from the store
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         self.logger.debug(
             'Attempting to retrieve tensor {} from local store'.format(
                 tensor_key)
@@ -239,7 +341,7 @@ class Collaborator:
                 prior_round = round_number - 1
                 while prior_round >= 0:
                     nparray = self.tensor_db.get_tensor_from_cache(
-                        TensorKey(tensor_name, origin, prior_round, report, tags))
+                        TensorKey(tensor_name, origin, prior_round, round_phase, report, tags))
                     if nparray is not None:
                         self.logger.debug(
                             'Found tensor {} in local TensorDB for round'
@@ -322,11 +424,11 @@ class Collaborator:
         nparray     : The decompressed tensor associated with the requested
                       tensor key
         """
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
 
         self.logger.debug('Requesting aggregated tensor {}'.format(tensor_key))
         tensor = self.client.get_aggregated_tensor(
-            self.collaborator_name, tensor_name, round_number, report, tags, require_lossless)
+            self.collaborator_name, tensor_name, round_number, round_phase, report, tags, require_lossless)
 
         # this translates to a numpy array and includes decompression, as
         # necessary
@@ -351,15 +453,18 @@ class Collaborator:
         data_size = -1
 
         if 'train' in task_name:
-            data_size = self.task_runner.get_train_data_size()
+            #data_size = self.task_runner.get_train_data_size()
+            # TODO need to fix the data size. Where to do this lookup?
+            data_size = 100
 
         if 'valid' in task_name:
-            data_size = self.task_runner.get_valid_data_size()
+            #data_size = self.task_runner.get_valid_data_size()
+            data_size = 100
 
         self.logger.debug(f'{task_name} data size = {data_size}')
 
         for tensor in tensor_dict:
-            tensor_name, origin, fl_round, report, tags = tensor
+            tensor_name, origin, fl_round, round_phase, report, tags = tensor
 
             if report:
                 self.logger.info(
@@ -377,7 +482,7 @@ class Collaborator:
         Includes logic to create delta, compress tensors with the TensorCodec, etc.
         """
         # if we have an aggregated tensor, we can make a delta
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         if 'trained' in tags and self.delta_updates:
             # Should get the pretrained model to create the delta. If training
             # has happened,
@@ -387,6 +492,7 @@ class Collaborator:
                     tensor_name,
                     origin,
                     round_number,
+                    round_phase,
                     report,
                     ('model',)
                 )
@@ -440,10 +546,11 @@ class Collaborator:
             named_tensor.name,
             self.collaborator_name,
             named_tensor.round_number,
+            named_tensor.round_phase,
             named_tensor.report,
             tuple(named_tensor.tags)
         )
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         if 'compressed' in tags:
             decompressed_tensor_key, decompressed_nparray = \
                 self.tensor_codec.decompress(

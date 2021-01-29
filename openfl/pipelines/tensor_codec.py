@@ -65,13 +65,13 @@ class TensorCodec:
                 data, **kwargs)
         # Define the compressed tensorkey that should be
         # returned ('trained.delta'->'trained.delta.lossy_compressed')
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         if not self.compression_pipeline.is_lossy() or require_lossless:
             new_tags = tuple(list(tags) + ['compressed'])
         else:
             new_tags = tuple(list(tags) + ['lossy_compressed'])
         compressed_tensor_key = TensorKey(
-            tensor_name, origin, round_number, report, new_tags)
+            tensor_name, origin, round_number, round_phase, report, new_tags)
         return compressed_tensor_key, compressed_nparray, metadata
 
     def decompress(self, tensor_key, data, transformer_metadata,
@@ -103,7 +103,7 @@ class TensorCodec:
             decompressed_nparray:       The decompressed tensor
 
         """
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
 
         assert (len(transformer_metadata) > 0), (
             'metadata must be included for decompression')
@@ -125,14 +125,14 @@ class TensorCodec:
             new_tags = list(tags)
             new_tags[lc_idx] = 'lossy_decompressed'
             decompressed_tensor_key = TensorKey(
-                tensor_name, origin, round_number, report, tuple(new_tags))
+                tensor_name, origin, round_number, round_phase, report, tuple(new_tags))
         elif 'compressed' in tags:
             # 'compressed' == lossless compression; no need for
             # compression related tag after decompression
             new_tags = list(tags)
             new_tags.remove('compressed')
             decompressed_tensor_key = TensorKey(
-                tensor_name, origin, round_number, report, tuple(new_tags))
+                tensor_name, origin, round_number, round_phase, report, tuple(new_tags))
         else:
             raise NotImplementedError(
                 "Decompression is only supported on compressed data")
@@ -161,21 +161,21 @@ class TensorCodec:
             delta:              Difference between the provided tensors
 
         """
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         if not np.isscalar(nparray):
             assert nparray.shape == base_model_nparray.shape, (
                 'Shape of updated layer ({}) is not equal to base '
                 'layer shape of ({})'.format(
                     nparray.shape, base_model_nparray.shape))
-        assert 'model' not in tags, (
-            'The tensorkey should be provided '
-            'from the layer with new weights, not the base model')
+        #assert 'model' not in tags, (
+        #    'The tensorkey should be provided '
+        #    'from the layer with new weights, not the base model')
         if type(tags) == str:
             new_tags = tuple([tensor_key[3]] + ['delta'])
         else:
             new_tags = tuple(list(tags) + ['delta'])
         delta_tensor_key = TensorKey(
-            tensor_name, origin, round_number, report, new_tags)
+            tensor_name, origin, round_number,  round_phase, report, new_tags)
         return delta_tensor_key, nparray - base_model_nparray
 
     @staticmethod
@@ -197,7 +197,7 @@ class TensorCodec:
             new_model_nparray:      Latest layer weights
 
         """
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         if not np.isscalar(base_model_nparray):
             assert (delta.shape == base_model_nparray.shape), (
                 'Shape of delta ({}) is not equal to shape of model'
@@ -210,10 +210,10 @@ class TensorCodec:
             tags.remove('delta')
             new_tags = tuple(tags)
             new_model_tensor_key = TensorKey(
-                tensor_name, origin, round_number, report, new_tags)
+                tensor_name, origin, round_number, round_phase, report, new_tags)
         else:
             new_model_tensor_key = TensorKey(
-                tensor_name, origin, round_number, report, ('model',))
+                tensor_name, origin, round_number, round_phase, report, ('model',))
 
         return new_model_tensor_key, base_model_nparray + delta
 
@@ -221,14 +221,14 @@ class TensorCodec:
         """Resolve the tensors required to do the specified operation."""
         tensor_key_dependencies = []
 
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
 
         if 'model' in tags and send_model_deltas:
             if round_number >= 1:
                 # The new model can be generated by previous model + delta
                 tensor_key_dependencies.append(
                     TensorKey(
-                        tensor_name, origin, round_number - 1, report, tags
+                        tensor_name, origin, round_number - 1, round_phase, report, tags
                     )
                 )
                 if self.compression_pipeline.is_lossy():
@@ -237,7 +237,7 @@ class TensorCodec:
                     new_tags = ('aggregated', 'delta', 'compressed')
                 tensor_key_dependencies.append(
                     TensorKey(
-                        tensor_name, origin, round_number, report, new_tags
+                        tensor_name, origin, round_number, round_phase, report, new_tags
                     )
                 )
 

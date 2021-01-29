@@ -8,10 +8,10 @@
    contain the root `toctree` directive.
 
 ***************************************
-Welcome to the |productName| documentation!
+Welcome to |productName| documentation!
 ***************************************
 
-Intel\ :sup:`®` \ Federated Learning (|productName|) is a Python3 library for federated learning.
+|productName| is a Python3 library for federated learning.
 It enables organizations to collaborately train a
 model without sharing sensitive information with each other.
 

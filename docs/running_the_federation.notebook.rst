@@ -6,7 +6,7 @@
 Learning to fly: |productName| tutorials
 #######################
 
-New to |productName|? Get familiar with our new Python API using the built-in tutorials. After installing the |productName| package in your virtual environment, simply run :code:`fx tutorial start` from the command line. This will start a Jupyter notebook server and return a URL you can use to access each of our tutorials. We provide several jupyter notebooks for Pytorch and Tensorflow that simulate a federation on a local machine.  These tutorials provide a convient entrypoint for learning about :ref:`|productName| conventions <definitions_and_conventions>`  like FL Plans, aggregators, collaborators and more. 
+New to |productName|? Get familiar with our new Python API using the built-in tutorials. After installing the |productName| package in your virtual environment, simply run :code:`fx tutorial start` from the command line. This will start a Jupyter notebook server and return a URL you can use to access each of our tutorials. We provide several jupyter notebooks for Pytorch and Tensorflow that simulate a federation on a local machine.  These tutorials provide a convient entrypoint for learning about |productName| :ref:`conventions <definitions_and_conventions>`  like FL Plans, aggregators, collaborators and more. 
 
 
 Starting the tutorials
@@ -41,7 +41,7 @@ This will load the |productName| package and import wrappers that adapt your exi
      fx.init('keras_cnn_mnist',col_names=collaborator_list)
 
 
-One last point about :code:`fx.init()`. For Keras models, we recommend starting with the :code:`keras_cnn_mnist` template (by running :code:`fx.init('keras_cnn_mnist')`, and for pytorch models `torch_cnn_mnist` (by running :code:`fx.init(`torch_cnn_mnist`)`)
+One last point about :code:`fx.init()`. For Keras models, we recommend starting with the :code:`keras_cnn_mnist` template (by running :code:`fx.init("keras_cnn_mnist")`, and for pytorch models `torch_cnn_mnist` (by running :code:`fx.init("torch_cnn_mnist")`)
 
 At this point you may be wondering what goes into a FL.Plan, and how you can customize it. To see what is part of the FL.Plan that was created with the :code:`fx.init` command, run :code:`fx.get_plan()`:
 

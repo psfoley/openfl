@@ -53,18 +53,19 @@ if PRODUCT_VERSION == "Intel":
 
     project = 'OpenFL'
     copyright = '{}, Intel'.format(datetime.now().year)
-    author = 'Intel Corporation'
+    author = 'Secure Intelligence Team'
     version = "{}.{}".format(datetime.now().year, datetime.now().month)
     release = version
     master_doc = 'index'
 
     # Global variables for rST
     rst_prolog = """
-    .. |productName| replace:: OpenFL
+    .. |productName| replace:: Intel\\ :sup:`®` \\ Federated Learning (OpenFL)
     .. |productZip| replace:: openfl.zip
     .. |productDir| replace:: openfl
-    .. |productWheel| replace:: openfl
+    .. |productWheel| replace:: openfl-***-py3-none-any.whl
 
+    .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """
 
 else:
@@ -80,7 +81,7 @@ else:
     .. |productName| replace:: Open Federated Learning
     .. |productZip| replace:: OpenFederatedLearning.zip
     .. |productDir| replace:: OpenFederatedLearning
-    .. |productWheel| replace:: openfl
+    .. |productWheel| replace:: openfl-***-py3-none-any.whl
 
     .. _Makefile: https://github.com/IntelLabs/OpenFederatedLearning/blob/master/Makefile
     """

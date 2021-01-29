@@ -117,7 +117,7 @@ class Aggregator:
                 ' model'.format(round_number))
             self.round_number = round_number
         tensor_key_dict = {
-            TensorKey(k, self.uuid, self.round_number, False, ('model',)):
+            TensorKey(k, self.uuid, self.round_number, 'start', False, ('model',)):
                 v for k, v in tensor_dict.items()
         }
         # all initial model tensors are loaded here
@@ -143,14 +143,14 @@ class Aggregator:
             self.model, compression_pipeline=self.compression_pipeline)
         tensor_keys = [
             TensorKey(
-                k, self.uuid, round_number, False, ('model',)
+                k, self.uuid, round_number, 'start', False, ('model',)
             ) for k, v in og_tensor_dict.items()
         ]
         tensor_dict = {}
         for tk in tensor_keys:
-            tk_name, _, _, _, _ = tk
-            tensor_dict[tk_name] = self.tensor_db.get_tensor_from_cache(tk)
-            if tensor_dict[tk_name] is None:
+            #tk_name, _, _, _, _, _ = tk
+            tensor_dict[tk] = self.tensor_db.get_tensor_from_cache(tk)
+            if tensor_dict[tk] is None:
                 self.logger.info('Cannot save model for round {}.'
                                  ' Continuing...'.format(round_number))
                 return
@@ -280,7 +280,7 @@ class Aggregator:
         return tasks, self.round_number, sleep_time, time_to_quit
 
     def get_aggregated_tensor(self, collaborator_name, tensor_name,
-                              round_number, report, tags, require_lossless):
+                              round_number, round_phase, report, tags, require_lossless):
         """
         RPC called by collaborator.
 
@@ -293,6 +293,7 @@ class Aggregator:
             tensor_name: str
             require_lossless: bool
             round_number: int
+            round_phase: str
             report: bool
             tags: list[str]
         Returns:
@@ -313,9 +314,9 @@ class Aggregator:
             tags.remove('compressed')
 
         tensor_key = TensorKey(
-            tensor_name, self.uuid, round_number, report, tuple(tags)
+            tensor_name, self.uuid, round_number, round_phase, report, tuple(tags)
         )
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
 
         # send_model_deltas = False
         compress_lossless = False
@@ -323,7 +324,7 @@ class Aggregator:
         if 'aggregated' in tags and 'delta' in tags and round_number != 0:
             # send_model_deltas = True
             agg_tensor_key = TensorKey(
-                tensor_name, origin, round_number, report, ('aggregated',)
+                tensor_name, origin, round_number, round_phase, report, ('aggregated',)
             )
         else:
             agg_tensor_key = tensor_key
@@ -353,7 +354,7 @@ class Aggregator:
 
         Also includes logic to create delta, compress tensors with the TensorCodec, etc.
         """
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         # if we have an aggregated tensor, we can make a delta
         if 'aggregated' in tensor_name and send_model_deltas:
             # Should get the pretrained model to create the delta. If training
@@ -362,6 +363,8 @@ class Aggregator:
                 TensorKey(tensor_name,
                           origin,
                           round_number - 1,
+                          round_phase,
+                          report,
                           ('model',)))
 
             assert (model_nparray is not None), (
@@ -476,6 +479,7 @@ class Aggregator:
 
         self._end_of_task_check(task_name)
 
+
     def _process_named_tensor(self, named_tensor, collaborator_name):
         """
         Extract the named tensor fields.
@@ -506,10 +510,11 @@ class Aggregator:
             named_tensor.name,
             self.uuid,
             named_tensor.round_number,
+            named_tensor.round_phase,
             named_tensor.report,
             tuple(named_tensor.tags)
         )
-        tensor_name, origin, round_number, report, tags = tensor_key
+        tensor_name, origin, round_number, round_phase, report, tags = tensor_key
         assert ('compressed' in tags or 'lossy_decompressed' in tags), (
             'Named tensor {} is not compressed'.format(tensor_key))
         if 'compressed' in tags:
@@ -519,7 +524,7 @@ class Aggregator:
                 transformer_metadata=metadata,
                 require_lossless=True
             )
-            dec_name, dec_origin, dec_round_num, dec_report, dec_tags = dec_tk
+            dec_name, dec_origin, dec_round_num, dec_round_phase, dec_report, dec_tags = dec_tk
             # Need to add the collaborator tag to the resulting tensor
             if type(dec_tags) == str:
                 new_tags = tuple([dec_tags] + [collaborator_name])
@@ -527,7 +532,7 @@ class Aggregator:
                 new_tags = tuple(list(dec_tags) + [collaborator_name])
             # layer.agg.n.trained.delta.col_i
             decompressed_tensor_key = TensorKey(
-                dec_name, dec_origin, dec_round_num, dec_report, new_tags
+                dec_name, dec_origin, dec_round_num, dec_round_phase, dec_report, new_tags
             )
         if 'lossy_compressed' in tags:
             dec_tk, decompressed_nparray = self.tensor_codec.decompress(
@@ -542,12 +547,12 @@ class Aggregator:
                 new_tags = tuple(list(dec_tags) + [collaborator_name])
             # layer.agg.n.trained.delta.lossy_decompressed.col_i
             decompressed_tensor_key = TensorKey(
-                dec_name, dec_origin, dec_round_num, dec_report, new_tags
+                dec_name, dec_origin, dec_round_num, dec_round_phase, dec_report, new_tags
             )
 
         if 'delta' in tags:
             base_model_tensor_key = TensorKey(
-                tensor_name, origin, round_number, report, ('model',)
+                tensor_name, origin, round_number,round_phase, report, ('model',)
             )
             base_model_nparray = self.tensor_db.get_tensor_from_cache(
                 base_model_tensor_key
@@ -586,7 +591,7 @@ class Aggregator:
             # now check for the end of the round
             self._end_of_round_check()
 
-    def _prepare_trained(self, tensor_name, origin, round_number, report, agg_results):
+    def _prepare_trained(self, tensor_name, origin, round_number, round_phase, report, tags, agg_results):
         """
         Prepare aggregated tensorkey tags.
 
@@ -594,7 +599,9 @@ class Aggregator:
            tensor_name : str
            origin:
            round_number: int
+           round_phase: str
            report: bool
+           tags: tuple(str)
            agg_results: np.array
         """
         # The aggregated tensorkey tags should have the form of
@@ -609,8 +616,9 @@ class Aggregator:
             tensor_name,
             origin,
             round_number + 1,
+            round_phase,
             report,
-            ('aggregated',)
+            tuple(list(tags) + ['aggregated'])
         )
         self.tensor_db.cache_tensor({agg_tag_tk: agg_results})
 
@@ -619,8 +627,9 @@ class Aggregator:
             tensor_name,
             origin,
             round_number,
+            round_phase,
             report,
-            ('model',)
+            tags
         )
         base_model_nparray = self.tensor_db.get_tensor_from_cache(base_model_tk)
         if base_model_nparray is not None:
@@ -668,14 +677,16 @@ class Aggregator:
         # with delta operations,
         # Relabel the tags to 'model'
         (new_model_tensor_name, new_model_origin, new_model_round_number,
-         new_model_report, new_model_tags) = new_model_tk
+        new_model_round_phase, new_model_report, new_model_tags) = new_model_tk
         final_model_tk = TensorKey(
             new_model_tensor_name,
             new_model_origin,
             new_model_round_number,
+            'start',
             new_model_report,
-            ('model',)
+            tags
         )
+
 
         # Finally, cache the updated model tensor
         self.tensor_db.cache_tensor({final_model_tk: new_model_nparray})
@@ -717,14 +728,14 @@ class Aggregator:
         agg_functions = self.assigner.get_aggregation_type_for_task(task_name)
         task_key = TaskResultKey(task_name, collaborators_for_task[0], self.round_number)
         for tensor_key in self.collaborator_tasks_results[task_key]:
-            tensor_name, origin, round_number, report, tags = tensor_key
+            tensor_name, origin, round_number, round_phase, report, tags = tensor_key
             assert (tags[-1] == collaborators_for_task[0]), \
                 'Tensor {} in task {} has not been processed' \
                 ' correctly'.format(tensor_key, task_name)
             # Strip the collaborator label, and lookup aggregated tensor
             new_tags = tuple(list(tags[:-1]))
-            agg_tensor_key = TensorKey(tensor_name, origin, round_number, report, new_tags)
-            agg_tensor_name, agg_origin, agg_round_number, agg_report, agg_tags = agg_tensor_key
+            agg_tensor_key = TensorKey(tensor_name, origin, round_number, round_phase, report, new_tags)
+            agg_tensor_name, agg_origin, agg_round_number, agg_round_phase, agg_report, agg_tags = agg_tensor_key
             agg_results, agg_metadata_dict = self.tensor_db.get_aggregated_tensor(
                 agg_tensor_key, collaborator_weight_dict, agg_functions)
             if report:
@@ -754,8 +765,9 @@ class Aggregator:
                             'Saved the best model with score {:f}'.format(agg_results))
                         self.best_model_score = agg_results
                         self._save_model(round_number, self.best_state_path)
-            if 'trained' in tags:
-                self._prepare_trained(tensor_name, origin, round_number, report, agg_results)
+            else:
+                # if 'trained' in tags:
+                self._prepare_trained(tensor_name, origin, round_number, round_phase, report, new_tags, agg_results)
 
     def _end_of_round_check(self):
         """

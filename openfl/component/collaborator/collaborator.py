@@ -6,16 +6,16 @@
 from logging import getLogger
 from enum import Enum
 from time import sleep
-import torch.nn as nn
-from openfl.federated.types import TypeHandlerFactory, PyTorchModuleTypeHandler
 import inspect
 from dill.source import getsource
-
 
 from openfl.protocols import utils
 from openfl.utilities import TensorKey
 from openfl.pipelines import TensorCodec, NoCompressionPipeline
 from openfl.databases import TensorDB
+from openfl.federated.types import TypeHandlerFactory
+from openfl.federated.data import FederatedDataLoader
+
 
 
 class OptTreatment(Enum):
@@ -173,6 +173,11 @@ class Collaborator:
         type_handler_factory = TypeHandlerFactory()
         for attr in inspect.getmembers(self.task_runner):
             if '__' not in attr[0] and attr[0][0] is not '_':
+                if isinstance(attr[1],FederatedDataLoader):
+                    # Set 'hash' to be number of times DataLoader has been accessed
+                    # If this count changes, then it was accessed in some way by the executing task
+                    self.attr_hashes[attr[0]] = attr[1].get_access_count()
+                    continue
                 self.logger.debug(f'Public Attribute: {attr[0]}, type: {type(attr[1])}')
                 if type_handler_factory.is_supported(attr[1]):
                     type_handler = type_handler_factory.get_type_handler(attr[1])
@@ -269,6 +274,9 @@ class Collaborator:
         global_output_tensor_dict = {}
         local_output_tensor_dict = {}
 
+        # This will be determined dynamically for the task depending on whether a FederatedDataLoader was used
+        data_size = 1
+
         if results is not None:
             if results is not tuple:
                 results = (results,)
@@ -285,13 +293,20 @@ class Collaborator:
 
         # Process changed attributes
         for attr in inspect.getmembers(self.task_runner):
+            if isinstance(attr[1],FederatedDataLoader):
+                if attr[1].get_access_count() != self.attr_hashes[attr[0]]:
+                    data_size = attr[1].get_loader_data_size()
+                    self.logger.info(f'Setting {task} data size to {data_size}')
             if '__' not in attr[0] and attr[0][0] is not '_':
                 if type_handler_factory.is_supported(attr[1]):
                     # The attr was newly initialized
                     type_handler = type_handler_factory.get_type_handler(attr[1])
                     if attr[0] in self.attr_hashes: 
-                        if self.attr_hashes[attr[0]] == type_handler.get_hash(attr[1]):
+                        hash_ = type_handler.get_hash(attr[1])
+                        if self.attr_hashes[attr[0]] == hash_:
                             continue
+                        else:
+                            self.attr_hashes[attr[0]] == hash_
 
                     tensorkeys = type_handler.attr_to_map(attr[1],attr[0])
                     tensor_output_dict = type_handler.attr_to_map(
@@ -309,7 +324,7 @@ class Collaborator:
 
         # send the results for this tasks; delta and compression will occur in
         # this function
-        self.send_task_results(global_output_tensor_dict, round_number, task)
+        self.send_task_results(global_output_tensor_dict, round_number, task, data_size)
 
     def get_numpy_dict_for_tensorkeys(self, tensor_keys):
         """Get tensor dictionary for specified tensorkey set."""
@@ -441,27 +456,11 @@ class Collaborator:
 
         return nparray
 
-    def send_task_results(self, tensor_dict, round_number, task_name):
+    def send_task_results(self, tensor_dict, round_number, task_name, data_size):
         """Send task results to the aggregator."""
         named_tensors = [
             self.nparray_to_named_tensor(k, v) for k, v in tensor_dict.items()
         ]
-
-        # for general tasks, there may be no notion of data size to send.
-        # But that raises the question how to properly aggregate results.
-
-        data_size = -1
-
-        if 'train' in task_name:
-            #data_size = self.task_runner.get_train_data_size()
-            # TODO need to fix the data size. Where to do this lookup?
-            data_size = 100
-
-        if 'valid' in task_name:
-            #data_size = self.task_runner.get_valid_data_size()
-            data_size = 100
-
-        self.logger.debug(f'{task_name} data size = {data_size}')
 
         for tensor in tensor_dict:
             tensor_name, origin, fl_round, round_phase, report, tags = tensor

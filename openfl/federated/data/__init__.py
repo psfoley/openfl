@@ -13,6 +13,7 @@ with catch_warnings():
         import tensorflow  # NOQA
 
 from .loader import DataLoader  # NOQA
+from .loader_refactor import FederatedDataLoader  # NOQA
 
 if pkgutil.find_loader('tensorflow'):
     from .loader_tf import TensorFlowDataLoader  # NOQA

@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
+from openfl.federated.data import FederatedDataLoader
 
 
 class Net(nn.Module):
@@ -54,8 +55,8 @@ class PyTorchCNN:
                        transform=transform)
         dataset2 = datasets.MNIST('../data', train=False, download=True,
                        transform=transform)
-        self.train_loader = torch.utils.data.DataLoader(dataset1,**train_kwargs)
-        self.test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
+        self.train_loader = FederatedDataLoader(torch.utils.data.DataLoader(dataset1,**train_kwargs))
+        self.test_loader = FederatedDataLoader(torch.utils.data.DataLoader(dataset2, **test_kwargs))
         self.device = torch.device("cpu") 
         self.model = Net()
         self.optimizer = optim.Adadelta(self.model.parameters(), lr=1.0) 

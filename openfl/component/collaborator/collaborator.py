@@ -277,13 +277,16 @@ class Collaborator:
             variable_names = func_output_name_dict[str(len(results))]
             for result,name in zip(results,variable_names):
                 if name[0] is not '_':
-                    self.logger.info(f'Attempting to send {name} of type {type(result)}')
                     if type_handler_factory.is_supported(result):
+                        self.logger.info(f'Sending {name} of type {type(result)}')
                         type_handler = type_handler_factory.get_type_handler(result)
                         # The special attribute name only applies for metrics being reported to guarantee uniqueness
                         tensor_output_dict = type_handler.attr_to_map(result,f'{task} : {name}',origin=self.collaborator_name,
                                 round_num=round_number,report=True)
                         global_output_tensor_dict = {**global_output_tensor_dict,**tensor_output_dict}
+                    else:
+                        self.logger.info(f'{name} of type {type(result)} does not have a defined type handler. Metric will not be sent...')
+
 
         # Process changed attributes
         for attr in inspect.getmembers(self.task_runner):

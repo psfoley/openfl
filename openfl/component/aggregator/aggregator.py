@@ -471,6 +471,8 @@ class Aggregator:
         # self.collaborator_tasks_results[task_key] = []
         task_results = []
 
+        self.collaborator_task_weight[task_key] = data_size
+
         # go through the tensors and add them to the tensor dictionary and the
         # task dictionary
         for named_tensor in named_tensors:
@@ -488,11 +490,6 @@ class Aggregator:
             )
 
             task_results.append(tensor_key)
-            # By giving task_key it's own weight, we can support different
-            # training/validation weights
-            # As well as eventually supporting weights that change by round
-            # (if more data is added)
-            self.collaborator_task_weight[task_key] = data_size
 
         self.collaborator_tasks_results[task_key] = task_results
 

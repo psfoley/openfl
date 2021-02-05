@@ -1,8 +1,11 @@
 # Copyright (C) 2020-2021 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 from openfl.federated.data.handlers import DataHandlerFactory
+from logging import getLogger
 
 """DataLoader module."""
+
+logger = getLogger(__name__)
 
 
 class FederatedDataLoader(object):
@@ -22,7 +25,9 @@ class FederatedDataLoader(object):
     def __getattribute__(self, attr):
         """Track access to wrapped DataLoader."""
         if attr not in ['get_loader_data_size','get_access_count','loader','access_count','shard_data']:
-            self.access_count += 1
+            logger.debug(f'{attr} accessed')
+            if attr is not '__class__':
+                self.access_count += 1
             return self.loader.__getattribute__(attr)
         return super(FederatedDataLoader, self).__getattribute__(attr)
 

@@ -18,12 +18,7 @@ collaborator :
     opt_treatment    : RESET
 
 data_loader :
-  defaults : plan/defaults/data_loader.yaml
-  template : code.tfmnist_inmemory.TensorFlowMNISTInMemory
-  settings :
-    collaborator_count : 2
-    data_group_name    : mnist
-    batch_size         : 256
+  shard_data : True
 
 task_runner :
   defaults : plan/defaults/task_runner.yaml

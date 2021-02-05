@@ -30,6 +30,7 @@ setup(
         'openfl.federated.task',
         'openfl.federated.types',
         'openfl.federated.data',
+        'openfl.federated.data.handlers',
         'openfl-workspace',
         'openfl-docker',
         'openfl-tutorials',

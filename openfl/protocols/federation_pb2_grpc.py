@@ -22,6 +22,11 @@ class AggregatorStub(object):
                 request_serializer=federation__pb2.TasksRequest.SerializeToString,
                 response_deserializer=federation__pb2.TasksResponse.FromString,
                 )
+        self.GetRankAndSize = channel.unary_unary(
+                '/Aggregator/GetRankAndSize',
+                request_serializer=federation__pb2.RankRequest.SerializeToString,
+                response_deserializer=federation__pb2.RankResponse.FromString,
+                )
         self.GetAggregatedTensor = channel.unary_unary(
                 '/Aggregator/GetAggregatedTensor',
                 request_serializer=federation__pb2.TensorRequest.SerializeToString,
@@ -46,6 +51,12 @@ class AggregatorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetRankAndSize(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def GetAggregatedTensor(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -65,6 +76,11 @@ def add_AggregatorServicer_to_server(servicer, server):
                     servicer.GetTasks,
                     request_deserializer=federation__pb2.TasksRequest.FromString,
                     response_serializer=federation__pb2.TasksResponse.SerializeToString,
+            ),
+            'GetRankAndSize': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetRankAndSize,
+                    request_deserializer=federation__pb2.RankRequest.FromString,
+                    response_serializer=federation__pb2.RankResponse.SerializeToString,
             ),
             'GetAggregatedTensor': grpc.unary_unary_rpc_method_handler(
                     servicer.GetAggregatedTensor,
@@ -102,6 +118,22 @@ class Aggregator(object):
         return grpc.experimental.unary_unary(request, target, '/Aggregator/GetTasks',
             federation__pb2.TasksRequest.SerializeToString,
             federation__pb2.TasksResponse.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetRankAndSize(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/Aggregator/GetRankAndSize',
+            federation__pb2.RankRequest.SerializeToString,
+            federation__pb2.RankResponse.FromString,
             options, channel_credentials,
             call_credentials, compression, wait_for_ready, timeout, metadata)
 

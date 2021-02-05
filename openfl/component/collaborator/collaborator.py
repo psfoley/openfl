@@ -72,6 +72,7 @@ class Collaborator:
                  task_runner,
                  tensor_pipe,
                  task_config,
+                 data_loader_config,
                  opt_treatment=OptTreatment.RESET,
                  delta_updates=False,
                  db_store_rounds=1,
@@ -98,8 +99,13 @@ class Collaborator:
         self.client = client
 
         self.task_config = task_config
+        self.data_loader_config = data_loader_config
 
         self.logger = getLogger(__name__)
+
+        # Determine rank and federation size
+        self.rank,self.federation_size = self.get_rank_and_size()
+        self.setup_task_runner()
 
         # RESET/CONTINUE_LOCAL/CONTINUE_GLOBAL
         if hasattr(OptTreatment, opt_treatment):
@@ -109,7 +115,17 @@ class Collaborator:
             raise NotImplementedError(
                 "Unknown opt_treatment: %s." % opt_treatment)
 
-        #self.task_runner.set_optimizer_treatment(self.opt_treatment.name)
+    def setup_task_runner(self):
+        """
+        This function primarily determines whether data is in memory and should be split
+        """
+        if self.data_loader_config['shard_data']:
+          for attr in inspect.getmembers(self.task_runner):
+            if isinstance(attr[1],FederatedDataLoader):
+                attr[1].shard_data(self.rank,self.federation_size)
+                setattr(self.task_runner,attr[0],attr[1])
+                self.logger.info(f'Set data shard {self.rank} out of federation size {self.federation_size} for {attr[0]}')
+
 
     def run(self):
         """Run the collaborator."""
@@ -156,6 +172,12 @@ class Collaborator:
                     'All tasks completed on {} for round {}...'.format(
                         self.collaborator_name, round_number))
                 break
+
+    def get_rank_and_size(self):
+        """Determine collaborator's rank and size of federation"""
+        rank, federation_size = self.client.get_rank_and_size(self.collaborator_name)
+        return rank, federation_size
+
 
     def get_tasks(self):
         """Get tasks from the aggregator."""
@@ -231,34 +253,6 @@ class Collaborator:
         func_name = self.task_config[task]['function']
         kwargs = self.task_config[task]['kwargs']
 
-        # this would return a list of what tensors we require as TensorKeys
-        #required_tensorkeys_relative = \
-        #    self.task_runner.get_required_tensorkeys_for_function(
-        #        func_name, **kwargs
-        #    )
-
-        # models actually return "relative" tensorkeys of (name, LOCAL|GLOBAL,
-        # round_offset)
-        # so we need to update these keys to their "absolute values"
-        #required_tensorkeys = []
-        #for tname, origin, rnd_num, report, tags in required_tensorkeys_relative:
-        #    if origin == 'GLOBAL':
-        #        origin = self.aggregator_uuid
-        #    else:
-        #        origin = self.collaborator_name
-
-        #    # rnd_num is the relative round. So if rnd_num is -1, get the
-        #    # tensor from the previous round
-        #    required_tensorkeys.append(
-        #        TensorKey(tname, origin, rnd_num + round_number, report, tags)
-        #    )
-
-        ## print('Required tensorkeys = {}'.format(
-        ## [tk[0] for tk in required_tensorkeys]))
-        #input_tensor_dict = self.get_numpy_dict_for_tensorkeys(
-        #    required_tensorkeys
-        #)
-
         ## now we have whatever the model needs to do the task
         func = getattr(self.task_runner, func_name)
         func_source = getsource(func)
@@ -295,8 +289,10 @@ class Collaborator:
         for attr in inspect.getmembers(self.task_runner):
             if isinstance(attr[1],FederatedDataLoader):
                 if attr[1].get_access_count() != self.attr_hashes[attr[0]]:
+                    self.logger.info(f'{attr[0]} has been accessed {attr[1].get_access_count() - self.attr_hashes[attr[0]]} more times since the previous function call')
                     data_size = attr[1].get_loader_data_size()
                     self.logger.info(f'Setting {task} data size to {data_size}')
+                    self.attr_hashes[attr[0]] = attr[1].get_access_count()
             if '__' not in attr[0] and attr[0][0] is not '_':
                 if type_handler_factory.is_supported(attr[1]):
                     # The attr was newly initialized

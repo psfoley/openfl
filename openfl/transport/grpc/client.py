@@ -9,6 +9,7 @@ from openfl.protocols import utils
 from openfl.protocols import AggregatorStub
 from openfl.protocols import MessageHeader
 from openfl.protocols import TasksRequest
+from openfl.protocols import RankRequest
 from openfl.protocols import TensorRequest
 from openfl.protocols import TaskResults
 from openfl.utilities import check_equal
@@ -267,6 +268,16 @@ class CollaboratorGRPCClient:
         self.validate_response(response, collaborator_name)
 
         return response.tasks, response.round_number, response.sleep_time, response.quit
+
+    @_atomic_connection
+    def get_rank_and_size(self, collaborator_name):
+        """Get the rank of the collaborator and the size of the federation"""
+        self._set_header(collaborator_name)
+        request = RankRequest(header=self.header)
+        response = self.stub.GetRankAndSize(request)
+        self.validate_response(response, collaborator_name)
+
+        return response.rank, response.federation_size
 
     @_atomic_connection
     def get_aggregated_tensor(self, collaborator_name, tensor_name, round_number, round_phase,

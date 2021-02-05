@@ -1,7 +1,8 @@
 from openfl.federated.types import TypeHandler
 import torch.nn as nn
+import tensorflow.keras as keras
 from torch.optim import Optimizer
-from openfl.federated.types import PyTorchModuleTypeHandler,PyTorchOptimizerTypeHandler, FloatTypeHandler
+from openfl.federated.types import PyTorchModuleTypeHandler,PyTorchOptimizerTypeHandler, FloatTypeHandler, KerasModelTypeHandler
 
 class TypeHandlerFactory:
 
@@ -10,7 +11,7 @@ class TypeHandlerFactory:
 
     def is_supported(self,attr):
         """Does the attribute have a type handler?"""
-        if isinstance(attr,(nn.Module,Optimizer,float)):
+        if isinstance(attr,(nn.Module,Optimizer,keras.Model,float)):
             return True
         return False
 
@@ -19,6 +20,8 @@ class TypeHandlerFactory:
             return PyTorchModuleTypeHandler()
         elif isinstance(attr,Optimizer):
             return PyTorchOptimizerTypeHandler()
+        elif isinstance(attr,keras.Model):
+            return KerasModelTypeHandler()
         elif isinstance(attr,float):
             return FloatTypeHandler()
         else:

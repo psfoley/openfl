@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto2',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x10\x66\x65\x64\x65ration.proto\"+\n\nDataStream\x12\x0c\n\x04size\x18\x01 \x02(\r\x12\x0f\n\x07npbytes\x18\x02 \x02(\x0c\"o\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x17\n\x0f\x66\x65\x64\x65ration_uuid\x18\x03 \x02(\t\x12#\n\x1bsingle_col_cert_common_name\x18\x04 \x02(\t\".\n\x0cTasksRequest\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\"v\n\rTasksResponse\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\r\n\x05tasks\x18\x03 \x03(\t\x12\x12\n\nsleep_time\x18\x04 \x02(\x05\x12\x0c\n\x04quit\x18\x05 \x02(\x08\"\xa7\x01\n\rTensorRequest\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x13\n\x0btensor_name\x18\x02 \x02(\t\x12\x14\n\x0cround_number\x18\x03 \x02(\x05\x12\x13\n\x0bround_phase\x18\x04 \x02(\t\x12\x0e\n\x06report\x18\x05 \x02(\x08\x12\x0c\n\x04tags\x18\x06 \x03(\t\x12\x18\n\x10require_lossless\x18\x07 \x02(\x08\"d\n\x0eTensorResponse\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\x1c\n\x06tensor\x18\x03 \x02(\x0b\x32\x0c.NamedTensor\"+\n\nModelProto\x12\x1d\n\x07tensors\x18\x01 \x03(\x0b\x32\x0c.NamedTensor\"\x88\x01\n\x0bTaskResults\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\x11\n\ttask_name\x18\x03 \x02(\t\x12\x11\n\tdata_size\x18\x04 \x02(\x05\x12\x1d\n\x07tensors\x18\x05 \x03(\x0b\x32\x0c.NamedTensor\"1\n\x0f\x41\x63knowledgement\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\"\xb8\x01\n\x0bNamedTensor\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\x13\n\x0bround_phase\x18\x03 \x02(\t\x12\x10\n\x08lossless\x18\x04 \x02(\x08\x12\x0e\n\x06report\x18\x05 \x02(\x08\x12\x0c\n\x04tags\x18\x06 \x03(\t\x12,\n\x14transformer_metadata\x18\x07 \x03(\x0b\x32\x0e.MetadataProto\x12\x12\n\ndata_bytes\x18\x08 \x02(\x0c\"\x9d\x01\n\rMetadataProto\x12\x34\n\x0cint_to_float\x18\x01 \x03(\x0b\x32\x1e.MetadataProto.IntToFloatEntry\x12\x10\n\x08int_list\x18\x02 \x03(\x05\x12\x11\n\tbool_list\x18\x03 \x03(\x08\x1a\x31\n\x0fIntToFloatEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x32\xae\x01\n\nAggregator\x12+\n\x08GetTasks\x12\r.TasksRequest\x1a\x0e.TasksResponse\"\x00\x12\x38\n\x13GetAggregatedTensor\x12\x0e.TensorRequest\x1a\x0f.TensorResponse\"\x00\x12\x39\n\x14SendLocalTaskResults\x12\x0b.DataStream\x1a\x10.Acknowledgement\"\x00(\x01'
+  serialized_pb=b'\n\x10\x66\x65\x64\x65ration.proto\"+\n\nDataStream\x12\x0c\n\x04size\x18\x01 \x02(\r\x12\x0f\n\x07npbytes\x18\x02 \x02(\x0c\"o\n\rMessageHeader\x12\x0e\n\x06sender\x18\x01 \x02(\t\x12\x10\n\x08receiver\x18\x02 \x02(\t\x12\x17\n\x0f\x66\x65\x64\x65ration_uuid\x18\x03 \x02(\t\x12#\n\x1bsingle_col_cert_common_name\x18\x04 \x02(\t\"-\n\x0bRankRequest\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\"U\n\x0cRankResponse\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x0c\n\x04rank\x18\x02 \x02(\x05\x12\x17\n\x0f\x66\x65\x64\x65ration_size\x18\x03 \x02(\x05\".\n\x0cTasksRequest\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\"v\n\rTasksResponse\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\r\n\x05tasks\x18\x03 \x03(\t\x12\x12\n\nsleep_time\x18\x04 \x02(\x05\x12\x0c\n\x04quit\x18\x05 \x02(\x08\"\xa7\x01\n\rTensorRequest\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x13\n\x0btensor_name\x18\x02 \x02(\t\x12\x14\n\x0cround_number\x18\x03 \x02(\x05\x12\x13\n\x0bround_phase\x18\x04 \x02(\t\x12\x0e\n\x06report\x18\x05 \x02(\x08\x12\x0c\n\x04tags\x18\x06 \x03(\t\x12\x18\n\x10require_lossless\x18\x07 \x02(\x08\"d\n\x0eTensorResponse\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\x1c\n\x06tensor\x18\x03 \x02(\x0b\x32\x0c.NamedTensor\"+\n\nModelProto\x12\x1d\n\x07tensors\x18\x01 \x03(\x0b\x32\x0c.NamedTensor\"\x88\x01\n\x0bTaskResults\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\x11\n\ttask_name\x18\x03 \x02(\t\x12\x11\n\tdata_size\x18\x04 \x02(\x05\x12\x1d\n\x07tensors\x18\x05 \x03(\x0b\x32\x0c.NamedTensor\"1\n\x0f\x41\x63knowledgement\x12\x1e\n\x06header\x18\x01 \x02(\x0b\x32\x0e.MessageHeader\"\xb8\x01\n\x0bNamedTensor\x12\x0c\n\x04name\x18\x01 \x02(\t\x12\x14\n\x0cround_number\x18\x02 \x02(\x05\x12\x13\n\x0bround_phase\x18\x03 \x02(\t\x12\x10\n\x08lossless\x18\x04 \x02(\x08\x12\x0e\n\x06report\x18\x05 \x02(\x08\x12\x0c\n\x04tags\x18\x06 \x03(\t\x12,\n\x14transformer_metadata\x18\x07 \x03(\x0b\x32\x0e.MetadataProto\x12\x12\n\ndata_bytes\x18\x08 \x02(\x0c\"\x9d\x01\n\rMetadataProto\x12\x34\n\x0cint_to_float\x18\x01 \x03(\x0b\x32\x1e.MetadataProto.IntToFloatEntry\x12\x10\n\x08int_list\x18\x02 \x03(\x05\x12\x11\n\tbool_list\x18\x03 \x03(\x08\x1a\x31\n\x0fIntToFloatEntry\x12\x0b\n\x03key\x18\x01 \x01(\x05\x12\r\n\x05value\x18\x02 \x01(\x02:\x02\x38\x01\x32\xdf\x01\n\nAggregator\x12+\n\x08GetTasks\x12\r.TasksRequest\x1a\x0e.TasksResponse\"\x00\x12/\n\x0eGetRankAndSize\x12\x0c.RankRequest\x1a\r.RankResponse\"\x00\x12\x38\n\x13GetAggregatedTensor\x12\x0e.TensorRequest\x1a\x0f.TensorResponse\"\x00\x12\x39\n\x14SendLocalTaskResults\x12\x0b.DataStream\x1a\x10.Acknowledgement\"\x00(\x01'
 )
 
 
@@ -117,6 +117,84 @@ _MESSAGEHEADER = _descriptor.Descriptor(
 )
 
 
+_RANKREQUEST = _descriptor.Descriptor(
+  name='RankRequest',
+  full_name='RankRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='header', full_name='RankRequest.header', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=178,
+  serialized_end=223,
+)
+
+
+_RANKRESPONSE = _descriptor.Descriptor(
+  name='RankResponse',
+  full_name='RankResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='header', full_name='RankResponse.header', index=0,
+      number=1, type=11, cpp_type=10, label=2,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='rank', full_name='RankResponse.rank', index=1,
+      number=2, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='federation_size', full_name='RankResponse.federation_size', index=2,
+      number=3, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=225,
+  serialized_end=310,
+)
+
+
 _TASKSREQUEST = _descriptor.Descriptor(
   name='TasksRequest',
   full_name='TasksRequest',
@@ -144,8 +222,8 @@ _TASKSREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=178,
-  serialized_end=224,
+  serialized_start=312,
+  serialized_end=358,
 )
 
 
@@ -204,8 +282,8 @@ _TASKSRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=226,
-  serialized_end=344,
+  serialized_start=360,
+  serialized_end=478,
 )
 
 
@@ -278,8 +356,8 @@ _TENSORREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=347,
-  serialized_end=514,
+  serialized_start=481,
+  serialized_end=648,
 )
 
 
@@ -324,8 +402,8 @@ _TENSORRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=516,
-  serialized_end=616,
+  serialized_start=650,
+  serialized_end=750,
 )
 
 
@@ -356,8 +434,8 @@ _MODELPROTO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=618,
-  serialized_end=661,
+  serialized_start=752,
+  serialized_end=795,
 )
 
 
@@ -416,8 +494,8 @@ _TASKRESULTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=664,
-  serialized_end=800,
+  serialized_start=798,
+  serialized_end=934,
 )
 
 
@@ -448,8 +526,8 @@ _ACKNOWLEDGEMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=802,
-  serialized_end=851,
+  serialized_start=936,
+  serialized_end=985,
 )
 
 
@@ -529,8 +607,8 @@ _NAMEDTENSOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=854,
-  serialized_end=1038,
+  serialized_start=988,
+  serialized_end=1172,
 )
 
 
@@ -568,8 +646,8 @@ _METADATAPROTO_INTTOFLOATENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1149,
-  serialized_end=1198,
+  serialized_start=1283,
+  serialized_end=1332,
 )
 
 _METADATAPROTO = _descriptor.Descriptor(
@@ -613,10 +691,12 @@ _METADATAPROTO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1041,
-  serialized_end=1198,
+  serialized_start=1175,
+  serialized_end=1332,
 )
 
+_RANKREQUEST.fields_by_name['header'].message_type = _MESSAGEHEADER
+_RANKRESPONSE.fields_by_name['header'].message_type = _MESSAGEHEADER
 _TASKSREQUEST.fields_by_name['header'].message_type = _MESSAGEHEADER
 _TASKSRESPONSE.fields_by_name['header'].message_type = _MESSAGEHEADER
 _TENSORREQUEST.fields_by_name['header'].message_type = _MESSAGEHEADER
@@ -631,6 +711,8 @@ _METADATAPROTO_INTTOFLOATENTRY.containing_type = _METADATAPROTO
 _METADATAPROTO.fields_by_name['int_to_float'].message_type = _METADATAPROTO_INTTOFLOATENTRY
 DESCRIPTOR.message_types_by_name['DataStream'] = _DATASTREAM
 DESCRIPTOR.message_types_by_name['MessageHeader'] = _MESSAGEHEADER
+DESCRIPTOR.message_types_by_name['RankRequest'] = _RANKREQUEST
+DESCRIPTOR.message_types_by_name['RankResponse'] = _RANKRESPONSE
 DESCRIPTOR.message_types_by_name['TasksRequest'] = _TASKSREQUEST
 DESCRIPTOR.message_types_by_name['TasksResponse'] = _TASKSRESPONSE
 DESCRIPTOR.message_types_by_name['TensorRequest'] = _TENSORREQUEST
@@ -655,6 +737,20 @@ MessageHeader = _reflection.GeneratedProtocolMessageType('MessageHeader', (_mess
   # @@protoc_insertion_point(class_scope:MessageHeader)
   })
 _sym_db.RegisterMessage(MessageHeader)
+
+RankRequest = _reflection.GeneratedProtocolMessageType('RankRequest', (_message.Message,), {
+  'DESCRIPTOR' : _RANKREQUEST,
+  '__module__' : 'federation_pb2'
+  # @@protoc_insertion_point(class_scope:RankRequest)
+  })
+_sym_db.RegisterMessage(RankRequest)
+
+RankResponse = _reflection.GeneratedProtocolMessageType('RankResponse', (_message.Message,), {
+  'DESCRIPTOR' : _RANKRESPONSE,
+  '__module__' : 'federation_pb2'
+  # @@protoc_insertion_point(class_scope:RankResponse)
+  })
+_sym_db.RegisterMessage(RankResponse)
 
 TasksRequest = _reflection.GeneratedProtocolMessageType('TasksRequest', (_message.Message,), {
   'DESCRIPTOR' : _TASKSREQUEST,
@@ -737,8 +833,8 @@ _AGGREGATOR = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=1201,
-  serialized_end=1375,
+  serialized_start=1335,
+  serialized_end=1558,
   methods=[
   _descriptor.MethodDescriptor(
     name='GetTasks',
@@ -751,9 +847,19 @@ _AGGREGATOR = _descriptor.ServiceDescriptor(
     create_key=_descriptor._internal_create_key,
   ),
   _descriptor.MethodDescriptor(
+    name='GetRankAndSize',
+    full_name='Aggregator.GetRankAndSize',
+    index=1,
+    containing_service=None,
+    input_type=_RANKREQUEST,
+    output_type=_RANKRESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
     name='GetAggregatedTensor',
     full_name='Aggregator.GetAggregatedTensor',
-    index=1,
+    index=2,
     containing_service=None,
     input_type=_TENSORREQUEST,
     output_type=_TENSORRESPONSE,
@@ -763,7 +869,7 @@ _AGGREGATOR = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='SendLocalTaskResults',
     full_name='Aggregator.SendLocalTaskResults',
-    index=2,
+    index=3,
     containing_service=None,
     input_type=_DATASTREAM,
     output_type=_ACKNOWLEDGEMENT,

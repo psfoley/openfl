@@ -215,6 +215,25 @@ class Aggregator:
             return True
         return False
 
+    def get_rank_and_size(self, collaborator_name):
+        """
+        RPC called by a collaborator to determine local rank and federation size
+
+        Args:
+            collaborator_name: str
+                Requested collaborator name
+
+        Returns:
+            rank : int
+                Rank of the collaborator
+            federation_size : int
+                Size of the federation
+
+        """
+        rank = self.authorized_cols.index(collaborator_name)
+        federation_size = len(self.authorized_cols)
+        return rank, federation_size
+
     def get_tasks(self, collaborator_name):
         """
         RPC called by a collaborator to determine which tasks to perform.

@@ -270,23 +270,6 @@ class Plan(object):
 
         return self.pipe_
 
-    def get_data_loader(self, collaborator_name):
-        """Get data loader."""
-        defaults = self.config.get('data_loader',
-                                   {
-                                       TEMPLATE: 'openfl.federation.DataLoader',
-                                       SETTINGS: {}
-                                   })
-
-        defaults[SETTINGS]['data_path'] = self.cols_data_paths[
-            collaborator_name
-        ]
-
-        if self.loader_ is None:
-            self.loader_ = Plan.Build(**defaults)
-
-        return self.loader_
-
     def get_task_runner(self, collaborator_name):
         """Get task runner."""
         defaults = self.config.get('task_runner',
@@ -294,10 +277,6 @@ class Plan(object):
                                        TEMPLATE: 'openfl.federation.TaskRunner',
                                        SETTINGS: {}
                                    })
-
-        defaults[SETTINGS]['data_loader'] = self.get_data_loader(
-            collaborator_name
-        )
 
         if self.runner_ is None:
             self.runner_ = Plan.Build(**defaults)
@@ -326,6 +305,7 @@ class Plan(object):
             )
         defaults[SETTINGS]['tensor_pipe'] = self.get_tensor_pipe()
         defaults[SETTINGS]['task_config'] = self.config.get('tasks', {})
+        defaults[SETTINGS]['data_loader_config'] = self.config.get('data_loader', {})
         if client is not None:
             defaults[SETTINGS]['client'] = client
         else:

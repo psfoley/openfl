@@ -2,17 +2,11 @@ aggregated_model_validation:
   function : validate
   kwargs   :
     batch_size : 32
-    apply      : global
-    metrics    :
-      - accuracy
 
 locally_tuned_model_validation:
   function : validate
   kwargs   :
     batch_size : 32
-    apply      : local
-    metrics    :
-      - accuracy
 
 train:
   function : train

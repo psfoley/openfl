@@ -15,6 +15,7 @@ from openfl.protocols import AggregatorServicer
 from openfl.protocols import MessageHeader
 from openfl.protocols import TasksResponse
 from openfl.protocols import TaskResults
+from openfl.protocols import RankResponse
 from openfl.protocols import TensorResponse
 from openfl.protocols import add_AggregatorServicer_to_server
 from openfl.utilities import check_equal, check_is_in
@@ -149,6 +150,28 @@ class AggregatorGRPCServer(AggregatorServicer):
             sleep_time=sleep_time,
             quit=time_to_quit
         )
+
+    def GetRankAndSize(self, request, context):
+        """
+        Request rank and size from aggregator.
+
+        Args:
+            request: The gRPC message request
+            context: The gRPC context
+
+        """
+        self.validate_collaborator(request, context)
+        self.check_request(request)
+        collaborator_name = request.header.sender
+        rank, federation_size = self.aggregator.get_rank_and_size(
+            collaborator_name)
+
+        return RankResponse(
+            header=self.get_header(collaborator_name),
+            rank=rank,
+            federation_size=federation_size,
+        )
+
 
     def GetAggregatedTensor(self, request, context):
         """

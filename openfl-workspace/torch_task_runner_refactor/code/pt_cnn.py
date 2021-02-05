@@ -40,9 +40,7 @@ class Net(nn.Module):
 
 class PyTorchCNN:
 
-    def __init__(self,data_loader=None,**kwargs):
-
-        self._data_loader = data_loader
+    def __init__(self,**kwargs):
 
         train_kwargs = {'batch_size': 128}
         test_kwargs = {'batch_size': 128} 

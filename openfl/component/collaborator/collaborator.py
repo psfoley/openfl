@@ -272,7 +272,7 @@ class Collaborator:
         data_size = 1
 
         if results is not None:
-            if results is not tuple:
+            if type(results) is not tuple:
                 results = (results,)
             variable_names = func_output_name_dict[str(len(results))]
             for result,name in zip(results,variable_names):
@@ -403,6 +403,11 @@ class Collaborator:
                     )
             elif 'model' in tags:
                 # Pulling the model for the first time or
+                nparray = self.get_aggregated_tensor_from_aggregator(
+                    tensor_key,
+                    require_lossless=True
+                )
+            else:
                 nparray = self.get_aggregated_tensor_from_aggregator(
                     tensor_key,
                     require_lossless=True

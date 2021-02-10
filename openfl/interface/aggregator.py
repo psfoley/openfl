@@ -22,6 +22,12 @@ def aggregator(context):
     """Manage Federated Learning Aggregator."""
     context.obj['group'] = 'aggregator'
 
+def parse_collaborator_names(path):
+    col_list = []
+    for col in list(path.glob('*.crt')):
+        col = str(col).split('col_')[-1].split('.')[0] 
+        col_list.append(col)
+    return col_list
 
 @aggregator.command(name='start')
 @pass_context
@@ -36,8 +42,27 @@ def aggregator(context):
         help='Enable Intel SGX Enclave', is_flag=True, default=False)
 def start_(context, plan, authorized_cols, secure):
     """Start the aggregator service."""
+    from click import prompt, confirm, Choice
     plan = Plan.Parse(plan_config_path=Path(plan),
                       cols_config_path=Path(authorized_cols))
+
+    if len(plan.authorized_cols) == 0:
+        all_cols = parse_collaborator_names((PKI_DIR / 'client'))
+        col_list = []
+        collaborators_to_add = True
+        while(collaborators_to_add):
+            collab = prompt('\nAdd a collaborator to participate in the experiment' +
+                '(Hit enter to add all collaborators): ',
+                type=Choice(all_cols),show_default=False, default=all_cols)
+            if collab == all_cols:
+                col_list = all_cols
+                break
+            else:
+                col_list.append(collab)
+            if not confirm(f'Are there other collaborators you wish to add to the experiment?' +
+                    f'\nCurrent list: {col_list}'):
+                collaborators_to_add = False
+        plan.authorized_cols = list(set(col_list))
 
     logger.info('🧿 Starting the Aggregator Service.')
 

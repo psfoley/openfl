@@ -18,6 +18,8 @@ class FederatedDataLoader(object):
         Returns:
             None
         """
+        if type(loader) is list:
+            return [FederatedDataLoader(val) for val in loader]
         self.loader = loader
         self.access_count = 0
         self.shard_defined = False

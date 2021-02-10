@@ -5,7 +5,7 @@ from openfl.utilities import TensorKey
 from openfl.protocols import ModelProto, NamedTensor, MetadataProto, DataStream
 
 
-def model_proto_to_bytes_and_metadata(model_proto):
+def model_proto_to_bytes_and_metadata(model_proto, origin):
     """Converts the model protobuf to bytes and metadata
 
     Args:
@@ -20,8 +20,10 @@ def model_proto_to_bytes_and_metadata(model_proto):
     metadata_dict = {}
     round_number = None
     for tensor_proto in model_proto.tensors:
-        bytes_dict[tensor_proto.name] = tensor_proto.data_bytes
-        metadata_dict[tensor_proto.name] = [{'int_to_float': proto.int_to_float,
+        tensor_key = TensorKey(tensor_proto.name, origin, tensor_proto.round_number, 
+                tensor_proto.round_phase, tensor_proto.report, tuple(tensor_proto.tags))
+        bytes_dict[tensor_key] = tensor_proto.data_bytes
+        metadata_dict[tensor_key] = [{'int_to_float': proto.int_to_float,
                                              'int_list': proto.int_list,
                                              'bool_list': proto.bool_list} for proto in
                                             tensor_proto.transformer_metadata]
@@ -122,9 +124,9 @@ def construct_model_proto(tensor_dict, round_number, tensor_pipe):
     return ModelProto(tensors=named_tensors)
 
 
-def deconstruct_model_proto(model_proto, compression_pipeline):
+def deconstruct_model_proto(model_proto, compression_pipeline,origin='agg'):
     # extract the tensor_dict and metadata
-    bytes_dict, metadata_dict, round_number = model_proto_to_bytes_and_metadata(model_proto)
+    bytes_dict, metadata_dict, round_number = model_proto_to_bytes_and_metadata(model_proto,origin=origin)
 
     # decompress the tensors
     # TODO: Handle tensors meant to be held-out from the compression pipeline (currently none are held out).

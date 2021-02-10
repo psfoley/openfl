@@ -28,7 +28,7 @@ def create_dirs(prefix):
     """Create workspace directories."""
     echo('Creating Workspace Directories')
 
-    (prefix / 'cert').mkdir(parents=True, exist_ok=True)  # certifications
+    (OPENFL_USERDIR / 'cert').mkdir(parents=True, exist_ok=True)  # PKI certificates
     (prefix / 'data').mkdir(parents=True, exist_ok=True)  # training data
     (prefix / 'logs').mkdir(parents=True, exist_ok=True)  # training logs
     (prefix / 'plan').mkdir(parents=True, exist_ok=True)  # federated learning plans
@@ -156,6 +156,7 @@ def export_(context):
     copytree('./code', f'{tmpDir}/code', ignore=ignore)  # code
     copytree('./plan', f'{tmpDir}/plan', ignore=ignore)  # plan
     copy2(export_requirements_filename, f'{tmpDir}/requirements.txt')  # requirements
+    copy2(PKI_DIR / 'cert_chain.crt', f'{tmpDir}/cert_chain.crt') # Certificate chain
 
     try:
         copy2('.workspace', tmpDir)  # .workspace
@@ -173,6 +174,26 @@ def export_(context):
 
     echo(f'Workspace exported to archive: {archiveFileName}')
 
+def files_match(src, dst):
+    """
+    Return true if the source and destination files match
+    """
+    from hashlib import sha384
+
+    src_hash = sha384()
+    with open(src,'rb') as f:
+        src_contents = f.read()
+        src_hash.update(src_contents)
+        src_hash = src_hash.hexdigest()
+
+    dst_hash = sha384()
+    with open(dst,'rb') as f:
+        dst_contents = f.read()
+        dst_hash.update(dst_contents)
+        dst_hash = dst_hash.hexdigest()
+
+    return src_hash == dst_hash
+
 
 @workspace.command(name='import')
 @option('--archive', required=True,
@@ -180,13 +201,23 @@ def export_(context):
         type=ClickPath(exists=True))
 def import_(archive):
     """Import federated learning workspace."""
-    from shutil import unpack_archive
+    from shutil import unpack_archive, move
     from os.path import isfile, basename
-    from os import chdir
+    from os import chdir, remove
+
+    from hashlib import sha384
 
     dirPath = basename(archive).split('.')[0]
     unpack_archive(archive, extract_dir=dirPath)
     chdir(dirPath)
+    if Path(PKI_DIR / 'cert_chain.crt').exists():
+        if not files_match((PKI_DIR / 'cert_chain.crt'),Path('cert_chain.crt')):
+            if not confirm('Certificate chain will be overwritten. Proceed?'):
+                remove('cert_chain.crt')
+            else:
+                move(f'cert_chain.crt',f'{PKI_DIR}/cert_chain.crt')
+        else:
+            move(f'cert_chain.crt',f'{PKI_DIR}/cert_chain.crt')
 
     requirements_filename = "requirements.txt"
 
@@ -213,6 +244,14 @@ def certify():
     from cryptography.hazmat.primitives import serialization
 
     echo('Setting Up Certificate Authority...\n')
+
+    if (PKI_DIR / 'ca/root-ca/private/root-ca.key').exists():
+        if confirm(f'Certificate Authority already created.'
+            f' Recreating it will require issuing new certificates to all participants.'
+            f' Would you like to proceed?'):
+            pass
+        else:
+            return
 
     echo('1.  Create Root CA')
     echo('1.1 Create Directories')

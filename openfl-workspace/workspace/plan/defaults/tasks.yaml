@@ -1,0 +1,11 @@
+aggregated_model_validation:
+  function : validate
+  kwargs   : []
+
+locally_tuned_model_validation:
+  function : validate
+  kwargs   : []
+
+train:
+  function : train
+  kwargs   : []

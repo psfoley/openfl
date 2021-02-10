@@ -33,6 +33,12 @@ def start(context, ip):
             executable, '-m', 'ipykernel', 'install',
             '--user', '--name', f'{venv}'
         ], shell=False)
+    elif 'CONDA_DEFAULT_ENV' in environ:
+        check_call([
+            executable, '-m', 'ipykernel', 'install',
+            '--user', '--name', f'{environ["CONDA_DEFAULT_ENV"]}'
+        ], shell=False)
+
 
     jupyter_command = ['jupyter', 'notebook', '--notebook-dir', f'{TUTORIALS}']
 

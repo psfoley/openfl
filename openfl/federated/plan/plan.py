@@ -13,6 +13,8 @@ from socket import getfqdn
 
 from openfl.transport import AggregatorGRPCServer
 from openfl.transport import CollaboratorGRPCClient
+from openfl.interface.cli_helper import PKI_DIR
+
 
 SETTINGS = 'settings'
 TEMPLATE = 'template'
@@ -109,6 +111,8 @@ class Plan(object):
             plan.authorized_cols = Plan.Load(cols_config_path).get(
                 'collaborators', []
             )
+            if plan.authorized_cols is None:
+                plan.authorized_cols = []
 
             # TODO: Does this need to be a YAML file? Probably want to use key
             #  value as the plan hash
@@ -324,9 +328,9 @@ class Plan(object):
         """Get gRPC client for the specified collaborator."""
         common_name = collaborator_name
 
-        chain = 'cert/cert_chain.crt'
-        certificate = f'cert/client/col_{common_name}.crt'
-        private_key = f'cert/client/col_{common_name}.key'
+        chain = f'{PKI_DIR}/cert_chain.crt'
+        certificate = f'{PKI_DIR}/client/col_{common_name}.crt'
+        private_key = f'{PKI_DIR}/client/col_{common_name}.key'
 
         client_args = self.config['network'][SETTINGS]
 
@@ -348,9 +352,9 @@ class Plan(object):
         """Get gRPC server of the aggregator instance."""
         common_name = self.config['network'][SETTINGS]['agg_addr'].lower()
 
-        chain = 'cert/cert_chain.crt'
-        certificate = f'cert/server/agg_{common_name}.crt'
-        private_key = f'cert/server/agg_{common_name}.key'
+        chain = f'{PKI_DIR}/cert_chain.crt'
+        certificate = f'{PKI_DIR}/server/agg_{common_name}.crt'
+        private_key = f'{PKI_DIR}/server/agg_{common_name}.key'
 
         server_args = self.config['network'][SETTINGS]
 

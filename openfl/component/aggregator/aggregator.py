@@ -108,18 +108,16 @@ class Aggregator:
         Returns:
             None
         """
-        tensor_dict, round_number = utils.deconstruct_model_proto(
-            self.model, compression_pipeline=self.compression_pipeline)
+        tensor_key_dict, round_number = utils.deconstruct_model_proto(
+            self.model, compression_pipeline=self.compression_pipeline,
+            origin=self.uuid)
 
         if round_number > self.round_number:
             self.logger.info(
                 'Starting training from round {} of previously saved'
                 ' model'.format(round_number))
             self.round_number = round_number
-        tensor_key_dict = {
-            TensorKey(k, self.uuid, self.round_number, 'start', False, ('model',)):
-                v for k, v in tensor_dict.items()
-        }
+
         # all initial model tensors are loaded here
         self.tensor_db.cache_tensor(tensor_key_dict)
         self.logger.debug('This is the initial tensor_db:'
@@ -140,12 +138,11 @@ class Aggregator:
         """
         # Extract the model from TensorDB and set it to the new model
         og_tensor_dict, _ = utils.deconstruct_model_proto(
-            self.model, compression_pipeline=self.compression_pipeline)
-        tensor_keys = [
-            TensorKey(
-                k, self.uuid, round_number, 'start', False, ('model',)
-            ) for k, v in og_tensor_dict.items()
-        ]
+            self.model, compression_pipeline=self.compression_pipeline,origin=self.uuid)
+        tensor_keys = []
+        for tensor_key in og_tensor_dict:
+            name, origin, og_round_number, round_phase, report, tags = tensor_key
+            tensor_keys.append(TensorKey(name, origin, round_number, round_phase, report, tags))
         tensor_dict = {}
         for tk in tensor_keys:
             #tk_name, _, _, _, _, _ = tk

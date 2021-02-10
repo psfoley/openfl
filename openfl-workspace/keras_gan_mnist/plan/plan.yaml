@@ -5,9 +5,9 @@ aggregator :
   defaults : plan/defaults/aggregator.yaml
   template : openfl.component.Aggregator
   settings :
-    init_state_path : save/init.pbuf
-    best_state_path : save/best.pbuf
-    last_state_path : save/last.pbuf
+    init_state_path : save/keras_cnn_mnist_init.pbuf
+    best_state_path : save/keras_cnn_mnist_best.pbuf
+    last_state_path : save/keras_cnn_mnist_last.pbuf
     rounds_to_train : 10
 
 collaborator :
@@ -18,16 +18,25 @@ collaborator :
     opt_treatment    : RESET
 
 data_loader :
-  defaults : plan/defaults/data_loader.yaml
+  shard_data : True
 
 task_runner :
   defaults : plan/defaults/task_runner.yaml
+  template : code.keras_gan.KerasGAN
 
 network :
   defaults : plan/defaults/network.yaml
 
 assigner :
-  defaults : plan/defaults/assigner.yaml
+  template : openfl.component.RandomGroupedAssigner
+  settings :
+    task_groups  :
+      - name       : train_gan
+        percentage : 1.0
+        tasks      :
+          - train
 
 tasks :
-  defaults : plan/defaults/tasks.yaml
+  train:
+    function : train
+    kwargs   :

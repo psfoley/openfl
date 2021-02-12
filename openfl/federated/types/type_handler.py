@@ -6,6 +6,14 @@ class TypeHandler(ABC):
         pass
 
     @abstractmethod
+    def get_dependencies():
+        pass
+
+    @abstractmethod
+    def type():
+        pass
+
+    @abstractmethod
     def attr_to_map(attribute,round_phase='end'):
         pass
 

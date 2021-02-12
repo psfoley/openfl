@@ -1,7 +1,6 @@
 from openfl.utilities import TensorKey
 import hashlib
 import numpy as np
-import torch
 from openfl.federated.types import TypeHandler
 from copy import deepcopy
 
@@ -12,10 +11,21 @@ class PyTorchModuleTypeHandler(TypeHandler):
         self.compress = True
         self.aggregation_type = 'weighted_mean'
 
+    @staticmethod
+    def get_dependencies():
+        """What are the dependencies for this type?"""
+        return ['torch']
+
+    @staticmethod
+    def type():
+        """The type that this class handles"""
+        import torch.nn as nn
+        return nn.Module
 
     @staticmethod
     def attr_to_map(attribute,attribute_name,round_phase='end',round_num=0, report=False, origin='LOCAL'):
         """Transform the attribute to a {TensorKey: nparray} map for transport."""
+        import torch
         state_dict = attribute.state_dict()
         # deep copy so as to decouple from active model
         state = deepcopy(state_dict)
@@ -39,6 +49,7 @@ class PyTorchModuleTypeHandler(TypeHandler):
     @staticmethod
     def map_to_attr(attribute,tensorkey_nparray_map):
         """Transform tensorkey map to attribute"""
+        import torch
         state_dict = {}
         for k in tensorkey_nparray_map:
             state_dict[k] = torch.from_numpy(tensorkey_nparray_map[k])
@@ -55,6 +66,7 @@ class PyTorchModuleTypeHandler(TypeHandler):
 
     @staticmethod
     def get_hash(attribute):
+        import torch
         hasher = hashlib.sha384()
         state_dict = attribute.state_dict()
         state = deepcopy(state_dict)

@@ -18,8 +18,6 @@ class FederatedDataLoader(object):
         Returns:
             None
         """
-        if type(loader) is list:
-            return [FederatedDataLoader(val) for val in loader]
         self.loader = loader
         self.access_count = 0
         self.shard_defined = False
@@ -65,7 +63,6 @@ class FederatedDataLoader(object):
         loader_type_factory = DataHandlerFactory()
         if loader_type_factory.is_supported(self.loader):
             data_loader_type_handler = loader_type_factory.get_data_handler(self.loader)
-            print(f'dataloader type = {type(self.loader)}')
             self.loader = data_loader_type_handler.shard_data(self.loader,rank,federation_size)
         else:
             logger.info(f'Data of type {type(self.loader)} does not have a data type handler defined') 

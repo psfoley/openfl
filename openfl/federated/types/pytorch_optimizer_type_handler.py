@@ -2,7 +2,6 @@ from openfl.utilities import TensorKey, split_tensor_dict_for_holdouts
 from logging import getLogger
 import hashlib
 import numpy as np
-import torch
 from openfl.federated.types import TypeHandler
 from copy import deepcopy
 
@@ -16,6 +15,16 @@ class PyTorchOptimizerTypeHandler(TypeHandler):
         self.aggregation_type = 'weighted_mean'
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    @staticmethod
+    def get_dependencies():
+        """What are the dependencies for this type?"""
+        return ['torch']
+
+    @staticmethod
+    def type():
+        """The type that this class handles"""
+        from torch.optim import Optimizer
+        return Optimizer
 
     @staticmethod
     def _derive_opt_state_dict(opt_state_dict):
@@ -30,6 +39,7 @@ class PyTorchOptimizerTypeHandler(TypeHandler):
             opt_state_dict: The optimizer state dictionary
     
         """
+        import torch
         derived_opt_state_dict = {}
     
         # Determine if state is needed for this optimizer.
@@ -119,6 +129,7 @@ class PyTorchOptimizerTypeHandler(TypeHandler):
         Returns:
             dict: Optimizer state dictionary
         """
+        import torch
         state_subkeys_and_tags = []
         for key in derived_opt_state_dict:
             if key.startswith('__opt_state_0_0_'):
@@ -165,6 +176,7 @@ class PyTorchOptimizerTypeHandler(TypeHandler):
     @staticmethod
     def attr_to_map(attribute,attribute_name,round_phase='end',round_num=0, report=False, origin='LOCAL'):
         """Transform the attribute to a {TensorKey: nparray} map for transport."""
+        import torch
         # deep copy so as to decouple from active optimizer
 
         opt_state_dict = deepcopy(attribute.state_dict())
@@ -196,6 +208,7 @@ class PyTorchOptimizerTypeHandler(TypeHandler):
 
     def map_to_attr(self,attribute,tensorkey_nparray_map):
         """Transform tensorkey map to attribute"""
+        import torch
 
         temp_state_dict = PyTorchOptimizerTypeHandler.expand_derived_opt_state_dict(
             tensorkey_nparray_map, self.device)
@@ -222,6 +235,7 @@ class PyTorchOptimizerTypeHandler(TypeHandler):
 
     @staticmethod
     def get_hash(attribute):
+        import torch
         hasher = hashlib.sha384()
         state_dict = attribute.state_dict()
         state = deepcopy(state_dict)

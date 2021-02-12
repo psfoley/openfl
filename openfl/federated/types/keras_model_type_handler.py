@@ -1,7 +1,6 @@
 from openfl.utilities import TensorKey
 import hashlib
 import numpy as np
-import tensorflow.keras as keras
 from openfl.federated.types import TypeHandler
 from copy import deepcopy
 
@@ -12,6 +11,16 @@ class KerasModelTypeHandler(TypeHandler):
         self.compress = True
         self.aggregation_type = 'weighted_mean'
 
+    @staticmethod
+    def get_dependencies():
+        """What are the dependencies for this type?"""
+        return ['tensorflow']
+
+    @staticmethod
+    def type():
+        """The type that this class handles"""
+        import tensorflow.keras as keras
+        return keras.Model
 
     @staticmethod
     def attr_to_map(attribute,attribute_name,round_phase='end',round_num=0, report=False, origin='LOCAL'):

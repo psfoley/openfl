@@ -6,5 +6,13 @@ class DataHandler(ABC):
         pass
 
     @abstractmethod
+    def get_dependencies():
+        pass
+
+    @abstractmethod
+    def type():
+        pass
+
+    @abstractmethod
     def shard_data(self,loader,rank,_size):
         pass

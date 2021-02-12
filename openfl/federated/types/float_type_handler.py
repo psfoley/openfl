@@ -1,7 +1,6 @@
 from openfl.utilities import TensorKey
 import hashlib
 import numpy as np
-import torch
 from openfl.federated.types import TypeHandler
 from copy import deepcopy
 
@@ -12,6 +11,15 @@ class FloatTypeHandler(TypeHandler):
         self.compress = False
         self.aggregation_type = 'weighted_mean'
 
+    @staticmethod
+    def get_dependencies():
+        """What are the dependencies for this type?"""
+        return []
+
+    @staticmethod
+    def type():
+        """The type that this class handles"""
+        return float
 
     @staticmethod
     def attr_to_map(attribute,attribute_name, round_phase='end',round_num=0, report=False, origin='LOCAL'):

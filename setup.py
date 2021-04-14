@@ -13,9 +13,13 @@ setup(
     packages=[
         'openfl',
         'openfl.interface',
+        'openfl.interface.interactive_api',
         'openfl.component',
         'openfl.cryptography',
         'openfl.native',
+        'openfl.plugins',
+        'openfl.plugins.interface_serializer',
+        'openfl.plugins.frameworks_adapters',
         'openfl.component.assigner',
         'openfl.component.aggregator',
         'openfl.component.collaborator',

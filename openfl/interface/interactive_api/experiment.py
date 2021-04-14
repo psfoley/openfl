@@ -24,7 +24,8 @@ class FLExperiment:
 
     def start_experiment(self, model_provider, task_keeper, data_loader, \
             rounds_to_train, \
-            delta_updates=False, opt_treatment='RESET'):
+            delta_updates=False, opt_treatment='RESET', \
+            local=False):
 
         self.prepare_plan(model_provider, task_keeper, data_loader, \
             rounds_to_train, \
@@ -42,10 +43,15 @@ class FLExperiment:
         Plan.Dump(Path('./plan/plan.yaml'), self.plan.config, freeze=False)
         self.plan.resolve()
 
+
         initial_tensor_dict = self.get_initial_tensor_dict(model_provider)
         server = self.plan.interactive_api_get_server(initial_tensor_dict)
 
+        # if local = True:
+        #   create collaborators; run simulation
+       
         server.serve()
+
 
     def get_initial_tensor_dict(self, model_provider):
         task_runner_stub = self.plan.get_task_runner(model_provider=model_provider)
@@ -84,7 +90,7 @@ class FLExperiment:
 
         # Tasks part
         for name in task_keeper.task_registry:
-            if task_keeper.task_contract[name]['optimizer'] is not None:
+            if len(task_keeper.runner_objects_to_send) > 0:
                 # This is training task
                 plan.config['tasks'][name] = {'function':name,
                                             'kwargs':task_keeper.task_settings[name]}
@@ -128,8 +134,13 @@ class FLExperiment:
 
     def serialize_interface_objects(self, model_provider, task_keeper, data_loader):
         serializer = self.plan.Build(self.plan.config['api_layer']['required_plugin_components']['serializer_plugin'], {})
-        for object_, filename in zip([model_provider, task_keeper, data_loader],
-                    ['model_interface_file', 'tasks_interface_file', 'dataloader_interface_file']):
+        framework_adapter = Plan.Build(model_provider.framework_plugin, {})
+        # Model provider serialization may need preprocessing steps
+        framework_adapter.serialization_setup()
+        serializer.serialize(model_provider, self.plan.config['api_layer']['settings']['model_interface_file'])
+
+        for object_, filename in zip([task_keeper, data_loader],
+                    ['tasks_interface_file', 'dataloader_interface_file']):
             serializer.serialize(object_, self.plan.config['api_layer']['settings'][filename])
 
 
@@ -147,9 +158,12 @@ class TaskInterface:
         self.task_contract = dict()
         # Mapping 'task name' -> arguments
         self.task_settings = defaultdict(dict)
+        
+        self.runner_objects_to_send = dict()
 
 
-    def register_fl_task(self, model, data_loader, device, optimizer=None):
+    #def register_fl_task(self, model, data_loader, device=None, optimizer=None):
+    def register_fl_task(self, model, data_loader, **kwargs):
         """
         This method is for registering FL tasks
         The task contract should be set up by providing variable names:
@@ -182,10 +196,40 @@ class TaskInterface:
 
             # Saving the task and the contract for later serialization 
             self.task_registry[training_method.__name__] = wrapper_decorator
-            contract = {'model':model, 'data_loader':data_loader, 'device':device, 'optimizer':optimizer}
+            #contract = {'model':model, 'data_loader':data_loader, 'device':device, 'optimizer':optimizer}
+            contract = {'model':model, 'data_loader': data_loader, **kwargs}
+            if 'optimizer' in contract and 'device' in contract:
+                self.logger.info(f'PyTorch task detected')
             self.task_contract[training_method.__name__] = contract
             # We do not alter user environment
             return training_method
+
+        return decorator_with_args
+
+    def send_model(self):
+        # The highest level wrapper for allowing arguments for the decorator
+        def decorator_with_args(method):
+            if method.__name__ in self.runner_objects_to_send:
+                params_to_ = self.runner_objects_to_send[method.__name__]
+                to_send.append('model')
+                self.runner_objects_to_send[method.__name__] = to_send
+            else:
+                self.runner_objects_to_send[method.__name__] = ['model']
+            return method
+
+        return decorator_with_args
+
+
+    def send_optimizer(self):
+        # The highest level wrapper for allowing arguments for the decorator
+        def decorator_with_args(method):
+            if method.__name__ in self.runner_objects_to_send:
+                to_send = self.runner_objects_to_send[method.__name__]
+                to_send.append('optimizer')
+                self.runner_objects_to_send[method.__name__] = to_send
+            else:
+                self.runner_objects_to_send[method.__name__] = ['optimizer']
+            return method
 
         return decorator_with_args
 
@@ -214,7 +258,7 @@ class ModelInterface:
     This is the place to determine correct framework adapter
         as they are needed to fill the model graph with trained tensors
     '''
-    def __init__(self, model, optimizer, framework_plugin) -> None:
+    def __init__(self, model, framework_plugin, optimizer=None) -> None:
         '''
         Arguments:
         model: Union[tuple, graph]
@@ -272,6 +316,3 @@ class DataInterface:
         """
         raise NotImplementedError
 
-# class test(DataInterface, ModelInterface):
-#     def __init__(self, data_path) -> None:
-#         super().__init__(data_path)

@@ -7,6 +7,11 @@ class FrameworkAdapterPlugin:
     def __init__(self) -> None:
         pass
         
+    def __repr__(self):
+        return 'pytorch_adapter'
+
+    def serialization_setup(self):
+        pass
 
     @staticmethod
     def get_tensor_dict(model, optimizer=None):

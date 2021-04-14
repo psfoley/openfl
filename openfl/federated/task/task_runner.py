@@ -9,7 +9,7 @@ from openfl.utilities import TensorKey, split_tensor_dict_for_holdouts
 class CoreTaskRunner(object):
     """Federated Learning Task Runner Class."""
 
-    def prepare_tensorkeys_for_agggregation(self, metric_dict, validation_flag, col_name, round_num):
+    def prepare_tensorkeys_for_aggregation(self, metric_dict, validation_flag, col_name, round_num):
         """
         Returns (global_tensor_dict, local_tensor_dict)
         """
@@ -81,15 +81,29 @@ class CoreTaskRunner(object):
             def collaborator_adapted_task(col_name, round_num, input_tensor_dict, **kwargs):
                 # print('\n\n',task_name, kwargs, '\n\n')
                 task_contract = self.task_provider.task_contract[task_name]
+                components_to_send = self.task_provider.runner_objects_to_send[task_name]
+
+                #Treat high level frameworks vs low level frameworks arguments differently
+                # The inclusion of the optimizer is being used to determine whether the task is 
+                # a training or validation task. This doesn't hold for some high level frmaeworks like keras
+                if len(components_to_send) > 0:
+                    validation_flag = True
+
                 # Validation flag can be [False, '_local', '_agg']
-                validation_flag = True if task_contract['optimizer'] is None else False
+                validation_flag = True if len(components_to_send) > 0 else False
+                #validation_flag = True if task_contract['optimizer'] is None else False
                 task_settings = self.task_provider.task_settings[task_name]
 
-                cuda_device = 0 if self.data_loader.rank==1 else 2
-                device = kwargs.get('device', f'cuda:{cuda_device}')
+                # This will fail if no Nvidia GPU is present. Default to CPU instead
+                # cuda_device = 0 if self.data_loader.rank==1 else 2
+                # device = kwargs.get('device', f'cuda:{cuda_device}')
+                device = kwargs.get('device', 'cpu')
                 
                 self.rebuild_model(input_tensor_dict, validation=validation_flag, device=device)
                 task_kwargs = dict()
+
+                # We need a cleaner way to express global vs local validation. 
+                # Synchronizing only at the beginning and end of the round would help with this
                 if validation_flag:  
                     loader = self.data_loader.get_valid_loader() 
                     if kwargs['apply'] == 'local':
@@ -101,19 +115,21 @@ class CoreTaskRunner(object):
                     # If train task we also pass optimizer
                     task_kwargs[task_contract['optimizer']] = self.optimizer
 
+                if 'device' in task_kwargs:
+                    task_kwargs[task_contract['device']] = device
                 
-                for en_name, entity in zip(['model', 'data_loader', 'device'],
-                                            [self.model, loader, device]):
+                for en_name, entity in zip(['model', 'data_loader'],
+                                            [self.model, loader]):
                     task_kwargs[task_contract[en_name]] = entity
 
                 # Add task settings to the keyword arguments
                 task_kwargs.update(task_settings)
 
-                # Here is the training metod call
+                # Here is the method call
                 
                 metric_dict = callable_task(**task_kwargs)
                 
-                return self.prepare_tensorkeys_for_agggregation(metric_dict, validation_flag, col_name, round_num)
+                return self.prepare_tensorkeys_for_aggregation(metric_dict, validation_flag, col_name, round_num)
 
             return collaborator_adapted_task
 
@@ -163,6 +179,9 @@ class CoreTaskRunner(object):
     def set_framework_adapter(self, framework_adapter):
         self.framework_adapter = framework_adapter
         self.initialize_tensorkeys_for_functions()
+
+    def get_framework_adapter(self):
+        return self.framework_adapter
 
 
     def set_logger(self):

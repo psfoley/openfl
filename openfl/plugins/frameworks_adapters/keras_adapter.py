@@ -1,6 +1,7 @@
 class FrameworkAdapterPlugin:
     def __init__(self) -> None:
-        pass
+        import tensorflow as tf
+        tf.keras.backend.clear_session()
        
     def __repr__(self):
         return 'keras_adapter'

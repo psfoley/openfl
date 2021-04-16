@@ -96,7 +96,7 @@ class FLExperiment:
                                             'kwargs':task_keeper.task_settings[name]}
             else:
                 # This is a validation type task (not altering the model state)
-                for name_prefix, apply_kwarg in zip(['localy_tuned_model_', 'aggregated_model_'],
+                for name_prefix, apply_kwarg in zip(['locally_tuned_model_', 'aggregated_model_'],
                                                 ['local', 'global']):
                     # We add two entries for this task: for local and global models
                     task_kwargs = deepcopy(task_keeper.task_settings[name])
@@ -210,7 +210,7 @@ class TaskInterface:
         # The highest level wrapper for allowing arguments for the decorator
         def decorator_with_args(method):
             if method.__name__ in self.runner_objects_to_send:
-                params_to_ = self.runner_objects_to_send[method.__name__]
+                to_send = self.runner_objects_to_send[method.__name__]
                 to_send.append('model')
                 self.runner_objects_to_send[method.__name__] = to_send
             else:

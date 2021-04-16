@@ -56,6 +56,7 @@ class CoreTaskRunner(object):
             # A work around could involve doing a single epoch of training
             # on random data to get the optimizer names,
             # and then throwing away the model.
+            print(f'self.opt_treatment = {self.opt_treatment}')
             if self.opt_treatment == 'CONTINUE_GLOBAL':
                 self.initialize_tensorkeys_for_functions(with_opt_vars=True)
 
@@ -81,16 +82,18 @@ class CoreTaskRunner(object):
             def collaborator_adapted_task(col_name, round_num, input_tensor_dict, **kwargs):
                 # print('\n\n',task_name, kwargs, '\n\n')
                 task_contract = self.task_provider.task_contract[task_name]
-                components_to_send = self.task_provider.runner_objects_to_send[task_name]
+                components_to_send = self.task_provider.runner_objects_to_send
 
                 #Treat high level frameworks vs low level frameworks arguments differently
                 # The inclusion of the optimizer is being used to determine whether the task is 
                 # a training or validation task. This doesn't hold for some high level frmaeworks like keras
-                if len(components_to_send) > 0:
+                if task_name in components_to_send:
+                    validation_flag = False
+                else:
                     validation_flag = True
 
                 # Validation flag can be [False, '_local', '_agg']
-                validation_flag = True if len(components_to_send) > 0 else False
+                #validation_flag = True if len(components_to_send) > 0 else False
                 #validation_flag = True if task_contract['optimizer'] is None else False
                 task_settings = self.task_provider.task_settings[task_name]
 
@@ -104,16 +107,18 @@ class CoreTaskRunner(object):
 
                 # We need a cleaner way to express global vs local validation. 
                 # Synchronizing only at the beginning and end of the round would help with this
+                loader = self.data_loader
                 if validation_flag:  
-                    loader = self.data_loader.get_valid_loader() 
-                    if kwargs['apply'] == 'local':
-                        validation_flag = '_local'
-                    else:
-                        validation_flag = '_agg'
+                    #loader = self.data_loader.get_valid_loader() 
+                    #if kwargs['apply'] == 'local':
+                    validation_flag = '_agg'
+                    #else:
+                    #    validation_flag = '_agg'
                 else:
-                    loader = self.data_loader.get_train_loader()
+                    #loader = self.data_loader.get_train_loader()
                     # If train task we also pass optimizer
-                    task_kwargs[task_contract['optimizer']] = self.optimizer
+                    if 'optimizer' in task_kwargs:
+                        task_kwargs[task_contract['optimizer']] = self.optimizer
 
                 if 'device' in task_kwargs:
                     task_kwargs[task_contract['device']] = device

@@ -1,0 +1,191 @@
+# Copyright (C) 2022 Intel Corporation
+# Licensed subject to the terms of the separately executed evaluation license agreement between Intel Corporation and you.
+
+aggregator :
+  defaults : plan/defaults/aggregator.yaml
+  template : openfl.component.Aggregator
+  settings :
+    init_state_path : save/fets_seg_test_init.pbuf
+    best_state_path : save/fets_seg_test_best.pbuf
+    last_state_path : save/fets_seg_test_last.pbuf
+    rounds_to_train : 3
+    write_logs : true
+
+
+collaborator :
+  defaults : plan/defaults/collaborator.yaml
+  template : openfl.component.Collaborator
+  settings :
+    delta_updates    : false
+    opt_treatment    : RESET
+
+data_loader :
+  defaults : plan/defaults/data_loader.yaml
+  template : openfl.federated.data.loader_fets_challenge.FeTSChallengeDataLoaderWrapper
+  settings :
+    feature_shape : [32, 32, 32]
+
+task_runner :
+  template : openfl.federated.task.runner_fets_challenge.FeTSChallengeTaskRunner
+  settings :
+    train_csv           : seg_test_train.csv
+    val_csv             : seg_test_val.csv
+    device              : cpu
+    fets_config_dict  :
+      version:
+        maximum: 0.0.14
+        minimum: 0.0.14 # this should NOT be made a variable, but should be tested after every tag is created
+      model:
+        dimension: 2 # the dimension of the model and dataset: defines dimensionality of computations
+        base_filters: 32 # Set base filters: number of filters present in the initial module of the U-Net convolution; for IncU-Net, keep this divisible by 4
+        architecture: vgg # options: unet, resunet, fcn, uinc, vgg, densenet
+        batch_norm: True # this is only used for vgg
+        norm_type: batch
+        final_layer: sigmoid # can be either sigmoid, softmax or none (none == regression)
+        amp: False # Set if you want to use Automatic Mixed Precision for your operations or not - options: True, False
+        n_channels: 3 # set the input channels - useful when reading RGB or images that have vectored pixel types
+        class_list:  #changed for pathmednist
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+      # this is to enable or disable lazy loading - setting to true reads all data once during data loading, resulting in improvements
+      # in I/O at the expense of memory consumption
+      in_memory: False
+      # this will save the generated masks for validation and testing data for qualitative analysis
+      save_masks: False
+      # Set the Modality : rad for radiology, path for histopathology
+      modality: path
+      # Patch size during training - 2D patch for breast images since third dimension is not patched 
+      patch_size:
+      - 256
+      - 256
+      metrics:
+      #- cel
+      - classification_accuracy
+      - f1:
+          average: weighted
+      - accuracy
+      - balanced_accuracy
+      # Number of epochs
+      num_epochs: 5
+      # Set the patience - measured in number of epochs after which, if the performance metric does not improve, exit the training loop - defaults to the number of epochs
+      patience: 5
+      # Set the batch size
+      batch_size: 16
+      # Set the initial learning rate
+      learning_rate: 0.001
+      # Learning rate scheduler - options: triangle, triangle_modified, exp, reduce-on-lr, step, more to come soon - default hyperparameters can be changed thru code
+      scheduler: triangle
+      # Set which loss function you want to use - options : 'dc' - for dice only, 'dcce' - for sum of dice and CE and you can guess the next (only lower-case please)
+      # options: dc (dice only), dc_log (-log of dice), ce (), dcce (sum of dice and ce), mse () ...
+      # mse is the MSE defined by torch and can define a variable 'reduction'; see https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html#torch.nn.MSELoss
+      # use mse_torch for regression/classification problems and dice for segmentation
+      loss_function: cel
+      # this parameter weights the loss to handle imbalanced losses better
+      weighted_loss: True
+      # Which optimizer do you want to use - adam/sgd
+      opt: adam
+      # this parameter controls the nested training process
+      # performs randomized k-fold cross-validation
+      # split is performed using sklearn's KFold method
+      # for single fold run, use '-' before the fold number
+      nested_training:
+        testing: 1 # this controls the testing data splits for final model evaluation; use '1' if this is to be disabled
+        validation: -5 # this controls the validation data splits for model training
+      data_preprocessing:
+        resize:
+        - 256
+        - 256
+      # UB_commented: parallel_compute_command: 'qsub -b y -l gpu -l h_vmem=32G -cwd -o ${outputDir}/\$JOB_ID.stdout -e ${outputDir}/\$JOB_ID.stderr `pwd`/sge_wrapper _correct_location_of_virtual_environment_/venv/bin/python',
+      #parallel_compute_command: ''
+      ## queue configuration - https://torchio.readthedocs.io/data/patch_training.html?#queue
+      # this determines the maximum number of patches that can be stored in the queue. Using a large number means that the queue needs to be filled less often, but more CPU memory is needed to store the patches
+
+      q_max_length: 5
+
+      # this determines the number of patches to extract from each volume. A small number of patches ensures a large variability in the queue, but training will be slower
+
+      q_samples_per_volume: 1
+
+      # this determines the number subprocesses to use for data loading; '0' means main process is used
+
+      q_num_workers: 0 # scale this according to available CPU resources (was 16)
+
+      # used for debugging
+      q_verbose: False
+
+      # # uniform: UniformSampler or label: LabelSampler
+      # patch_sampler: uniform
+      # batch_size: 16
+      # clip_grad: null
+      # clip_mode: null
+      # data_augmentation: {}
+      # data_postprocessing: {}
+      # data_preprocessing:
+      #   normalize: null
+      # # this is to enable or disable lazy loading - setting to true reads all data once during data loading, resulting in improvements
+      # # in I/O at the expense of memory consumption
+      # in_memory: false
+      # # this will save the generated masks for validation and testing data for qualitative analysis
+      # save_masks: False
+      # learning_rate: 0.001
+      # loss_function: dc
+      # medcam_enabled: false
+      # output_dir: '.'
+      # metrics:
+      # - dice
+      
+      # nested_training:
+      #   testing: -5
+      #   validation: -5
+      # num_epochs: 5
+      # optimizer:
+      #   type: adam
+      # parallel_compute_command: ''
+      # patch_sampler: uniform
+      # patch_size:
+      # - 32
+      # - 32
+      # - 32
+      # weighted_loss: true
+
+network :
+  defaults : plan/defaults/network.yaml
+
+assigner :
+  defaults : plan/defaults/assigner.yaml
+
+tasks :
+  aggregated_model_validation:
+    function : validate
+    kwargs   :
+      apply   : global
+      metrics :
+        - valid_loss
+        - valid_dice
+    
+  locally_tuned_model_validation:
+    function  : validate
+    kwargs    :
+      apply: local
+      metrics :
+        - valid_loss
+        - valid_dice
+    
+  train:
+    function : train
+    kwargs   :
+      metrics     :
+      - loss
+      - train_dice
+      epochs : 1
+
+
+compression_pipeline :
+  defaults : plan/defaults/compression_pipeline.yaml

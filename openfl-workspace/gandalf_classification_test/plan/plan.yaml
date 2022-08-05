@@ -28,8 +28,8 @@ data_loader :
 task_runner :
   template : openfl.federated.task.runner_fets_challenge.FeTSChallengeTaskRunner
   settings :
-    train_csv           : medmnist/dataset/test_path_tiny.csv
-    val_csv             : medmnist/dataset/val_path_tiny.csv
+    train_csv           : train_path_tiny.csv
+    val_csv             : val_path_tiny.csv
     device              : cpu
     fets_config_dict  :
       version:

@@ -131,7 +131,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        'Click==8.0.1',
+        'Click',
         'PyYAML>=5.4.1',
         'cloudpickle',
         'cryptography>=3.4.6',

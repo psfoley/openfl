@@ -13,6 +13,7 @@ from openfl.utilities import TensorKey
 
 from .runner import TaskRunner
 
+import GANDLF
 from GANDLF.compute.generic             import create_pytorch_objects
 from GANDLF.compute.training_loop       import train_network
 from GANDLF.compute.forward_pass        import validate_network

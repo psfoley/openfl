@@ -132,7 +132,7 @@ setup(
     include_package_data=True,
     install_requires=[
         'Click',
-        'Flask==2.2.2',
+        'Flask',
         'PyYAML>=5.4.1',
         'cloudpickle',
         'cryptography>=3.4.6',

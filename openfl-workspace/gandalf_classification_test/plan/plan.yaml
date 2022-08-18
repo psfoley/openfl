@@ -80,6 +80,7 @@ task_runner:
       q_num_workers: 0
       q_samples_per_volume: 1
       q_verbose: false
+      verbose: false
       save_masks: false
       scheduler: triangle
       version:

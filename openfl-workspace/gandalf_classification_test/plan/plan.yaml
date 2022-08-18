@@ -47,6 +47,8 @@ task_runner:
       - accuracy
       - balanced_accuracy
       modality: path
+      optimizer:
+        type: adam
       model:
         amp: false
         architecture: vgg

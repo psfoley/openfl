@@ -86,8 +86,8 @@ task_runner:
         maximum: 0.0.14
         minimum: 0.0.14
       weighted_loss: true
-    train_csv: train_path_tiny.csv
-    val_csv: val_path_tiny.csv
+    train_csv: train_path_full.csv
+    val_csv: val_path_full.csv
 
 network :
   defaults : plan/defaults/network.yaml

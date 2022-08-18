@@ -84,7 +84,9 @@ task_runner:
       q_verbose: false
       verbose: false
       save_masks: false
-      scheduler: triangle
+      scheduler:
+        type: triangle
+        step_size: 5
       version:
         maximum: 0.0.14
         minimum: 0.0.14

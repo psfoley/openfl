@@ -92,8 +92,22 @@ task_runner:
         maximum: 0.0.14
         minimum: 0.0.14
       weighted_loss: true
+      clip_grad: null
+      clip_mode: null
+      data_postprocessing: {}
+      inference_mechanism  :
+        grid_aggregator_overlap: crop
+        patch_overlap: 0
+      medcam_enabled: false
+      parallel_compute_command: ''
+      pin_memory_dataloader: false
+      print_rgb_label_warning: true
+      save_output: false
+      save_training: false
+      track_memory_usage: false
     train_csv: train_path_full.csv
     val_csv: val_path_full.csv
+    
 
 network :
   defaults : plan/defaults/network.yaml

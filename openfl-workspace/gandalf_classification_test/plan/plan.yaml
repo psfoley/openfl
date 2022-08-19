@@ -42,8 +42,8 @@ task_runner:
       loss_function: cel
       metrics:
       - classification_accuracy
-      - f1:
-          average: weighted
+#       - f1:
+#           average: weighted
       - accuracy
       - balanced_accuracy
       modality: path

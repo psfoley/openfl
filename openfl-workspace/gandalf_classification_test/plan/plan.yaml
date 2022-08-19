@@ -95,9 +95,9 @@ task_runner:
       clip_grad: null
       clip_mode: null
       data_postprocessing: {}
-#       inference_mechanism  :
-#         grid_aggregator_overlap: crop
-#         patch_overlap: 0
+      inference_mechanism:
+        grid_aggregator_overlap: crop
+        patch_overlap: 0
       medcam_enabled: false
       parallel_compute_command: ''
       pin_memory_dataloader: false

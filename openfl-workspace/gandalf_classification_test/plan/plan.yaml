@@ -30,6 +30,7 @@ task_runner:
   settings:
     device: cpu
     fets_config_dict:
+      output_dir: '.'
       batch_size: 16
       data_augmentation: {}
       data_preprocessing:

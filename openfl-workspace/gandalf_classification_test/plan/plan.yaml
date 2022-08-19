@@ -105,6 +105,7 @@ task_runner:
       save_output: false
       save_training: false
       track_memory_usage: false
+      problem_type: classification
     train_csv: train_path_full.csv
     val_csv: val_path_full.csv
     

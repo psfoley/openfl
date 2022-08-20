@@ -69,6 +69,9 @@ task_runner:
         final_layer: sigmoid
         n_channels: 3
         norm_type: batch
+        ignore_label_validation: None
+        type: torch
+        save_at_every_epoch: false
       nested_training:
         testing: 1
         validation: -5
@@ -77,6 +80,7 @@ task_runner:
       patch_size:
       - 256
       - 256
+      - 1
       patience: 5
       patch_sampler: uniform
       q_max_length: 5
@@ -87,7 +91,7 @@ task_runner:
       save_masks: false
       scheduler:
         type: triangle
-        step_size: 5
+        step_size: 0.0002
       version:
         maximum: 0.0.14
         minimum: 0.0.14
@@ -95,6 +99,7 @@ task_runner:
       clip_grad: null
       clip_mode: null
       data_postprocessing: {}
+      data_augmentation: {}
       inference_mechanism:
         grid_aggregator_overlap: crop
         patch_overlap: 0
@@ -105,7 +110,8 @@ task_runner:
       save_output: false
       save_training: false
       track_memory_usage: false
-      problem_type: classification
+      scaling_factor: 1
+      grid_aggregator_overlap: crop
     train_csv: train_path_full.csv
     val_csv: val_path_full.csv
     

@@ -45,7 +45,7 @@ task_runner:
       - classification_accuracy
       - accuracy
       - balanced_accuracy
-      modality: path
+      modality: rad
       optimizer:
         type: adam
       model:
@@ -126,16 +126,16 @@ tasks :
     kwargs   :
       apply   : global
       metrics :
-        - valid_loss
-        - valid_dice
+      - valid_loss
+      - valid_dice
     
   locally_tuned_model_validation:
     function  : validate
     kwargs    :
       apply: local
       metrics :
-        - valid_loss
-        - valid_dice
+      - valid_loss
+      - valid_dice
     
   train:
     function : train

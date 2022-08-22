@@ -23,7 +23,7 @@ data_loader :
   defaults : plan/defaults/data_loader.yaml
   template : openfl.federated.data.loader_fets_challenge.FeTSChallengeDataLoaderWrapper
   settings :
-    feature_shape : [32, 32, 32]
+    feature_shape : [256, 256]
 
 task_runner:
   template: openfl.federated.task.runner_fets_challenge.FeTSChallengeTaskRunner
@@ -78,7 +78,6 @@ task_runner:
       patch_size:
       - 256
       - 256
-      - 1
       patience: 5
       patch_sampler: uniform
       q_max_length: 5

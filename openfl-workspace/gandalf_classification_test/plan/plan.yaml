@@ -66,6 +66,7 @@ task_runner:
         dimension: 2
         final_layer: sigmoid
         n_channels: 3
+        num_channels: 3
         norm_type: batch
         ignore_label_validation: None
         type: torch

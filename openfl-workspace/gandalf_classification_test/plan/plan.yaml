@@ -78,6 +78,7 @@ task_runner:
       patch_size:
       - 256
       - 256
+      - 1
       patience: 5
       patch_sampler: uniform
       q_max_length: 5

@@ -128,7 +128,7 @@ tasks :
       apply   : global
       metrics :
       - valid_loss
-      - valid_dice
+      - valid_accuracy
     
   locally_tuned_model_validation:
     function  : validate
@@ -136,14 +136,14 @@ tasks :
       apply: local
       metrics :
       - valid_loss
-      - valid_dice
+      - valid_accuracy
     
   train:
     function : train
     kwargs   :
       metrics     :
       - loss
-      - train_dice
+      - train_accuracy
       epochs : 1
 
 

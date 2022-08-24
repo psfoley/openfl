@@ -28,7 +28,7 @@ data_loader :
 task_runner:
   template: openfl.federated.task.runner_fets_challenge.FeTSChallengeTaskRunner
   settings:
-    device: cpu
+    device: cuda
     fets_config_dict:
       output_dir: '.'
       batch_size: 16

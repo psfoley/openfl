@@ -62,7 +62,7 @@ task_runner:
         type: adam
       model:
         amp: false
-        architecture: resnet
+        architecture: resnet50
         base_filters: 32
         batch_norm: true
         class_list:

@@ -119,3 +119,4 @@ fx -l DEBUG collaborator start -n ${COL2}
 wait
 rm -rf ${FED_DIRECTORY}
  
+ 

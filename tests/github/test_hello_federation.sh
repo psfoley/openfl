@@ -118,3 +118,4 @@ cd ${COL2_DIRECTORY}/${FED_WORKSPACE}
 fx -l DEBUG collaborator start -n ${COL2}
 wait
 rm -rf ${FED_DIRECTORY}
+ 

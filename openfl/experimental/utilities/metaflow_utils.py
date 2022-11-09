@@ -1,7 +1,7 @@
 from metaflow.metaflow_environment import MetaflowEnvironment
 from metaflow.plugins import LocalMetadataProvider
-from metaflow.datastore import FlowDataStore, TaskDataStore, DATASTORES
-from metaflow.datastore.task_datastore import only_if_not_done,require_mode
+from metaflow.datastore import FlowDataStore, DATASTORES
+from metaflow.datastore.task_datastore import only_if_not_done,require_mode, TaskDataStore
 import multiprocessing
 import cloudpickle
 import ray

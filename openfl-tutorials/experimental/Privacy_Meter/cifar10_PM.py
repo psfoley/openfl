@@ -82,7 +82,7 @@ def default_optimizer(model,optimizer_type=None,optimizer_like=None):
         return optim.Adam(model.parameters())
 
 def FedAvg(models):
-    new_model = models[0]    
+    new_model = models[0]
     if len(models) >1:
         state_dicts = [model.state_dict() for model in models]
         state_dict = new_model.state_dict()
@@ -287,6 +287,13 @@ class FederatedFlow(FLSpec):
             print('Performing Auditing')
             self.next(self.audit)        
         else:
+            self.model = self.model.to("cpu")        # Putting model into cpu and then back to gpu to prevent gpu memory hogging
+            self.global_model = self.global_model.to("cpu")        # Putting model into cpu and then back to gpu to prevent gpu memory hogging
+            tmp_opt = deepcopy(self.optimizers[self.input])
+            tmp_opt.load_state_dict(self.optimizer.state_dict())
+            self.optimizer = tmp_opt
+            torch.cuda.empty_cache()
+
             self.next(self.join, exclude=['training_completed'])
     
     # @collaborator                     # Uncomment this if you don't have GPU on the machine and want this application ro run on CPU instead 
@@ -355,6 +362,9 @@ class FederatedFlow(FLSpec):
 
         self.model = self.model.to("cpu")        # Putting model into cpu and then back to gpu to prevent gpu memory hogging
         self.global_model = self.global_model.to("cpu")        # Putting model into cpu and then back to gpu to prevent gpu memory hogging
+        tmp_opt = deepcopy(self.optimizers[self.input])
+        tmp_opt.load_state_dict(self.optimizer.state_dict())
+        self.optimizer = tmp_opt
         torch.cuda.empty_cache()
         
         self.next(self.join, exclude=['training_completed'])
@@ -370,8 +380,16 @@ class FederatedFlow(FLSpec):
     
         self.model = FedAvg([input.model.cpu() for input in inputs])
         self.global_model.load_state_dict(deepcopy(self.model.state_dict()))
-        self.optimizers.update({input.collaborator_name: input.optimizer for input in inputs})
-       
+        
+        # Update optimizer list
+        for input in inputs:
+            col = input.collaborator_name
+            opt = self.optimizers[col]
+            opt.load_state_dict(input.optimizer.state_dict())
+            self.optimizers[col] = opt
+
+        del inputs
+
         self.next(self.check_round_completion)
 
     @aggregator

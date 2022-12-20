@@ -13,7 +13,7 @@ from privacy_meter.dataset import Dataset
 from privacy_meter.information_source import InformationSource
 
 import time
-from privacy_meter.metric import PopulationMetric
+from privacy_meter.metric import PopulationMetric,ReferenceMetric
 from privacy_meter.information_source_signal import ModelLoss, ModelGradientNorm
 import privacy_meter.hypothesis_test as prtest
 
@@ -219,6 +219,136 @@ def PopulationAuditor(target_model, datasets, pm_info):
     pm_info.update_history("roc", roc_list)
 
     print(f"debug:saving the information uses {time.time() - start_time}")
+    return pm_info
+
+
+
+def ReferenceAuditor(target_model,reference_models,datasets,pm_info):
+    """
+    Function that returns updated privacy risk report based on the current snapshot of the model and FL history and updates the PM history.
+    Args:
+        target_model (PM model obj): The current snapshot of the model
+        reference_models (List of PM model obj): The current snapshot of the reference models
+        datasets (dict): Dataset dictionary, which contains members dataset and non-members dataset, as well as the dataset for auditing. 
+                         Each dataset is the PM dataset obj
+        pm_info (PM_report obj): Dictionary that contains the history of the privacy loss report       
+    Returns:
+        Updated privacy report
+    """
+
+    begin_time = time.time()
+    
+    train_dataset = datasets['train'] 
+    test_dataset = datasets['test'] 
+
+    # prepare for the dataset
+    if torch.is_tensor(train_dataset.data):
+        train_ds = {'x': train_dataset.data, 'y': train_dataset.targets}
+        test_ds = {'x': test_dataset.data, 'y': test_dataset.targets}
+    else:
+        train_ds = {'x': torch.from_numpy(train_dataset.data).float(), 'y': torch.tensor(train_dataset.targets)}
+        test_ds = {'x':  torch.from_numpy(test_dataset.data).float(), 'y': torch.tensor(test_dataset.targets)}
+
+
+    target_dataset = Dataset(
+        data_dict={'train': train_ds, 'test': test_ds},
+        default_input='x', default_output='y',default_group='y'
+    )
+
+
+    target_info_source = InformationSource(
+        models=[target_model], 
+        datasets=[target_dataset]
+    )
+
+    reference_info_source = InformationSource(
+        models=reference_models,
+        datasets=[target_dataset]
+    ) 
+
+    print('debug:prepare for the dataset {}'.format(time.time()- begin_time))
+
+    start_time = time.time()
+    metrics = []
+    for signal in pm_info.signals:
+        if signal == 'loss':  
+            metrics.append(ReferenceMetric(
+                target_info_source = target_info_source,
+                reference_info_source = reference_info_source,
+                signals = [ModelLoss()],
+                hypothesis_test_func = prtest.linear_itp_threshold_func
+            ))
+        elif signal == 'logits':
+            metrics.append(ReferenceMetric(
+                target_info_source = target_info_source,
+                reference_info_source = reference_info_source,
+                signals = [ModelLoss()],
+                hypothesis_test_func = prtest.logit_rescale_threshold_func
+            ))
+        elif signal == 'gradient_norm':
+            metrics.append(ReferenceMetric(
+                target_info_source = target_info_source,
+                reference_info_source = reference_info_source,
+                signals = [ModelGradientNorm(pm_info.other_info['is_features'],pm_info.other_info['layer_number'])],
+                hypothesis_test_func = prtest.linear_itp_threshold_func
+            ))
+        else:
+            raise ValueError(f"The provided signal {signal} is not supported.")
+            
+    print('debug:construct the metrics uses {}'.format(time.time()- start_time))
+
+    start_time = time.time()
+    audit_obj = Audit(
+        metrics=metrics,
+        inference_game_type=InferenceGame.PRIVACY_LOSS_MODEL,
+        target_info_sources=target_info_source,
+        reference_info_sources=reference_info_source,
+        fpr_tolerances=None,
+        save_logs=False
+    )
+    audit_obj.prepare() 
+    print('preparing the auditing uses {}'.format(time.time()-start_time))
+    
+    start_time = time.time()
+    audit_results = audit_obj.run()
+    print('debug:running the auditing uses {}'.format(time.time()-start_time))
+
+
+    start_time = time.time()
+    roc_list = []
+    auc_list = []
+    t_tpr_dict = []
+    t_fpr_dict = []
+    for idx in range(len(audit_results)):
+        # for each results in the signals
+        mr = audit_results[idx][0]
+        tpr_list = mr.tp /( mr.tp + mr.fn + 0.0000001)
+        fpr_list = mr.fp / ( mr.tn + mr.fp + 0.0000001)
+        roc_list.append({'fpr': fpr_list,'tpr':tpr_list})
+        auc_list.append(np.trapz(x=fpr_list, y=tpr_list))
+        
+        # focus on the performance uses are interested in
+        tolerance_index = []
+        for t_fpr in pm_info.fpr_tolerance:
+            p = bisect(fpr_list, t_fpr)
+            if p < len(fpr_list):
+                tolerance_index.append(p)
+            else:
+                tolerance_index.append(p-1)  # avoid to select the end point
+        t_tpr_list = tpr_list[tolerance_index]
+        t_fpr_list = fpr_list[tolerance_index]
+        t_tpr_dict.append(t_tpr_list)
+        t_fpr_dict.append(t_fpr_list)
+
+    pm_info.update_history('tpr',t_tpr_dict)
+    pm_info.update_history('fpr',t_fpr_dict)
+
+
+    pm_info.update_history('auc',auc_list)
+    pm_info.update_history('roc', roc_list)
+
+
+    print('debug:saving the information uses {}'.format(time.time()-start_time))
     return pm_info
 
 

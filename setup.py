@@ -129,6 +129,7 @@ setup(
         'openfl.utilities.optimizers.keras',
         'openfl.utilities.optimizers.numpy',
         'openfl.utilities.optimizers.torch',
+        'openfl.utilities.split',
         'openfl-docker',
         'openfl-gramine',
         'openfl-tutorials',
